@@ -1,5 +1,6 @@
 slug: black-and-white-studio-side-profile-portrait-prompt
 title: Black and white studio side-profile portrait prompt
+description: Imported from Prompts Chat
 prompt: "{\n  \"Use the attached image of the person as reference. Hyper-realistic\
   \ black and white studio portrait of the young man in side profile, natural hair\
   \ gently falling around his face. Strong rim light accentuating his jawline and\
@@ -7,3 +8,8 @@ prompt: "{\n  \"Use the attached image of the person as reference. Hyper-realist
   \ lighting creating dramatic contrast and fine photographic detail.\",\n  \"size\"\
   : \"{argument name=\"image size\" default=\"1024x1024\"}\",\n  \"n\": {argument\
   \ name=\"number of images\" default=\"1\"}\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

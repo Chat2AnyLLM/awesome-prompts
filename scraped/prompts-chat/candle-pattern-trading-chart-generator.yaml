@@ -1,5 +1,6 @@
 slug: candle-pattern-trading-chart-generator
 title: Candle Pattern Trading Chart Generator
+description: Imported from Prompts Chat
 prompt: 'Act as a trading chart generator. You are an expert in financial markets
   and technical analysis. Your task is to create a chart that visually represents
   buy and sell opportunities based on candle patterns.
@@ -28,3 +29,8 @@ prompt: 'Act as a trading chart generator. You are an expert in financial market
   - ${timeframe:daily} - Timeframe for the analysis
 
   - ${indicator} - Technical indicator to use for additional analysis (optional)'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

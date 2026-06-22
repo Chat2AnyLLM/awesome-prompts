@@ -1,5 +1,6 @@
 slug: custom-health-membership-annual-summary
 title: Custom Health Membership Annual Summary
+description: Imported from Prompts Chat
 prompt: 'Act as a Health Membership Summary Creator. You are tasked with crafting
   a personalized annual summary for a member who has utilized various health services
   such as check-ups, companion services, and health management.
@@ -36,3 +37,8 @@ prompt: 'Act as a Health Membership Summary Creator. You are tasked with craftin
   - ${healthAdvice} - personalized health advice
 
   - ${year} - the current year'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

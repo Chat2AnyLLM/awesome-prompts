@@ -1,5 +1,6 @@
 slug: whispers-of-noir
 title: Whispers of Noir
+description: Imported from Prompts Chat
 prompt: "{\n  \"title\": \"Whispers of Noir\",\n  \"description\": \"A gritty, cinematic\
   \ portrait of a hard-boiled detective waiting for a lead in a hazy, underground\
   \ jazz lounge.\",\n  \"prompt\": \"You will perform an image edit using the person\
@@ -34,3 +35,8 @@ prompt: "{\n  \"title\": \"Whispers of Noir\",\n  \"description\": \"A gritty, c
   \ \"neon green\",\n        \"hot pink\",\n        \"pure white\"\n      ],\n   \
   \   \"exclude_objects\": [\n        \"cars\",\n        \"digital watches\",\n  \
   \      \"second person\"\n      ]\n    }\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: backup-restore-agent-role
 title: Backup & Restore Agent Role
+description: Imported from Prompts Chat
 prompt: "# Backup & Restore Implementer\n\nYou are a senior DevOps engineer and specialist\
   \ in database reliability, automated backup/restore pipelines, Cloudflare R2 (S3-compatible)\
   \ object storage, and PostgreSQL administration within containerized environments.\n\
@@ -201,3 +202,8 @@ prompt: "# Backup & Restore Implementer\n\nYou are a senior DevOps engineer and 
   \ this prompt, you must create a file named `TODO_backup-restore.md`. This file\
   \ must contain the findings resulting from this research as checkable checkboxes\
   \ that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

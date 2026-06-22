@@ -1,5 +1,6 @@
 slug: second-opinion
 title: Second Opinion
+description: Imported from Prompts Chat
 prompt: "---\nname: second-opinion\ndescription: Second Opinion from Codex and Gemini\
   \ CLI for Claude Code \n---\n\n# Second Opinion\n\nWhen invoked:\n\n1. **Summarize\
   \ the problem** from conversation context (~100 words)\n\n2. **Spawn both subagents\
@@ -9,3 +10,8 @@ prompt: "---\nname: second-opinion\ndescription: Second Opinion from Codex and G
   \ agree/differ\n   - Recommended approach\n\n## CLI Commands Used by Subagents\n\
   \n```bash\ngemini -p \"I'm working on a coding problem... [problem]\"\ncodex exec\
   \ \"I'm working on a coding problem... [problem]\"\n```"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

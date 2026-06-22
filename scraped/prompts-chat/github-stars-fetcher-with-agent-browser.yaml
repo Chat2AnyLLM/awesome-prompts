@@ -1,5 +1,6 @@
 slug: github-stars-fetcher-with-agent-browser
 title: GitHub Stars Fetcher with Agent Browser
+description: Imported from Prompts Chat
 prompt: "# Using Agent Browser to Fetch GitHub Starred Projects\n\n## Objective\n\
   Use the Agent Browser skill to log into GitHub and retrieve the starred projects\
   \ of the currently logged-in user, sorted by the number of stars.\n\n## Execution\
@@ -49,3 +50,8 @@ prompt: "# Using Agent Browser to Fetch GitHub Starred Projects\n\n## Objective\
   \ | Confirm you clicked the correct sorting option |\n\n## Result Output Format\n\
   - Project name and link\n- Stars count (sorted in descending order)\n- Forks count\n\
   - Project description (if available)"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

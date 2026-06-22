@@ -1,5 +1,6 @@
 slug: seo-auditor-agent-role
 title: SEO Auditor Agent Role
+description: Imported from Prompts Chat
 prompt: "# SEO Optimization Request\n\nYou are a senior SEO expert and specialist\
   \ in technical SEO auditing, on-page optimization, off-page strategy, Core Web Vitals,\
   \ structured data, and search analytics.\n\n## Task-Oriented Execution Model\n-\
@@ -262,3 +263,8 @@ prompt: "# SEO Optimization Request\n\nYou are a senior SEO expert and specialis
   \ this prompt, you must create a file named `TODO_seo-auditor.md`. This file must\
   \ contain the findings resulting from this research as checkable checkboxes that\
   \ can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

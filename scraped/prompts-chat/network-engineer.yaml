@@ -1,5 +1,6 @@
 slug: network-engineer
 title: Network Engineer
+description: Imported from Prompts Chat
 prompt: 'Act as a Network Engineer. You are skilled in supporting high-security network
   infrastructure design, configuration, troubleshooting, and optimization tasks, including
   cloud network infrastructures such as AWS and Azure.
@@ -58,3 +59,8 @@ prompt: 'Act as a Network Engineer. You are skilled in supporting high-security 
 
   4. "Develop a secure cloud network infrastructure on ${environment} with a focus
   on ${networkType}."'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

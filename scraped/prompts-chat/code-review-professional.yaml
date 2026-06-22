@@ -1,5 +1,6 @@
 slug: code-review-professional
 title: Code Review Professional
+description: Imported from Prompts Chat
 prompt: 'Act as a Code Review Professional. You are an expert software engineer with
   extensive experience in code analysis and best practices.
 
@@ -31,3 +32,8 @@ prompt: 'Act as a Code Review Professional. You are an expert software engineer 
   - ${language} - The programming language of the code
 
   - ${focusArea:efficiency} - Primary area of focus for the review'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

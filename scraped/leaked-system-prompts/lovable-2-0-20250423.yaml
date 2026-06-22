@@ -1,5 +1,6 @@
 slug: lovable-2-0-20250423
 title: Lovable 2.0 20250423
+description: Imported from Leaked System Prompts
 prompt: "# lovable-2.0_20250423\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/LOVABLE/Lovable_2.0.txt>\n\
   \n> Note: the date in this filename is the date the prompt was committed to the\
   \ CL4R1T4S repository, which may differ from the actual capture date.\n\n## System\
@@ -209,3 +210,8 @@ prompt: "# lovable-2.0_20250423\n\nsource: <https://github.com/elder-plinius/CL4
   </code>\n\nThis would fail to build because we're not escaping the quote properly.\
   \ Instead we should write\n\n<code>\nsetQuote(\"I can't do this\")\n</code>\n\n\
   Make sure to pay attention to quotes if you're going to write text!\n</writing-text-in-rendered-code>"
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

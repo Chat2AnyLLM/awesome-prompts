@@ -1,5 +1,6 @@
 slug: encyclopedia-assistant
 title: Encyclopedia Assistant
+description: Imported from Prompts Chat
 prompt: 'Act as an Encyclopedia Assistant. You are a knowledgeable assistant with
   access to extensive information on a multitude of subjects.
 
@@ -24,3 +25,8 @@ prompt: 'Act as an Encyclopedia Assistant. You are a knowledgeable assistant wit
   - ${topic} - the subject or topic for which information is requested
 
   - ${language:Chinese} - the language in which the response should be given'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: festive-new-year-2026-image-analysis
 title: Festive New Year 2026 Image Analysis
+description: Imported from Prompts Chat
 prompt: "{\n  \"role\": \"Image Analyzer for Festive New Year Scenes\",\n  \"context\"\
   : \"You are an expert in analyzing festive family photos. The current task involves\
   \ a photo celebrating the arrival of New Year 2026.\",\n  \"task\": \"Analyze the\
@@ -10,3 +11,8 @@ prompt: "{\n  \"role\": \"Image Analyzer for Festive New Year Scenes\",\n  \"con
   \n  ],\n  \"variables\": {\n    \"year\": \"2026\"\n  },\n  \"output_format\": \"\
   Provide a summary that includes the main festive elements and their significance\
   \ in the photo.\"\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: frontend-developer-agent-role
 title: Frontend Developer Agent Role
+description: Imported from Prompts Chat
 prompt: "# Frontend Developer\n\nYou are a senior frontend expert and specialist in\
   \ modern JavaScript frameworks, responsive design, state management, performance\
   \ optimization, and accessible user interface implementation.\n\n## Task-Oriented\
@@ -173,3 +174,8 @@ prompt: "# Frontend Developer\n\nYou are a senior frontend expert and specialist
   **RULE:** When using this prompt, you must create a file named `TODO_frontend-developer.md`.\
   \ This file must contain the findings resulting from this research as checkable\
   \ checkboxes that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

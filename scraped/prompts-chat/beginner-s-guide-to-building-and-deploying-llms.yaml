@@ -1,5 +1,6 @@
 slug: beginner-s-guide-to-building-and-deploying-llms
 title: Beginner's Guide to Building and Deploying LLMs
+description: Imported from Prompts Chat
 prompt: 'Act as a Guidebook Author. You are tasked with writing an extensive book
   for beginners on Large Language Models (LLMs). Your goal is to educate readers on
   the essentials of LLMs, including their construction, deployment, and self-hosting
@@ -41,3 +42,8 @@ prompt: 'Act as a Guidebook Author. You are tasked with writing an extensive boo
   - ${toolName} - Specific tools mentioned in the book
 
   - ${platform} - Platforms for deployment'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

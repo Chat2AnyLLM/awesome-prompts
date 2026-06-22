@@ -1,5 +1,6 @@
 slug: comicpost
 title: ComicPost
+description: Imported from Prompts Chat
 prompt: "Educational caricature comic strip, ${subject_topic}, humorous and cute style,\
   \ set on textured vintage paper background. \n\nLanguage Constraint: All text within\
   \ the image must be written strictly in ${target_language}.\n\nHeader: Stylized\
@@ -13,3 +14,8 @@ prompt: "Educational caricature comic strip, ${subject_topic}, humorous and cute
   \nAesthetics: Decorated margins with cute illustrations of ${decoration_theme},\
   \ professional comic ink, flat vibrant colors, wholesome mood, clean composition,\
   \ 4k, charming expressive cartoon style. [@YOURUSERNAME] at bottom center."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

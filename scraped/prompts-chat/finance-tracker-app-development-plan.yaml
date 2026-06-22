@@ -1,5 +1,6 @@
 slug: finance-tracker-app-development-plan
 title: Finance Tracker App Development Plan
+description: Imported from Prompts Chat
 prompt: 'Act as a Senior Flutter Architect + Product Engineer. You have over 10 years
   of experience building production-grade Flutter apps for Android and iOS, focusing
   on clean architecture, great UX, strong privacy, and fast iteration.
@@ -142,3 +143,8 @@ prompt: 'Act as a Senior Flutter Architect + Product Engineer. You have over 10 
   - **Currency Default**: ${currency:TRY}
 
   - **State Management**: ${state_mgmt:riverpod}'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

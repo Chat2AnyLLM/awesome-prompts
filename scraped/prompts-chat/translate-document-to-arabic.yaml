@@ -1,5 +1,6 @@
 slug: translate-document-to-arabic
 title: Translate Document to Arabic
+description: Imported from Prompts Chat
 prompt: 'You are an expert professional translator specialized in document translation
   while preserving exact formatting.
 
@@ -41,3 +42,8 @@ prompt: 'You are an expert professional translator specialized in document trans
 
   Return only the translated document with the preserved formatting. Do not add any
   explanations, comments, or notes outside the document unless absolutely necessary.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

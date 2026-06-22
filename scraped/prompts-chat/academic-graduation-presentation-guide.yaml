@@ -1,5 +1,6 @@
 slug: academic-graduation-presentation-guide
 title: Academic Graduation Presentation Guide
+description: Imported from Prompts Chat
 prompt: 'Act as an Academic Presentation Coach. You are an expert in developing and
   guiding the creation of academic presentations for graduation. Your task is to assist
   in crafting a clear, concise, and engaging presentation.
@@ -33,3 +34,8 @@ prompt: 'Act as an Academic Presentation Coach. You are an expert in developing 
   - ${duration:20} - expected duration of the presentation in minutes
 
   - ${slideCount:10} - the total number of slides'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -10,7 +10,7 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 README_PATH = REPO_ROOT / "README.md"
-CONFIG_PATH = REPO_ROOT / "awesome_prompts.json"
+CONFIG_PATH = REPO_ROOT / "config.yaml"
 DIST_DIR = REPO_ROOT / "dist"
 SCRAPED_DIR = REPO_ROOT / "scraped"
 
@@ -38,11 +38,11 @@ def count_scraped() -> dict[str, int]:
 
 
 def load_config_sources() -> list[dict]:
-    """Load sources from awesome_prompts.json."""
+    """Load sources from config.yaml."""
     if not CONFIG_PATH.exists():
         return []
-    with open(CONFIG_PATH) as f:
-        return json.load(f).get("sources", [])
+    with open(CONFIG_PATH, encoding="utf-8") as f:
+        return yaml.safe_load(f).get("sources", [])
 
 
 def abbreviate(text: str, max_len: int = 60) -> str:
@@ -57,9 +57,16 @@ def generate_stats_section() -> str:
     """Generate the Stats section with source tables."""
     prompts_json = DIST_DIR / "prompts.json"
     prompts_count = 0
+    direct_count = 0
     if prompts_json.exists():
-        with open(prompts_json) as f:
-            prompts_count = json.load(f).get("count", 0)
+        with open(prompts_json, encoding="utf-8") as f:
+            data = json.load(f)
+        prompts_count = data.get("count", 0)
+        direct_count = sum(
+            1
+            for prompt in data.get("prompts", [])
+            if prompt.get("source") == "Local Prompts"
+        )
 
     sources = load_config_sources()
     scraped = count_scraped()
@@ -70,24 +77,29 @@ def generate_stats_section() -> str:
         "",
         "| Metric | Count |",
         "|--------|-------|",
-        f"| Direct prompts (in `prompts/`) | {prompts_count} |",
+        f"| Unified prompts (in `dist/prompts.json`) | {prompts_count} |",
+        f"| Direct prompts (from `prompts/`) | {direct_count} |",
         f"| Configured sources | {len(sources)} |",
-        f"| Scraped prompts (total) | {total_scraped} |",
+        f"| Scraped prompts cached in `scraped/` | {total_scraped} |",
         "",
     ]
 
     if sources:
         lines.append("### Configured Sources")
         lines.append("")
-        lines.append("| Source | URL | Format | Scraped |")
-        lines.append("|--------|-----|--------|---------|")
+        lines.append("| Source | Type | Location | Format | Loaded |")
+        lines.append("|--------|------|----------|--------|--------|")
         for s in sources:
             name = s.get("name", "?")
-            url = s.get("url", "")
-            fmt = s.get("format", "?")
+            source_type = s.get("type", "?")
+            location = s.get("url") or s.get("path", "")
+            fmt = s.get("format", "-")
             slug = slugify(name)
             count = scraped.get(slug, 0)
-            lines.append(f"| {name} | [{url}]({url}) | {fmt} | {count} |")
+            if source_type == "local":
+                count = direct_count
+            location_cell = f"[{location}]({location})" if str(location).startswith("http") else f"`{location}`"
+            lines.append(f"| {name} | {source_type} | {location_cell} | {fmt} | {count} |")
         lines.append("")
 
     # Generate per-source prompt tables

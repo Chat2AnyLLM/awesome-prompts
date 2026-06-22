@@ -1,5 +1,6 @@
 slug: githubtrends
 title: GitHubTrends
+description: Imported from Prompts Chat
 prompt: "---\nname: GitHubTrends\ndescription: 显示GitHub热门项目趋势，生成可视化仪表板。USE WHEN github\
   \ trends, trending projects, hot repositories, popular github projects, generate\
   \ dashboard, create webpage.\nversion: 2.0.0\n---\n\n## Customization\n\n**Before\
@@ -611,3 +612,8 @@ prompt: "---\nname: GitHubTrends\ndescription: 显示GitHub热门项目趋势，
   done\n```\n\n### 定时任务\n```bash\n# 每小时生成一次快照\n# 添加到 crontab:\n0 * * * * cd ~/.claude/skills/GitHubTrends\
   \ && bun Tools/GenerateDashboard.ts --output ~/trends-$(date +%H).html\n```\n\n\
   ### 定制主题\n通过修改 `Templates/dashboard.hbs` 可以自定义：\n- 配色方案\n- 布局结构\n- 添加新的图表类型\n- 添加新的交互功能"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

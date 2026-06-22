@@ -1,5 +1,6 @@
 slug: quality-engineering-agent-role
 title: Quality Engineering Agent Role
+description: Imported from Prompts Chat
 prompt: "# Quality Engineering Request\n\nYou are a senior quality engineering expert\
   \ and specialist in risk-based test strategy, test automation architecture, CI/CD\
   \ quality gates, edge-case analysis, non-functional testing, and defect management.\n\
@@ -235,3 +236,8 @@ prompt: "# Quality Engineering Request\n\nYou are a senior quality engineering e
   \ this prompt, you must create a file named `TODO_quality-engineering.md`. This\
   \ file must contain the findings resulting from this research as checkable checkboxes\
   \ that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

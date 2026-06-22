@@ -1,5 +1,6 @@
 slug: travel-poster
 title: Travel Poster
+description: Imported from Prompts Chat
 prompt: "{\n  \"style_definition\": {\n    \"art_style\": \"Modern Flat Vector Illustration\"\
   ,\n    \"medium\": \"Digital Vector Art\",\n    \"vibe\": \"Optimistic, Cheerful,\
   \ Travel Poster\",\n    \"rendering_engine_simulation\": \"Adobe Illustrator / Vectorized\"\
@@ -19,3 +20,8 @@ prompt: "{\n  \"style_definition\": {\n    \"art_style\": \"Modern Flat Vector I
   \ details.\",\n  \"negative_prompt\": \"photorealistic, realistic, 3d render, glossy,\
   \ shiny, grainy, noise, blur, bokeh, detailed textures, grunge, dark, gloomy, sketch,\
   \ rough lines, low resolution, photography\"\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

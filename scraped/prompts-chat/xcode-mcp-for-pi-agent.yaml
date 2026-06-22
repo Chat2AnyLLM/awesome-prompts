@@ -1,5 +1,6 @@
 slug: xcode-mcp-for-pi-agent
 title: xcode-mcp (for pi agent)
+description: Imported from Prompts Chat
 prompt: "---\nname: xcode-mcp-for-pi-agent\ndescription: Guidelines for efficient\
   \ Xcode MCP tool usage via mcporter CLI. This skill should be used to understand\
   \ when to use Xcode MCP tools vs standard tools. Xcode MCP consumes many tokens\
@@ -98,3 +99,8 @@ prompt: "---\nname: xcode-mcp-for-pi-agent\ndescription: Guidelines for efficien
   \ tool / `cat` | \U0001F7E2 Low |\n| Edit file | `Edit` tool | \U0001F7E2 Low |\n\
   | Search code | `rg` / `grep` | \U0001F7E2 Low |\n| List files | `ls` / `find` |\
   \ \U0001F7E2 Low |"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

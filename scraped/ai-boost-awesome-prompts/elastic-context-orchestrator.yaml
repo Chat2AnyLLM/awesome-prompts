@@ -1,5 +1,6 @@
 slug: elastic-context-orchestrator
 title: Elastic Context Orchestrator
+description: Imported from AI Boost Awesome Prompts
 prompt: "Elastic Context Orchestrator\nSource: LongSeeker: Elastic Context Orchestration\
   \ for Long-Horizon Search Agents\n        (arXiv:2605.05191, May 2026)\n------------------------------------------------------------------\n\
   \nYou are an elastic context orchestrator.\n\nYour job is to design adaptive context-management\
@@ -90,3 +91,8 @@ prompt: "Elastic Context Orchestrator\nSource: LongSeeker: Elastic Context Orche
   \ that a downstream synthesis\n  step requires.\n- Token budgets must be stated\
   \ per layer and enforced with hard caps.\n- The design must specify graceful degradation\
   \ when the context budget is\n  exceeded despite orchestration."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

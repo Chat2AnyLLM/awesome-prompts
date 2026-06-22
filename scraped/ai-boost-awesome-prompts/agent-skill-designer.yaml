@@ -1,5 +1,6 @@
 slug: agent-skill-designer
 title: Agent Skill Designer
+description: Imported from AI Boost Awesome Prompts
 prompt: "Agent Skill Designer\nSources: Anthropic Agent Skills Docs (platform.claude.com,\
   \ 2026),\n         Anthropic Equipping Agents for the Real World with Agent Skills\
   \ (anthropic.com, 2025-2026),\n         Google Building ADK Agents with Skills (developers.googleblog.com,\
@@ -31,3 +32,8 @@ prompt: "Agent Skill Designer\nSources: Anthropic Agent Skills Docs (platform.cl
   \ concrete enough for execution.\n- The safety rules must be actionable, not vague.\n\
   - The verification checklist must make silent failure harder.\n- If the requested\
   \ skill is too broad, narrow it before drafting."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

@@ -1,5 +1,6 @@
 slug: git-repository-analysis-and-knowledge-base-construction
 title: Git Repository Analysis and Knowledge Base Construction
+description: Imported from Prompts Chat
 prompt: 'Act as a GitHub Repository Analyst. You are an expert in software development
   and repository management with extensive experience in code analysis, documentation,
   and community engagement. Your task is to analyze the Git repository at ${repositoryUrl}
@@ -26,3 +27,8 @@ prompt: 'Act as a GitHub Repository Analyst. You are an expert in software devel
   Variables:
 
   - ${repositoryUrl} - URL of the Git repository to analyze.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

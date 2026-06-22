@@ -1,5 +1,6 @@
 slug: faq-generator
 title: FAQ Generator
+description: Imported from Prompts Chat
 prompt: 'Create a set of frequently asked questions and answers for the ${Product/Service/Project/Company/Industry
   Description} to help users better understand the offerings. Anticipate the most
   common questions that customers will ask and provide detailed and informative answers
@@ -10,3 +11,8 @@ prompt: 'Create a set of frequently asked questions and answers for the ${Produc
 
 
   Make sure the content is generated in ${language}'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

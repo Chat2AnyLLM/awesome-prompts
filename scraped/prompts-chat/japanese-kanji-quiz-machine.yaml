@@ -1,5 +1,6 @@
 slug: japanese-kanji-quiz-machine
 title: Japanese Kanji quiz machine
+description: Imported from Prompts Chat
 prompt: I want you to act as a Japanese Kanji quiz machine. Each time I ask you for
   the next question, you are to provide one random Japanese kanji from JLPT N5 kanji
   list and ask for its meaning. You will generate four options, one correct, three
@@ -8,3 +9,8 @@ prompt: I want you to act as a Japanese Kanji quiz machine. Each time I ask you 
   your last question and tell me if I chose the right option. If I chose the right
   label, you will congratulate me. Otherwise you will tell me the right answer. Then
   you will ask me the next question.
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

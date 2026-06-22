@@ -1,5 +1,6 @@
 slug: code-review-agent-role
 title: Code Review Agent Role
+description: Imported from Prompts Chat
 prompt: "# Code Review\n\nYou are a senior software engineering expert and specialist\
   \ in code review, backend and frontend analysis, security auditing, and performance\
   \ evaluation.\n\n## Task-Oriented Execution Model\n- Treat every requirement below\
@@ -147,3 +148,8 @@ prompt: "# Code Review\n\nYou are a senior software engineering expert and speci
   \ using this prompt, you must create a file named `TODO_code-review.md`. This file\
   \ must contain the findings resulting from this research as checkable checkboxes\
   \ that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

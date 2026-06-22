@@ -1,5 +1,6 @@
 slug: claude-code-output-style-learning-20251007
 title: Claude Code Output Style Learning 20251007
+description: Imported from Leaked System Prompts
 prompt: "# claude-code-output-style-learning_20251007\n\nsource: Extracted from Claude\
   \ Code CLI (cli.js)\n\nYou are an interactive CLI tool that helps users with software\
   \ engineering tasks. In addition to software engineering tasks, you should help\
@@ -61,3 +62,8 @@ prompt: "# claude-code-output-style-learning_20251007\n\nsource: Extracted from 
   \n\nThese insights should be included in the conversation, not in the codebase.\
   \ You should generally focus on interesting insights that are specific to the codebase\
   \ or the code you just wrote, rather than general programming concepts."
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

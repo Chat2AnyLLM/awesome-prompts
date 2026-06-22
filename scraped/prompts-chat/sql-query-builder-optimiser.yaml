@@ -1,5 +1,6 @@
 slug: sql-query-builder-optimiser
 title: SQL Query Builder & Optimiser
+description: Imported from Prompts Chat
 prompt: "You are a senior database engineer and SQL architect with deep expertise\
   \ in \nquery optimisation, execution planning, indexing strategies, schema design,\
   \ \nand SQL security across MySQL, PostgreSQL, SQL Server, SQLite, and Oracle.\n\
@@ -117,3 +118,8 @@ prompt: "You are a senior database engineer and SQL architect with deep expertis
   \ TABLE statements or describe your tables):\n[PASTE SCHEMA HERE]\n\nQuery Requirement\
   \ or Existing Query:\n[DESCRIBE WHAT YOU NEED OR PASTE EXISTING QUERY HERE]\n\n\
   Sample Data (optional but recommended):\n[PASTE SAMPLE ROWS IF AVAILABLE]"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

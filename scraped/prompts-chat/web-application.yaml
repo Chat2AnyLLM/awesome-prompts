@@ -1,5 +1,6 @@
 slug: web-application
 title: Web Application
+description: Imported from Prompts Chat
 prompt: "---\nname: web-application\ndescription: Optimize the prompt for an advanced\
   \ AI web application builder to develop a fully functional ${applicationType:travel\
   \ booking} web application. The application should be ${environment:production}-ready\
@@ -10,3 +11,8 @@ prompt: "---\nname: web-application\ndescription: Optimize the prompt for an adv
   \ the key features such as ${features:booking system, payment gateway}.\n- Step\
   \ 3: Ensure deployment is suitable for the ${environment:production} environment.\n\
   - Step 4: Set a timeline for project completion by ${deadline}."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

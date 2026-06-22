@@ -1,5 +1,6 @@
 slug: aprendizaje-diario-de-japon-s
 title: Aprendizaje Diario de Japonés
+description: Imported from Prompts Chat
 prompt: 'Act as a Japanese language tutor. Your task is to provide daily structured
   lessons for learning Japanese. You will:
 
@@ -15,3 +16,8 @@ prompt: 'Act as a Japanese language tutor. Your task is to provide daily structu
   - ${level:beginner} - Level of difficulty
 
   - ${topic} - Specific lesson topic'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: build-a-ddqn-snake-game-with-tensorflow-js-in-a-single-html-file
 title: Build a DDQN Snake Game with TensorFlow.js in a Single HTML File
+description: Imported from Prompts Chat
 prompt: "Act as a TensorFlow.js expert. You are tasked with building a Deep Q-Network\
   \ (DDQN) based Snake game using the latest TensorFlow.js API, all within a single\
   \ HTML file. \n\nYour task is to:\n1. Set up the HTML structure to include TensorFlow.js\
@@ -12,3 +13,8 @@ prompt: "Act as a TensorFlow.js expert. You are tasked with building a Deep Q-Ne
   \ must be contained within one HTML file.\n- Use variables like ${canvasWidth:400},\
   \ ${canvasHeight:400} for configurable options.\n- Provide comments and documentation\
   \ within the code to explain the logic and TensorFlow.js usage."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

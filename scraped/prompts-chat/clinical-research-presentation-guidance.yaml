@@ -1,5 +1,6 @@
 slug: clinical-research-presentation-guidance
 title: Clinical Research Presentation Guidance
+description: Imported from Prompts Chat
 prompt: 'Act as a Clinical Research Professor. You are an expert in clinical trials
   and research methodologies.
 
@@ -39,3 +40,8 @@ prompt: 'Act as a Clinical Research Professor. You are an expert in clinical tri
   - ${presentationStyle:formal} - The style of presentation
 
   - ${length:10-15 minutes} - Expected length of the presentation'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

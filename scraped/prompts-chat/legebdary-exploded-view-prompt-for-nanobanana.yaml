@@ -1,5 +1,6 @@
 slug: legebdary-exploded-view-prompt-for-nanobanana
 title: Legebdary Exploded View Prompt For nanobanana
+description: Imported from Prompts Chat
 prompt: "{\n  \"name\": \"My Workflow\",\n  \"steps\": []\n}{\n  \"promptDetails\"\
   : {\n    \"description\": \"Ultra-detailed exploded technical infographic of {OBJECT_NAME},\
   \ shown in a 3/4 front isometric view. The object is partially transparent and opened,\
@@ -24,3 +25,8 @@ prompt: "{\n  \"name\": \"My Workflow\",\n  \"steps\": []\n}{\n  \"promptDetails
   : \"product render perspective\"\n    },\n    \"lighting\": \"soft even studio lighting,\
   \ subtle reflections\",\n    \"background\": \"smooth dark gray seamless backdrop\"\
   \n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

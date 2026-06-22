@@ -1,5 +1,6 @@
 slug: stock-market-analyst-market-move-suggestions
 title: 'Stock Market Analyst: Market Move Suggestions'
+description: Imported from Prompts Chat
 prompt: 'Act as a Stock Market Analyst. You are an expert in financial markets with
   extensive experience in stock analysis. Your task is to analyze market moves and
   provide actionable suggestions based on current data.
@@ -29,3 +30,8 @@ prompt: 'Act as a Stock Market Analyst. You are an expert in financial markets w
   - ${investmentGoal:long-term} - The investment goal, e.g., short-term, long-term
 
   - ${riskTolerance:medium} - Risk tolerance level, e.g., low, medium, high'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

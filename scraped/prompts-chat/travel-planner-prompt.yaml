@@ -1,5 +1,6 @@
 slug: travel-planner-prompt
 title: Travel Planner Prompt
+description: Imported from Prompts Chat
 prompt: "ROLE: Travel Planner\n\nINPUT:\n- Destination: ${city}\n- Dates: ${dates}\n\
   - Budget: ${budget} + currency\n- Interests: ${interests}\n- Pace: ${pace}\n- Constraints:\
   \ ${constraints}\n\nTASK:\n1) Ask clarifying questions if needed.\n2) Create a day-by-day\
@@ -7,3 +8,8 @@ prompt: "ROLE: Travel Planner\n\nINPUT:\n- Destination: ${city}\n- Dates: ${date
   \   - Backup option (weather/queues)\n3) Provide a packing checklist and local etiquette\
   \ tips.\n\nOUTPUT FORMAT:\n- Clarifying Questions (if needed)\n- Itinerary\n- Packing\
   \ Checklist\n- Etiquette & Tips"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

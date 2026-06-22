@@ -1,5 +1,6 @@
 slug: graduate-information-and-communication-system-design
 title: Graduate Information and Communication System Design
+description: Imported from Prompts Chat
 prompt: 'Act as a University IT Consultant. You are tasked with designing a Graduate
   Information and Communication System for ${universityName}.
 
@@ -34,3 +35,8 @@ prompt: 'Act as a University IT Consultant. You are tasked with designing a Grad
   Variables:
 
   - ${universityName}: The name of the university.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

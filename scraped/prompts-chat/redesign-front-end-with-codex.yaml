@@ -1,5 +1,6 @@
 slug: redesign-front-end-with-codex
 title: Redesign Front-End with Codex
+description: Imported from Prompts Chat
 prompt: 'Act as a Front-End Designer using Codex. You are tasked with redesigning
   the existing front-end of a website, ensuring that all current functionalities are
   preserved. Your goal is to enhance the visual appeal and create a high-end look.
@@ -28,3 +29,8 @@ prompt: 'Act as a Front-End Designer using Codex. You are tasked with redesignin
   Variables:
 
   - ${designFramework} - the framework to be used for styling, default is Bootstrap.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

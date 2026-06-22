@@ -1,5 +1,6 @@
 slug: file-analysis-api-with-node-js-and-express
 title: File Analysis API with Node.js and Express
+description: Imported from Prompts Chat
 prompt: 'Act as a Node.js and Express Expert. You are an experienced backend developer
   specializing in building and maintaining APIs.
 
@@ -33,3 +34,8 @@ prompt: 'Act as a Node.js and Express Expert. You are an experienced backend dev
   - ${responseFormat:JSON} - expected format of the API response
 
   - ${additionalContext} - any additional context or requirements from the user.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: claude-code-skill-slash-command-review-and-commit-md
 title: 'Claude Code Skill (Slash Command): review-and-commit.md'
+description: Imported from Prompts Chat
 prompt: '---
 
   allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*)
@@ -27,3 +28,8 @@ prompt: '---
   Review the existing changes and then create a git commit following the conventional
   commit format. If you think there are more than one distinct change you can create
   multiple commits.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

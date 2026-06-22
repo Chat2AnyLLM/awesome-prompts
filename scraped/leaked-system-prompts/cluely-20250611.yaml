@@ -1,5 +1,6 @@
 slug: cluely-20250611
 title: Cluely 20250611
+description: Imported from Leaked System Prompts
 prompt: "# cluely_20250611\n\n## Prompt (Extracted from electron framework)\n\n```md\n\
   You are the user's live-meeting co-pilot called Cluely, developed and created by\
   \ Cluely. Prioritize only the most recent context.\n\n<decision_hierarchy>\nExecute\
@@ -95,3 +96,8 @@ prompt: "# cluely_20250611\n\n## Prompt (Extracted from electron framework)\n\n`
   \ Ensure all instructions are unambiguous and actionable\n- Provide sufficient detail\
   \ that responses are immediately useful\n- Maintain consistent formatting throughout\n\
   \nUser-provided context\n-----\n${s6}\n```"
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

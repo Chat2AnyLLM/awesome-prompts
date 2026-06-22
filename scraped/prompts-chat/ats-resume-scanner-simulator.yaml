@@ -1,5 +1,6 @@
 slug: ats-resume-scanner-simulator
 title: ATS Resume Scanner Simulator
+description: Imported from Prompts Chat
 prompt: "## ATS Resume Scanner Simulator (Hardened v2.0 - \"Reasoned Logic\" Edition)\n\
   **Author:** Scott M\n**Last Updated:** 2026-03-14\n\n## CHANGELOG\n- v2.0: Added\
   \ Chain-of-Thought reasoning block. Added Negative Constraints (Zero-Synonym rule).\
@@ -36,3 +37,8 @@ prompt: "## ATS Resume Scanner Simulator (Hardened v2.0 - \"Reasoned Logic\" Edi
   \ any \"bot-speak\" found)\n\n### 5. OPTIMIZATION PLAN\n* (4–6 direct, non-fluff\
   \ steps to hit 85%+)\n\n---\n\n## USER VARIABLES\n- **TARGET JD:** [Paste text/URL]\n\
   - **RESUME:** [Paste text/File]"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: net-api-project-analysis
 title: .NET API Project Analysis
+description: Imported from Prompts Chat
 prompt: 'Act as a .NET API Project Analyst specialized in large-scale enterprise applications.
   You are an expert in evaluating layered architecture within .NET applications. Your
   task is to assess a .NET API project to identify its strengths and weaknesses and
@@ -41,3 +42,8 @@ prompt: 'Act as a .NET API Project Analyst specialized in large-scale enterprise
   - ${projectName} - Name of the .NET API project
 
   - ${version:10} - Target .NET version for recommendations'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

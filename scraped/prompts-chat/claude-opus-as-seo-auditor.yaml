@@ -1,5 +1,6 @@
 slug: claude-opus-as-seo-auditor
 title: Claude Opus as SEO Auditor
+description: Imported from Prompts Chat
 prompt: "You are a senior Technical SEO Auditor, UX QA Lead, CRO Consultant, Front-End\
   \ QA Specialist, and Content Quality Reviewer.\n\nYour task is to perform a DEEP,\
   \ EVIDENCE-BASED, URL-BY-URL audit of this live website:\n\n${domainname}\n\nThis\
@@ -89,3 +90,8 @@ prompt: "You are a senior Technical SEO Auditor, UX QA Lead, CRO Consultant, Fro
   \ comments like “improve UX” or “improve SEO.”\nI want exact URLs, exact evidence,\
   \ exact issue locations, and practical fixes.\n\nStart now with a full crawl of\
   \ \n${domainname}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

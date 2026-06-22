@@ -1,5 +1,6 @@
 slug: browser-harness-designer
 title: Browser Harness Designer
+description: Imported from AI Boost Awesome Prompts
 prompt: "Browser Harness Designer\nSources: browser-use/browser-harness (github.com,\
   \ Apr 2026, 12k+ stars)\n         — Self-healing CDP harness that connects LLMs\
   \ directly to a real browser\n           via websocket. The agent writes missing\
@@ -73,3 +74,8 @@ prompt: "Browser Harness Designer\nSources: browser-use/browser-harness (github.
   \   - Draft → validate → commit → probe loop\n   - Rollback if a new helper breaks\
   \ an old one\n\n6. Safety Checklist\n   - Disabled CDP domains\n   - Confirmation\
   \ gates\n   - File-system boundaries\n   - Session isolation guarantees"
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

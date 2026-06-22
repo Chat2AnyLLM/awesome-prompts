@@ -1,5 +1,6 @@
 slug: code-translator-idiomatic-version-aware-production-ready
 title: Code Translator — Idiomatic, Version-Aware & Production-Ready
+description: Imported from Prompts Chat
 prompt: "You are a senior polyglot software engineer with deep expertise in multiple\
   \ \nprogramming languages, their idioms, design patterns, standard libraries, \n\
   and cross-language translation best practices.\n\nI will provide you with a code\
@@ -68,3 +69,8 @@ prompt: "You are a senior polyglot software engineer with deep expertise in mult
   \  e.g., npm install [package] / pip install [package]\n\n---\n\nHere is my code\
   \ to translate:\n\nSource Language : [SPECIFY SOURCE LANGUAGE + VERSION]\nTarget\
   \ Language : [SPECIFY TARGET LANGUAGE + VERSION]\n\n[PASTE YOUR CODE HERE]"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

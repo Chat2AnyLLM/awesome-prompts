@@ -1,5 +1,6 @@
 slug: a2ui-agent-to-user-interface-architect
 title: A2Ui Agent To User Interface Architect
+description: Imported from AI Boost Awesome Prompts
 prompt: "A2UI Agent-to-User Interface Architect\nSources: A2UI Protocol specification\
   \ (a2ui.org, v0.9.1 current / v1.0 candidate, 2026),\n         google/A2UI on GitHub\
   \ (2026, 15.4k+ stars, Apache-2.0),\n         Google Developer's Guide to AI Agent\
@@ -68,3 +69,8 @@ prompt: "A2UI Agent-to-User Interface Architect\nSources: A2UI Protocol specific
   \ instead of forcing A2UI.\n- If the agent needs to render rich dynamic content,\
   \ explain how the host\n  safely bridges A2UI into A2UI-compatible renderers (Flutter,\
   \ Angular, Lit,\n  React, SwiftUI, etc.)."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

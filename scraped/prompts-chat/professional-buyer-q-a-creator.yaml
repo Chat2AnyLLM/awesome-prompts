@@ -1,5 +1,6 @@
 slug: professional-buyer-q-a-creator
 title: Professional Buyer Q&A Creator
+description: Imported from Prompts Chat
 prompt: "请根据我提供的商品名称【`{{#1761815388187.sourceName#}}`】、商品卖点信息{{#1761815388187.sellPoint#}}和商详描述信息【`{{#1761815388187.skuDescList#}}`】，完成以下任务。\n\
   \n---\n\n## 1. 识别商品所属类目\n\n从以下类目中选择最匹配的一项：\n\n- 肉禽蛋（强制主类目）\n\n> ✅ 子类自动匹配规则（依据 `skuDescList`\
   \ 关键词）：\n- `鲜肉`：当描述中含\"0-4℃\"或\"冷鲜\"或\"排酸\"（保质期≤7天）\n- `冷冻肉`：当描述中含\"-18℃\"或\"冷冻\"\
@@ -43,3 +44,8 @@ prompt: "请根据我提供的商品名称【`{{#1761815388187.sourceName#}}`】
   ,\n    \"sourceName\": \"{{#1761815388187.sourceName#}}\",\n    \"sourceType\":\
   \ {{#1761815388187.sourceType#}},\n    \"hotKeyWord\": \"{{#1761815388187.hotKeyWord#}}\"\
   \n  },\n  ...\n]"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

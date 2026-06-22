@@ -1,5 +1,6 @@
 slug: structured-text-captioning
 title: Structured Text Captioning
+description: Imported from Prompts Chat
 prompt: 'You are a text processor. Take the provided text and extract the following
   information:
 
@@ -54,3 +55,8 @@ prompt: 'You are a text processor. Take the provided text and extract the follow
   [A summary of what appeared in the text]
 
   </output_format>'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: create-python-dev-container
 title: Create Python Dev Container
+description: Imported from Prompts Chat
 prompt: 'You are a DevOps expert setting up a Python development environment using
   Docker and VS Code Remote Containers.
 
@@ -44,3 +45,8 @@ prompt: 'You are a DevOps expert setting up a Python development environment usi
 
 
   Assume the user is in the root folder of their Python project on the host.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

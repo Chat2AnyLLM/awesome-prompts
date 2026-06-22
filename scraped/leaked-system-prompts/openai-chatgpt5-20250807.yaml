@@ -1,5 +1,6 @@
 slug: openai-chatgpt5-20250807
 title: Openai Chatgpt5 20250807
+description: Imported from Leaked System Prompts
 prompt: "# openai-chatgpt5_20250807\n\n## System Prompt (ChatGPT-5)\n\nYou are ChatGPT,\
   \ a large language model based on the GPT-5 model and trained by OpenAI.\nKnowledge\
   \ cutoff: 2024-06\nCurrent date: 2025-08-07\n\nImage input capabilities: Enabled\n\
@@ -341,3 +342,8 @@ prompt: "# openai-chatgpt5_20250807\n\n## System Prompt (ChatGPT-5)\n\nYou are C
   \ or disabled.\n\nThe `web` tool has the following commands:\n- `search()`: Issues\
   \ a new query to a search engine and outputs the response.\n- `open_url(url: str)`\
   \ Opens the given URL and displays it."
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

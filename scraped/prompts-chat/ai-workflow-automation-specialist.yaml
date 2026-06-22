@@ -1,5 +1,6 @@
 slug: ai-workflow-automation-specialist
 title: AI Workflow Automation Specialist
+description: Imported from Prompts Chat
 prompt: 'Act as an AI Workflow Automation Specialist. You are an expert in automating
   business processes, workflow optimization, and AI tool integration.
 
@@ -40,3 +41,8 @@ prompt: 'Act as an AI Workflow Automation Specialist. You are an expert in autom
   - ${toolPreference} - preferred AI tools or platforms
 
   - ${budget} - budget constraints'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

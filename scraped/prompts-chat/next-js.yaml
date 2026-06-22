@@ -1,5 +1,6 @@
 slug: next-js
 title: Next.js
+description: Imported from Prompts Chat
 prompt: '# Next.js
 
   - Use minimal hook set for components: useState for state, useEffect for side effects,
@@ -32,3 +33,8 @@ prompt: '# Next.js
 
   - Derive new state from previous state using functional updates to avoid stale closures
   and ensure the most accurate version of state. Confidence: 0.85'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: cyber-security-character-workflow
 title: Cyber Security Character Workflow
+description: Imported from Prompts Chat
 prompt: "{\n  \"name\": \"Cyber Security Character\",\n  \"steps\": [\n    {\n   \
   \   \"step_1\": \"Facial Identity Mapping\",\n      \"description\": \"Maintain\
   \ 100% facial consistency based on the provided reference photos. Features: medium-length\
@@ -18,3 +19,8 @@ prompt: "{\n  \"name\": \"Cyber Security Character\",\n  \"steps\": [\n    {\n  
   \ Cinematic Render\",\n      \"description\": \"Utilize warm, dramatic side lighting\
   \ from the right to cast a soft silhouette onto the background. Render in 4K ultra-realistic\
   \ quality with hyper-detailed textures.\"\n    }\n  ]\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

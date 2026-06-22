@@ -1,5 +1,6 @@
 slug: multi-agent-topology-selector
 title: Multi Agent Topology Selector
+description: Imported from AI Boost Awesome Prompts
 prompt: "Multi-Agent Topology Selector\nSources: Agent Q-Mix: Selecting the Right\
   \ Action for LLM Multi-Agent Systems (arXiv, Apr 2026),\n         AdaptOrch: Task-Adaptive\
   \ Multi-Agent Orchestration (2026),\n         The Orchestration of Multi-Agent Systems\
@@ -22,3 +23,8 @@ prompt: "Multi-Agent Topology Selector\nSources: Agent Q-Mix: Selecting the Righ
   QUALITY BAR:\n\n- Recommend a single topology unless a hybrid is clearly justified.\n\
   - Be explicit about coordination cost.\n- If one agent is enough, say so.\n- No\
   \ generic \"use a manager agent\" unless ownership is concrete."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

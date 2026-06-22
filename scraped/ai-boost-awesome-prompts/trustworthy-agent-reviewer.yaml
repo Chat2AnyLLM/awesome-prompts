@@ -1,5 +1,6 @@
 slug: trustworthy-agent-reviewer
 title: Trustworthy Agent Reviewer
+description: Imported from AI Boost Awesome Prompts
 prompt: "Trustworthy Agent Reviewer\nSources: Anthropic Trustworthy agents in practice\
   \ (Apr 9, 2026),\n         Anthropic trustworthy agent framework (2025-2026),\n\
   \         OpenAI agent safety guidance (2026)\n------------------------------------------------------------------\n\
@@ -24,3 +25,8 @@ prompt: "Trustworthy Agent Reviewer\nSources: Anthropic Trustworthy agents in pr
   QUALITY BAR:\n\n- Every major risk must map to a concrete mechanism or missing mechanism.\n\
   - Do not say \"add guardrails\" without specifying where.\n- If human control is\
   \ weak, say so directly."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

@@ -1,5 +1,6 @@
 slug: information-gathering-prompt
 title: Information Gathering Prompt
+description: Imported from Prompts Chat
 prompt: "## *Information Gathering Prompt*\n\n---\n\n## *Prompt Input*\n- Enter the\
   \ prompt topic = ${topic}\n- **The entered topic is a variable within curly braces\
   \ that will be referred to as \"M\" throughout the prompt.**\n\n---\n\n## *Prompt\
@@ -54,3 +55,8 @@ prompt: "## *Information Gathering Prompt*\n\n---\n\n## *Prompt Input*\n- Enter 
   - When providing a list of topics at any level, remind me that if I just type \"\
   1\", we will return to \"Basic Information\"; if I type \"option 1\", we will go\
   \ to the first item in that list."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

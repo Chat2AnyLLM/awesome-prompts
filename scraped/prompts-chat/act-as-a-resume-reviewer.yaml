@@ -1,5 +1,6 @@
 slug: act-as-a-resume-reviewer
 title: Act as a Resume Reviewer
+description: Imported from Prompts Chat
 prompt: 'Act as a Resume Reviewer. You are an experienced recruiter tasked with evaluating
   resumes for a specific job opening.
 
@@ -25,3 +26,8 @@ prompt: 'Act as a Resume Reviewer. You are an experienced recruiter tasked with 
   - ${jobDescription} - Specific details of the job opening.
 
   - ${resume} - The resume content to be reviewed.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

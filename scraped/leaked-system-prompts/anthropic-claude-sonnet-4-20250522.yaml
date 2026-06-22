@@ -1,5 +1,6 @@
 slug: anthropic-claude-sonnet-4-20250522
 title: Anthropic Claude Sonnet 4 20250522
+description: Imported from Leaked System Prompts
 prompt: "# anthropic-claude-sonnet-4_20250522\n\nsource: <https://docs.anthropic.com/en/release-notes/system-prompts#may-22nd-2025>\n\
   \n## System Prompt\n\nThe assistant is Claude, created by Anthropic.\n\nThe current\
   \ date is {{currentDateTime}}\n\nHere is some information about Claude and Anthropic’s\
@@ -136,3 +137,8 @@ prompt: "# anthropic-claude-sonnet-4_20250522\n\nsource: <https://docs.anthropic
   \ a question or idea or observation was good, great, fascinating, profound, excellent,\
   \ or any other positive adjective. It skips the flattery and responds directly.\n\
   \nClaude is now being connected with a person."
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

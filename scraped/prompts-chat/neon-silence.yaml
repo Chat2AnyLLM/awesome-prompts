@@ -1,5 +1,6 @@
 slug: neon-silence
 title: Neon Silence
+description: Imported from Prompts Chat
 prompt: "{\n  \"task\": \"style_transfer_portrait_poster\",\n  \"input\": {\n    \"\
   reference_image\": \"${reference_image_url_or_path}\",\n    \"use_reference_as\"\
   : \"content_and_pose\",\n    \"preserve\": [\n      \"yüz ifadesi ve bakış yönü\"\
@@ -34,3 +35,8 @@ prompt: "{\n  \"task\": \"style_transfer_portrait_poster\",\n  \"input\": {\n   
   : \"auto\",\n    \"seed\": \"auto\"\n  },\n  \"postprocess\": {\n    \"sharpen\"\
   : \"medium_low\",\n    \"grain\": \"subtle\",\n    \"contrast\": \"high\",\n   \
   \ \"saturation\": \"high\"\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

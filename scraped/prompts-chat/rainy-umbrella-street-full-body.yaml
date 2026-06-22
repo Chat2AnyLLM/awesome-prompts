@@ -1,5 +1,6 @@
 slug: rainy-umbrella-street-full-body
 title: Rainy Umbrella Street (full-body)
+description: Imported from Prompts Chat
 prompt: "{\n  \"category\": \"RAINY_CITY_UMBRELLA_FULLBODY\",\n  \"subject\": {\n\
   \    \"demographics\": \"Adult woman, 21-27, Turkish-looking.\",\n    \"hair\":\
   \ {\n      \"color\": \"Dark brown\",\n      \"style\": \"Slightly damp strands,\
@@ -35,3 +36,8 @@ prompt: "{\n  \"category\": \"RAINY_CITY_UMBRELLA_FULLBODY\",\n  \"subject\": {\
   \    \"no_watermarks\": true\n  },\n  \"negative_prompt\": [\n    \"smoke\", \"\
   fog machine look\", \"watergun splash\",\n    \"extra limbs\", \"warped umbrella\
   \ spokes\",\n    \"readable signs\", \"logos\", \"watermark\"\n  ]\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

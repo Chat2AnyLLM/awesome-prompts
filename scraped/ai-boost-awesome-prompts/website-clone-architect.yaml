@@ -1,5 +1,6 @@
 slug: website-clone-architect
 title: Website Clone Architect
+description: Imported from AI Boost Awesome Prompts
 prompt: "---\nname: clone-website\ndescription: Reverse-engineer and clone one or\
   \ more websites in one shot — extracts assets, CSS, and content section-by-section\
   \ and proactively dispatches parallel builder agents in worktrees as it goes. Use\
@@ -368,3 +369,8 @@ prompt: "---\nname: clone-website\ndescription: Reverse-engineer and clone one o
   \ created\n- Total spec files written (should match components)\n- Total assets\
   \ downloaded (images, videos, SVGs, fonts)\n- Build status (`npm run build` result)\n\
   - Visual QA results (any remaining discrepancies)\n- Any known gaps or limitations"
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

@@ -1,5 +1,6 @@
 slug: image-analysis-for-night-portrait-in-heavy-snowfall
 title: Image Analysis for Night Portrait in Heavy Snowfall
+description: Imported from Prompts Chat
 prompt: "{\n  \"image_analysis\": {\n    \"meta\": {\n      \"type\": \"photorealistic\"\
   ,\n      \"style\": \"candid_night_portrait\",\n      \"subject_count\": 1\n   \
   \ },\n    \"environment\": {\n      \"type\": \"outdoor\",\n      \"location\":\
@@ -84,3 +85,8 @@ prompt: "{\n  \"image_analysis\": {\n    \"meta\": {\n      \"type\": \"photorea
   : \"daylight, summer, sunshine, dry ground, indoor, studio, blurry face, distorted\
   \ hands, extra fingers, low resolution, cartoon, painting, illustration, nudity,\
   \ bikini, swimwear, green grass, blue sky, crowd, men, animals\"\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

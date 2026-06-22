@@ -1,5 +1,6 @@
 slug: file-system-indexer-cli
 title: File System Indexer CLI
+description: Imported from Prompts Chat
 prompt: Build a high-performance file system indexer and search tool in Go. Implement
   recursive directory traversal with configurable depth. Add file metadata extraction
   including size, dates, and permissions. Include content indexing with optional full-text
@@ -8,3 +9,8 @@ prompt: Build a high-performance file system indexer and search tool in Go. Impl
   formats. Implement search result highlighting. Add duplicate file detection using
   checksums. Include performance statistics and progress reporting. Implement concurrent
   processing for multi-core utilization.
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

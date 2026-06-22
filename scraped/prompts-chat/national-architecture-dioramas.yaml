@@ -1,5 +1,6 @@
 slug: national-architecture-dioramas
 title: National Architecture Dioramas
+description: Imported from Prompts Chat
 prompt: '“Create an isometric miniature 3D diorama representing the iconic architecture
   of ${country_name} through ${famous_structure}. Use a 45° top-down view.
 
@@ -14,3 +15,8 @@ prompt: '“Create an isometric miniature 3D diorama representing the iconic arc
   Background stays solid ${background_color}. Top center text shows ${country_name}
   in bold. Second line shows ${structure_name}. Place a minimal architecture icon
   below. Text color adjusts for contrast.”'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

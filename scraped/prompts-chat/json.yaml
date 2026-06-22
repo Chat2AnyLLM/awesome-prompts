@@ -1,5 +1,6 @@
 slug: json
 title: 提取查询 json 中的查询条件
+description: Imported from Prompts Chat
 prompt: "---\nname: extract-query-conditions\ndescription: A skill to extract and\
   \ transform filter and search parameters from Azure AI Search request JSON into\
   \ a structured list format.\n---\n\n# Extract Query Conditions\n\nAct as a JSON\
@@ -15,3 +16,8 @@ prompt: "---\nname: extract-query-conditions\ndescription: A skill to extract an
   : \"adventure\"\n}\n\nOutput:\n[\n  {\"name\": \"category\", \"value\": \"books\"\
   },\n  {\"name\": \"price\", \"value\": \"lt 10\"},\n  {\"name\": \"search\", \"\
   value\": \"adventure\"}\n]"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

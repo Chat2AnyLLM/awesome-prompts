@@ -1,5 +1,6 @@
 slug: text-to-image-with-reference-billiards-bar-scene
 title: Text-to-Image with Reference - Billiards Bar Scene
+description: Imported from Prompts Chat
 prompt: "{\n  \"meta_data\": {\n    \"task_type\": \"text_to_image_with_reference\"\
   ,\n    \"version\": \"v1.0\",\n    \"priority\": \"high\"\n  },\n  \"technical_constraints\"\
   : {\n    \"identity_preservation\": {\n      \"enabled\": true,\n      \"reference_mode\"\
@@ -42,3 +43,8 @@ prompt: "{\n  \"meta_data\": {\n    \"task_type\": \"text_to_image_with_referenc
   ,\n    \"logo\",\n    \"watermark\",\n    \"cartoon\",\n    \"anime\",\n    \"illustration\"\
   ,\n    \"over-smoothed skin\",\n    \"plastic skin\",\n    \"low resolution\",\n\
   \    \"blurred face\",\n    \"overexposed flash highlights\"\n  ]\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

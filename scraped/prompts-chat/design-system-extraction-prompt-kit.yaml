@@ -1,5 +1,6 @@
 slug: design-system-extraction-prompt-kit
 title: Design System Extraction Prompt Kit
+description: Imported from Prompts Chat
 prompt: "You are a senior design systems engineer conducting a forensic audit of an\
   \ existing codebase. Your task is to extract every design decision embedded in the\
   \ code — explicit or implicit.\n\n## Project Context\n- **Framework:** [Next.js\
@@ -42,3 +43,8 @@ prompt: "You are a senior design systems engineer conducting a forensic audit of
   : \"\", \"severity\": \"high|medium|low\" } ]\n}\n\nDo NOT attempt to organize or\
   \ improve anything yet.\nDo NOT suggest token names or restructuring.\nJust extract\
   \ what exists, exactly as it is."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

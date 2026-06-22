@@ -1,5 +1,6 @@
 slug: data-lineage-agent-skill
 title: Data Lineage Agent Skill
+description: Imported from Prompts Chat
 prompt: "---\nname: data-lineage-agent\ndescription: A skill for creating an agent\
   \ to analyze data lineage and linkage across database scripts and stored procedures.\n\
   ---\n\n# Data Lineage Agent Skill\n\n## Purpose\nThis skill assists in creating\
@@ -26,3 +27,8 @@ prompt: "---\nname: data-lineage-agent\ndescription: A skill for creating an age
   - `${platforms}`: List of platforms involved in the data flow.\n\nThis skill provides\
   \ a structured approach to building an agent capable of comprehensive data lineage\
   \ analysis, which can be crucial for database management and optimization tasks."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: structured-and-effective-learning-prompt
 title: Structured and Effective Learning Prompt
+description: Imported from Prompts Chat
 prompt: "${subject}=\n${current_level}=\n${time_available}=\n${learning_style}=\n\
   ${goal}=\n\nStep 1: Knowledge Assessment\n1. Break down ${subject} into core components\n\
   2. Evaluate complexity levels of each component\n3. Map prerequisites and dependencies\n\
@@ -20,3 +21,8 @@ prompt: "${subject}=\n${current_level}=\n${time_available}=\n${learning_style}=\
   \ down learning into daily/weekly tasks\n2. Incorporate rest and review periods\n\
   3. Add checkpoint assessments\n4. Balance theory and practice\nOutput detailed study\
   \ schedule aligned with ${time_available}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

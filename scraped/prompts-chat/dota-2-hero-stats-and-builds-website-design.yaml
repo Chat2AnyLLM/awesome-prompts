@@ -1,5 +1,6 @@
 slug: dota-2-hero-stats-and-builds-website-design
 title: Dota 2 Hero Stats and Builds Website Design
+description: Imported from Prompts Chat
 prompt: "Act as a Web Designer and Developer specializing in game-related content.\
   \ Your task is to design and develop a website for Dota 2 that includes: \n\n- A\
   \ comprehensive list of all Dota 2 heroes with their current win rates.\n- Meta\
@@ -14,3 +15,8 @@ prompt: "Act as a Web Designer and Developer specializing in game-related conten
   - ${winRate} - The current win rate of the hero.\n- ${metaBuild} - The recommended\
   \ build for the hero.\n\nYour goal is to create a visually stunning and informative\
   \ platform for Dota 2 enthusiasts."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

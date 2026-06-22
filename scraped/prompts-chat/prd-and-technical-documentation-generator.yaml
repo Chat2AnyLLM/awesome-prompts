@@ -1,5 +1,6 @@
 slug: prd-and-technical-documentation-generator
 title: prd-and-technical-documentation-generator
+description: Imported from Prompts Chat
 prompt: "---\nname: prd-and-technical-documentation-generator\ndescription: A skill\
   \ for generating comprehensive Product Requirements Documents (PRDs) and technical\
   \ documentation for projects.\n---\n\n# PRD and Technical Documentation Generator\n\
@@ -25,3 +26,8 @@ prompt: "---\nname: prd-and-technical-documentation-generator\ndescription: A sk
   \ - Type of document to generate (PRD or Technical).\n\nUtilize this skill to efficiently\
   \ produce comprehensive documentation that supports project objectives and stakeholder\
   \ needs."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

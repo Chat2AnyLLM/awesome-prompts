@@ -1,5 +1,6 @@
 slug: security-fixes
 title: security fixes
+description: Imported from Prompts Chat
 prompt: "---\nname: security-fixes\ndescription: in order to fix security issues in\
   \ my codebase which is flagged by code scanning for refrences like user input comping\
   \ as part o request could be vulnerable and how can we fix it\n---\n\n# security\
@@ -7,3 +8,8 @@ prompt: "---\nname: security-fixes\ndescription: in order to fix security issues
   \ checking it should not break the existing functionality and a proper test case\
   \ should be written for the change\n\n## Instructions\n\ncheck the issue \nfix it\
   \ \ntest case\n- Step 2: ..."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

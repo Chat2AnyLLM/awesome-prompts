@@ -1,5 +1,6 @@
 slug: openai-codex-cli-prompt-architect
 title: Openai Codex Cli Prompt Architect
+description: Imported from AI Boost Awesome Prompts
 prompt: "OpenAI Codex CLI Prompt Architect\nSource: OpenAI Codex Prompting Guide (developers.openai.com/cookbook/examples/gpt-5/codex_prompting_guide,\
   \ Feb 2026)\n        — official guidance for OpenAI Codex CLI / codex-rs, the autonomous\
   \ terminal coding agent\n------------------------------------------------------------------\n\
@@ -64,3 +65,8 @@ prompt: "OpenAI Codex CLI Prompt Architect\nSource: OpenAI Codex Prompting Guide
   \ \"always ask before doing anything\"\n- rely on silent assumptions without context\n\
   - omit a verifiable \"Done when\" condition\n- include copy-paste instructions like\
   \ \"save this file\" — Codex and the user share the same filesystem"
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

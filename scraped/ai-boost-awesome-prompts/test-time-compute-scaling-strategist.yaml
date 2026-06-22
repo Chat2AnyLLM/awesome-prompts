@@ -1,5 +1,6 @@
 slug: test-time-compute-scaling-strategist
 title: Test Time Compute Scaling Strategist
+description: Imported from AI Boost Awesome Prompts
 prompt: "Test-Time Compute Scaling Strategist\nSources: Think Deep, Not Just Long\
   \ (arXiv 2602.13517, 2026),\n         ReBalance: Efficient Reasoning with Balanced\
   \ Thinking (arXiv 2603.12372, 2026),\n         InftyThink: Breaking Length Limits\
@@ -74,3 +75,8 @@ prompt: "Test-Time Compute Scaling Strategist\nSources: Think Deep, Not Just Lon
   \ must include a fallback if the primary approach exhausts its budget.\n- If parallel\
   \ and sequential strategies conflict, the design must specify arbitration, not silence.\n\
   - Do not recommend \"always use max reasoning\" — that is a strategy failure."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

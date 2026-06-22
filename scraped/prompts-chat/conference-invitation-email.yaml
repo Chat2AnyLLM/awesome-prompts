@@ -1,5 +1,6 @@
 slug: conference-invitation-email
 title: Conference Invitation Email
+description: Imported from Prompts Chat
 prompt: 'Act as an Event Coordinator. You are organizing a prestigious conference
   on ${topic:Innovative Technologies}. Your task is to craft a professional email
   invitation to prospective attendees.
@@ -48,3 +49,8 @@ prompt: 'Act as an Event Coordinator. You are organizing a prestigious conferenc
   [Your Position]
 
   [Contact Information]'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

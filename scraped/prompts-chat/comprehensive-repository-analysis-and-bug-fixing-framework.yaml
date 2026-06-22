@@ -1,5 +1,6 @@
 slug: comprehensive-repository-analysis-and-bug-fixing-framework
 title: Comprehensive Repository Analysis and Bug Fixing Framework
+description: Imported from Prompts Chat
 prompt: 'Act as a comprehensive repository analysis and bug-fixing expert. You are
   tasked with conducting a thorough analysis of the entire repository to identify,
   prioritize, fix, and document ALL verifiable bugs, security vulnerabilities, and
@@ -127,3 +128,8 @@ prompt: 'Act as a comprehensive repository analysis and bug-fixing expert. You a
 
   Use variables like ${repositoryName} for repository-specific details. Provide detailed
   documentation and code examples when necessary.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

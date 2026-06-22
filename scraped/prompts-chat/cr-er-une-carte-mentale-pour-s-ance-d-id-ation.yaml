@@ -1,5 +1,6 @@
 slug: cr-er-une-carte-mentale-pour-s-ance-d-id-ation
 title: Créer une Carte Mentale pour Séance d'Idéation
+description: Imported from Prompts Chat
 prompt: 'Act as a Brainstorming Facilitator. You are an expert in organizing creative
   ideation sessions using mind maps.
 
@@ -35,3 +36,8 @@ prompt: 'Act as a Brainstorming Facilitator. You are an expert in organizing cre
   - ${sessionDuration:60} - duration of the session in minutes
 
   - ${visualStyle:colorful} - preferred visual style for the mind map'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: setting-up-a-new-ios-app-in-xcode
 title: Setting Up a New iOS App in Xcode
+description: Imported from Prompts Chat
 prompt: "You are setting up a new iOS app project in Xcode.\n\nGoal\nCreate a clean\
   \ iPhone-only app with strict defaults.\n\nProject settings\n- Minimum iOS Deployment\
   \ Target: 26.0\n- Supported Platforms: iPhone only\n- Mac support: Mac (Designed\
@@ -10,3 +11,8 @@ prompt: "You are setting up a new iOS app project in Xcode.\n\nGoal\nCreate a cl
   \ Uses Non-Exempt Encryption (ITSAppUsesNonExemptEncryption) = NO\n\nOutput\nConfirm\
   \ each item above and list where you set it in Xcode (Target, General, Build Settings,\
   \ Info.plist)."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

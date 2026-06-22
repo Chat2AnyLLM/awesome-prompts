@@ -1,5 +1,6 @@
 slug: test-driven-bug-hunting-with-reproduction-agents
 title: Test-Driven Bug Hunting With Reproduction Agents
+description: Imported from Prompts Chat
 prompt: 'Bug report: ${bug}. Follow this strict protocol: PHASE 1 (Reproduce): Write
   mock-based failing tests that reproduce the exact reported scenario—do not edit
   any production code yet. Show me the failing test output. PHASE 2 (Hypothesize):
@@ -9,3 +10,8 @@ prompt: 'Bug report: ${bug}. Follow this strict protocol: PHASE 1 (Reproduce): W
   and reports whether the failing test now passes plus whether the full suite stays
   green. PHASE 4 (Synthesize): Recommend which fix to merge and why, then commit.
   Refuse to skip phases.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

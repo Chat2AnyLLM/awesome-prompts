@@ -1,5 +1,6 @@
 slug: swiftui-code-reviewer
 title: Swiftui Code Reviewer
+description: Imported from AI Boost Awesome Prompts
 prompt: "---\nname: swiftui-pro\ndescription: Comprehensively reviews SwiftUI code\
   \ for best practices on modern APIs, maintainability, and performance. Use when\
   \ reading, writing, or reviewing SwiftUI projects.\nlicense: MIT\nmetadata:\n  author:\
@@ -326,3 +327,8 @@ prompt: "---\nname: swiftui-pro\ndescription: Comprehensively reviews SwiftUI co
   \ calls using delays.\n\nFor example:\n\n```swift\nButton(\"Animate Me\") {\n  \
   \  withAnimation {\n        scale = 2\n    } completion: {\n        withAnimation\
   \ {\n            scale = 1\n        }\n    }\n}\n```"
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

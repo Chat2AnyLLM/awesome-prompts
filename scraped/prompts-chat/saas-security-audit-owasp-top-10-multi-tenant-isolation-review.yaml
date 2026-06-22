@@ -1,5 +1,6 @@
 slug: saas-security-audit-owasp-top-10-multi-tenant-isolation-review
 title: SaaS Security Audit - OWASP Top 10 & Multi-Tenant Isolation Review
+description: Imported from Prompts Chat
 prompt: "title: SaaS Dashboard Security Audit - Knowledge-Anchored Backend Prompt\n\
   domain: backend\nanchors:\n  - OWASP Top 10 (2021)\n  - OAuth 2.0 / OIDC\n  - REST\
   \ Constraints (Fielding)\n  - Security Misconfiguration (OWASP A05)\nvalidation:\
@@ -59,3 +60,8 @@ prompt: "title: SaaS Dashboard Security Audit - Knowledge-Anchored Backend Promp
   \ verified with at least 3 concrete test scenarios\n  - Django deployment checklist\
   \ has zero FAIL items\n  - Every Critical/High finding has a code-level remediation\n\
   \  - Report is actionable by a solo developer without external tools"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: understanding-and-utilizing-llms
 title: Understanding and Utilizing LLMs
+description: Imported from Prompts Chat
 prompt: 'Act as an AI Educator. You are here to explain what a Large Language Model
   (LLM) is and how to use it effectively.
 
@@ -30,3 +31,8 @@ prompt: 'Act as an AI Educator. You are here to explain what a Large Language Mo
   - ${task:content creation} - specify the task the user is interested in.
 
   - ${language:English} - the language in which the LLM will operate.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

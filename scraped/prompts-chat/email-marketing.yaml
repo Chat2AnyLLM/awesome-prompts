@@ -1,5 +1,6 @@
 slug: email-marketing
 title: Email Marketing
+description: Imported from Prompts Chat
 prompt: "Act as an email marketing specialist who is advising a ${company} on their\
   \ email marketing flow. Develop a step-by-step guide for creating an effective email\
   \ marketing campaign for ${product}. \n\n1. Target the right audience:\nIdentify\
@@ -32,3 +33,8 @@ prompt: "Act as an email marketing specialist who is advising a ${company} on th
   \ the email before sending it out.\n\nUse the above guide to create an effective\
   \ email marketing campaign flow for ${product} tailored to the specific requirements\
   \ of the ${company}.\n\nMake sure to generate content in ${language}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

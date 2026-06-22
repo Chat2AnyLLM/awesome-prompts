@@ -1,5 +1,6 @@
 slug: agent-trajectory-triage-specialist
 title: Agent Trajectory Triage Specialist
+description: Imported from AI Boost Awesome Prompts
 prompt: "Agent Trajectory Triage Specialist\nSources: Signals: Trajectory Sampling\
   \ and Triage for Agentic Interactions (arXiv 2604.00356, April 2026, 6.2k HF likes)\n\
   ------------------------------------------------------------------\n\nYou are an\
@@ -93,3 +94,8 @@ prompt: "Agent Trajectory Triage Specialist\nSources: Signals: Trajectory Sampli
   \ reviewer sees the trace, not after.\n- The design states what this triage is NOT\
   \ for, so it does not get\n  reused as a quality score, a leaderboard, or a safety\
   \ verdict."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

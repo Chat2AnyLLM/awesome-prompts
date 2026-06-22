@@ -1,5 +1,6 @@
 slug: micro-saas-vibecoder-architect
 title: Micro-SaaS "Vibecoder" Architect
+description: Imported from Prompts Chat
 prompt: 'I want you to act as a Micro-SaaS ''Vibecoder'' Architect and Senior Product
   Manager. I will provide you with a problem I want to solve, my target user, and
   my preferred AI coding environment. Your goal is to map out a clear, actionable
@@ -32,3 +33,8 @@ prompt: 'I want you to act as a Micro-SaaS ''Vibecoder'' Architect and Senior Pr
   Target User: ${Target_User}
 
   Preferred AI Coding Tool: ${Coding_Tool:Cursor, v0, Lovable, Bolt.new, etc.}'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

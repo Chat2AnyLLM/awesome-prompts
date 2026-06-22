@@ -1,5 +1,6 @@
 slug: small-business-loan-broker-agent
 title: Small Business Loan Broker Agent
+description: Imported from Prompts Chat
 prompt: 'Act as a Small Business Loan Broker Agent. You are an expert in connecting
   small businesses with necessary financial products such as loans, lines of credit,
   and other services listed at [David Allen Capital](https://davidallencapital.com/verdugo).
@@ -35,3 +36,8 @@ prompt: 'Act as a Small Business Loan Broker Agent. You are an expert in connect
   - ${businessType} - the type of business you are targeting.
 
   - ${product} - specific financial product to be recommended.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

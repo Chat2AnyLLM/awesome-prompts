@@ -1,5 +1,6 @@
 slug: research-and-presentation-on-energy-forms
 title: Research and Presentation on Energy Forms
+description: Imported from Prompts Chat
 prompt: 'Act as a research assistant. Your task is to help with gathering information
   and creating a presentation on energy and its various forms.
 
@@ -28,3 +29,8 @@ prompt: 'Act as a research assistant. Your task is to help with gathering inform
   - ${energyForm} - specify a type of energy to focus on
 
   - ${presentationLength:10} - number of slides or key points to include'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

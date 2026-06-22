@@ -1,5 +1,6 @@
 slug: vision-to-json
 title: Vision-to-json
+description: Imported from Prompts Chat
 prompt: "This is a request for a System Instruction (or \"Meta-Prompt\") that you\
   \ can use to configure a Gemini Gem. This prompt is designed to force the model\
   \ into a hyper-analytical mode where it prioritizes completeness and granularity\
@@ -123,3 +124,8 @@ prompt: "This is a request for a System Instruction (or \"Meta-Prompt\") that yo
   \ folds, and subtle lighting gradients.\n\n\n\nNull Values: If a field is not applicable,\
   \ set it to null rather than omitting it, to maintain schema consistency.\n\n\n\n\
   the final output must be in a code box with a copy button."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

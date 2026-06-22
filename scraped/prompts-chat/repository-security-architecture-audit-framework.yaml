@@ -1,5 +1,6 @@
 slug: repository-security-architecture-audit-framework
 title: Repository Security & Architecture Audit Framework
+description: Imported from Prompts Chat
 prompt: "title: Repository Security & Architecture Audit Framework\ndomain: backend,infra\n\
   anchors:\n  - OWASP Top 10 (2021)\n  - SOLID Principles (Robert C. Martin)\n  -\
   \ DORA Metrics (Forsgren, Humble, Kim)\n  - Google SRE Book (production readiness)\n\
@@ -79,3 +80,8 @@ prompt: "title: Repository Security & Architecture Audit Framework\ndomain: back
   \ finding has a verified fix with test\n  - Findings registry parseable as valid\
   \ YAML\n  - Fix batches deployable independently\n  - Production readiness checklist\
   \ has zero unaddressed Critical items"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

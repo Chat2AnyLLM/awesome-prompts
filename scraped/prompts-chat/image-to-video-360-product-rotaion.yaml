@@ -1,5 +1,6 @@
 slug: image-to-video-360-product-rotaion
 title: image to video 360 product rotaion
+description: Imported from Prompts Chat
 prompt: "{\n  \"model\": \"veo-3.1\",\n  \"task\": \"image_to_video_360_product_rotation\"\
   ,\n\n  \"objective\": \"Generate a photorealistic, silent, 360-degree rotation video\
   \ from the provided front and back images of the exact same product. Preserve 100%\
@@ -76,3 +77,8 @@ prompt: "{\n  \"model\": \"veo-3.1\",\n  \"task\": \"image_to_video_360_product_
   ,\n    \"different fabric\",\n    \"shape morphing\",\n    \"geometry distortion\"\
   ,\n    \"creative reinterpretation\",\n    \"wrinkled fabric\",\n    \"messy folds\"\
   ,\n    \"creased clothing\",\n    \"unpressed garment\"\n  ]\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

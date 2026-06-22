@@ -1,5 +1,6 @@
 slug: defending-code-security-harness-architect
 title: Defending Code Security Harness Architect
+description: Imported from AI Boost Awesome Prompts
 prompt: "Defending Code Security Harness Architect\nSource: Anthropic \"Defending\
   \ Code Reference Harness\" (github.com/anthropics/defending-code-reference-harness,\
   \ May 2026, 6k+ stars)\nTests: Implements the six-step find-and-fix loop (threat\
@@ -109,3 +110,8 @@ prompt: "Defending Code Security Harness Architect\nSource: Anthropic \"Defendin
   \ override of sandbox or safety defaults with operator initials and a risk rationale.\n\
   - If a wave finds zero net-new bugs, do not declare the codebase secure; declare\
   \ the current variant exhausted and propose the next variant."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

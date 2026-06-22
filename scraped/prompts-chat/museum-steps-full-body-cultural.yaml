@@ -1,5 +1,6 @@
 slug: museum-steps-full-body-cultural
 title: Museum Steps (full-body, cultural)
+description: Imported from Prompts Chat
 prompt: "{\n  \"category\": \"MUSEUM_STEPS_FULLBODY\",\n  \"subject\": {\n    \"demographics\"\
   : \"Adult woman, 21-27, Turkish-looking, artsy vibe.\",\n    \"hair\": {\n     \
   \ \"color\": \"Dark brown\",\n      \"style\": \"Loose waves, tucked behind one\
@@ -29,3 +30,8 @@ prompt: "{\n  \"category\": \"MUSEUM_STEPS_FULLBODY\",\n  \"subject\": {\n    \"
   \    \"no_watermarks\": true\n  },\n  \"negative_prompt\": [\n    \"readable text\"\
   , \"logos\", \"watermark\",\n    \"extra fingers\", \"warped steps\",\n    \"plastic\
   \ skin\", \"cgi\"\n  ]\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

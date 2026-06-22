@@ -1,5 +1,6 @@
 slug: night-club
 title: Night club
+description: Imported from Prompts Chat
 prompt: "{\n  \"prompt\": \"A curvy but slender thirty-year-old woman with wavy brown\
   \ hair dances wildly on a nightclub podium. She has her hands free, eyes open, looking\
   \ around with a complex expressio. She wears a white strapless top and a short black\
@@ -18,3 +19,8 @@ prompt: "{\n  \"prompt\": \"A curvy but slender thirty-year-old woman with wavy 
   \ signatures, text, logo, frame, border, low quality, low resolution, jpeg artifacts\"\
   ,\n  \"width\": 720,\n  \"height\": 1280,\n  \"guidance_scale\": 7.5,\n  \"num_inference_steps\"\
   : 30,\n  \"seed\": 123456,\n  \"scheduler\": \"DDIM\"\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

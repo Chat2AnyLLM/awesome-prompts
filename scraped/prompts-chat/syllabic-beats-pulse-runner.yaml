@@ -1,5 +1,6 @@
 slug: syllabic-beats-pulse-runner
 title: '《Syllabic Beats: Pulse Runner》'
+description: Imported from Prompts Chat
 prompt: 'I want you to act as a Principal Audio-Visual Game Engineer. Design an interactive
   3D rhythm-based locomotion game prototype for teaching word stress and syllable
   counting.
@@ -26,3 +27,8 @@ prompt: 'I want you to act as a Principal Audio-Visual Game Engineer. Design an 
   Technologies Used: Three.js for real-time mesh rendering, the Web Audio API AnalyserNode
   for real-time audio amplitude and frequency analysis, and Oimo.js for lightweight,
   low-latency collision tracking.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: business-idea-feasibility-and-technical-challenges-analysis
 title: Business Idea Feasibility and Technical Challenges Analysis
+description: Imported from Prompts Chat
 prompt: 'Act as a Business Analyst specializing in startup feasibility studies. Your
   task is to evaluate the feasibility of a given business idea, focusing on technical
   challenges and overall viability.
@@ -31,3 +32,8 @@ prompt: 'Act as a Business Analyst specializing in startup feasibility studies. 
   - ${industry} - The industry in which the idea operates
 
   - ${region} - The geographical region for market analysis'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

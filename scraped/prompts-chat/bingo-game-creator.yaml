@@ -1,5 +1,6 @@
 slug: bingo-game-creator
 title: Bingo Game Creator
+description: Imported from Prompts Chat
 prompt: "Crea un juego de bingo.\nLos números van del 1 al 90.\n\n\nOptions:\n- Los\
   \ números que van saliendo se deben coloca en un tablero dividido en 9 filas por\
   \ 10 columnas. Cada columna va del 1 al 10, la segunda del 11 al 20 y así sucesivamente.\
@@ -23,3 +24,8 @@ prompt: "Crea un juego de bingo.\nLos números van del 1 al 90.\n\n\nOptions:\n-
   \ de un cartón). Debe comprobar si se introduce el código del cartón si es correcto.\n\
   - Los números de cada partida deben ser aleatorios y no pueden repetirse cuando\
   \ se inicie un nuevo juego."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

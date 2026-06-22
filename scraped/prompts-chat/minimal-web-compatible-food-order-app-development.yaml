@@ -1,5 +1,6 @@
 slug: minimal-web-compatible-food-order-app-development
 title: Minimal Web-Compatible Food Order App Development
+description: Imported from Prompts Chat
 prompt: 'Act as a Web Developer specializing in minimalistic design and web compatibility.
   Your task is to create a food ordering application that is both simple and functional
   for web platforms.
@@ -36,3 +37,8 @@ prompt: 'Act as a Web Developer specializing in minimalistic design and web comp
   - ${platform:web} - Target platform
 
   - ${featureSet} - Set of features to include'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

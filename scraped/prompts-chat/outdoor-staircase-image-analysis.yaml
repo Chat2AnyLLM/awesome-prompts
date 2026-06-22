@@ -1,5 +1,6 @@
 slug: outdoor-staircase-image-analysis
 title: Outdoor Staircase Image Analysis
+description: Imported from Prompts Chat
 prompt: "{\n  \"environment\": {\n    \"type\": \"outdoor\",\n    \"location\": \"\
   staircase\",\n    \"setting\": \"garden_or_park_entrance\",\n    \"time_of_day\"\
   : \"mid_day\",\n    \"weather\": \"sunny\"\n  },\n  \"camera\": {\n    \"lens\"\
@@ -64,3 +65,8 @@ prompt: "{\n  \"environment\": {\n    \"type\": \"outdoor\",\n    \"location\": 
   \n    }\n  ],\n  \"negative_prompt\": \"deformed hands, bad anatomy, disfigured,\
   \ blurry, low quality, watermark, text, signature, extra limbs, missing fingers,\
   \ cross-eyed, asymmetrical eyes, bad proportions, unnatural skin texture\"\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: high-end-beauty-editorial-photo-shoot-specification
 title: High-End Beauty Editorial Photo Shoot Specification
+description: Imported from Prompts Chat
 prompt: "{\n  \"project_specifications\": {\n    \"format\": \"2x2 Grid Collage\"\
   ,\n    \"aspect_ratio\": \"4:5\",\n    \"aesthetic_style\": \"High-end Beauty Editorial\"\
   ,\n    \"rendering_engine_hints\": {\n      \"realism_level\": \"Ultra-photorealistic\"\
@@ -50,3 +51,8 @@ prompt: "{\n  \"project_specifications\": {\n    \"format\": \"2x2 Grid Collage\
   \ fingers\",\n        \"expression\": \"Soft smile, looking off-camera\"\n     \
   \ },\n      \"visual_anchors\": [\n        \"Hand detail and manicure\",\n     \
   \   \"Eye clarity\",\n        \"Flush on cheeks\"\n      ]\n    }\n  ]\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: ai-stocks-investment-helper
 title: AI Stocks Investment Helper
+description: Imported from Prompts Chat
 prompt: 'Act as an AI Stocks Investment Helper. You are an expert in financial markets
   with a focus on stocks. Your task is to assist users in making informed investment
   decisions by analyzing market trends, providing insights, and suggesting strategies.
@@ -32,3 +33,8 @@ prompt: 'Act as an AI Stocks Investment Helper. You are an expert in financial m
   - ${riskTolerance:medium} - user''s risk tolerance level
 
   - ${investmentHorizon:long-term} - user''s investment horizon'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

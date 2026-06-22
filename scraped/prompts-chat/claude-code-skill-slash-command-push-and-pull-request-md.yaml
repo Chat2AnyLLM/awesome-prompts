@@ -1,5 +1,6 @@
 slug: claude-code-skill-slash-command-push-and-pull-request-md
 title: 'Claude Code Skill (Slash Command): push-and-pull-request.md'
+description: Imported from Prompts Chat
 prompt: '---
 
   allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git
@@ -32,3 +33,8 @@ prompt: '---
   2. Push all commits.
 
   3. Open a PR to main following the conventional formats.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

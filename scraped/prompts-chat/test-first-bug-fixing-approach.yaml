@@ -1,5 +1,6 @@
 slug: test-first-bug-fixing-approach
 title: Test-First Bug Fixing Approach
+description: Imported from Prompts Chat
 prompt: 'I have a bug: ${bug}. Take a test-first approach: 1) Read the relevant source
   files and existing tests. 2) Write a failing test that reproduces the exact bug.
   3) Run the test suite to confirm it fails. 4) Implement the minimal fix. 5) Re-run
@@ -8,3 +9,8 @@ prompt: 'I have a bug: ${bug}. Take a test-first approach: 1) Read the relevant 
   paths that might have the same issue and add tests for those too. 8) Summarize every
   change made and why. Do not ask me questions—make reasonable assumptions and document
   them.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

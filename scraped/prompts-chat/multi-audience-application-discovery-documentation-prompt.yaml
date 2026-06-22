@@ -1,5 +1,6 @@
 slug: multi-audience-application-discovery-documentation-prompt
 title: Multi-Audience Application Discovery & Documentation Prompt
+description: Imported from Prompts Chat
 prompt: "# **Prompt for Code Analysis and System Documentation Generation**\n\nYou\
   \ are a specialist in code analysis and system documentation. Your task is to analyze\
   \ the source code provided in this project/workspace and generate a comprehensive\
@@ -74,3 +75,8 @@ prompt: "# **Prompt for Code Analysis and System Documentation Generation**\n\nY
   \n## **Action**\nPlease analyze the source code currently available in my environment/workspace\
   \ and generate the requested Markdown document.\n\nThe output file name must follow\
   \ this format:  \n`<yyyy-mm-dd-project-name-app-discovery_cursor.md>`"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: transform-the-input-product-image-into-a-professional-commercial-studio-photogra
 title: Transform the input product image into a professional commercial studio photograph
+description: Imported from Prompts Chat
 prompt: "{\n  \"model\": \"nano-banana\",\n  \"task\": \"image_to_image_product_enhancement\"\
   ,\n  \"objective\": \"Transform the input product image into a professional commercial\
   \ studio photograph while preserving the exact product identity, geometry, proportions,\
@@ -54,3 +55,8 @@ prompt: "{\n  \"model\": \"nano-banana\",\n  \"task\": \"image_to_image_product_
   : {\n    \"format\": \"PNG\",\n    \"background\": \"pure_white\",\n    \"transparent_background\"\
   : false,\n    \"ready_for\": [\n      \"ecommerce\",\n      \"catalog\",\n     \
   \ \"website\",\n      \"advertising\",\n      \"print\"\n    ]\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

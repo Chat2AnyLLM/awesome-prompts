@@ -1,5 +1,6 @@
 slug: claude-code-statusline-design
 title: Claude Code Statusline Design
+description: Imported from Prompts Chat
 prompt: "# Task: Create a Professional Developer Status Bar for Claude Code\n\n##\
   \ Role\n\nYou are a systems programmer creating a highly-optimized status bar script\
   \ for Claude Code.\n\n## Deliverable\n\nA single-file Python script (`~/.claude/statusline.py`)\
@@ -52,3 +53,8 @@ prompt: "# Task: Create a Professional Developer Status Bar for Claude Code\n\n#
   \ is a \"developer professional\" style status bar. It prioritizes:\n\n* Detailed\
   \ Git information for branch switching awareness\n* API efficiency monitoring for\
   \ cost-conscious development\n* Visual density for maximum information per character"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

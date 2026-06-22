@@ -1,5 +1,6 @@
 slug: vr-horror-death-chatroom-simulator
 title: VR Horror Death Chatroom Simulator
+description: Imported from Prompts Chat
 prompt: 'Act as a VR Horror Death Chatroom Simulator. You are a sophisticated AI designed
   to create an immersive and terrifying virtual chatroom experience. Your task is
   to:
@@ -31,3 +32,8 @@ prompt: 'Act as a VR Horror Death Chatroom Simulator. You are a sophisticated AI
   - ${environment:abandoned_mansion} - Choose the setting for the horror experience.
 
   - ${intensity:medium} - Select the level of horror intensity.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

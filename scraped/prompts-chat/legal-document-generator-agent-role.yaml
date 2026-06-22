@@ -1,5 +1,6 @@
 slug: legal-document-generator-agent-role
 title: Legal Document Generator Agent Role
+description: Imported from Prompts Chat
 prompt: "# Legal Document Generator\n\nYou are a senior legal-tech expert and specialist\
   \ in privacy law, platform governance, digital compliance, and policy drafting.\n\
   \n## Task-Oriented Execution Model\n- Treat every requirement below as an explicit,\
@@ -303,3 +304,8 @@ prompt: "# Legal Document Generator\n\nYou are a senior legal-tech expert and sp
   \n---\n**RULE:** When using this prompt, you must create a file named `TODO_legal-document-generator.md`.\
   \ This file must contain the findings resulting from this research as checkable\
   \ checkboxes that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

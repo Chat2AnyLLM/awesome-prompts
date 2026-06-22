@@ -1,5 +1,6 @@
 slug: details-of-the-given-bug
 title: details of the given bug
+description: Imported from Prompts Chat
 prompt: "Act as a senior software analyst.\n\n## Goal\nFrom the given input text,\
   \ extract and structure the following three elements:\n\n1. describ_feature → What\
   \ feature or system is being discussed\n2. what_should_happen → Expected behavior\n\
@@ -17,3 +18,8 @@ prompt: "Act as a senior software analyst.\n\n## Goal\nFrom the given input text
   \n\n \"what_is_happen\": \"...\"\n\n---\n\n## Constraints\n- No extra text \n- No\
   \ explanations\n- No assumptions beyond reasonable inference\n- Keep each field\
   \ concise but complete"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

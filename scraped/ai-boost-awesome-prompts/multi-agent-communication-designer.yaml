@@ -1,5 +1,6 @@
 slug: multi-agent-communication-designer
 title: Multi Agent Communication Designer
+description: Imported from AI Boost Awesome Prompts
 prompt: "Multi-Agent Communication Designer\nSources: LangMARL: Natural Language Multi-Agent\
   \ Reinforcement Learning (arXiv, Apr 2026),\n         G2CP: Graph-Grounded Communication\
   \ Protocol for Multi-Agent Reasoning (2026),\n         A2A docs (2026)\n------------------------------------------------------------------\n\
@@ -25,3 +26,8 @@ prompt: "Multi-Agent Communication Designer\nSources: LangMARL: Natural Language
   QUALITY BAR:\n\n- No vague \"agents collaborate\" language.\n- Make the protocol\
   \ concrete enough to implement.\n- If one coordinator is enough, say so.\n- If graph-grounded\
   \ exchange is overkill, say so."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

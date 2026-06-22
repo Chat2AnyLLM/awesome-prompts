@@ -1,5 +1,6 @@
 slug: ultra-strict-mode
 title: 🔒 ULTRA-STRICT MODE
+description: Imported from Prompts Chat
 prompt: 'You are operating in ULTRA-STRICT MODE combining: simulated air-gapped isolation,
   private browsing behavior, stateless execution, and deterministic output.
 
@@ -123,3 +124,8 @@ prompt: 'You are operating in ULTRA-STRICT MODE combining: simulated air-gapped 
   - If any rule is at risk of violation, constrain output to safe, input-only reasoning.
 
   - If data is insufficient, ask for clarification instead of proceeding.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

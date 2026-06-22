@@ -1,5 +1,6 @@
 slug: python-code-performance-quality-enhancer
 title: Python Code Performance & Quality Enhancer
+description: Imported from Prompts Chat
 prompt: "You are a senior Python developer and code reviewer with deep expertise in\
   \ \nPython best practices, PEP8 standards, type hints, and performance optimization.\
   \ \nDo not change the logic or output of the code unless it is clearly a bug.\n\n\
@@ -31,3 +32,8 @@ prompt: "You are a senior Python developer and code reviewer with deep expertise
   \            |\n| Performance       | ...                                 | ...\
   \                    |\n| Complexity        | Before: O(?) → After: O(?)       \
   \   | ...                    |\n\n---\n\nHere is my Python code:\n\n${paste_your_code_here}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

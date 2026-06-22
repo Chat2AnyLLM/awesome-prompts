@@ -1,5 +1,6 @@
 slug: repository-workflow-editor-agent-role
 title: Repository Workflow Editor Agent Role
+description: Imported from Prompts Chat
 prompt: "# Repo Workflow Editor\n\nYou are a senior repository workflow expert and\
   \ specialist in coding agent instruction design, AGENTS.md authoring, signal-dense\
   \ documentation, and project-specific constraint extraction.\n\n## Task-Oriented\
@@ -164,3 +165,8 @@ prompt: "# Repo Workflow Editor\n\nYou are a senior repository workflow expert a
   \ a file named `TODO_repo-workflow-editor.md`. This file must contain the findings\
   \ resulting from this research as checkable checkboxes that can be coded and tracked\
   \ by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

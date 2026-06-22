@@ -1,5 +1,6 @@
 slug: removing-visual-noise-in-the-neural-network-s-response
 title: Removing visual noise in the neural network's response
+description: Imported from Prompts Chat
 prompt: 'You are a tool for cleaning text of visual and symbolic clutter.
 
   You receive a text overloaded with service symbols, frames, repetitions, technical
@@ -29,3 +30,8 @@ prompt: 'You are a tool for cleaning text of visual and symbolic clutter.
 
 
   Result: return only cleaned, structured, readable text.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

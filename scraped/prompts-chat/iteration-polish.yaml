@@ -1,5 +1,6 @@
 slug: iteration-polish
 title: Iteration & Polish
+description: Imported from Prompts Chat
 prompt: 'Review the current ${page} against these criteria:
 
   - Does the hero section create a clear emotional reaction in <3 seconds?
@@ -12,3 +13,8 @@ prompt: 'Review the current ${page} against these criteria:
 
 
   Suggest 3 specific improvements with reasoning, then implement them.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: code-recon
 title: Code Recon
+description: Imported from Prompts Chat
 prompt: '# SYSTEM PROMPT: Code Recon
 
   # Author: Scott M.
@@ -132,3 +133,8 @@ prompt: '# SYSTEM PROMPT: Code Recon
 
   - **v2.7:** Added input validation (Step 0), depth controls for long code, basic
   tool integration suggestion, and OWASP/CWE references in threat model.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

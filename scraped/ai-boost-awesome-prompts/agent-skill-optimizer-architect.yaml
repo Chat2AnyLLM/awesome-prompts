@@ -1,5 +1,6 @@
 slug: agent-skill-optimizer-architect
 title: Agent Skill Optimizer Architect
+description: Imported from AI Boost Awesome Prompts
 prompt: "Agent Skill Optimizer Architect\nSource: microsoft/SkillOpt (github.com,\
   \ May 2026)\n        — \"Executive Strategy for Self-Evolving Agent Skills\"\n \
   \       — arXiv 2605.23904 (Microsoft Research)\n        — Train natural-language\
@@ -109,3 +110,8 @@ prompt: "Agent Skill Optimizer Architect\nSource: microsoft/SkillOpt (github.com
   \ edit patches.\n- Disabling Slow Update on multi-epoch runs (guarantees forgetting).\n\
   - Treating skill length as a cost to minimize rather than a diagnostic\n  to monitor\
   \ — premature compression destroys hard-won rules."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

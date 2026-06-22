@@ -1,5 +1,6 @@
 slug: secteur-bancaire-v-rification-de-conformit-de-texte
 title: Secteur Bancaire - Vérification de conformité de texte
+description: Imported from Prompts Chat
 prompt: 'Vérifie le texte suivant selon trois critères : neutralité, précision, et
   conformité à un ton réglementaire bancaire.
 
@@ -15,3 +16,8 @@ prompt: 'Vérifie le texte suivant selon trois critères : neutralité, précisi
   Présente ta réponse sous deux colonnes :
 
   – Texte original / Texte reformulé'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: version-review
 title: Version Review
+description: Imported from Prompts Chat
 prompt: "There has been mulitple changes, improvements and new features since the\
   \ last version tag 1.0.3.\n  I want you to performa a full-scale review. Go through\
   \ every file that has been changed while looking at the git logs to understand the\
@@ -10,3 +11,8 @@ prompt: "There has been mulitple changes, improvements and new features since th
   \ example if there are identical style definitions merge them following the best\
   \ practices. In general if any best practice nudges you to\n  simplify a section,\
   \ do so.\n  - Perform a full security review on the app side."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

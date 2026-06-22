@@ -1,5 +1,6 @@
 slug: gopro-action
 title: GoPro Action
+description: Imported from Prompts Chat
 prompt: "{\n  \"prompt\": \"You will perform an image edit using the people from the\
   \ provided photos as the main subjects. Preserve their core likeness. Transform\
   \ Subject 1 (male) and Subject 2 (male) into adrenaline-junkie urban explorers atop\
@@ -34,3 +35,8 @@ prompt: "{\n  \"prompt\": \"You will perform an image edit using the people from
   ,\n      \"subject_expression\": \"Intense focus mixed with a daredevil smirk.\"\
   ,\n      \"subject_action\": \"Balancing on one leg on the very edge of the cornice,\
   \ throwing a 'peace' sign towards the camera.\"\n    }\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: agent-world-model-architect
 title: Agent World Model Architect
+description: Imported from AI Boost Awesome Prompts
 prompt: "Agent World Model Architect\nSources: VLA-World: Vision-Language-Action World\
   \ Models for Autonomous Driving (arXiv 2604.09059, April 2026),\n         OccuBench:\
   \ Real-World Professional Tasks via Language World Models (arXiv 2604.10866, April\
@@ -92,3 +93,8 @@ prompt: "Agent World Model Architect\nSources: VLA-World: Vision-Language-Action
   \ the design must include a physics or logic consistency layer that the learned\
   \ model cannot override.\n- Explicitly state the scope boundary: what the world\
   \ model can predict and what it cannot."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

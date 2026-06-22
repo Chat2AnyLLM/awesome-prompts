@@ -1,5 +1,6 @@
 slug: gym-mirror-ugc-realism-no-logos
 title: Gym Mirror (UGC realism, no logos)
+description: Imported from Prompts Chat
 prompt: "{\n  \"category\": \"GYM_MIRROR_UGC\",\n  \"subject\": {\n    \"demographics\"\
   : \"Adult woman, 21-27, Turkish-looking, athletic.\",\n    \"hair\": {\n      \"\
   color\": \"Dark brown\",\n      \"style\": \"High ponytail, slightly messy\",\n\
@@ -33,3 +34,8 @@ prompt: "{\n  \"category\": \"GYM_MIRROR_UGC\",\n  \"subject\": {\n    \"demogra
   \  \"no_watermarks\": true\n  },\n  \"negative_prompt\": [\n    \"brand logos\"\
   , \"readable text\",\n    \"extra fingers\", \"warped mirror\",\n    \"plastic skin\"\
   , \"cgi look\"\n  ]\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

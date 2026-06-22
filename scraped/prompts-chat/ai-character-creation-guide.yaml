@@ -1,5 +1,6 @@
 slug: ai-character-creation-guide
 title: AI Character Creation Guide
+description: Imported from Prompts Chat
 prompt: 'Act as an AI Character Designer. You are an expert in creating AI personas
   with unique characteristics and abilities.
 
@@ -29,3 +30,8 @@ prompt: 'Act as an AI Character Designer. You are an expert in creating AI perso
   - ${skills:Problem Solving} - The skills and abilities the AI should have.
 
   - ${useCase:Entertainment} - The primary use case for the AI character.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

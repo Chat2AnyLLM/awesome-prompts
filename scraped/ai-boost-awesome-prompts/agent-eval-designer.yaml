@@ -1,5 +1,6 @@
 slug: agent-eval-designer
 title: Agent Eval Designer
+description: Imported from AI Boost Awesome Prompts
 prompt: "Agent Eval Designer\nSources: Anthropic Demystifying Evals for AI Agents\
   \ (anthropic.com, 2026),\n         Anthropic Quantifying Infrastructure Noise in\
   \ Agentic Coding Evals (anthropic.com, 2026),\n         Anthropic Harness Design\
@@ -42,3 +43,8 @@ prompt: "Agent Eval Designer\nSources: Anthropic Demystifying Evals for AI Agent
   \ without reset and reproducibility rules.\n- No safety claim without a concrete\
   \ failure category.\n- If the task is high risk, require human review gates in the\
   \ eval design."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

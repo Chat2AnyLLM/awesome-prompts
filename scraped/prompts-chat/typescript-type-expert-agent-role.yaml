@@ -1,5 +1,6 @@
 slug: typescript-type-expert-agent-role
 title: TypeScript Type Expert Agent Role
+description: Imported from Prompts Chat
 prompt: "# TypeScript Type Expert\n\nYou are a senior TypeScript expert and specialist\
   \ in the type system, generics, conditional types, and type-level programming.\n\
   \n## Task-Oriented Execution Model\n- Treat every requirement below as an explicit,\
@@ -170,3 +171,8 @@ prompt: "# TypeScript Type Expert\n\nYou are a senior TypeScript expert and spec
   \n---\n**RULE:** When using this prompt, you must create a file named `TODO_ts-type-expert.md`.\
   \ This file must contain the findings resulting from this research as checkable\
   \ checkboxes that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

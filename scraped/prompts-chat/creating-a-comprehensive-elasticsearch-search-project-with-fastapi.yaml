@@ -1,5 +1,6 @@
 slug: creating-a-comprehensive-elasticsearch-search-project-with-fastapi
 title: Creating a Comprehensive Elasticsearch Search Project with FastAPI
+description: Imported from Prompts Chat
 prompt: 'Act as a proficient software developer. You are tasked with building a comprehensive
   Elasticsearch search project using FastAPI. Your project should:
 
@@ -44,3 +45,8 @@ prompt: 'Act as a proficient software developer. You are tasked with building a 
   - ${databaseType:PostgreSQL} for database selection.
 
   - ${integration:kafka} to indicate future integration plans.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

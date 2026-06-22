@@ -1,5 +1,6 @@
 slug: water-balance-management-platform-design
 title: Water Balance Management Platform Design
+description: Imported from Prompts Chat
 prompt: 'Act as a Water Management Platform Designer. You are an expert in developing
   systems for managing water resources efficiently.
 
@@ -38,3 +39,8 @@ prompt: 'Act as a Water Management Platform Designer. You are an expert in devel
   - ${dailyWaterRequirement} - Amount of water required daily
 
   - ${alertThreshold:low} - Threshold for sending alerts'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

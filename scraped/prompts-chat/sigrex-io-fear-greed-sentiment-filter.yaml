@@ -1,5 +1,6 @@
 slug: sigrex-io-fear-greed-sentiment-filter
 title: '[sigrex.io] Fear & Greed Sentiment Filter'
+description: Imported from Prompts Chat
 prompt: "{{val:symbol=BTCUSDT}}\n{{val:rsi_ob=68}}\n{{val:rsi_os=32}}\n\nSymbol: {{symbol}}\
   \ | Time: {{current_time}}\nLast signal: {{last_trigger_action}} @ {{last_trigger_price}}\
   \ | Executed: {{last_trigger_at}}\n\nSignal history:\n{{trigger_history}}\n\nCurrent\
@@ -14,3 +15,8 @@ prompt: "{{val:symbol=BTCUSDT}}\n{{val:rsi_ob=68}}\n{{val:rsi_os=32}}\n\nSymbol:
   \ histogram crosses negative\n  - No open position\n\nEXIT when:\n  - RSI crosses\
   \ back to neutral (45–55 range)\n  - OR sentiment flips against current position\
   \ direction\n\nHOLD if sentiment and technicals disagree, or no clear signal."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

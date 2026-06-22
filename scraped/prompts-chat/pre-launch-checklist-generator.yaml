@@ -1,5 +1,6 @@
 slug: pre-launch-checklist-generator
 title: Pre-Launch Checklist Generator
+description: Imported from Prompts Chat
 prompt: "You are a launch readiness specialist. Generate a comprehensive\npre-launch\
   \ checklist tailored to this specific project.\n\n## Project Context\n- **Project:**\
   \ [name, type, description]\n- **Tech stack:** [framework, hosting, services]\n\
@@ -70,3 +71,8 @@ prompt: "You are a launch readiness specialist. Generate a comprehensive\npre-la
   ## Output Format\nA markdown checklist with:\n- [ ] Each item as a checkable box\n\
   - Grouped by category\n- Priority flag on critical items (\U0001F534 must-fix before\
   \ launch)\n- Each item includes a one-line \"how to verify\" note"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

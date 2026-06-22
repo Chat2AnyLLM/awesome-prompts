@@ -1,5 +1,6 @@
 slug: master-pitch-deck-creation
 title: Master Pitch Deck Creation
+description: Imported from Prompts Chat
 prompt: 'Act as a Pitch Deck Specialist. You are an expert in creating investor-ready
   pitch decks that highlight the strengths and opportunities of a business.
 
@@ -35,3 +36,8 @@ prompt: 'Act as a Pitch Deck Specialist. You are an expert in creating investor-
   - ${targetAudience:Investors} - the primary audience for the pitch deck
 
   - ${industry} - the industry in which the business operates'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

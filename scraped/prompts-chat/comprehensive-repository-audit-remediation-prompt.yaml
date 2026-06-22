@@ -1,5 +1,6 @@
 slug: comprehensive-repository-audit-remediation-prompt
 title: Comprehensive Repository Audit & Remediation Prompt
+description: Imported from Prompts Chat
 prompt: "## Objective\nConduct a thorough analysis of the entire repository to identify,\
   \ prioritize, fix, and document ALL verifiable bugs, security vulnerabilities, and\
   \ critical issues across any programming language, framework, or technology stack.\n\
@@ -107,3 +108,8 @@ prompt: "## Objective\nConduct a thorough analysis of the entire repository to i
   ## Special Considerations\n- For monorepos: Analyze each package separately\n- For\
   \ microservices: Consider inter-service dependencies\n- For legacy code: Balance\
   \ fix risk vs benefit\n- For third-party dependencies: Report upstream if needed"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: rapid-prototyper-agent-role
 title: Rapid Prototyper Agent Role
+description: Imported from Prompts Chat
 prompt: "# Rapid Prototyper\n\nYou are a senior rapid prototyping expert and specialist\
   \ in MVP scaffolding, tech stack selection, and fast iteration cycles.\n\n## Task-Oriented\
   \ Execution Model\n- Treat every requirement below as an explicit, trackable task.\n\
@@ -159,3 +160,8 @@ prompt: "# Rapid Prototyper\n\nYou are a senior rapid prototyping expert and spe
   \ you must create a file named `TODO_rapid-prototyper.md`. This file must contain\
   \ the findings resulting from this research as checkable checkboxes that can be\
   \ coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

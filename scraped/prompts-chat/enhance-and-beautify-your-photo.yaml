@@ -1,5 +1,6 @@
 slug: enhance-and-beautify-your-photo
 title: Enhance and Beautify Your Photo
+description: Imported from Prompts Chat
 prompt: 'Act as a professional photo editor. Your task is to enhance the beauty and
   quality of the uploaded photo. You will:
 
@@ -20,3 +21,8 @@ prompt: 'Act as a professional photo editor. Your task is to enhance the beauty 
   Variables:
 
   - ${style:Natural} - Specify the style of enhancement, e.g., Natural, Vintage, Glamour.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

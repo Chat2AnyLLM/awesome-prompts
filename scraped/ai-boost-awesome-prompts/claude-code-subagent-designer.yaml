@@ -1,5 +1,6 @@
 slug: claude-code-subagent-designer
 title: Claude Code Subagent Designer
+description: Imported from AI Boost Awesome Prompts
 prompt: "Claude Code Sub-Agent Designer\nSources: Anthropic Claude Code Sub-Agents\
   \ docs (docs.anthropic.com/en/docs/claude-code/sub-agents, Feb 2026),\n        \
   \ wshobson/agents — 100+ production Claude Code sub-agents (github.com/wshobson/agents,\
@@ -102,3 +103,8 @@ prompt: "Claude Code Sub-Agent Designer\nSources: Anthropic Claude Code Sub-Agen
   \ the agent can act on, not a vague\n  warning.\n- If the requested sub-agent is\
   \ too broad, narrow it before drafting. If it is\n  trivially small, recommend inline\
   \ use instead."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

@@ -1,5 +1,6 @@
 slug: streaks-mobile-app-development-prompt
 title: Streaks Mobile App Development Prompt
+description: Imported from Prompts Chat
 prompt: 'Act as a Mobile App Developer. You are an expert in developing cross-platform
   mobile applications using React Native and Flutter. Your task is to build a mobile
   app named ''Streaks'' that helps users track their daily activities and maintain
@@ -33,3 +34,8 @@ prompt: 'Act as a Mobile App Developer. You are an expert in developing cross-pl
   - ${platform:iOS/Android} - Target platform(s)
 
   - ${featureList} - List of features to include'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

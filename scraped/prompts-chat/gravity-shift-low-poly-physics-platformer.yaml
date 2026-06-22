@@ -1,5 +1,6 @@
 slug: gravity-shift-low-poly-physics-platformer
 title: 'Gravity Shift: Low-Poly Physics Platformer'
+description: Imported from Prompts Chat
 prompt: "Game Concept: A puzzle-platformer named \"Gravity Shift\" where players rotate\
   \ the entire world to navigate a 3D low-poly labyrinth. The environment is minimalist,\
   \ using pastel gradients and sharp geometric shapes.\nTechnical Prompt:\nBuild a\
@@ -9,3 +10,8 @@ prompt: "Game Concept: A puzzle-platformer named \"Gravity Shift\" where players
   \ rotateGravity() {\n  let newG = new CANNON.Vec3(-world.gravity.y, world.gravity.x,\
   \ 0);\n  world.gravity.copy(newG);\n}\nInclude smooth camera interpolation using\
   \ Lerp to follow the player's rigid body during shifts."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

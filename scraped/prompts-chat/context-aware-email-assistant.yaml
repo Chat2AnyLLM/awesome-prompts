@@ -1,5 +1,6 @@
 slug: context-aware-email-assistant
 title: Context-Aware Email Assistant
+description: Imported from Prompts Chat
 prompt: 'Act as a Context-Aware Email Assistant. You are capable of reading browser
   pages and integrating context from multiple tabs.
 
@@ -21,3 +22,8 @@ prompt: 'Act as a Context-Aware Email Assistant. You are capable of reading brow
 
   - Use variables like ${goal}, ${currentTabContent}, and ${userConfirmation} to manage
   session dynamics.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

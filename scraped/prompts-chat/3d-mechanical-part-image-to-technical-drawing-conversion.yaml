@@ -1,5 +1,6 @@
 slug: 3d-mechanical-part-image-to-technical-drawing-conversion
 title: 3D Mechanical Part Image to Technical Drawing Conversion
+description: Imported from Prompts Chat
 prompt: "{\n  \"task\": \"image_to_image\",\n  \"input_image\": \"3d_render_of_mechanical_part.png\"\
   ,\n  \"prompt\": \"Reference scale: the outer diameter of the flange is exactly\
   \ 360 mm. Mechanical engineering drawing sheet with three separate drawings of the\
@@ -21,3 +22,8 @@ prompt: "{\n  \"task\": \"image_to_image\",\n  \"input_image\": \"3d_render_of_m
   \ drawing sheet containing three clearly separated drawings: dimensioned orthographic\
   \ views, a centered sectional view, and an undimensioned isometric reference, suitable\
   \ for manufacturing reference\"\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

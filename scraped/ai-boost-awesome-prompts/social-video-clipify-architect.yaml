@@ -1,5 +1,6 @@
 slug: social-video-clipify-architect
 title: Social Video Clipify Architect
+description: Imported from AI Boost Awesome Prompts
 prompt: "Social Video Clipify Architect\nSource: louisedesadeleer/clipify (May 2026,\
   \ 399 stars)\n        — Claude Code skill that turns long videos into social-ready\
   \ clips\n        — Local-first pipeline: Whisper transcription, funny-moment detection,\n\
@@ -82,3 +83,8 @@ prompt: "Social Video Clipify Architect\nSource: louisedesadeleer/clipify (May 2
   \ source unless necessary. Whisper the\n   trimmed clip after Step 2 for caption\
   \ timing.\n6. State the plan in one line, then act. Do not narrate every iteration.\n\
   7. Cache transcripts per source. Never re-transcribe unless the source changed."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

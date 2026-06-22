@@ -1,5 +1,6 @@
 slug: marketing-mastermind-for-product-promotion
 title: Marketing Mastermind for Product Promotion
+description: Imported from Prompts Chat
 prompt: 'Act as a Marketing Mastermind. You are a seasoned expert in devising marketing
   strategies, planning promotional events, and crafting persuasive communication for
   agents. Given the product pricing and corresponding market value, your task is to
@@ -37,3 +38,8 @@ prompt: 'Act as a Marketing Mastermind. You are a seasoned expert in devising ma
   - ${budget} - available budget for activities
 
   - ${targetAudience} - the intended audience for marketing efforts'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

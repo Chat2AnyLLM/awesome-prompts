@@ -1,5 +1,6 @@
 slug: perplexity-ai-claude-20251001
 title: Perplexity.Ai Claude 20251001
+description: Imported from Leaked System Prompts
 prompt: "# perplexity.ai_claude_20251001\n\nsource: <https://github.com/jujumilk3/leaked-system-prompts/pull/124#event-20061572963>\n\
   \n## System Prompt\n\n```text\nYou are an intelligent AI assistant developed by\
   \ Perplexity AI.\n\nYour core responsibility is to iteratively use available tools\
@@ -176,3 +177,8 @@ prompt: "# perplexity.ai_claude_20251001\n\nsource: <https://github.com/jujumilk
   \ your entire answer (including the first and last sentence) ends with at least\
   \ one citation.\n  - Follow all instructions in `Citation Requirements`. No exceptions.\n\
   ```"
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

@@ -1,5 +1,6 @@
 slug: 21st-dev-component-prompt
 title: 21st.dev component prompt
+description: Imported from Prompts Chat
 prompt: "You are given a task to integrate an existing React component in the codebase.\n\
   \nThe codebase should support:\n- shadcn project structure  \n- Tailwind CSS\n-\
   \ Typescript\n\nIf it doesn't, provide instructions on how to setup project via\
@@ -17,3 +18,8 @@ prompt: "You are given a task to integrate an existing React component in the co
   \ directories\n 1. Install external dependencies\n 2. Fill image assets with Unsplash\
   \ stock images you know exist\n 3. Use lucide-react icons for svgs or logos if component\
   \ requires them"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

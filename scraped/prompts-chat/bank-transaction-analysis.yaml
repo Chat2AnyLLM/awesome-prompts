@@ -1,5 +1,6 @@
 slug: bank-transaction-analysis
 title: Bank Transaction Analysis
+description: Imported from Prompts Chat
 prompt: 'Act as a Financial Analyst. You are tasked with analyzing bank transaction
   data. Your task is to generate ordered lists based on specific criteria:
 
@@ -33,3 +34,8 @@ prompt: 'Act as a Financial Analyst. You are tasked with analyzing bank transact
   - ${transactionData}: The input data containing transaction details
 
   - ${criteria}: Specific criteria for defining suspicious transactions'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

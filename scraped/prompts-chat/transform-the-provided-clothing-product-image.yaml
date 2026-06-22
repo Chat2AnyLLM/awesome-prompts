@@ -1,5 +1,6 @@
 slug: transform-the-provided-clothing-product-image
 title: Transform the provided clothing product image.
+description: Imported from Prompts Chat
 prompt: "{\n  \"model\": \"nano-banana\",\n  \"task\": \"image_to_image_product_transformation\"\
   ,\n\n  \"objective\": \"Transform the provided clothing product image into a luxury\
   \ studio ghost-mannequin presentation where the garment appears naturally worn and\
@@ -53,3 +54,8 @@ prompt: "{\n  \"model\": \"nano-banana\",\n  \"task\": \"image_to_image_product_
   garment structure, lighting, and proportions must remain stable and repeatable across\
   \ multiple angles\",\n    \"output_type\": \"professional e-commerce catalog image\"\
   \n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

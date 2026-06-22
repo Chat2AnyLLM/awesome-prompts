@@ -1,5 +1,6 @@
 slug: fix-latex-dollars
 title: Fix LaTeX dollars
+description: Imported from Prompts Chat
 prompt: 'Investigate and fix the actual $ usages in Markdown content.
 
 
@@ -33,3 +34,8 @@ prompt: 'Investigate and fix the actual $ usages in Markdown content.
 
 
   Do not autonomously run any build, commit, or push.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

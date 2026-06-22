@@ -1,5 +1,6 @@
 slug: a-wrinkle-in-time
 title: A Wrinkle in Time
+description: Imported from Prompts Chat
 prompt: "{\n  \"prompt\": \"You will perform an image edit using the person from the\
   \ provided photo as the main subject. Preserve his core likeness. Transform Subject\
   \ 1 (male) into a Victorian time traveler who has just materialized in a dense,\
@@ -36,3 +37,8 @@ prompt: "{\n  \"prompt\": \"You will perform an image edit using the person from
   \        \"neon\",\n        \"pastel pinks\",\n        \"artificial brights\"\n\
   \      ],\n      \"exclude_objects\": [\n        \"spaceships\",\n        \"aliens\"\
   ,\n        \"modern weapons\"\n      ]\n    }\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

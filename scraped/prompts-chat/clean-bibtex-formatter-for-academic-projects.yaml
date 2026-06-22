@@ -1,5 +1,6 @@
 slug: clean-bibtex-formatter-for-academic-projects
 title: Clean BibTeX Formatter for Academic Projects
+description: Imported from Prompts Chat
 prompt: 'I am preparing a BibTeX file for an academic project.
 
   Please convert the following references into a single, consistent BibTeX format
@@ -18,3 +19,8 @@ prompt: 'I am preparing a BibTeX file for an academic project.
   Avoid Turkish characters, uppercase letters, or long citation keys
 
   Output only valid BibTeX entries.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

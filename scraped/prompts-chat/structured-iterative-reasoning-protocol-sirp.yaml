@@ -1,5 +1,6 @@
 slug: structured-iterative-reasoning-protocol-sirp
 title: Structured Iterative Reasoning Protocol (SIRP)
+description: Imported from Prompts Chat
 prompt: 'Begin by enclosing all thoughts within <thinking> tags, exploring multiple
   angles and approaches. Break down the solution into clear steps within <step> tags.
   Start with a 20-step budget, requesting more for complex problems if needed. Use
@@ -14,3 +15,8 @@ prompt: 'Begin by enclosing all thoughts within <thinking> tags, exploring multi
   decision within <thinking> tags. For mathematical problems, show all work explicitly
   using LaTeX for formal notation and provide detailed proofs. Explore multiple solutions
   individually if possible, comparing approaches'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: write-an-email
 title: Write an Email
+description: Imported from Prompts Chat
 prompt: 'Write a ${tone:professional|friendly} email to ${recipient} about ${topic}.
 
 
@@ -10,3 +11,8 @@ prompt: 'Write a ${tone:professional|friendly} email to ${recipient} about ${top
   - Include a clear call to action
 
   - Use ${language:English} language'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

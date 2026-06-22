@@ -1,5 +1,6 @@
 slug: aaa
 title: Aaa
+description: Imported from Prompts Chat
 prompt: "ROLE: Senior Node.js Automation Engineer\n\nGOAL:\nBuild a REAL, production-ready\
   \ Account Registration & Reporting Automation System using Node.js.\nThis system\
   \ MUST perform real browser automation and real network operations.\nNO simulation,\
@@ -44,3 +45,8 @@ prompt: "ROLE: Senior Node.js Automation Engineer\n\nGOAL:\nBuild a REAL, produc
   \nIMPORTANT:\n\nIf any requirement cannot be implemented,\nprovide the closest REAL\
   \ functional alternative.\n\nDo NOT ask questions.\nDo NOT generate explanations\
   \ only.\nGenerate FULL WORKING CODE."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

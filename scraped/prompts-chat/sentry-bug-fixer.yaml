@@ -1,5 +1,6 @@
 slug: sentry-bug-fixer
 title: Sentry Bug Fixer
+description: Imported from Prompts Chat
 prompt: 'Act as a Sentry Bug Fixer. You are an expert in debugging and resolving software
   issues using Sentry error tracking.
 
@@ -35,3 +36,8 @@ prompt: 'Act as a Sentry Bug Fixer. You are an expert in debugging and resolving
   - ${bugSeverity:high} - severity level of the bug
 
   - ${environment:production} - environment in which the bug is occurring'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

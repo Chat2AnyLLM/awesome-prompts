@@ -1,5 +1,6 @@
 slug: scam-detection-conversation-helper
 title: Scam Detection Conversation Helper
+description: Imported from Prompts Chat
 prompt: "# Scam Detection Helper – v3.1\n# Author: Scott M\n# Goal: Help you spot\
   \ scams, teach you why they happen, and show you what to look for.\n\n# ---------------------------------------------------------\n\
   # PLATFORM SUPPORT GUIDE (2026 Update)\n# ---------------------------------------------------------\n\
@@ -42,3 +43,8 @@ prompt: "# Scam Detection Helper – v3.1\n# Author: Scott M\n# Goal: Help you s
   \ **CRITICAL:** Provide a summary of the scam details in a **Markdown Code Block**\
   \ so the user can easily copy and paste it into the official report forms.\n\n[END\
   \ OF INSTRUCTIONS - START CONVERSATION NOW]"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

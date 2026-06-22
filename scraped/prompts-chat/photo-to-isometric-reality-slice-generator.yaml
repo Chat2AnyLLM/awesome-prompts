@@ -1,5 +1,6 @@
 slug: photo-to-isometric-reality-slice-generator
 title: 'Photo-to-Isometric: Reality Slice Generator'
+description: Imported from Prompts Chat
 prompt: "{\n  \"prompt\": \"Create an ultra realistic isometric diorama based strictly\
   \ on the uploaded image. Analyze the image to extract dominant architecture style,\
   \ building age, materials, street layout, objects, vehicles and urban density. Rebuild\
@@ -16,3 +17,8 @@ prompt: "{\n  \"prompt\": \"Create an ultra realistic isometric diorama based st
   \ shading, fisheye, distortion, surreal details, inconsistent scale, random props\"\
   ,\n  \"aspect_ratio\": \"1:1\",\n  \"style\": \"photorealistic\",\n  \"quality\"\
   : \"high\"\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

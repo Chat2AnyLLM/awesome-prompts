@@ -1,5 +1,6 @@
 slug: context-migration
 title: Context Migration
+description: Imported from Prompts Chat
 prompt: "# Context Preservation & Migration Prompt\n\n[ for AGENT.MD pass THE `##\
   \ SECTION` if NOT APPLICABLE ]\n\nGenerate a comprehensive context artifact that\
   \ preserves all conversational context, progress, decisions, and project structures\
@@ -159,3 +160,8 @@ prompt: "# Context Preservation & Migration Prompt\n\n[ for AGENT.MD pass THE `#
   \ inventory CRUD API (GET/POST done, PUT/DELETE pending)  \n**Decisions**: PostgreSQL\
   \ + JSONB, RESTful /api/v1/, pytest testing  \n**Next**: Complete PUT/DELETE endpoints,\
   \ finalize schema\""
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

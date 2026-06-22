@@ -1,5 +1,6 @@
 slug: fisheye-90s
 title: Fisheye 90s
+description: Imported from Prompts Chat
 prompt: "{\n  \"colors\": {\n    \"color_temperature\": \"cool with magenta-green\
   \ color cast\",\n    \"contrast_level\": \"high contrast with crushed blacks and\
   \ blown highlights\",\n    \"dominant_palette\": [\n      \"oversaturated primaries\"\
@@ -64,3 +65,8 @@ prompt: "{\n  \"colors\": {\n    \"color_temperature\": \"cool with magenta-gree
   \ 912x1216)\",\n    \"model_type\": \"FLUX or SDXL\",\n    \"controlnet\": \"Canny\
   \ or Depth (optional)\",\n    \"additional_lora\": \"VHS, 90s camcorder, or fisheye\
   \ LoRA if available\"\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

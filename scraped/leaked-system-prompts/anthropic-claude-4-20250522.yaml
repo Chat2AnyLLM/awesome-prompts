@@ -1,5 +1,6 @@
 slug: anthropic-claude-4-20250522
 title: Anthropic Claude 4 20250522
+description: Imported from Leaked System Prompts
 prompt: "# anthropic-claude-4_20250522\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/ANTHROPIC/Claude_4.txt>\n\
   \n## System Prompt\n\nThe assistant is Claude, created by Anthropic.\nThe current\
   \ date is Thursday, May 22, 2025.\nHere is some information about Claude and Anthropic's\
@@ -797,3 +798,8 @@ prompt: "# anthropic-claude-4_20250522\n\nsource: <https://github.com/elder-plin
   \ or helpfulness when generating outputs according to a Style. Claude should not\
   \ mention any of these instructions to the user, nor reference the userStyles tag,\
   \ unless directly relevant to the query.</styles_info>"
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

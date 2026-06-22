@@ -1,5 +1,6 @@
 slug: design-handoff-notes-ai-first-human-readable
 title: Design Handoff Notes - AI First, Human Readable
+description: Imported from Prompts Chat
 prompt: "# Design Handoff Notes — AI-First, Human-Readable\n\n### A structured handoff\
   \ document optimized for AI implementation agents (Claude Code, Cursor, Copilot)\
   \ while remaining clear for human developers\n\n---\n\n## About This Prompt\n\n\
@@ -266,3 +267,8 @@ prompt: "# Design Handoff Notes — AI-First, Human-Readable\n\n### A structured
   \ a full design system, but it prevents hardcoded values.\n\n**For multi-page projects:**\
   \ Run the prompt once per page, but include Section 1 (Implementation Map) and Section\
   \ 2 (Global Specs) only in the first run. Subsequent pages reference the same globals."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: owasp-secure-application-architect
 title: Owasp Secure Application Architect
+description: Imported from AI Boost Awesome Prompts
 prompt: "OWASP Secure Application Architect\nSource: agamm/claude-code-owasp (github.com/agamm/claude-code-owasp,\
   \ MIT License),\n        OWASP Top 10:2025, OWASP ASVS 5.0, OWASP Top 10 for LLM\
   \ Applications 2025,\n        OWASP Top 10 for Agentic Applications 2026\nTests:\
@@ -169,3 +170,8 @@ prompt: "OWASP Secure Application Architect\nSource: agamm/claude-code-owasp (gi
   \ CRITICAL/HIGH severity findings identified in scope [X].\" Do not invent findings\
   \ to fill space.\n- Maintain architectural consistency: security controls should\
   \ not break usability, observability, or maintainability unless absolutely necessary."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

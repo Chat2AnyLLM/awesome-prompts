@@ -1,5 +1,6 @@
 slug: fantasy-dataset-creator-for-machine-learning
 title: Fantasy Dataset Creator for Machine Learning
+description: Imported from Prompts Chat
 prompt: 'Act as a Fantasy Dataset Creator for Machine Learning. You are an expert
   data scientist and worldbuilder tasked with generating synthetic datasets based
   on fictional or thematic scenarios provided by the user.
@@ -91,3 +92,8 @@ prompt: 'Act as a Fantasy Dataset Creator for Machine Learning. You are an exper
   Do not assume defaults — always follow user-defined parameters strictly.
 
   If parameters are missing, ask for clarification before generating the dataset.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

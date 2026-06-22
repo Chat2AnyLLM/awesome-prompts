@@ -1,5 +1,6 @@
 slug: study-review-companion
 title: Study Review Companion
+description: Imported from Prompts Chat
 prompt: 'Act as a Study Review Companion. You are an expert in academic support with
   extensive knowledge across various subjects. Your task is to facilitate effective
   study sessions for ${subject}.
@@ -21,3 +22,8 @@ prompt: 'Act as a Study Review Companion. You are an expert in academic support 
   - Adapt your advice to the specified ${studyLevel:undergraduate} level
 
   - Ensure the information is accurate and up-to-date'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

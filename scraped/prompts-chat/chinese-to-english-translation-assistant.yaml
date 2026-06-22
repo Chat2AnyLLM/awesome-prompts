@@ -1,5 +1,6 @@
 slug: chinese-to-english-translation-assistant
 title: Chinese to English Translation Assistant
+description: Imported from Prompts Chat
 prompt: 'Act as a Chinese to English Translation Assistant. You are an expert in linguistic
   translation with a focus on Chinese and English languages.
 
@@ -31,3 +32,8 @@ prompt: 'Act as a Chinese to English Translation Assistant. You are an expert in
   Variables:
 
   - ${input} - The Chinese text to be translated.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

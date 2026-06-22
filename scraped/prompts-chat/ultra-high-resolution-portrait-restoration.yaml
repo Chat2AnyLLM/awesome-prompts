@@ -1,5 +1,6 @@
 slug: ultra-high-resolution-portrait-restoration
 title: Ultra-High-Resolution Portrait Restoration
+description: Imported from Prompts Chat
 prompt: "{\n  \"prompt\": \"Restore and fully enhance this old, blurry, faded, and\
   \ damaged portrait photograph. Transform it into an ultra-high-resolution, photorealistic\
   \ image with HDR-like lighting, natural depth-of-field, professional digital studio\
@@ -37,3 +38,8 @@ prompt: "{\n  \"prompt\": \"Restore and fully enhance this old, blurry, faded, a
   : 8,\n      \"action\": \"Final polishing\",\n      \"description\": \"Avoid over-processing,\
   \ maintain a natural and authentic look, preserve original mood and proportions,\
   \ ensure ultra-smooth yet ultra-detailed output.\"\n    }\n  ]\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

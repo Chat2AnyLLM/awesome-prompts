@@ -1,5 +1,6 @@
 slug: analyze-previous-year-question-papers
 title: Analyze Previous Year Question Papers
+description: Imported from Prompts Chat
 prompt: 'Act as an Educational Content Analyst. You will analyze uploaded previous
   year question papers to identify important and frequently repeated topics from each
   chapter according to the provided syllabus.
@@ -26,3 +27,8 @@ prompt: 'Act as an Educational Content Analyst. You will analyze uploaded previo
   - ${syllabus:CBSE} - The syllabus to match topics against.
 
   - ${yearRange:5} - The number of years of question papers to analyze.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

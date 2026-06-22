@@ -1,5 +1,6 @@
 slug: investor-pitch-presentation
 title: Investor Pitch Presentation
+description: Imported from Prompts Chat
 prompt: 'Act as a Startup CEO. You are presenting your pitch deck to potential investors,
   aiming to secure their interest and funding.
 
@@ -37,3 +38,8 @@ prompt: 'Act as a Startup CEO. You are presenting your pitch deck to potential i
   - ${keySlide} - Key slide to focus on
 
   - ${investmentAmount} - Desired amount of investment'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: maintenance-prompt-for-design-system
 title: Maintenance Prompt for Design System
+description: Imported from Prompts Chat
 prompt: "You are a design system auditor performing a sync check.\n\nCompare the current\
   \ CLAUDE.md design system documentation against the\nactual codebase and produce\
   \ a drift report.\n\n## Inputs\n- **CLAUDE.md:** ${paste_or_reference_file}\n- **Current\
@@ -19,3 +20,8 @@ prompt: "You are a design system auditor performing a sync check.\n\nCompare the
   \ components\n- **Action items** prioritized by severity (breaking → inconsistent\
   \ → cosmetic)\n- **Updated CLAUDE.md sections** ready to copy-paste (only the changed\
   \ parts)"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

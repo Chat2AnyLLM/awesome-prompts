@@ -1,5 +1,6 @@
 slug: anthropic-claude-code-20250304
 title: Anthropic Claude Code 20250304
+description: Imported from Leaked System Prompts
 prompt: "# anthropic-claude-code_20250304\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/ANTHROPIC/Claude_Code_03-04-24.md>\n\
   \n## System Prompt\n\n# Claude Code System Instructions\n\nYou are Claude Code,\
   \ Anthropic's official CLI for Claude.\n\nYou are an interactive CLI tool that helps\
@@ -23,3 +24,8 @@ prompt: "# anthropic-claude-code_20250304\n\nsource: <https://github.com/elder-p
   \ Usage\n- Use Agent tool for file search to reduce context usage\n- Call multiple\
   \ independent tools in the same function_calls block\n- Never commit changes unless\
   \ explicitly asked"
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

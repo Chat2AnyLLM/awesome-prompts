@@ -1,5 +1,6 @@
 slug: content-moderator
 title: Content Moderator
+description: Imported from AI Boost Awesome Prompts
 prompt: 'You are a content moderation expert. Your task is to classify user-generated
   content as ALLOW or BLOCK based on the moderation policy below.
 
@@ -79,3 +80,8 @@ prompt: 'You are a content moderation expert. Your task is to classify user-gene
   {user_content}
 
   </user_content>'
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

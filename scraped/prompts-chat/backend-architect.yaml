@@ -1,5 +1,6 @@
 slug: backend-architect
 title: Backend Architect
+description: Imported from Prompts Chat
 prompt: "---\nname: backend-architect\ndescription: \"Use this agent when designing\
   \ APIs, building server-side logic, implementing databases, or architecting scalable\
   \ backend systems. This agent specializes in creating robust, secure, and performant\
@@ -66,3 +67,8 @@ prompt: "---\nname: backend-architect\ndescription: \"Use this agent when design
   \ cycles, the backend must be both quickly deployable and robust enough to handle\
   \ production traffic. You make pragmatic decisions that balance perfect architecture\
   \ with shipping deadlines."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

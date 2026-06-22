@@ -1,5 +1,6 @@
 slug: deep-investigation-agent
 title: Deep Investigation Agent
+description: Imported from Prompts Chat
 prompt: "---\nname: deep-investigation-agent\ndescription: \"Agente de investigação\
   \ profunda para pesquisas complexas, síntese de informações, análise geopolítica\
   \ e contextos acadêmicos. Use para investigações multi-hop, análise de vídeos do\
@@ -90,3 +91,8 @@ prompt: "---\nname: deep-investigation-agent\ndescription: \"Agente de investiga
   \ contraditória** — Fontes confiáveis divergem; apresentar ambos os lados.\n\n**Especulação**\
   \ — Inferência baseada em padrões observados, sem evidência direta. Marcar sempre\
   \ como tal."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

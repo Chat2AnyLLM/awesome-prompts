@@ -1,5 +1,6 @@
 slug: skill-master
 title: skill-master
+description: Imported from Prompts Chat
 prompt: "---\nname: skill-master\ndescription: Discover codebase patterns and auto-generate\
   \ SKILL files for .claude/skills/. Use when analyzing project for missing skills,\
   \ creating new skills from codebase patterns, or syncing skills with project structure.\n\
@@ -583,3 +584,8 @@ prompt: "---\nname: skill-master\ndescription: Discover codebase patterns and au
   \ Command sources\n- `Cargo.toml` scripts/aliases\n- `Makefile`, README/docs\n-\
   \ Common: `cargo build`, `cargo test`, `cargo run`\n- Only include commands present\
   \ in repo\n\n## Key paths\n- `src/`, `crates/`\n- `tests/`\n- `migrations/`\n- `examples/`"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

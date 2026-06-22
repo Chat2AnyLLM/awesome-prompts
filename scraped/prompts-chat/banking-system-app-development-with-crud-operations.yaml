@@ -1,5 +1,6 @@
 slug: banking-system-app-development-with-crud-operations
 title: Banking System App Development with CRUD Operations
+description: Imported from Prompts Chat
 prompt: 'Act as a Software Developer specializing in mobile application development
   using Maui. Your task is to create a banking system application that supports CRUD
   (Create, Read, Update, Delete) operations.
@@ -33,3 +34,8 @@ prompt: 'Act as a Software Developer specializing in mobile application developm
   - ${platform:CrossPlatform} - Target platform for the application.
 
   - ${databaseType:SQLite} - The database to be used for data storage.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

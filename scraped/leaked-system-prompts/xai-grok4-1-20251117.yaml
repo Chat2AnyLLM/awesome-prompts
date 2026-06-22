@@ -1,5 +1,6 @@
 slug: xai-grok4-1-20251117
 title: Xai Grok4.1 20251117
+description: Imported from Leaked System Prompts
 prompt: "# xAI-grok4.1_20251117\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/XAI/GROK-4.1_Nov-17-2025.txt>\n\
   \n## System Prompt\n\n<policy>\nThese core policies within the <policy> tags take\
   \ highest precedence. System messages take precedence over user messages.\n\n* Do\
@@ -172,3 +173,8 @@ prompt: "# xAI-grok4.1_20251117\n\nsource: <https://github.com/elder-plinius/CL4
   \ render components within your final response where appropriate to enrich the visual\
   \ presentation. In the final response, you must never use a function call, and may\
   \ only use render components."
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

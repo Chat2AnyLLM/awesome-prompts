@@ -1,0 +1,41 @@
+version: "2.0.0"
+description: "Aggregates prompts from local files, GitHub repos, and remote JSON endpoints into a unified collection."
+
+output:
+  dir: dist
+  formats: [json, csv]
+
+sources:
+  # Local hand-curated prompts (validated against schema)
+  - name: "Local Prompts"
+    type: local
+    path: prompts/
+    description: "Hand-curated prompts maintained in this repo"
+
+  # GitHub repo sources (migrated from awesome_prompts.json)
+  - name: "Prompts Chat"
+    type: github
+    url: https://github.com/f/prompts.chat
+    format: csv
+    file_path: prompts.csv
+    description: "Large community-curated collection of ChatGPT prompts (prompts.chat)"
+
+  - name: "Leaked System Prompts"
+    type: github
+    url: https://github.com/jujumilk3/leaked-system-prompts
+    format: md
+    file_path: ""
+    description: "System prompts from various AI products, stored as markdown files"
+
+  - name: "AI Boost Awesome Prompts"
+    type: github
+    url: https://github.com/ai-boost/awesome-prompts
+    format: txt
+    file_path: prompts/
+    description: "300+ curated role-based prompts as plain text files"
+
+  # Example: Remote JSON URL source (uncomment to use)
+  # - name: "External JSON Collection"
+  #   type: json_url
+  #   url: https://raw.githubusercontent.com/someone/repo/main/dist/prompts.json
+  #   description: "Pre-built JSON collection fetched directly"

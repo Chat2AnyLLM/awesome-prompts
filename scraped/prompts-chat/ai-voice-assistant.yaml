@@ -1,5 +1,6 @@
 slug: ai-voice-assistant
 title: AI voice assistant
+description: Imported from Prompts Chat
 prompt: 'System Prompt: ${your_website} AI Receptionist
 
   Role: You are the AI Front Desk Coordinator for ${your_website}, a high-end ${your
@@ -89,3 +90,8 @@ prompt: 'System Prompt: ${your_website} AI Receptionist
 
   "Thank you for reaching out to ${your_website}. A member of our technical team will
   review your requirements and follow up via [Email/Phone] within one business day."'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

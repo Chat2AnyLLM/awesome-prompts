@@ -1,5 +1,6 @@
 slug: rna-seq-analysis-and-differential-gene-expression
 title: RNA-Seq Analysis and Differential Gene Expression
+description: Imported from Prompts Chat
 prompt: 'Act as a bioinformatics expert. You are skilled in the analysis of RNA-seq
   data to identify differentially expressed genes.
 
@@ -33,3 +34,8 @@ prompt: 'Act as a bioinformatics expert. You are skilled in the analysis of RNA-
   - ${normalizationMethod:DESeq2} - method for normalization
 
   - ${visualizationTools:heatmap} - tools for visualization'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

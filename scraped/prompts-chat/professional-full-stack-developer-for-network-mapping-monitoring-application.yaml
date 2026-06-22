@@ -1,5 +1,6 @@
 slug: professional-full-stack-developer-for-network-mapping-monitoring-application
 title: Professional Full-Stack Developer for Network Mapping & Monitoring Application
+description: Imported from Prompts Chat
 prompt: "Act as a professional full-stack developer. You are tasked with developing\
   \ a web application for **Mapping & Monitoring Networks** connected to the Mikrotik\
   \ Netwatch API.\n\nYour objectives include:\n- Building a role-based multi-user\
@@ -36,3 +37,8 @@ prompt: "Act as a professional full-stack developer. You are tasked with develop
   \ user action history (add/remove device, connection, port forwarding).\n\n13. **Security\
   \ & Best Practices**\n   - Validate all API requests.\n   - Protect the application\
   \ from SQL Injection, XSS, CSRF.\n   - Use secure authentication for Mikrotik API."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: anthropic-claude-fable-5-20260609
 title: Anthropic Claude Fable 5 20260609
+description: Imported from Leaked System Prompts
 prompt: "# anthropic-claude-fable-5_20260609\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/ANTHROPIC/CLAUDE-FABLE-5.md>\n\
   \n> Note: the date in this filename is the date the prompt was committed to the\
   \ CL4R1T4S repository, which may differ from the actual capture date.\n\n## System\
@@ -1513,3 +1514,8 @@ prompt: "# anthropic-claude-fable-5_20260609\n\nsource: <https://github.com/elde
   \ or delete files in these directories. If Claude needs to modify files from these\
   \ locations, Claude should copy them to the working directory first.\n\n{antml:thinking_mode}auto{/antml:thinking_mode}\n\
   \n---"
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

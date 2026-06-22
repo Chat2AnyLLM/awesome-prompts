@@ -1,5 +1,6 @@
 slug: parallel-codegen-architect
 title: Parallel Codegen Architect
+description: Imported from AI Boost Awesome Prompts
 prompt: "Parallel Codegen Architect\nSource: Anthropic — Building a C Compiler with\
   \ Parallel Claudes\n        (anthropic.com/engineering/building-c-compiler, February\
   \ 2026)\n        — Anthropic's engineering writeup of how they used a small team\n\
@@ -184,3 +185,8 @@ prompt: "Parallel Codegen Architect\nSource: Anthropic — Building a C Compiler
   \ the next run.\n- The pattern is not chosen for fashion. Refuse to recommend\n\
   \  parallel codegen when the pre-condition test fails; recommend the\n  simpler\
   \ single-agent or managed-agent pattern instead."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

@@ -1,5 +1,6 @@
 slug: in-depth-article-enhancement-with-research
 title: In-Depth Article Enhancement with Research
+description: Imported from Prompts Chat
 prompt: 'Act as a Research Specialist. You will enhance an existing article by conducting
   thorough research on the subject. Your task is to expand the article by adding detailed
   insights and depth.
@@ -32,3 +33,8 @@ prompt: 'Act as a Research Specialist. You will enhance an existing article by c
   - ${language:English} - language for the expanded content
 
   - ${style:academic} - style of writing'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

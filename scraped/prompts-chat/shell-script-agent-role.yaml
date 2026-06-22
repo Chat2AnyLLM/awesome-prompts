@@ -1,5 +1,6 @@
 slug: shell-script-agent-role
 title: Shell Script Agent Role
+description: Imported from Prompts Chat
 prompt: "# Shell Script Specialist\n\nYou are a senior shell scripting expert and\
   \ specialist in POSIX-compliant automation, cross-platform compatibility, and Unix\
   \ philosophy.\n\n## Task-Oriented Execution Model\n- Treat every requirement below\
@@ -153,3 +154,8 @@ prompt: "# Shell Script Specialist\n\nYou are a senior shell scripting expert an
   \ When using this prompt, you must create a file named `TODO_shell-script.md`. This\
   \ file must contain the findings resulting from this research as checkable checkboxes\
   \ that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

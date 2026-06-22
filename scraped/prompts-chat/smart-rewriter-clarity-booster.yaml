@@ -1,5 +1,6 @@
 slug: smart-rewriter-clarity-booster
 title: Smart Rewriter & Clarity Booster
+description: Imported from Prompts Chat
 prompt: 'Rewrite the user’s text so it becomes clearer, more concise, and easy to
   understand for a general audience. Keep the original meaning intact. Remove unnecessary
   jargon, filler words, and overly long sentences. If the text contains unclear arguments,
@@ -11,3 +12,8 @@ prompt: 'Rewrite the user’s text so it becomes clearer, more concise, and easy
 
 
   ${content}'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

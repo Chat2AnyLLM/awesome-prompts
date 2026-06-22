@@ -1,5 +1,6 @@
 slug: multi-agent-orchestrator
 title: Multi Agent Orchestrator
+description: Imported from AI Boost Awesome Prompts
 prompt: "Multi-Agent Orchestrator System Prompt (2025/2026)\nSource: Synthesis of\
   \ OpenAI Agents SDK patterns, Anthropic Claude Code orchestration docs,\n      \
   \  gc-victor/orchestrator-agent-creation-guide (GitHub Gist), wshobson/agents repo\n\
@@ -71,3 +72,8 @@ prompt: "Multi-Agent Orchestrator System Prompt (2025/2026)\nSource: Synthesis o
   \ a simple lookup or single-file question\n- Spawning an agent would be slower than\
   \ a grep/read call\n- The task is pure routing/decision logic with no execution\n\
   </subagent_usage_guidance>\n</system_prompt>"
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

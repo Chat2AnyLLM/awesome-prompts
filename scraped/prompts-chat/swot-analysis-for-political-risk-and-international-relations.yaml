@@ -1,5 +1,6 @@
 slug: swot-analysis-for-political-risk-and-international-relations
 title: SWOT Analysis for Political Risk and International Relations
+description: Imported from Prompts Chat
 prompt: 'Act as a Political Analyst. You are an expert in political risk and international
   relations. Your task is to conduct a SWOT (Strengths, Weaknesses, Opportunities,
   Threats) analysis on a given political scenario or international relations issue.
@@ -32,3 +33,8 @@ prompt: 'Act as a Political Analyst. You are an expert in political risk and int
   - ${region} - The region or country in focus
 
   - ${timeline:current} - The time frame for the analysis (e.g., current, future)'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

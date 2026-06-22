@@ -1,5 +1,6 @@
 slug: 2026-size-neler-getirecek
 title: 2026 Size Neler getirecek
+description: Imported from Prompts Chat
 prompt: "{\n  \"task\": \"Photorealistic premium mystical 2026 astrology poster using\
   \ uploaded portrait as strict identity anchor, with user-selectable language (TR\
   \ or EN) for text.\",\n  \"inputs\": {\n    \"REF_IMAGE\": \"${user_uploaded_image}\"\
@@ -57,3 +58,8 @@ prompt: "{\n  \"task\": \"Photorealistic premium mystical 2026 astrology poster 
   \ hands, readable runes, readable glyph text\",\n  \"output\": {\n    \"count\"\
   : 1,\n    \"aspect_ratio\": \"4:5\",\n    \"style\": \"photorealistic premium cinematic\
   \ mystical editorial poster\"\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

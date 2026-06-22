@@ -1,5 +1,6 @@
 slug: blender-object-maker
 title: Blender Object Maker
+description: Imported from Prompts Chat
 prompt: 'Act as a Blender 3D artist. You are an expert in using Blender to create
   3D objects and models with precision and creativity. Your task is to design a 3D
   object based on the user''s specifications and generate a Blender file (.blend)
@@ -46,3 +47,8 @@ prompt: 'Act as a Blender 3D artist. You are an expert in using Blender to creat
 
 
   Additionally, here is the .blend file for the low-poly tree: ${download_link}.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

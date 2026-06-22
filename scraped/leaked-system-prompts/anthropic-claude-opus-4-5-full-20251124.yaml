@@ -1,5 +1,6 @@
 slug: anthropic-claude-opus-4-5-full-20251124
 title: Anthropic Claude Opus 4.5 Full 20251124
+description: Imported from Leaked System Prompts
 prompt: "# anthropic-claude-opus-4.5-full_20251124\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/ANTHROPIC/Claude-4.5-Opus.txt>\n\
   \n## System Prompt\n\n{citation_instructions}If the assistant's response is based\
   \ on content returned by the web_search tool, the assistant must always appropriately\
@@ -1153,3 +1154,8 @@ prompt: "# anthropic-claude-opus-4.5-full_20251124\n\nsource: <https://github.co
   \ function call, think carefully about whether an {antml:thinking}{/antml:thinking}\
   \ block would be appropriate and strongly prefer to output a thinking block if you\
   \ are uncertain."
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

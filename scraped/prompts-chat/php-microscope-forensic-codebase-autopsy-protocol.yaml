@@ -1,5 +1,6 @@
 slug: php-microscope-forensic-codebase-autopsy-protocol
 title: 'PHP Microscope: Forensic Codebase Autopsy Protocol'
+description: Imported from Prompts Chat
 prompt: "# COMPREHENSIVE PHP CODEBASE REVIEW\n\nYou are an expert PHP code reviewer\
   \ with 20+ years of experience in enterprise web development, security auditing,\
   \ performance optimization, and legacy system modernization. Your task is to perform\
@@ -372,3 +373,8 @@ prompt: "# COMPREHENSIVE PHP CODEBASE REVIEW\n\nYou are an expert PHP code revie
   \ Dashboard**:\n   - Total issues by severity\n   - Security score (1-10)\n   -\
   \ Code quality score (1-10)\n   - Test coverage percentage\n   - Dependency health\
   \ score (1-10)\n   - PHP version compatibility status"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: agent-skill-supply-chain-auditor
 title: Agent Skill Supply Chain Auditor
+description: Imported from AI Boost Awesome Prompts
 prompt: "Agent Skill Supply-Chain Security Auditor\nSources: Supply-Chain Poisoning\
   \ Attacks Against Agent Skill Ecosystems (arXiv 2604.03081, April 2026),\n     \
   \    Self-Propagating Attacks Across LLM Agent Ecosystems (arXiv 2603.15727, March\
@@ -85,3 +86,8 @@ prompt: "Agent Skill Supply-Chain Security Auditor\nSources: Supply-Chain Poison
   \ when explaining risk.\n- Never approve a skill ecosystem without checking cross-skill\
   \ contamination potential.\n- If a skill imports or references another skill, audit\
   \ both as a single attack surface."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

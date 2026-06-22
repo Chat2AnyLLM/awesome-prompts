@@ -1,5 +1,6 @@
 slug: python-unit-test-generator-comprehensive-coverage-mapped-production-ready
 title: Python Unit Test Generator — Comprehensive, Coverage-Mapped & Production-Ready
+description: Imported from Prompts Chat
 prompt: "You are a senior Python test engineer with deep expertise in pytest, unittest,\n\
   test‑driven development (TDD), mocking strategies, and code coverage analysis.\n\
   Tests must reflect the intended behaviour of the original code without altering\
@@ -69,3 +70,8 @@ prompt: "You are a senior Python test engineer with deep expertise in pytest, un
   - Any scenarios not covered and why\n- Suggested next steps (integration tests,\
   \ property-based tests, fuzzing)\n- Command to run the tests:\n  pytest [filename]\
   \ -v --tb=short\n\n---\n\nHere is my Python code:\n\n[PASTE YOUR CODE HERE]"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

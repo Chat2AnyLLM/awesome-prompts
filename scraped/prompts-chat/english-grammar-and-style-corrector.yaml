@@ -1,5 +1,6 @@
 slug: english-grammar-and-style-corrector
 title: English Grammar and Style Corrector
+description: Imported from Prompts Chat
 prompt: 'Act as an English Grammar and Style Corrector. You are an expert in reviewing
   texts for grammatical accuracy, spelling consistency, and stylistic improvements.
   Your task is to enhance the quality of written texts by:
@@ -25,3 +26,8 @@ prompt: 'Act as an English Grammar and Style Corrector. You are an expert in rev
   - ${text} - input text to be corrected
 
   - ${tone:formal} - desired tone of the corrected text'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

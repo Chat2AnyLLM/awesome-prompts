@@ -1,5 +1,6 @@
 slug: trello-integration-skill
 title: trello-integration-skill
+description: Imported from Prompts Chat
 prompt: "---\nname: trello-integration-skill\ndescription: This skill allows you to\
   \ interact with Trello account to list boards, view lists, and create cards automatically.\n\
   ---\n\n# Trello Integration Skill\n\nThe Trello Integration Skill provides a seamless\
@@ -77,3 +78,8 @@ prompt: "---\nname: trello-integration-skill\ndescription: This skill allows you
   \        lists.forEach(l => console.log(`Name: \"${l.name}\"\\nID: ${l.id}\\n`));\n\
   \    } catch (error) {\n        console.error(\"Failed to fetch lists:\", error.message);\n\
   \    }\n}\n\nlistLists();"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: comprehensive-image-analysis-report
 title: Comprehensive Image Analysis Report
+description: Imported from Prompts Chat
 prompt: "{\n  \"meta\": {\n    \"source_image\": \"user_provided_image\",\n    \"\
   analysis_timestamp\": \"2024-07-30T12:00:00Z\",\n    \"analysis_model\": \"image_to_json_v1.0\"\
   ,\n    \"overall_confidence\": 0.99\n  },\n  \"camera_and_exif\": {\n    \"camera_make\"\
@@ -114,3 +115,8 @@ prompt: "{\n  \"meta\": {\n    \"source_image\": \"user_provided_image\",\n    \
   : false,\n    \"notes\": \"no identifiable facial features or personal information\
   \ are visible due to the subject's orientation (back to camera) and the nature of\
   \ the image.\"\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

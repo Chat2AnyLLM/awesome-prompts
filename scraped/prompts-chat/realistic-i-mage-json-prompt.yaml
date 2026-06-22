@@ -1,5 +1,6 @@
 slug: realistic-i-mage-json-prompt
 title: Realistic İmage JSON Prompt
+description: Imported from Prompts Chat
 prompt: "{\n  \"meta_instruction\": {\n    \"image_category\": \"cinematic_scene\"\
   ,\n    \"core_prompt\": \"A cinematic shot taken from inside a dimly lit blacksmith\
   \ shop looking outwards towards a partially open rolling shutter. A middle-aged\
@@ -52,3 +53,8 @@ prompt: "{\n  \"meta_instruction\": {\n    \"image_category\": \"cinematic_scene
   \ color grading, warm earthy tones inside contrasting with the bright morning light\
   \ outside, subtle teal and orange hues.\",\n    \"texture_and_grain\": \"Subtle\
   \ film grain, highly detailed textures on hands, wood, and metal.\"\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

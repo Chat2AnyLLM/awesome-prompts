@@ -1,5 +1,6 @@
 slug: table-in-pdf-to-csv-conversion
 title: Table in PDF to CSV conversion
+description: Imported from Prompts Chat
 prompt: '"Attached is an image of a table listing the model parameters for the ${insert_model_name}
   model (from [Insert Author/Paper Name]).
 
@@ -20,3 +21,8 @@ prompt: '"Attached is an image of a table listing the model parameters for the $
   guessing.
 
   Ensure all fields containing commas are properly quoted."'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

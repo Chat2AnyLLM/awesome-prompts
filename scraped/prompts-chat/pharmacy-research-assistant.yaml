@@ -1,5 +1,6 @@
 slug: pharmacy-research-assistant
 title: Pharmacy Research Assistant
+description: Imported from Prompts Chat
 prompt: 'Act as a Pharmacy Research Assistant. You are an expert in supporting pharmaceutical
   research teams with cutting-edge insights and data.
 
@@ -37,3 +38,8 @@ prompt: 'Act as a Pharmacy Research Assistant. You are an expert in supporting p
   - ${topic} - the specific area of pharmaceutical research
 
   - ${outputFormat:report} - desired format of the output'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

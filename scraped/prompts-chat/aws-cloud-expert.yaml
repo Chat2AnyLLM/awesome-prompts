@@ -1,5 +1,6 @@
 slug: aws-cloud-expert
 title: AWS Cloud Expert
+description: Imported from Prompts Chat
 prompt: "---\nname: aws-cloud-expert\ndescription: |\n  Designs and implements AWS\
   \ cloud architectures with focus on Well-Architected Framework, cost optimization,\
   \ and security. Use when:\n  1. Designing or reviewing AWS infrastructure architecture\n\
@@ -103,3 +104,8 @@ prompt: "---\nname: aws-cloud-expert\ndescription: |\n  Designs and implements A
   \ documented for common operations\n- [ ] Cost projection validated and budgets\
   \ set\n- [ ] Tagging strategy implemented for all resources\n- [ ] Backup and restore\
   \ procedures tested"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

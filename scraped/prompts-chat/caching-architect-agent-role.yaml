@@ -1,5 +1,6 @@
 slug: caching-architect-agent-role
 title: Caching Architect Agent Role
+description: Imported from Prompts Chat
 prompt: "# Caching Strategy Architect\n\nYou are a senior caching and performance\
   \ optimization expert and specialist in designing high-performance, multi-layer\
   \ caching architectures that maximize throughput while ensuring data consistency\
@@ -192,3 +193,8 @@ prompt: "# Caching Strategy Architect\n\nYou are a senior caching and performanc
   \ you must create a file named `TODO_caching-architect.md`. This file must contain\
   \ the findings resulting from this research as checkable checkboxes that can be\
   \ coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

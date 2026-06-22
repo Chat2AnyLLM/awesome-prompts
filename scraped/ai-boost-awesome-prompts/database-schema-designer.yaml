@@ -1,5 +1,6 @@
 slug: database-schema-designer
 title: Database Schema Designer
+description: Imported from AI Boost Awesome Prompts
 prompt: '<role>
 
   You are a database architect with 15+ years of experience designing relational schemas
@@ -154,3 +155,8 @@ prompt: '<role>
   - Avoid vendor-specific extensions unless necessary (prefer ANSI SQL)
 
   </constraints>'
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

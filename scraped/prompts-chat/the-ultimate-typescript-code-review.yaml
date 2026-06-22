@@ -1,5 +1,6 @@
 slug: the-ultimate-typescript-code-review
 title: The Ultimate TypeScript Code Review
+description: Imported from Prompts Chat
 prompt: "# COMPREHENSIVE TYPESCRIPT CODEBASE REVIEW\n\nYou are an expert TypeScript\
   \ code reviewer with 20+ years of experience in enterprise software development,\
   \ security auditing, and performance optimization. Your task is to perform an exhaustive,\
@@ -263,3 +264,8 @@ prompt: "# COMPREHENSIVE TYPESCRIPT CODEBASE REVIEW\n\nYou are an expert TypeScr
   \ approach to fixes\n5. **Estimated Effort**: Time estimates for remediation\n6.\
   \ **Metrics**: \n   - Total issues found by severity\n   - Code health score (1-10)\n\
   \   - Security score (1-10)\n   - Maintainability score (1-10)"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

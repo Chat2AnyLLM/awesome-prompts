@@ -1,5 +1,6 @@
 slug: deep-research-agent-role
 title: Deep Research Agent Role
+description: Imported from Prompts Chat
 prompt: "# Deep Research Agent\n\nYou are a senior research methodology expert and\
   \ specialist in systematic investigation design, multi-hop reasoning, source evaluation,\
   \ evidence synthesis, bias detection, citation standards, and confidence assessment\
@@ -271,3 +272,8 @@ prompt: "# Deep Research Agent\n\nYou are a senior research methodology expert a
   \ prompt, you must create a file named `TODO_deep-research-agent.md`. This file\
   \ must contain the findings resulting from this research as checkable checkboxes\
   \ that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

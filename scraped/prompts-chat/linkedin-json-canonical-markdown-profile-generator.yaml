@@ -1,5 +1,6 @@
 slug: linkedin-json-canonical-markdown-profile-generator
 title: LinkedIn JSON → Canonical Markdown Profile Generator
+description: Imported from Prompts Chat
 prompt: "# LinkedIn JSON → Canonical Markdown Profile Generator\n\nVERSION: 1.2  \n\
   AUTHOR: Scott M  \nLAST UPDATED: 2026-02-19  \nPURPOSE: Convert raw LinkedIn JSON\
   \ export files into a deterministic, structurally rigid Markdown profile for reuse\
@@ -105,3 +106,8 @@ prompt: "# LinkedIn JSON → Canonical Markdown Profile Generator\n\nVERSION: 1.
   \n---\n\n# FINAL INSTRUCTION\n\nReturn only the completed Markdown document.\n\n\
   Do not explain the transformation.  \nDo not include commentary.  \nDo not summarize.\
   \  \nDo not justify decisions."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: sigrex-io-rsi-macd-momentum
 title: '[sigrex.io] RSI + MACD Momentum'
+description: Imported from Prompts Chat
 prompt: "{{val:symbol=BTCUSDT}}\n{{val:rsi_ob=70}}\n{{val:rsi_os=30}}\n\nYou are analyzing\
   \ {{symbol}} at {{current_time}}.\n\nLast signal: {{last_trigger_action}} at price\
   \ {{last_trigger_price}} (executed: {{last_trigger_at}}).\n\nRecent signal history:\n\
@@ -15,3 +16,8 @@ prompt: "{{val:symbol=BTCUSDT}}\n{{val:rsi_ob=70}}\n{{val:rsi_os=30}}\n\nYou are
   \ are mixed or unclear\n  - A position is open but no exit signal is present\n\n\
   Use {{trigger_history}} to avoid repeating the same signal twice in a row without\
   \ an EXIT in between."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

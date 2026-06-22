@@ -1,5 +1,6 @@
 slug: ultra-realistic-winter-cinematography-series
 title: Ultra-Realistic Winter Cinematography Series
+description: Imported from Prompts Chat
 prompt: "{\n  \"version\": \"2.1\",\n  \"type\": \"multi_frame_winter_cinematography\"\
   ,\n  \"identity\": {\n    \"reference_face\": \"Use the reference photo’s face with\
   \ 100% identity accuracy.\",\n    \"consistency\": \"Same person across all frames;\
@@ -99,3 +100,8 @@ prompt: "{\n  \"version\": \"2.1\",\n  \"type\": \"multi_frame_winter_cinematogr
   : \"Lighting, winter palette, lens characteristics, and atmosphere must remain consistent\
   \ across all frames.\",\n    \"realism_level\": \"Ultra-realistic, film-grade winter\
   \ accuracy.\"\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

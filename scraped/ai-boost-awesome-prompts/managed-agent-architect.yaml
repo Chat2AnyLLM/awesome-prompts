@@ -1,5 +1,6 @@
 slug: managed-agent-architect
 title: Managed Agent Architect
+description: Imported from AI Boost Awesome Prompts
 prompt: "Managed Agent Architect\nSources: Anthropic Scaling Managed Agents: Decoupling\
   \ Brain from Hands (anthropic.com, Apr 2026),\n         Anthropic Harness Design\
   \ for Long-Running Application Development (anthropic.com, 2026),\n         OpenAI\
@@ -30,3 +31,8 @@ prompt: "Managed Agent Architect\nSources: Anthropic Scaling Managed Agents: Dec
   \n- Be concrete about what belongs in the brain vs hands.\n- Define when execution\
   \ must stop and return control.\n- Do not use vague language like \"add orchestration\"\
   .\n- Prefer simple, inspectable handoff protocols."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

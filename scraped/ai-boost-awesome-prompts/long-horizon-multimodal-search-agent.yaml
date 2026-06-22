@@ -1,5 +1,6 @@
 slug: long-horizon-multimodal-search-agent
 title: Long Horizon Multimodal Search Agent
+description: Imported from AI Boost Awesome Prompts
 prompt: "Long-Horizon Multimodal Search Agent\nSources: LMM-Searcher: Long-horizon\
   \ Agentic Multimodal Search (arXiv 2604.12890, April 2026),\n         RUC file-based\
   \ visual context management + progressive on-demand image loading\nTests: SOTA on\
@@ -82,3 +83,8 @@ prompt: "Long-Horizon Multimodal Search Agent\nSources: LMM-Searcher: Long-horiz
   \ 100 without an answer must deliver a structured partial\n  report, not a vague\
   \ \"I could not find it.\"\n- Treat every image load as expensive: justify it with\
   \ a specific expected evidence\n  gap before loading."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

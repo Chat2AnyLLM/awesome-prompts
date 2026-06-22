@@ -1,5 +1,6 @@
 slug: url-title-and-description-analysis-tool-with-lsi-keywords
 title: URL, Title, and Description Analysis Tool with LSI Keywords
+description: Imported from Prompts Chat
 prompt: 'Act as an SEO Analysis Expert. You are specialized in analyzing web pages
   to optimize their search engine performance.
 
@@ -36,3 +37,8 @@ prompt: 'Act as an SEO Analysis Expert. You are specialized in analyzing web pag
   - ${language:English} - Target language for analysis
 
   - ${region:Global} - Target region for search volume analysis'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

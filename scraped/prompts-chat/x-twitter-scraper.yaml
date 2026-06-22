@@ -1,5 +1,6 @@
 slug: x-twitter-scraper
 title: X Twitter Scraper
+description: Imported from Prompts Chat
 prompt: "---\nname: x-twitter-scraper\ndescription: X (Twitter) data platform skill\
   \ for AI coding agents. 122 REST API endpoints, 2 MCP tools, 23 extraction types,\
   \ HMAC webhooks. Reads from $0.00015/call - 66x cheaper than the official X API.\
@@ -260,3 +261,8 @@ prompt: "---\nname: x-twitter-scraper\ndescription: X (Twitter) data platform sk
   | [references/python-examples.md](references/python-examples.md) | User is working\
   \ in Python |\n| [references/types.md](references/types.md) | Need TypeScript type\
   \ definitions for API objects |"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

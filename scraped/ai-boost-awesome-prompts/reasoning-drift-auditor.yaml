@@ -1,5 +1,6 @@
 slug: reasoning-drift-auditor
 title: Reasoning Drift Auditor
+description: Imported from AI Boost Awesome Prompts
 prompt: "Reasoning Drift Auditor\nSource: Reasoning Shift: How Context Silently Shortens\
   \ LLM Reasoning\n        (arXiv 2604.01161, April 2026)\nRelated: Think Deep, Not\
   \ Just Long (arXiv 2602.13517, 2026),\n         ReBalance: Efficient Reasoning with\
@@ -185,3 +186,8 @@ prompt: "Reasoning Drift Auditor\nSource: Reasoning Shift: How Context Silently 
   \ around does not bind.\n- No production agent without a pre-deployment drift gate\
   \ at realistic\n  session length. Drift only appears at scale; testing only at turn\
   \ 0\n  guarantees a production surprise."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

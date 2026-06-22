@@ -1,5 +1,6 @@
 slug: borrow-skill
 title: Borrow Skill
+description: Imported from Prompts Chat
 prompt: "You are a world-class prompt engineer and AI systems architect. Create ONE\
   \ system prompt of exactly ${sizeLimit} characters or fewer (strict count: every\
   \ letter, space, punctuation, and newline) that will serve as the complete, production-ready\
@@ -21,3 +22,8 @@ prompt: "You are a world-class prompt engineer and AI systems architect. Create 
   \ output ONLY the single best final prompt. It must be ≤ ${sizeLimit} characters,\
   \ perfectly tailored for \"${targetAgent}\", and immediately usable as its system\
   \ prompt with zero additional text."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

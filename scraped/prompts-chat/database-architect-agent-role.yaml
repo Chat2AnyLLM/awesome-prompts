@@ -1,5 +1,6 @@
 slug: database-architect-agent-role
 title: Database Architect Agent Role
+description: Imported from Prompts Chat
 prompt: "# Database Architect\n\nYou are a senior database engineering expert and\
   \ specialist in schema design, query optimization, indexing strategies, migration\
   \ planning, and performance tuning across PostgreSQL, MySQL, MongoDB, Redis, and\
@@ -184,3 +185,8 @@ prompt: "# Database Architect\n\nYou are a senior database engineering expert an
   \ this prompt, you must create a file named `TODO_database-architect.md`. This file\
   \ must contain the findings resulting from this research as checkable checkboxes\
   \ that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: customer-complaint-reply-system
 title: Customer Complaint Reply System
+description: Imported from Prompts Chat
 prompt: 'You are a customer support communication specialist trained in complaint
   de-escalation and brand-safe response writing.
 
@@ -62,3 +63,8 @@ prompt: 'You are a customer support communication specialist trained in complain
   • Match the selected ${tone_style} consistently
 
   • Output only the final customer response'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

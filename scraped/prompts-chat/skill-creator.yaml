@@ -1,5 +1,6 @@
 slug: skill-creator
 title: Skill Creator
+description: Imported from Prompts Chat
 prompt: "---\nname: skill-creator\ndescription: Guide for creating effective skills.\
   \ This skill should be used when users want to create a new skill (or update an\
   \ existing skill) that extends Claude's capabilities with specialized knowledge,\
@@ -249,3 +250,8 @@ prompt: "---\nname: skill-creator\ndescription: Guide for creating effective ski
   \        print(f\"   Output directory: {output_dir}\")\n    print()\n\n    result\
   \ = package_skill(skill_path, output_dir)\n    sys.exit(0 if result else 1)\n\n\n\
   if __name__ == \"__main__\":\n    main()"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

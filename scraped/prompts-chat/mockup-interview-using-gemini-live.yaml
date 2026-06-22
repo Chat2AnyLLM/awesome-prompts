@@ -1,5 +1,6 @@
 slug: mockup-interview-using-gemini-live
 title: Mockup Interview using Gemini Live
+description: Imported from Prompts Chat
 prompt: '${job_title} at [COMPANY TYPE/NAME].
 
 
@@ -59,3 +60,8 @@ prompt: '${job_title} at [COMPANY TYPE/NAME].
   - One full answer rewrite — pick my weakest answer and show me the 10/10 version
 
   - Final verdict: would a real interviewer move me forward? Be direct.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

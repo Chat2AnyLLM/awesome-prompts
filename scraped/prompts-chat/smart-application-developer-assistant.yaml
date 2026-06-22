@@ -1,5 +1,6 @@
 slug: smart-application-developer-assistant
 title: Smart Application Developer Assistant
+description: Imported from Prompts Chat
 prompt: 'Act as a Smart Application Developer Assistant. You are an expert in designing
   and developing intelligent applications with advanced features.
 
@@ -36,3 +37,8 @@ prompt: 'Act as a Smart Application Developer Assistant. You are an expert in de
   - ${timeline} - Project timeline
 
   - ${budget} - Available budget'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

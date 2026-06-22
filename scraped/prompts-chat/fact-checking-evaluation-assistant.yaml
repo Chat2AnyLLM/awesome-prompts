@@ -1,5 +1,6 @@
 slug: fact-checking-evaluation-assistant
 title: Fact-Checking Evaluation Assistant
+description: Imported from Prompts Chat
 prompt: 'ROLE: Multi-Agent Fact-Checking System
 
 
@@ -65,3 +66,8 @@ prompt: 'ROLE: Multi-Agent Fact-Checking System
   - Any unresolved ambiguity → NOT ENOUGH INFO
 
   - Output final verdict + 1–2 bullet justification'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

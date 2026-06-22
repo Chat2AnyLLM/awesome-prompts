@@ -1,5 +1,6 @@
 slug: cursor-ide-agent-claude-sonnet-3-7-20250309
 title: Cursor Ide Agent Claude Sonnet 3.7 20250309
+description: Imported from Leaked System Prompts
 prompt: "# cursor-ide-agent-claude-sonnet-3.7_20250309\n\nsource: <https://github.com/x1xhlol/system-prompts-and-models-of-ai-tools/blob/main/cursor%20agent.txt>\n\
   \n## Prompt\n\nYou are a powerful agentic AI coding assistant, powered by Claude\
   \ 3.7 Sonnet. You operate exclusively in Cursor, the world's best IDE.\n\nYou are\
@@ -235,3 +236,8 @@ prompt: "# cursor-ide-agent-claude-sonnet-3.7_20250309\n\nsource: <https://githu
   \ value EXACTLY. DO NOT make up values for or ask about optional parameters. Carefully\
   \ analyze descriptive terms in the request as they may indicate required parameter\
   \ values that should be included even if not explicitly quoted."
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

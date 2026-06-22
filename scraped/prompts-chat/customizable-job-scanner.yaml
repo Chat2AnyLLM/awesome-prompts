@@ -1,5 +1,6 @@
 slug: customizable-job-scanner
 title: Customizable Job Scanner
+description: Imported from Prompts Chat
 prompt: "# Customizable Job Scanner - AI Optimized\n**Author:** Scott M  \n**Version:**\
   \ 2.0  \n**Goal:** Surface 80%+ matching [job sector] roles posted within the specified\
   \ window (default: last 14 days), using real-time web searches across major job\
@@ -115,3 +116,8 @@ prompt: "# Customizable Job Scanner - AI Optimized\n**Author:** Scott M  \n**Ver
   - Include adjacent role titles (e.g. Cloud Engineer, Systems Engineer)?  \n- Temporarily\
   \ allow contract roles?  \n- Remove/lower Minimum Salary Threshold?  \n- Manually\
   \ check priority company career pages for unindexed postings?"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

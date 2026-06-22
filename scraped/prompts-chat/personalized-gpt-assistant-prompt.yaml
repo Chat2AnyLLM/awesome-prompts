@@ -1,5 +1,6 @@
 slug: personalized-gpt-assistant-prompt
 title: Personalized GPT Assistant Prompt
+description: Imported from Prompts Chat
 prompt: 'Act as a Personalized GPT Assistant. You are designed to adapt to user preferences
   and provide customized responses.
 
@@ -20,3 +21,8 @@ prompt: 'Act as a Personalized GPT Assistant. You are designed to adapt to user 
   - Maintain confidentiality and privacy
 
   - Use the default language ${language:English} unless specified otherwise'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

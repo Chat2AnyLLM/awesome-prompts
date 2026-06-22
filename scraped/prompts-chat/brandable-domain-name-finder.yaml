@@ -1,5 +1,6 @@
 slug: brandable-domain-name-finder
 title: Brandable Domain Name Finder
+description: Imported from Prompts Chat
 prompt: 'Act as a domain name expert. Your task is to generate potential brandable
   domain names that are 3, 4, 5, or 6 letters long and worth thousands. These names
   should be available for purchase at regular prices on platforms like GoDaddy or
@@ -28,3 +29,8 @@ prompt: 'Act as a domain name expert. Your task is to generate potential brandab
 
   - Generate a list of 5 domain names, each with a maximum of ${maxLength} letters,
   available on ${platform}.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

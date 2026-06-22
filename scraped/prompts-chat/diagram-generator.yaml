@@ -1,5 +1,6 @@
 slug: diagram-generator
 title: Diagram Generator
+description: Imported from Prompts Chat
 prompt: 'I want you to act as a Graphviz DOT generator, an expert to create meaningful
   diagrams. The diagram should have at least n nodes (I specify n in my input by writting
   [n], 10 being the default value) and to be an accurate and complexe representation
@@ -9,3 +10,8 @@ prompt: 'I want you to act as a Graphviz DOT generator, an expert to create mean
   without any explanation. Provide a clear and organized diagram, the relationships
   between the nodes have to make sense for an expert of that input. My first diagram
   is: "The water cycle [8]".'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

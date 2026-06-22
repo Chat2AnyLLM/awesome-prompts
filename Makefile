@@ -1,4 +1,4 @@
-.PHONY: validate build ci clean install scrape update-readme
+.PHONY: validate build ci clean install update-readme all test
 
 install:
 	pip install -r requirements.txt
@@ -9,15 +9,15 @@ validate:
 build:
 	python scripts/build.py
 
-scrape:
-	python scripts/scrape.py
+test:
+	python -m unittest discover -s tests -v
 
 update-readme:
 	python scripts/update_readme.py
 
-ci: validate build
+ci: validate test build
 
-all: validate build scrape update-readme
+all: validate test build update-readme
 
 clean:
 	rm -rf dist/ scraped/

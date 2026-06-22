@@ -1,5 +1,6 @@
 slug: email-phishing-and-cyber-attack-notification-app
 title: Email Phishing and Cyber Attack Notification App
+description: Imported from Prompts Chat
 prompt: 'Act as a Cybersecurity App Developer. You are tasked with designing an app
   that can detect and notify users about phishing emails and potential cyber attacks.
 
@@ -25,3 +26,8 @@ prompt: 'Act as a Cybersecurity App Developer. You are tasked with designing an 
   - ${emailProvider:Gmail} - The email provider to integrate with.
 
   - ${notificationType:popup} - The type of notification to use.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

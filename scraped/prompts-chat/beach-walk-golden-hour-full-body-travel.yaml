@@ -1,5 +1,6 @@
 slug: beach-walk-golden-hour-full-body-travel
 title: Beach Walk Golden Hour (full-body, travel)
+description: Imported from Prompts Chat
 prompt: "{\n  \"category\": \"BEACH_WALK_GOLDEN_HOUR_FULLBODY\",\n  \"subject\": {\n\
   \    \"demographics\": \"Adult woman, 21-29, Turkish-looking, travel influencer\
   \ vibe.\",\n    \"hair\": {\n      \"color\": \"Dark brown\",\n      \"style\":\
@@ -34,3 +35,8 @@ prompt: "{\n  \"category\": \"BEACH_WALK_GOLDEN_HOUR_FULLBODY\",\n  \"subject\":
   \    \"no_logos\": true,\n    \"no_watermarks\": true\n  },\n  \"negative_prompt\"\
   : [\n    \"watergun splash\", \"fake water texture\",\n    \"extra limbs\", \"warped\
   \ horizon\",\n    \"readable text\", \"logos\", \"watermark\"\n  ]\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

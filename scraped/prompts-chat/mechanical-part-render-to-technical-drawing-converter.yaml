@@ -1,5 +1,6 @@
 slug: mechanical-part-render-to-technical-drawing-converter
 title: Mechanical Part Render to Technical Drawing Converter
+description: Imported from Prompts Chat
 prompt: "{\n  \"task\": \"image_to_image\",\n  \"description\": \"Convert a 3D mechanical\
   \ part render into a fully dimensioned manufacturing drawing\",\n  \"input_image\"\
   : \"3d_render_of_pipe_or_mechanical_part.png\",\n  \"prompt\": \"mechanical engineering\
@@ -15,3 +16,8 @@ prompt: "{\n  \"task\": \"image_to_image\",\n  \"description\": \"Convert a 3D m
   \    \"resolution\": {\n      \"width\": 1024,\n      \"height\": 1024\n    }\n\
   \  },\n  \"output_expectation\": \"ISO-style mechanical drawing with clear dimensions\
   \ suitable for CNC, casting, or fabrication reference\"\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

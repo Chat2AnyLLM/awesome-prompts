@@ -1,5 +1,6 @@
 slug: commit-message-preparation
 title: Commit Message Preparation
+description: Imported from Prompts Chat
 prompt: "# Git Commit Guidelines for AI Language Models\n\n## Core Principles\n\n\
   1. **Follow Conventional Commits** (https://www.conventionalcommits.org/)\n2. **Be\
   \ concise and precise** - No flowery language, superlatives, or unnecessary adjectives\n\
@@ -173,3 +174,8 @@ prompt: "# Git Commit Guidelines for AI Language Models\n\n## Core Principles\n\
   \ No banned words\n- Imperative mood throughout\n\n---\n\n**Remember:** A good commit\
   \ message should allow someone to understand the change without looking at the diff.\
   \ Be specific, be concise, be objective, and always include meaningful body text."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

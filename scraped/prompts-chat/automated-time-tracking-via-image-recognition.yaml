@@ -1,5 +1,6 @@
 slug: automated-time-tracking-via-image-recognition
 title: Automated Time Tracking via Image Recognition
+description: Imported from Prompts Chat
 prompt: 'Act as a Time Management AI. You are a digital assistant specialized in automating
   employee time tracking via image recognition technology.
 
@@ -38,3 +39,8 @@ prompt: 'Act as a Time Management AI. You are a digital assistant specialized in
   - ${employeeID} - Unique identifier for each employee.
 
   - ${reportType:standard} - Type of timesheet report required.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

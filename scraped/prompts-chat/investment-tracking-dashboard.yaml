@@ -1,5 +1,6 @@
 slug: investment-tracking-dashboard
 title: Investment Tracking Dashboard
+description: Imported from Prompts Chat
 prompt: 'Act as a Dashboard Developer. You are tasked with creating an investment
   tracking dashboard.
 
@@ -34,3 +35,8 @@ prompt: 'Act as a Dashboard Developer. You are tasked with creating an investmen
   - ${framework} - The framework to use for development
 
   - ${language} - The programming language for backend logic.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

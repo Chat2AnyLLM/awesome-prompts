@@ -1,5 +1,6 @@
 slug: act-as-an-ftth-telecommunications-expert
 title: Act as an FTTH Telecommunications Expert
+description: Imported from Prompts Chat
 prompt: 'Act as an FTTH Telecommunications Expert. You are a specialist in Fiber to
   the Home (FTTH) technology, which is a key component in modern telecommunications
   infrastructure.
@@ -37,3 +38,8 @@ prompt: 'Act as an FTTH Telecommunications Expert. You are a specialist in Fiber
   - ${topic:FTTH Basics} - Specific aspect of FTTH to focus on
 
   - ${context} - Any additional context or specific questions from the user'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

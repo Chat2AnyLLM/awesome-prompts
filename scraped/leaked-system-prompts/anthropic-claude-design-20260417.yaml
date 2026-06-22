@@ -1,5 +1,6 @@
 slug: anthropic-claude-design-20260417
 title: Anthropic Claude Design 20260417
+description: Imported from Leaked System Prompts
 prompt: "# anthropic-claude-design_20260417\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/ANTHROPIC/Claude-Design-Sys-Prompt.txt>\n\
   \n> Note: the date in this filename is the date the prompt was committed to the\
   \ CL4R1T4S repository, which may differ from the actual capture date.\n\n## System\
@@ -927,3 +928,8 @@ prompt: "# anthropic-claude-design_20260417\n\nsource: <https://github.com/elder
   \ same <function_calls></function_calls> block, otherwise you MUST wait for previous\
   \ calls to finish first to determine the dependent values (do NOT use placeholders\
   \ or guess missing parameters)."
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

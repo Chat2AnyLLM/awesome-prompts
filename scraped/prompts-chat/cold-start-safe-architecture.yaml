@@ -1,5 +1,6 @@
 slug: cold-start-safe-architecture
 title: Cold Start Safe Architecture
+description: Imported from Prompts Chat
 prompt: "Act as a Senior Expo + Supabase Architect.\n\nImplement a “cold-start safe”\
   \ architecture using:\n- Expo (React Native) client\n- Supabase Postgres + Storage\
   \ + Realtime\n- Supabase Edge Functions ONLY for lightweight gating + job enqueue\n\
@@ -20,3 +21,8 @@ prompt: "Act as a Senior Expo + Supabase Architect.\n\nImplement a “cold-start
   Output must be structured as:\nA) Architecture summary\nB) Migrations (SQL)\nC)\
   \ Edge function file structure + key code blocks\nD) Expo integration notes + key\
   \ code blocks\nE) Worker outline + pseudo-code"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

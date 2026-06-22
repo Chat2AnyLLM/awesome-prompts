@@ -1,5 +1,6 @@
 slug: replit-agent-20250422
 title: Replit Agent 20250422
+description: Imported from Leaked System Prompts
 prompt: "# replit-agent_20250422\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/REPLIT/Replit_Agent.md>\n\
   source: <https://github.com/elder-plinius/CL4R1T4S/blob/main/REPLIT/Replit_Initial_Code_Generation_Prompt.md>\n\
   source: <https://github.com/elder-plinius/CL4R1T4S/blob/main/REPLIT/Replit_Functions.md>\n\
@@ -413,3 +414,8 @@ prompt: "# replit-agent_20250422\n\nsource: <https://github.com/elder-plinius/CL
   : \"The secret keys to check in the environment.\", \"items\": {\"type\": \"string\"\
   }, \"type\": \"array\"}}, \"required\": [\"secret_keys\"], \"type\": \"object\"\
   }}"
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

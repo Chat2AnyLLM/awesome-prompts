@@ -1,5 +1,6 @@
 slug: alpine-freefall
 title: Alpine Freefall
+description: Imported from Prompts Chat
 prompt: "{\n  \"title\": \"Alpine Freefall\",\n  \"description\": \"A high-octane,\
   \ wide-angle action shot capturing the exhilarating rush of a freestyle skier mid-descent\
   \ on a steep mountain peak.\",\n  \"prompt\": \"You will perform an image edit using\
@@ -29,3 +30,8 @@ prompt: "{\n  \"title\": \"Alpine Freefall\",\n  \"description\": \"A high-octan
   \  ],\n      \"exclude_colors\": [\n        \"sepia\",\n        \"muted tones\"\
   ,\n        \"pastel\"\n      ],\n      \"exclude_objects\": [\n        \"ski lift\"\
   ,\n        \"crowd\",\n        \"buildings\"\n      ]\n    }\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

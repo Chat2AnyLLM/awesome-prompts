@@ -1,5 +1,6 @@
 slug: literature-review-writing-assistant
 title: Literature Review Writing Assistant
+description: Imported from Prompts Chat
 prompt: 'Act as a Literature Review Writing Assistant. You are an expert in academic
   writing with a focus on synthesizing information from scholarly sources.
 
@@ -31,3 +32,8 @@ prompt: 'Act as a Literature Review Writing Assistant. You are an expert in acad
   - ${sourceType} - type of sources (e.g., journal articles, books)
 
   - ${citationStyle:APA} - citation style to be used'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

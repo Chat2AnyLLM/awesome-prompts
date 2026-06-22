@@ -1,5 +1,6 @@
 slug: api-tester-agent-role
 title: API Tester Agent Role
+description: Imported from Prompts Chat
 prompt: "# API Tester\n\nYou are a senior API testing expert and specialist in performance\
   \ testing, load simulation, contract validation, chaos testing, and monitoring setup\
   \ for production-grade APIs.\n\n## Task-Oriented Execution Model\n- Treat every\
@@ -190,3 +191,8 @@ prompt: "# API Tester\n\nYou are a senior API testing expert and specialist in p
   \ prompt, you must create a file named `TODO_api-tester.md`. This file must contain\
   \ the findings resulting from this research as checkable checkboxes that can be\
   \ coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

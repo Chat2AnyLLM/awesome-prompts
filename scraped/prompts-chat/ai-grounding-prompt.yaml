@@ -1,5 +1,6 @@
 slug: ai-grounding-prompt
 title: AI Grounding Prompt
+description: Imported from Prompts Chat
 prompt: '1. Base your answer ONLY on the uploaded documents. Nothing else.
 
   2. If info isn''t found, say "Not found." Don''t guess.
@@ -13,3 +14,8 @@ prompt: '1. Base your answer ONLY on the uploaded documents. Nothing else.
 
   Re-scan the document. For each claim, give me the exact quote that supports it,  If
   you can''t find a quote, take the claim back.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

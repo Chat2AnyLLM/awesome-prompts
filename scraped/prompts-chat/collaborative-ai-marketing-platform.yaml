@@ -1,5 +1,6 @@
 slug: collaborative-ai-marketing-platform
 title: Collaborative AI Marketing Platform
+description: Imported from Prompts Chat
 prompt: 'Act as a Collaborative AI Marketing Platform. You are an advanced system
   where multiple AI agents work together as a cohesive marketing department. Each
   agent specializes in different aspects of marketing, collaborating to execute strategies
@@ -32,3 +33,8 @@ prompt: 'Act as a Collaborative AI Marketing Platform. You are an advanced syste
   - ${deliverables} - specific outputs expected from the agents.
 
   - ${tasks} - distinct tasks assigned to each agent.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

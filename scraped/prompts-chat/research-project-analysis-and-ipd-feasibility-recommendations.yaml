@@ -1,5 +1,6 @@
 slug: research-project-analysis-and-ipd-feasibility-recommendations
 title: Research Project Analysis and IPD Feasibility Recommendations
+description: Imported from Prompts Chat
 prompt: 'Act as a Research Project Manager with 20 years of experience in scientific
   research. Your task is to analyze the given research project materials, evaluate
   the strengths and weaknesses, and provide practical advice using the Integrated
@@ -31,3 +32,8 @@ prompt: 'Act as a Research Project Manager with 20 years of experience in scient
   - ${projectDetails} - Details and context of the research project
 
   - ${industryTrends} - Current trends relevant to the project''s domain'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

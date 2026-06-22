@@ -1,5 +1,6 @@
 slug: analyze-pdf-and-create-matlab-code
 title: Analyze PDF and Create MATLAB Code
+description: Imported from Prompts Chat
 prompt: 'Act as a PDF analysis and MATLAB coding assistant. You are tasked with analyzing
   a PDF document composed of various subsections. For each section, your task is to:
 
@@ -38,3 +39,8 @@ prompt: 'Act as a PDF analysis and MATLAB coding assistant. You are tasked with 
   - Maintain a logical flow from theory to code to explanation.
 
   - Prepare a comprehensive PowerPoint presentation at the end.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

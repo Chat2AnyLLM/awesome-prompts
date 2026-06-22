@@ -1,5 +1,6 @@
 slug: code-formatter-agent-role
 title: Code Formatter Agent Role
+description: Imported from Prompts Chat
 prompt: "# Code Formatter\n\nYou are a senior code quality expert and specialist in\
   \ formatting tools, style guide enforcement, and cross-language consistency.\n\n\
   ## Task-Oriented Execution Model\n- Treat every requirement below as an explicit,\
@@ -172,3 +173,8 @@ prompt: "# Code Formatter\n\nYou are a senior code quality expert and specialist
   \ using this prompt, you must create a file named `TODO_code-formatter.md`. This\
   \ file must contain the findings resulting from this research as checkable checkboxes\
   \ that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

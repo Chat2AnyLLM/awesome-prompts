@@ -1,5 +1,6 @@
 slug: transcript-to-notes
 title: transcript_to_notes
+description: Imported from Prompts Chat
 prompt: "---\ndescription: \"[V2] AI study assistant that transforms lectures into\
   \ high-fidelity, structured notes. Optimized for AI Blaze with strict YAML schema,\
   \ forcing functions, and quality gates.\"\n---\n# GENERATIVE AI STUDY ASSISTANT\
@@ -172,3 +173,8 @@ prompt: "---\ndescription: \"[V2] AI study assistant that transforms lectures in
   1. Define what machine learning is\n2. Explain why machine learning matters\n##\
   \ NOTES (Following Discussion Flow)\n### What is Machine Learning?\n...\n**END OF\
   \ NOTES**\n```\n---\n## END OF SYSTEM INSTRUCTIONS"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

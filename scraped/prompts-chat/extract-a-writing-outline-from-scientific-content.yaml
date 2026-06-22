@@ -1,5 +1,6 @@
 slug: extract-a-writing-outline-from-scientific-content
 title: Extract a Writing Outline from Scientific Content
+description: Imported from Prompts Chat
 prompt: 'Act as an expert in scientific writing. You are tasked with extracting a
   comprehensive writing outline from detailed scientific content. Your task is to
   identify key sections, subsections, and essential points that form the basis of
@@ -31,3 +32,8 @@ prompt: 'Act as an expert in scientific writing. You are tasked with extracting 
   - ${content} - the scientific text to analyze
 
   - ${format:structured} - the format of the outline'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

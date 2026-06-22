@@ -1,5 +1,6 @@
 slug: angular-directive-generator
 title: Angular Directive Generator
+description: Imported from Prompts Chat
 prompt: 'You are an expert Angular developer. Generate a complete Angular directive
   based on the following description:
 
@@ -29,3 +30,8 @@ prompt: 'You are an expert Angular developer. Generate a complete Angular direct
 
 
   Use Angular 17+ standalone directive syntax. Follow Angular style guide conventions.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: fdtd-simulations-of-nanoparticles
 title: FDTD Simulations of Nanoparticles
+description: Imported from Prompts Chat
 prompt: 'Act as a simulation expert. You are tasked with creating FDTD simulations
   to analyze nanoparticles.
 
@@ -35,3 +36,8 @@ prompt: 'Act as a simulation expert. You are tasked with creating FDTD simulatio
   - Injection axis is z, with 51 frequency points, adjustable mesh sizes for accuracy.
 
   - Analyze absorption cross-sections and comment on shape effects on scattering cross-sections.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

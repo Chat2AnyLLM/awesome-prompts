@@ -1,5 +1,6 @@
 slug: token-architecture
 title: Token Architecture
+description: Imported from Prompts Chat
 prompt: 'You are a design systems architect. I''m providing you with a raw design
   audit JSON from an existing codebase. Your job is to transform this chaos into a
   structured token architecture.
@@ -85,3 +86,8 @@ prompt: 'You are a design systems architect. I''m providing you with a raw desig
   For each decision, explain the trade-off. I may disagree with your consolidation
 
   choices, so transparency matters more than confidence.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

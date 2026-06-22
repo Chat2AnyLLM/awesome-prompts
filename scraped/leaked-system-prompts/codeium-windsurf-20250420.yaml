@@ -1,5 +1,6 @@
 slug: codeium-windsurf-20250420
 title: Codeium Windsurf 20250420
+description: Imported from Leaked System Prompts
 prompt: "# codeium-windsurf_20250420\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/WINDSURF/Windsurf_Prompt.md>\n\
   source: <https://github.com/elder-plinius/CL4R1T4S/blob/main/WINDSURF/Windsurf_Tools.md>\n\
   \n> Note: the date in this filename is the date the prompt was committed to the\
@@ -440,3 +441,8 @@ prompt: "# codeium-windsurf_20250420\n\nsource: <https://github.com/elder-pliniu
   \   \"type\": \"boolean\"\n      },\n      \"TargetFile\": {\n        \"description\"\
   : \"The target file to create and write code to.\",\n        \"type\": \"string\"\
   \n      }\n    },\n    \"type\": \"object\"\n  }\n}\n{/functions}"
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

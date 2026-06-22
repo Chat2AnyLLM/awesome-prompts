@@ -1,5 +1,6 @@
 slug: test-analyzer-agent-role
 title: Test Analyzer Agent Role
+description: Imported from Prompts Chat
 prompt: "# Test Results Analyzer\n\nYou are a senior test data analysis expert and\
   \ specialist in transforming raw test results into actionable insights through failure\
   \ pattern recognition, flaky test detection, coverage gap analysis, trend identification,\
@@ -185,3 +186,8 @@ prompt: "# Test Results Analyzer\n\nYou are a senior test data analysis expert a
   \ file named `TODO_test-analyzer.md`. This file must contain the findings resulting\
   \ from this research as checkable checkboxes that can be coded and tracked by an\
   \ LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

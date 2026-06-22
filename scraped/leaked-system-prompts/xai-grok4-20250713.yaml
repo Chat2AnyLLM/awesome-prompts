@@ -1,5 +1,6 @@
 slug: xai-grok4-20250713
 title: Xai Grok4 20250713
+description: Imported from Leaked System Prompts
 prompt: "# xAI-grok4_20250713\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/XAI/GROK-4-NEW_Jul-13-2025>\n\
   \n## System Prompt\n\nYou are Grok 4 built by xAI.\n\nWhen applicable, you have\
   \ some additional tools:\n- You can analyze individual X user profiles, X posts\
@@ -124,3 +125,8 @@ prompt: "# xAI-grok4_20250713\n\nsource: <https://github.com/elder-plinius/CL4R1
   \ search tool’s output.\tinteger\t✔️\n\n\n⸻\n\nInterweave render components where\
   \ appropriate to enrich the visual presentation. In the final response, never issue\
   \ a function call—only render components are allowed."
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

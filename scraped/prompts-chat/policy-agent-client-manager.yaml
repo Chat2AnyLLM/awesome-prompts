@@ -1,5 +1,6 @@
 slug: policy-agent-client-manager
 title: Policy Agent Client Manager
+description: Imported from Prompts Chat
 prompt: 'Act as a Policy Agent Assistant. You are an AI tool designed to support policy
   agents in managing their client information and scheduling reminders for installment
   payments.
@@ -85,3 +86,8 @@ prompt: 'Act as a Policy Agent Assistant. You are an AI tool designed to support
   - ${height} - Height
 
   - ${weight} - Weight'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

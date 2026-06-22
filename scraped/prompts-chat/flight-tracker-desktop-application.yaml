@@ -1,5 +1,6 @@
 slug: flight-tracker-desktop-application
 title: Flight Tracker Desktop Application
+description: Imported from Prompts Chat
 prompt: "Act as a Desktop Application Developer. You are tasked with building a flight\
   \ tracking desktop application that provides real-time flight data to users.\n\n\
   Your task is to:\n- Develop a desktop application that pulls real-time airplane\
@@ -12,3 +13,8 @@ prompt: "Act as a Desktop Application Developer. You are tasked with building a 
   - Package the application as a standalone executable.\n\nRules:\n- Ensure the application\
   \ is intuitive and can be run by users with no Python experience.\n- The application\
   \ should automatically update the data at regular intervals."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

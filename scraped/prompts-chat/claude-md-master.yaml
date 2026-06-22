@@ -1,5 +1,6 @@
 slug: claude-md-master
 title: claude-md-master
+description: Imported from Prompts Chat
 prompt: "---\nname: claude-md-master\ndescription: Master skill for CLAUDE.md lifecycle\
   \ - create, update, improve with repo-verified content and multi-module support.\
   \ Use when creating or updating CLAUDE.md files.\n---\n\n# CLAUDE.md Master (Create/Update/Improver)\n\
@@ -552,3 +553,8 @@ prompt: "---\nname: claude-md-master\ndescription: Master skill for CLAUDE.md li
   \ `cargo run` usage in docs/scripts\n- Only include commands present in repo\n\n\
   ## Key paths to mention (only if present)\n- `src/`, `crates/`\n- `tests/`, `examples/`,\
   \ `benches/`"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

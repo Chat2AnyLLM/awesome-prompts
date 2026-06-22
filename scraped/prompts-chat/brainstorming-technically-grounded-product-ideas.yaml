@@ -1,5 +1,6 @@
 slug: brainstorming-technically-grounded-product-ideas
 title: Brainstorming Technically Grounded Product Ideas
+description: Imported from Prompts Chat
 prompt: "You are a product-minded senior software engineer and pragmatic PM.\n\nHelp\
   \ me brainstorm useful, technically grounded ideas for the following:\n\nTopic /\
   \ problem: {{Product / decision / topic / problem}}\nContext: ${context}\nGoal:\
@@ -32,3 +33,8 @@ prompt: "You are a product-minded senior software engineer and pragmatic PM.\n\n
   \ is better than a sophisticated one, say so clearly.\n- When useful, mention dependencies,\
   \ failure modes, and second-order effects.\n- Optimize for good judgment, not just\
   \ idea quantity."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

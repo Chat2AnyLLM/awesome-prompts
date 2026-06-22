@@ -1,5 +1,6 @@
 slug: detailed-image-analysis-of-a-mirror-selfie-in-a-bedroom-environment
 title: Detailed Image Analysis of a Mirror Selfie in a Bedroom Environment
+description: Imported from Prompts Chat
 prompt: "{\n  \"image_analysis\": {\n    \"environment\": {\n      \"type\": \"Indoor\"\
   ,\n      \"location_type\": \"Bedroom or Living Area\",\n      \"spatial_depth\"\
   : \"Reflected depth via mirror\",\n      \"background_elements\": \"Large black\
@@ -69,3 +70,8 @@ prompt: "{\n  \"image_analysis\": {\n    \"environment\": {\n      \"type\": \"I
   ,\n      \"drawing\",\n      \"low quality\",\n      \"jpeg artifacts\",\n     \
   \ \"grainy\",\n      \"text\",\n      \"watermark\",\n      \"signature\",\n   \
   \   \"cluttered background\",\n      \"bad lighting\"\n    ]\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

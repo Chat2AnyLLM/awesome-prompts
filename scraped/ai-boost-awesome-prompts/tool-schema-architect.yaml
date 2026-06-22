@@ -1,5 +1,6 @@
 slug: tool-schema-architect
 title: Tool Schema Architect
+description: Imported from AI Boost Awesome Prompts
 prompt: "Tool Schema Architect\nSources: Open, Reliable, and Collective: A Community-Driven\
   \ Framework (arXiv, Apr 2026),\n         MCP-Atlas (2026),\n         OpenAI function/tool\
   \ design guidance (2025-2026)\n------------------------------------------------------------------\n\
@@ -25,3 +26,8 @@ prompt: "Tool Schema Architect\nSources: Open, Reliable, and Collective: A Commu
   QUALITY BAR:\n\n- No overloaded fields.\n- No hidden defaults.\n- No output that\
   \ mixes status and payload ambiguously.\n- If a tool should be split into two tools,\
   \ say so."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

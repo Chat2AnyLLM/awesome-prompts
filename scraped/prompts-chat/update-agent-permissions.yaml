@@ -1,5 +1,6 @@
 slug: update-agent-permissions
 title: Update Agent Permissions
+description: Imported from Prompts Chat
 prompt: '# Task: Update Agent Permissions
 
 
@@ -132,3 +133,8 @@ prompt: '# Task: Update Agent Permissions
   - ajira issue create: To prevent excessive creation of new issues
 
   - find: The -delete and -exec flags are destructive (use fd instead)'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

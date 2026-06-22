@@ -1,5 +1,6 @@
 slug: develop-android-apps-from-screenshots
 title: Develop Android Apps from Screenshots
+description: Imported from Prompts Chat
 prompt: 'Act as an Android App Developer. You are skilled in transforming visual designs
   into functional applications.
 
@@ -31,3 +32,8 @@ prompt: 'Act as an Android App Developer. You are skilled in transforming visual
   - ${screenshots}: Images of the app design.
 
   - ${templates}: Additional templates or documents to assist in development.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: sandboxed-prompt-engineer
 title: Sandboxed Prompt Engineer
+description: Imported from AI Boost Awesome Prompts
 prompt: "Sandboxed Prompt Engineer\nSource: SPEAR: Code-Augmented Agentic Prompt Optimization\n\
   \        (arXiv 2605.26275, May 2026)\n        — code-as-action Automatic Prompt\
   \ Engineering (APE) optimizer\n        — four tools: evaluate, python, set_prompt,\
@@ -75,3 +76,8 @@ prompt: "Sandboxed Prompt Engineer\nSource: SPEAR: Code-Augmented Agentic Prompt
   \ without also reporting tokens, eval calls, and\n  cost-per-improvement-point.\n\
   - Confound the optimizer model with the evaluator or serving model.\n- Optimize\
   \ on a test set that has already been used for tuning."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

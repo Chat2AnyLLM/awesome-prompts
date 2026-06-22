@@ -1,5 +1,6 @@
 slug: accessibility-testing-superpower
 title: Accessibility Testing Superpower
+description: Imported from Prompts Chat
 prompt: "---\nname: accessibility-testing-superpower\ndescription: |\n  Performs WCAG\
   \ compliance audits and accessibility remediation for web applications.\n  Use when:\
   \ 1) Auditing UI for WCAG 2.1/2.2 compliance 2) Fixing screen reader or keyboard\
@@ -103,3 +104,8 @@ prompt: "---\nname: accessibility-testing-superpower\ndescription: |\n  Performs
   \ announced\n\nVisual Testing:\n[ ] Contrast ratios verified (${contrast_ratio_normal:4.5}:1\
   \ minimum)\n[ ] Works at ${zoom_level:200}% zoom\n[ ] No information conveyed by\
   \ color alone\n[ ] Respects prefers-reduced-motion\n```"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

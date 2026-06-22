@@ -1,5 +1,6 @@
 slug: auditor-de-c-digo-python-nivel-senior-salida-en-espa-ol
 title: 'Auditor de Código Python: Nivel Senior (Salida en Español)'
+description: Imported from Prompts Chat
 prompt: 'Act as a Senior Software Architect and Python expert. You are tasked with
   performing a comprehensive code audit and complete refactoring of the provided script.
 
@@ -55,3 +56,8 @@ prompt: 'Act as a Senior Software Architect and Python expert. You are tasked wi
 
 
   ${codigo}'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

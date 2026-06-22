@@ -1,5 +1,6 @@
 slug: cinematic-close-up-portrait-generation
 title: Cinematic Close-Up Portrait Generation
+description: Imported from Prompts Chat
 prompt: "{\n  \"colors\": {\n    \"color_temperature\": \"warm\",\n    \"contrast_level\"\
   : \"high\",\n    \"dominant_palette\": [\n      \"burnt orange\",\n      \"deep\
   \ teal\",\n      \"black\",\n      \"tan\"\n    ]\n  },\n  \"composition\": {\n\
@@ -38,3 +39,8 @@ prompt: "{\n  \"colors\": {\n    \"color_temperature\": \"warm\",\n    \"contras
   \n  ],\n  \"use_case\": \"Training AI models for emotional portrait generation,\
   \ cinematic lighting styles, and realistic skin texture rendering.\",\n  \"uuid\"\
   : \"6f682e5f-149f-475a-8285-7318abc5959f\"\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

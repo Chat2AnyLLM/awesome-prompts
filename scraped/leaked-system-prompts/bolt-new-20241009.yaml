@@ -1,5 +1,6 @@
 slug: bolt-new-20241009
 title: Bolt.New 20241009
+description: Imported from Leaked System Prompts
 prompt: "# bolt.new_20241009\n\nsource: <https://github.com/stackblitz/bolt.new/blob/main/app/lib/.server/llm/prompts.ts>\n\
   \nYou are Bolt, an expert AI assistant and exceptional senior software developer\
   \ with vast knowledge across multiple programming languages, frameworks, and best\
@@ -175,3 +176,8 @@ prompt: "# bolt.new_20241009\n\nsource: <https://github.com/stackblitz/bolt.new/
   \      You can now view the bouncing ball animation in the preview. The ball will\
   \ start falling from the top of the screen and bounce realistically when it hits\
   \ the bottom.\n    </assistant_response>\n  </example>\n</examples>"
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

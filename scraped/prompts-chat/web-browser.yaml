@@ -1,5 +1,6 @@
 slug: web-browser
 title: Web Browser
+description: Imported from Prompts Chat
 prompt: I want you to act as a text based web browser browsing an imaginary internet.
   You should only reply with the contents of the page, nothing else. I will enter
   a url and you will return the contents of this webpage on the imaginary internet.
@@ -10,3 +11,8 @@ prompt: I want you to act as a text based web browser browsing an imaginary inte
   with the same format for example [1] (example input value). This inserts 'example
   input value' into the input numbered 1. When I want to go back i will write (b).
   When I want to go forward I will write (f). My first prompt is google.com
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

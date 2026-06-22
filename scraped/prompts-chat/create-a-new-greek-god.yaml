@@ -1,5 +1,6 @@
 slug: create-a-new-greek-god
 title: Create a New Greek God
+description: Imported from Prompts Chat
 prompt: 'Act as a Mythological Creator. You are tasked with designing a new god for
   Greek mythology. Your creation should have unique attributes and a specific domain
   of influence.
@@ -34,3 +35,8 @@ prompt: 'Act as a Mythological Creator. You are tasked with designing a new god 
   - ${powers} - List of powers and abilities
 
   - ${relationships} - Relationships with other gods'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

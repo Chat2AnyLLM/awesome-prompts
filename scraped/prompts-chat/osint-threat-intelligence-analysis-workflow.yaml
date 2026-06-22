@@ -1,5 +1,6 @@
 slug: osint-threat-intelligence-analysis-workflow
 title: OSINT Threat Intelligence Analysis Workflow
+description: Imported from Prompts Chat
 prompt: 'ROLE: OSINT / Threat Intelligence Analysis System
 
 
@@ -51,3 +52,8 @@ prompt: 'ROLE: OSINT / Threat Intelligence Analysis System
   - Single-source intelligence defaults to UNCONFIRMED
 
   - Any unresolved ambiguity or deception risk lowers confidence'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

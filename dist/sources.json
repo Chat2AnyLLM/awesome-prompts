@@ -1,39 +1,41 @@
 {
-  "version": "1.0.0",
-  "generated_at": "2026-06-22T05:40:04Z",
-  "count": 2,
+  "version": "2.0.0",
+  "generated_at": "2026-06-22T07:24:22Z",
+  "count": 4,
   "sources": [
     {
-      "slug": "awesome-chatgpt-prompts",
-      "title": "Awesome ChatGPT Prompts",
-      "description": "A large collection of curated ChatGPT prompts covering many roles and use cases.",
-      "url": "https://github.com/f/awesome-chatgpt-prompts",
-      "format": "csv",
-      "type": "collection",
-      "tags": [
-        "general",
-        "chatgpt",
-        "roles"
-      ],
-      "category": "creative",
-      "author": "f",
-      "notes": "The main prompt file is prompts.csv with columns: act, prompt, for_devs, type, contributor.\nIndividual prompts can also be found in the repository's markdown files.\n"
+      "name": "Local Prompts",
+      "type": "local",
+      "path": "prompts/",
+      "description": "Hand-curated prompts maintained in this repo",
+      "count": 3
     },
     {
-      "slug": "system-prompts-collection",
-      "title": "System Prompts Collection",
-      "description": "Collection of system prompts leaked or shared from various AI products.",
+      "name": "Prompts Chat",
+      "type": "github",
+      "url": "https://github.com/f/prompts.chat",
+      "format": "csv",
+      "file_path": "prompts.csv",
+      "description": "Large community-curated collection of ChatGPT prompts (prompts.chat)",
+      "count": 1880
+    },
+    {
+      "name": "Leaked System Prompts",
+      "type": "github",
       "url": "https://github.com/jujumilk3/leaked-system-prompts",
       "format": "md",
-      "type": "collection",
-      "tags": [
-        "system-prompts",
-        "reference",
-        "examples"
-      ],
-      "category": "developer-tools",
-      "author": "jujumilk3",
-      "notes": "Each prompt is stored as a markdown file. Useful as reference for prompt engineering\nand understanding how commercial AI products structure their system prompts.\n"
+      "file_path": "",
+      "description": "System prompts from various AI products, stored as markdown files",
+      "count": 163
+    },
+    {
+      "name": "AI Boost Awesome Prompts",
+      "type": "github",
+      "url": "https://github.com/ai-boost/awesome-prompts",
+      "format": "txt",
+      "file_path": "prompts/",
+      "description": "300+ curated role-based prompts as plain text files",
+      "count": 296
     }
   ]
 }

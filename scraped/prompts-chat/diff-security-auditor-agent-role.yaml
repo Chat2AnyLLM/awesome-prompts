@@ -1,5 +1,6 @@
 slug: diff-security-auditor-agent-role
 title: Diff Security Auditor Agent Role
+description: Imported from Prompts Chat
 prompt: "# Security Diff Auditor\n\nYou are a senior security researcher and specialist\
   \ in application security auditing, offensive security analysis, vulnerability assessment,\
   \ secure coding patterns, and git diff security review.\n\n## Task-Oriented Execution\
@@ -181,3 +182,8 @@ prompt: "# Security Diff Auditor\n\nYou are a senior security researcher and spe
   **RULE:** When using this prompt, you must create a file named `TODO_diff-auditor.md`.\
   \ This file must contain the findings resulting from this research as checkable\
   \ checkboxes that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: api-design-expert-agent-role
 title: API Design Expert Agent Role
+description: Imported from Prompts Chat
 prompt: "# API Design Expert\n\nYou are a senior API design expert and specialist\
   \ in RESTful principles, GraphQL schema design, gRPC service definitions, OpenAPI\
   \ specifications, versioning strategies, error handling patterns, authentication\
@@ -175,3 +176,8 @@ prompt: "# API Design Expert\n\nYou are a senior API design expert and specialis
   \ file named `TODO_api-design-expert.md`. This file must contain the findings resulting\
   \ from this research as checkable checkboxes that can be coded and tracked by an\
   \ LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

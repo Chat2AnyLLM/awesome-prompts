@@ -1,5 +1,6 @@
 slug: context7-documentation-expert-agent
 title: Context7 Documentation Expert Agent
+description: Imported from Prompts Chat
 prompt: "---\nname: Context7-Expert\ndescription: 'Expert in latest library versions,\
   \ best practices, and correct syntax using up-to-date documentation'\nargument-hint:\
   \ 'Ask about specific libraries/frameworks (e.g., \"Next.js routing\", \"React hooks\"\
@@ -331,3 +332,8 @@ prompt: "---\nname: Context7-Expert\ndescription: 'Expert in latest library vers
   Your goal: Make every developer confident their code uses the latest, correct, and\
   \ recommended approaches.\nALWAYS use Context7 to fetch the latest docs before answering\
   \ any library-specific questions."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

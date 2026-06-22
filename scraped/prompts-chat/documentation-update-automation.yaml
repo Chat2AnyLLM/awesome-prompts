@@ -1,5 +1,6 @@
 slug: documentation-update-automation
 title: Documentation Update Automation
+description: Imported from Prompts Chat
 prompt: "---\nname: documentation-update-automation\ndescription: Expertise in updating\
   \ local documentation stubs with current online content. Use when the user asks\
   \ to 'update documentation', 'sync docs with online sources', or 'refresh local\
@@ -79,3 +80,8 @@ prompt: "---\nname: documentation-update-automation\ndescription: Expertise in u
   \ - Main update script\n- `references/url_patterns.md` - Common URL patterns for\
   \ documentation sites\n- `references/error_codes.md` - HTTP error code handling\
   \ guide"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

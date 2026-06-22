@@ -1,5 +1,6 @@
 slug: terminal-drift
 title: Terminal Drift
+description: Imported from Prompts Chat
 prompt: "{\n  \"title\": \"Terminal Drift\",\n  \"description\": \"A haunting visualization\
   \ of a lone traveler stuck in an infinite, empty airport terminal that defies logic.\"\
   ,\n  \"prompt\": \"You will perform an image edit using the person from the provided\
@@ -33,3 +34,8 @@ prompt: "{\n  \"title\": \"Terminal Drift\",\n  \"description\": \"A haunting vi
   \      \"pitch black\",\n        \"vibrant green\"\n      ],\n      \"exclude_objects\"\
   : [\n        \"airplanes\",\n        \"trash\",\n        \"blood\",\n        \"\
   animals\"\n      ]\n    }\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

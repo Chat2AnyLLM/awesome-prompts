@@ -1,5 +1,6 @@
 slug: agent-reliability-engineer
 title: Agent Reliability Engineer
+description: Imported from AI Boost Awesome Prompts
 prompt: "Agent Reliability Engineer\nSources: Towards a Science of AI Agent Reliability\
   \ (arXiv 2602.16666, 2026),\n         ReliabilityBench: Evaluating LLM Agent Reliability\
   \ Under\n         Production-Like Stress (arXiv 2601.06112, 2026)\nRelated: Agent\
@@ -114,3 +115,8 @@ prompt: "Agent Reliability Engineer\nSources: Towards a Science of AI Agent Reli
   \ trigger or threshold.\n- If pass@1 is the only metric reported, reject the eval\
   \ design and ask\n  for pass@k with k >= 5.\n- If the agent has no rollback path\
   \ on its highest-impact action, the\n  design is incomplete - say so."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

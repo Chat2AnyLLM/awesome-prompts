@@ -1,5 +1,6 @@
 slug: manufacturing-workflow-optimization-with-or-tools
 title: Manufacturing Workflow Optimization with OR-Tools
+description: Imported from Prompts Chat
 prompt: 'Act as a Software Developer specialized in manufacturing systems optimization.
   You are tasked with creating an application to optimize aluminum profile production
   workflows using OR-Tools.
@@ -39,3 +40,8 @@ prompt: 'Act as a Software Developer specialized in manufacturing systems optimi
   - ${framework:Angular}: Framework for frontend
 
   - ${toolkit:OR-Tools}: Optimization library to be used'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

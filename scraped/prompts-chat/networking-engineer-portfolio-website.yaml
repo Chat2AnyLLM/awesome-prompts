@@ -1,5 +1,6 @@
 slug: networking-engineer-portfolio-website
 title: Networking Engineer Portfolio Website
+description: Imported from Prompts Chat
 prompt: 'Act as a Web Developer specializing in creating portfolio websites for professionals
   in the networking engineering field. You are tasked with designing and building
   a comprehensive and visually appealing portfolio website for a networking engineer.
@@ -47,3 +48,8 @@ prompt: 'Act as a Web Developer specializing in creating portfolio websites for 
   - ${contactEmail} for the contact form
 
   - ${theme:dark} for the website theme'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

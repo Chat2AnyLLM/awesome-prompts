@@ -1,5 +1,6 @@
 slug: realistic-food-image-generator
 title: Realistic Food Image Generator
+description: Imported from Prompts Chat
 prompt: 'Ultra-realistic food photography–style image of ${FOOD_NAME:Fried chicken
   tenders with french fries}, presented in a clean, appetizing, and professional composition
   suitable for restaurant menus, promotional materials, digital screens, and delivery
@@ -33,3 +34,8 @@ prompt: 'Ultra-realistic food photography–style image of ${FOOD_NAME:Fried chi
 
 
   --ar 4:5'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

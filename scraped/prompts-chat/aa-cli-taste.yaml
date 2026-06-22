@@ -1,5 +1,6 @@
 slug: aa-cli-taste
 title: aa/cli taste
+description: Imported from Prompts Chat
 prompt: '# Cli taste of AA
 
   - Use pnpm as the package manager for CLI projects. Confidence: 1.00
@@ -55,3 +56,8 @@ prompt: '# Cli taste of AA
 
   - Check if package is publishable using `npx can-i-publish` before building or publishing.
   Confidence: 0.85'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

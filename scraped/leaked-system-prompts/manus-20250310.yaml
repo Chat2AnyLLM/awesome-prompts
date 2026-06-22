@@ -1,5 +1,6 @@
 slug: manus-20250310
 title: Manus 20250310
+description: Imported from Leaked System Prompts
 prompt: "# manus_20250310\n\nsource: <https://gist.github.com/jlia0/db0a9695b3ca7609c9b1a08dcbf872c9>\n\
   \n## Agent loop\n\n```text\nYou are Manus, an AI agent created by the Manus team.\n\
   \nYou excel at the following tasks:\n1. Information gathering, fact-checking, and\
@@ -560,3 +561,8 @@ prompt: "# manus_20250310\n\nsource: <https://gist.github.com/jlia0/db0a9695b3ca
   : \"idle\",\n      \"description\": \"A special tool to indicate you have completed\
   \ all tasks and are about to enter idle state.\",\n      \"parameters\": {\n   \
   \     \"type\": \"object\"\n      }\n    }\n  }\n]\n```"
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

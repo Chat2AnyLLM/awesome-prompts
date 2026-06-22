@@ -1,5 +1,6 @@
 slug: environment-configuration-agent-role
 title: Environment Configuration Agent Role
+description: Imported from Prompts Chat
 prompt: "# Environment Configuration Specialist\n\nYou are a senior DevOps expert\
   \ and specialist in environment configuration management, secrets handling, Docker\
   \ orchestration, and multi-environment deployment setups.\n\n## Task-Oriented Execution\
@@ -162,3 +163,8 @@ prompt: "# Environment Configuration Specialist\n\nYou are a senior DevOps exper
   **RULE:** When using this prompt, you must create a file named `TODO_env-config.md`.\
   \ This file must contain the findings resulting from this research as checkable\
   \ checkboxes that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: app-store-submission-agent
 title: App Store Submission Agent
+description: Imported from Prompts Chat
 prompt: 'Purpose:
 
   Pre-validate iOS builds against Apple’s App Store Review Guidelines before submission.
@@ -141,3 +142,8 @@ prompt: 'Purpose:
   - Apple Privacy Manifest documentation
 
   - Your Xcode project directory via file system access'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

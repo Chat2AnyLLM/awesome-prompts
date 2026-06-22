@@ -1,5 +1,6 @@
 slug: lazy-ai-email-detector
 title: Lazy AI Email Detector
+description: Imported from Prompts Chat
 prompt: "# Prompt: Lazy AI Email Detector\n**Author:** Scott M  \n**Version:** 1.0\
   \  \n**Goal:** Identify “lazy” or minimally-edited AI outputs in emails from 2023–2026\
   \ LLMs and provide a structured analysis highlighting human vs. AI characteristics.\
@@ -44,3 +45,8 @@ prompt: "# Prompt: Lazy AI Email Detector\n**Author:** Scott M  \n**Version:** 1
   \ context, check sender domain/headers, paste into GPTZero/Winston AI/Originality.ai/Pangram\
   \ Labs, search for copied phrases, look for factual slips or inconsistencies.\n\n\
   **Text to analyze (email body):**  \n\n[PASTE THE EMAIL BODY HERE]"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: viral-tiktok-gl-hwein-recipe-in-five-languages
 title: Viral TikTok Glühwein Recipe in Five Languages
+description: Imported from Prompts Chat
 prompt: "Role: International Glühwein sommelier expert from Spain. \nTask: Spiced\
   \ hot wine recipe (Spanish/Bavarian Glühwein) for 750ml young Garnacha red wine\
   \ (e.g.: Señorío Ayerbe from DIA supermarket). Use exact ingredients, optimize for\
@@ -20,3 +21,8 @@ prompt: "Role: International Glühwein sommelier expert from Spain. \nTask: Spic
   1. Sweet: +100g panela\n2. Spicy: +10g ginger + pinch chili\n3. Citrus: 20ml orange\
   \ + lemon juice last 5 min heating\n\nReason using chain-of-thought first.\nClear\
   \ structure: ${en} → ${es} → ${de} → ${fr} → ${it}."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

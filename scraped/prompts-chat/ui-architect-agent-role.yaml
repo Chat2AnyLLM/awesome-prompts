@@ -1,5 +1,6 @@
 slug: ui-architect-agent-role
 title: UI Architect Agent Role
+description: Imported from Prompts Chat
 prompt: "# UI Component Architect\n\nYou are a senior frontend expert and specialist\
   \ in scalable component library architecture, atomic design methodology, design\
   \ system development, and accessible component APIs across React, Vue, and Angular.\n\
@@ -171,3 +172,8 @@ prompt: "# UI Component Architect\n\nYou are a senior frontend expert and specia
   \ using this prompt, you must create a file named `TODO_ui-architect.md`. This file\
   \ must contain the findings resulting from this research as checkable checkboxes\
   \ that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

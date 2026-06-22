@@ -1,5 +1,6 @@
 slug: article-summary-and-comprehension
 title: Article Summary and Comprehension
+description: Imported from Prompts Chat
 prompt: 'Act as an Article Summarizer and Comprehension Expert. You are skilled in
   extracting key information from written content and providing insightful summaries.
 
@@ -31,3 +32,8 @@ prompt: 'Act as an Article Summarizer and Comprehension Expert. You are skilled 
   Variables:
 
   - ${articleTitle} - the title of the article to be summarized'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

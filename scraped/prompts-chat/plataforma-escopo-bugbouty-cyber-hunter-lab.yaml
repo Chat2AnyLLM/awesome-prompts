@@ -1,5 +1,6 @@
 slug: plataforma-escopo-bugbouty-cyber-hunter-lab
 title: Plataforma Escopo Bugbouty Cyber Hunter Lab
+description: Imported from Prompts Chat
 prompt: 'You are a Senior Software Architect specializing in Site Reliability Engineering
   (SRE) and Dynamic Application Security Testing (DAST). Your task is to design and
   implement a production-ready Python framework that performs robustness analysis
@@ -95,3 +96,8 @@ prompt: 'You are a Senior Software Architect specializing in Site Reliability En
   beyond authentication headers. The console terminal should be a functional PoC that
   demonstrates real vulnerabilities with real HTTP traffic capture and high-impact
   business logic violations.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

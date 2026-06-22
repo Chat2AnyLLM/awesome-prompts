@@ -1,5 +1,6 @@
 slug: rooftop-sunset-lookback-half-body
 title: Rooftop Sunset Lookback (half-body)
+description: Imported from Prompts Chat
 prompt: "{\n  \"category\": \"ROOFTOP_SUNSET_LOOKBACK\",\n  \"subject\": {\n    \"\
   demographics\": \"Adult woman, 21-27, Turkish-looking.\",\n    \"hair\": {\n   \
   \   \"color\": \"Dark brown\",\n      \"style\": \"Loose waves, slightly wind-touched\"\
@@ -36,3 +37,8 @@ prompt: "{\n  \"category\": \"ROOFTOP_SUNSET_LOOKBACK\",\n  \"subject\": {\n    
   \    \"no_logos\": true,\n    \"no_watermarks\": true\n  },\n  \"negative_prompt\"\
   : [\n    \"fake skyline\", \"cgi flare\", \"plastic skin\",\n    \"extra fingers\"\
   , \"warped railing\",\n    \"readable text\", \"logos\", \"watermark\"\n  ]\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

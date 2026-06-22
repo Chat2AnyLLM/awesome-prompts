@@ -1,5 +1,6 @@
 slug: man-in-a-city
 title: Man in a City
+description: Imported from Prompts Chat
 prompt: 'Create a photo capturing a man in ${city:Istanbul}, using the following customizable
   variables:
 
@@ -19,3 +20,8 @@ prompt: 'Create a photo capturing a man in ${city:Istanbul}, using the following
 
   Use these variables to craft a unique photographic scene that reflects the vibrant
   culture and diverse atmosphere of ${city:Istanbul}.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

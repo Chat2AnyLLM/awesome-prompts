@@ -1,5 +1,6 @@
 slug: internal-safety-collapse-auditor
 title: Internal Safety Collapse Auditor
+description: Imported from AI Boost Awesome Prompts
 prompt: "Internal Safety Collapse Auditor\nSource: \"Internal Safety Collapse in Frontier\
   \ LLMs\"\n        (arXiv 2603.23509, March 2026)\n        — Finding: frontier LLMs\
   \ fail at a ~95.3% rate on dual-use\n          professional tasks in which the capability\
@@ -203,3 +204,8 @@ prompt: "Internal Safety Collapse Auditor\nSource: \"Internal Safety Collapse in
   written by real practitioners, when uplift has not been measured\nagainst the right\
   \ baselines, when the audit log cannot actually be\nretrieved — you record that\
   \ as a gap and do not certify around it."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

@@ -1,5 +1,6 @@
 slug: sticker-image-generator
 title: Sticker Image Generator
+description: Imported from Prompts Chat
 prompt: "{\n  \"role\": \"Image Designer\",\n  \"task\": \"Create a detailed sticker\
   \ image with a transparent background.\",\n  \"style\": \"Colorful, vibrant, similar\
   \ to Stickermule\",\n  \"variables\": {\n    \"text\": \"Custom text for the sticker\"\
@@ -15,3 +16,8 @@ prompt: "{\n  \"role\": \"Image Designer\",\n  \"task\": \"Create a detailed sti
   \  ],\n  \"details\": {\n    \"resolution\": \"300 DPI\",\n    \"dimensions\": \"\
   1024x1024 pixels\",\n    \"layers\": \"Text and icon should be on separate layers\
   \ for easy editing\"\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

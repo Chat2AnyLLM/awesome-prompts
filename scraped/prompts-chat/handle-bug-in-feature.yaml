@@ -1,5 +1,6 @@
 slug: handle-bug-in-feature
 title: handle bug in feature
+description: Imported from Prompts Chat
 prompt: "Act as a senior software engineer and system architect.\n\n## Context\nI\
   \ am a developer working on an application feature.\n\nThere is a bug, and previous\
   \ fixes made the system more complex.\n\nI need:\n- Clear understanding of the system\
@@ -39,3 +40,8 @@ prompt: "Act as a senior software engineer and system architect.\n\n## Context\n
   \ up to 3 specific questions\n- STOP\n\n---\n\n## Self-Check (MANDATORY)\nBefore\
   \ answering:\n- Did I map the bug to a specific flow step?\n- Did I identify timing/lifecycle\
   \ issues?\n- Is the fix minimal and scoped?\n- Did I avoid over-engineering?"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

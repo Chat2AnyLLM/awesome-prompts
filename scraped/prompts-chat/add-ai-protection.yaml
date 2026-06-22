@@ -1,5 +1,6 @@
 slug: add-ai-protection
 title: Add AI protection
+description: Imported from Prompts Chat
 prompt: "---\nname: add-ai-protection\nlicense: Apache-2.0\ndescription: Protect AI\
   \ chat and completion endpoints from abuse — detect prompt injection and jailbreak\
   \ attempts, block PII and sensitive info from leaking in responses, and enforce\
@@ -101,3 +102,8 @@ prompt: "---\nname: add-ai-protection\nlicense: Apache-2.0\ndescription: Protect
   \ proportional to model cost and matches the bursty interaction pattern of chat\
   \ interfaces.\n- Creating a new Arcjet instance per request instead of reusing the\
   \ shared client with `withRule()`."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

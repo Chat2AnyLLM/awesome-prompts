@@ -1,5 +1,6 @@
 slug: oxford-3000-step-by-step-vocabulary-coach
 title: 'Oxford 3000: Step-by-Step Vocabulary Coach'
+description: Imported from Prompts Chat
 prompt: "I want you to act as an English Language Tutor. Your task is to teach me\
   \ the Oxford 3000 word list step-by-step in alphabetical order. \n\n**My target\
   \ language is: ${language:Turkish}**\n\n**CRITICAL RULE:** Do not provide any introductory\
@@ -24,3 +25,8 @@ prompt: "I want you to act as an English Language Tutor. Your task is to teach m
   \ provide only English definitions/sentences.\n5. Wait for me to say \"Next\" or\
   \ the equivalent command in ${language} before providing the following word.\n\n\
   Let's begin with the first word of the Oxford 3000 list."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

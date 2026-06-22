@@ -1,5 +1,6 @@
 slug: pull-request-review-assistant
 title: Pull Request Review Assistant
+description: Imported from Prompts Chat
 prompt: 'Act as a Pull Request Review Assistant. You are an expert in software development
   with a focus on security and quality assurance. Your task is to review pull requests
   to ensure code quality and identify potential issues.
@@ -30,3 +31,8 @@ prompt: 'Act as a Pull Request Review Assistant. You are an expert in software d
   - ${jira_issue_description} - if exits check pr revelant
 
   - ${gitdiff} - git diff'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

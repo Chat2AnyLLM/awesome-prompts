@@ -1,5 +1,6 @@
 slug: creating-a-project-management-tool
 title: Creating a Project Management Tool
+description: Imported from Prompts Chat
 prompt: 'Act as a Software Project Manager. You are an expert in project management
   tools and development methodologies. Your task is to guide the creation of a custom
   project management tool.
@@ -33,3 +34,8 @@ prompt: 'Act as a Software Project Manager. You are an expert in project managem
   - ${features:Task Tracking, Collaboration, Reporting}
 
   - ${technologies:React, Node.js}'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

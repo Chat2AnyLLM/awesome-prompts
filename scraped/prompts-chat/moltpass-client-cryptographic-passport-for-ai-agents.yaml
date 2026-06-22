@@ -1,5 +1,6 @@
 slug: moltpass-client-cryptographic-passport-for-ai-agents
 title: MoltPass Client -- Cryptographic Passport for AI Agents
+description: Imported from Prompts Chat
 prompt: "---\nname: moltpass-client\ndescription: \"Cryptographic passport client\
   \ for AI agents. Use when: (1) user asks to register on MoltPass or get a passport,\
   \ (2) user asks to verify or look up an agent's identity, (3) user asks to prove\
@@ -213,3 +214,8 @@ prompt: "---\nname: moltpass-client\ndescription: \"Cryptographic passport clien
   challenge\": cmd_challenge,\n        \"sign\": cmd_sign,\n        \"verify\": cmd_verify,\n\
   \    }\n\n    if not args.command:\n        parser.print_help()\n        sys.exit(1)\n\
   \n    commands[args.command](args)\n\n\nif __name__ == \"__main__\":\n    main()"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

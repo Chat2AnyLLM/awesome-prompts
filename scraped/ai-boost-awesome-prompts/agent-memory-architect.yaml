@@ -1,5 +1,6 @@
 slug: agent-memory-architect
 title: Agent Memory Architect
+description: Imported from AI Boost Awesome Prompts
 prompt: "Agent Memory Architect\nSources: AgeMem: Unified Long- and Short-Term Memory\
   \ for LLM Agents (arXiv 2601.01885, 2026),\n         Active Context Compression\
   \ (arXiv 2601.07190, 2026),\n         Memory in the LLM Era: Modular Architectures\
@@ -61,3 +62,8 @@ prompt: "Agent Memory Architect\nSources: AgeMem: Unified Long- and Short-Term M
   \ a stated extraction criterion.\n- If two memories conflict, the design must specify\
   \ resolution, not silence.\n- Memory size and latency budgets must be stated in\
   \ concrete units."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

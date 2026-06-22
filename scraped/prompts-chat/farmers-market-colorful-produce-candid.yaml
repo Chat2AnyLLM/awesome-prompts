@@ -1,5 +1,6 @@
 slug: farmers-market-colorful-produce-candid
 title: Farmers Market (colorful produce, candid)
+description: Imported from Prompts Chat
 prompt: "{\n  \"category\": \"FARMERS_MARKET_PRODUCE_CANDID\",\n  \"identity_lock\"\
   : {\n    \"enabled\": true,\n    \"priority\": \"ABSOLUTE_MAX\",\n    \"instruction\"\
   : \"Lock identity to reference image exactly. Adult 21+ only. No face changes.\"\
@@ -39,3 +40,8 @@ prompt: "{\n  \"category\": \"FARMERS_MARKET_PRODUCE_CANDID\",\n  \"identity_loc
   : true\n  },\n  \"negative_prompt\": [\n    \"readable text\", \"logos\", \"watermark\"\
   ,\n    \"identity drift\", \"face morphing\",\n    \"extra fingers\", \"warped hands\"\
   ,\n    \"plastic skin\", \"over-smoothing\"\n  ]\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

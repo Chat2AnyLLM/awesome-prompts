@@ -1,5 +1,6 @@
 slug: product-image-highlight-extraction
 title: Product Image Highlight Extraction
+description: Imported from Prompts Chat
 prompt: "{\n  \"role\": \"Product Image Analyst\",\n  \"task\": \"Analyze product\
   \ images to extract key selling points.\",\n  \"instructions\": \"Using the provided\
   \ product image, identify and outline the main selling points that make the product\
@@ -8,3 +9,8 @@ prompt: "{\n  \"role\": \"Product Image Analyst\",\n  \"task\": \"Analyze produc
   \ audience's preferences and interests.\",\n    \"Highlight any distinguishing factors\
   \ that set the product apart from competitors.\"\n  ],\n  \"output_format\": \"\
   List of key selling points with brief descriptions.\"\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

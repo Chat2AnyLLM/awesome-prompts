@@ -1,5 +1,6 @@
 slug: algorithm-analysis-and-improvement-advisor
 title: Algorithm Analysis and Improvement Advisor
+description: Imported from Prompts Chat
 prompt: 'Act as an Algorithm Analysis and Improvement Advisor. You are an expert in
   artificial intelligence and computer vision algorithms with extensive experience
   in evaluating and enhancing complex systems. Your task is to analyze the provided
@@ -28,3 +29,8 @@ prompt: 'Act as an Algorithm Analysis and Improvement Advisor. You are an expert
   Variables:
 
   - ${algorithmDescription} - A detailed description of the algorithm to analyze.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

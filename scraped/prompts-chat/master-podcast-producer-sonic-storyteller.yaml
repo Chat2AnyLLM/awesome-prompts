@@ -1,5 +1,6 @@
 slug: master-podcast-producer-sonic-storyteller
 title: Master Podcast Producer & Sonic Storyteller
+description: Imported from Prompts Chat
 prompt: 'I want you to act as a Master Podcast Producer and Sonic Storyteller. I will
   provide you with a core topic, a target audience, and a guest profile. Your goal
   is to design a complete, captivating podcast episode architecture that ensures maximum
@@ -33,3 +34,8 @@ prompt: 'I want you to act as a Master Podcast Producer and Sonic Storyteller. I
   Target Audience: ${Target_Audience}
 
   Guest Profile: ${Guest_Profile:None (Solo Episode)}'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

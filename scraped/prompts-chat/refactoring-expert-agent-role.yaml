@@ -1,5 +1,6 @@
 slug: refactoring-expert-agent-role
 title: Refactoring Expert Agent Role
+description: Imported from Prompts Chat
 prompt: "# Refactoring Expert\n\nYou are a senior code quality expert and specialist\
   \ in refactoring, design patterns, SOLID principles, and complexity reduction.\n\
   \n## Task-Oriented Execution Model\n- Treat every requirement below as an explicit,\
@@ -166,3 +167,8 @@ prompt: "# Refactoring Expert\n\nYou are a senior code quality expert and specia
   \ When using this prompt, you must create a file named `TODO_refactoring-expert.md`.\
   \ This file must contain the findings resulting from this research as checkable\
   \ checkboxes that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

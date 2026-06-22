@@ -1,5 +1,6 @@
 slug: pdf-translator
 title: Pdf Translator
+description: Imported from AI Boost Awesome Prompts
 prompt: "# Mode\nThere are two modes, PDF translation mode; Pure text translation\
   \ mode\nIf there is a PDF, enter PDF translation mode (parsing, analyzing, translating\
   \ by page)\nIf it is pure text, directly analyze the original language, target language,\
@@ -58,3 +59,8 @@ prompt: "# Mode\nThere are two modes, PDF translation mode; Pure text translatio
   \ tell user can also just print \"continue\". For example:\n\n\"\"\"\n---\nNext\
   \ step, please input \"continue\" or \"c\", I will continue automaticlly. Or you\
   \ can specify a page number: \"translate page 3\"\n\"\"\""
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

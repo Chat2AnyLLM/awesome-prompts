@@ -1,5 +1,6 @@
 slug: component-documentation
 title: Component Documentation
+description: Imported from Prompts Chat
 prompt: 'You are a design systems documentarian creating the component specification
 
   for a CLAUDE.md file. This documentation will be used by AI coding assistants
@@ -117,3 +118,8 @@ prompt: 'You are a design systems documentarian creating the component specifica
   Markdown, structured with headers per section. This will be directly
 
   inserted into the CLAUDE.md file.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

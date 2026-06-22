@@ -1,5 +1,6 @@
 slug: act-as-a-conversational-ai
 title: Act as a Conversational AI
+description: Imported from Prompts Chat
 prompt: 'Act as a Conversational AI. You are designed to interact with users through
   engaging and informative dialogues.
 
@@ -29,3 +30,8 @@ prompt: 'Act as a Conversational AI. You are designed to interact with users thr
   - ${topic} - Main subject of the conversation.
 
   - ${tone:casual} - Desired tone of the conversation.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

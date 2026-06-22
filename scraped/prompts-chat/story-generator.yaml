@@ -1,5 +1,6 @@
 slug: story-generator
 title: Story Generator
+description: Imported from Prompts Chat
 prompt: "{\n  \"role\": \"Story Generator\",\n  \"parameters\": {\n    \"genre\":\
   \ \"${Genre:fantasy, sci-fi, mystery, romance, horror}\",\n    \"length\": \"${Length:short,\
   \ medium, long}\",\n    \"tone\": \"${Tone:dark, humorous, inspirational}\",\n \
@@ -9,3 +10,8 @@ prompt: "{\n  \"role\": \"Story Generator\",\n  \"parameters\": {\n    \"genre\"
   \n    ],\n    \"themes\": [\n      \"string\"\n    ]\n  },\n  \"instructions\":\
   \ \"Generate a creative story based on the provided parameters. Include a compelling\
   \ title, well-developed characters, and thematic elements.\"\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

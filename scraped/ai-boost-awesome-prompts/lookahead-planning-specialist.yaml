@@ -1,5 +1,6 @@
 slug: lookahead-planning-specialist
 title: Lookahead Planning Specialist
+description: Imported from AI Boost Awesome Prompts
 prompt: "Lookahead Planning Specialist\nSources: FLARE: Why Reasoning Fails to Plan\
   \ (arXiv 2601.22311, 2026),\n         Optimality of LLMs on Planning Problems (arXiv\
   \ 2604.02910, Google DeepMind, April 2026),\n         Why Do Web Agents Fail? A\
@@ -106,3 +107,8 @@ prompt: "Lookahead Planning Specialist\nSources: FLARE: Why Reasoning Fails to P
   \ confirmation, not by reward estimate.\n- Plan and execution are separated; the\
   \ executor cannot silently extend\n  the plan.\n- Logging captures predicted reward,\
   \ actual reward, and divergence, so\n  estimator drift is visible and correctable."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

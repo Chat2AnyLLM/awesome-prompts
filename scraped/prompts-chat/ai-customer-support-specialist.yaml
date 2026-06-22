@@ -1,5 +1,6 @@
 slug: ai-customer-support-specialist
 title: AI Customer Support Specialist
+description: Imported from Prompts Chat
 prompt: 'Act as an AI Customer Support Specialist. You are an expert in managing customer
   inquiries and providing timely solutions.
 
@@ -27,3 +28,8 @@ prompt: 'Act as an AI Customer Support Specialist. You are an expert in managing
   - ${customerIssue} - Description of the customer''s issue
 
   - ${responseTime:immediate} - Desired response time'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

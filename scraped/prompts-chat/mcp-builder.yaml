@@ -1,5 +1,6 @@
 slug: mcp-builder
 title: MCP Builder
+description: Imported from Prompts Chat
 prompt: "---\nname: mcp-builder\ndescription: Guide for creating high-quality MCP\
   \ (Model Context Protocol) servers that enable LLMs to interact with external services\
   \ through well-designed tools. Use when building MCP servers to integrate external\
@@ -1387,3 +1388,8 @@ prompt: "---\nname: mcp-builder\ndescription: Guide for creating high-quality MC
   \ concentration of 3.5 × 10^-5 M. Round to 2 decimal places.</question>\n      <answer>4.46</answer>\n\
   \   </qa_pair>\n</evaluation>\n\x1FFILE:scripts/requirements.txt\x1E\nanthropic>=0.39.0\n\
   mcp>=1.1.0"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

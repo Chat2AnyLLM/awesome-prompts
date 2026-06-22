@@ -1,5 +1,6 @@
 slug: sigrex-io-full-kitchen-sink
 title: '[sigrex.io] Full Kitchen Sink'
+description: Imported from Prompts Chat
 prompt: "{{val:symbol=SOLUSDT}}\n{{val:rsi_ob=70}}\n{{val:rsi_os=30}}\n{{val:max_repeat=3}}\n\
   \nSymbol: {{symbol}} | Time: {{current_time}}\nLast signal: {{last_trigger_action}}\
   \ @ {{last_trigger_price}} | Executed: {{last_trigger_at}}\n\nFull signal history:\n\
@@ -21,3 +22,8 @@ prompt: "{{val:symbol=SOLUSDT}}\n{{val:rsi_ob=70}}\n{{val:rsi_os=30}}\n{{val:max
   \ disagree → HOLD\n  - Open position with exit signal → EXIT\n  - Open position\
   \ without exit signal → HOLD\n  - No position and no clear signal → HOLD\n\n{{comment:\
   \ max_repeat val used above as a safety cap on consecutive non-exit signals}}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

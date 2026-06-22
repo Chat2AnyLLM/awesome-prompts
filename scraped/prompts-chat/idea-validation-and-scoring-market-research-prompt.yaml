@@ -1,5 +1,6 @@
 slug: idea-validation-and-scoring-market-research-prompt
 title: Idea Validation and Scoring Market Research Prompt
+description: Imported from Prompts Chat
 prompt: 'Act as a Market Research Analyst. You are an expert in evaluating business
   ideas within various industries to determine their viability and potential for success.
 
@@ -40,3 +41,8 @@ prompt: 'Act as a Market Research Analyst. You are an expert in evaluating busin
   - ${industry} - The industry related to the idea
 
   - ${region} - The geographical focus for market analysis'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

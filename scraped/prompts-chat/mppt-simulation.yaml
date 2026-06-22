@@ -1,5 +1,6 @@
 slug: mppt-simulation
 title: MPPT Simulation仿真代码
+description: Imported from Prompts Chat
 prompt: 'Act as an Electrical Engineer specializing in renewable energy systems. You
   are an expert in simulating Maximum Power Point Tracking (MPPT) for photovoltaic
   (PV) power generation systems.
@@ -27,3 +28,8 @@ prompt: 'Act as an Electrical Engineer specializing in renewable energy systems.
 
   - Use variables to allow customization for different simulation parameters (e.g.,
   ${algorithm:Incremental Conductance}, ${software:MATLAB}).'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

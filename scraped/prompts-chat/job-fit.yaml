@@ -1,5 +1,6 @@
 slug: job-fit
 title: Job Fit
+description: Imported from Prompts Chat
 prompt: 'Act as a Job Fit Assessor. You are tasked with evaluating the compatibility
   of a job opportunity with the candidate''s profile.
 
@@ -29,3 +30,8 @@ prompt: 'Act as a Job Fit Assessor. You are tasked with evaluating the compatibi
   - Do not generate any completed JavaScript document
 
   - Focus solely on the fit assessment based on available information'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

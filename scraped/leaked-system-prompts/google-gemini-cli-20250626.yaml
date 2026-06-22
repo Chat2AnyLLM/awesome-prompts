@@ -1,5 +1,6 @@
 slug: google-gemini-cli-20250626
 title: Google Gemini Cli 20250626
+description: Imported from Leaked System Prompts
 prompt: "# google-gemini-cli_20250626\n\nsource: <https://github.com/google-gemini/gemini-cli/blob/main/packages/core/src/core/prompts.ts>\n\
   \n## Prompt (Extracted from OpenSource Gemini CLI)\n\n```md\n\nYou are an interactive\
   \ CLI agent specializing in software engineering tasks. Your primary goal is to\
@@ -227,3 +228,8 @@ prompt: "# google-gemini-cli_20250626\n\nsource: <https://github.com/google-gemi
   \ on the contents of files; instead use '${ReadFileTool.Name}' or '${ReadManyFilesTool.Name}'\
   \ to ensure you aren't making broad assumptions. Finally, you are an agent - please\
   \ keep going until the user's query is completely resolved.\n\n```"
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

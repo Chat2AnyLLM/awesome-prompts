@@ -1,35 +1,40 @@
 # Awesome Prompts
 
-A curated collection of high-quality prompts for AI assistants, stored in a machine-readable format for programmatic consumption. Includes an automated scraper that fetches prompts from configured external sources hourly.
+A curated collection of high-quality prompts for AI assistants, stored in a machine-readable format for programmatic consumption. The collection is built from sources configured in `config.yaml`, including local YAML prompts, external GitHub repositories, and remote JSON prompt collections.
 
 ## Two Ways to Contribute
 
 | Method | What you do | Where it lives |
 |--------|------------|----------------|
 | **Add a prompt directly** | Write a YAML file with the full prompt text | `prompts/<slug>.yaml` |
-| **Add a source link** | Add a GitHub link to `awesome_prompts.json` | `awesome_prompts.json` |
+| **Add a source** | Add a `local`, `github`, or `json_url` source | `config.yaml` |
 
 ## How It Works
 
 ```
-awesome_prompts.json          prompts/*.yaml
-  (configured links)           (direct prompts)
-        │                            │
-        ▼                            ▼
-  scripts/scrape.py           scripts/build.py
-        │                            │
-        ▼                            ▼
-  scraped/<source>/            dist/prompts.json
-   (fetched prompts)           dist/prompts.csv
-                               dist/sources.json
-                               dist/index.json
+config.yaml
+  (local, GitHub, JSON URL sources)
+        │
+        ▼
+  scripts/build.py
+        │
+        ├─ reads prompts/*.yaml
+        ├─ fetches configured GitHub sources
+        ├─ fetches configured JSON URL sources
+        └─ caches fetched GitHub prompts in scraped/<source>/
+        │
+        ▼
+  dist/prompts.json   (unified prompt collection)
+  dist/prompts.csv
+  dist/sources.json
+  dist/index.json
 ```
 
 A GitHub Actions workflow runs **every hour** to:
-1. Read `awesome_prompts.json` for configured source links
-2. Scrape prompts from each source (supports CSV, YAML, Markdown, JSON)
-3. Save scraped prompts to `scraped/<source-name>/`
-4. Rebuild `dist/` artifacts
+1. Read `config.yaml` for configured sources
+2. Load local prompts and fetch remote sources (supports CSV, YAML, Markdown, TXT, and JSON)
+3. Cache fetched GitHub prompts in `scraped/<source-name>/`
+4. Build unified `dist/` artifacts
 5. Update this README with latest stats
 6. Commit and push if anything changed
 
@@ -41,7 +46,7 @@ A GitHub Actions workflow runs **every hour** to:
 curl -s https://raw.githubusercontent.com/zhujian0805/awesome-prompts/main/dist/index.json
 ```
 
-**Direct prompts:**
+**Unified prompts:**
 
 ```bash
 curl -s https://raw.githubusercontent.com/zhujian0805/awesome-prompts/main/dist/prompts.json
@@ -55,43 +60,46 @@ ls scraped/
 # awesome-chatgpt-prompts/  leaked-system-prompts/
 ```
 
-## Configuring Sources (`awesome_prompts.json`)
+## Configuring Sources (`config.yaml`)
 
-To add a new source to scrape from, edit `awesome_prompts.json`:
+To add a new source, edit `config.yaml`:
 
-```json
-{
-  "sources": [
-    {
-      "name": "My Prompt Collection",
-      "url": "https://github.com/username/repo",
-      "type": "collection",
-      "format": "yaml",
-      "file_path": "prompts/",
-      "description": "What this source contains"
-    }
-  ]
-}
+```yaml
+sources:
+  - name: "Local Prompts"
+    type: local
+    path: prompts/
+    description: "Hand-curated prompts maintained in this repo"
+
+  - name: "My GitHub Prompt Collection"
+    type: github
+    url: https://github.com/username/repo
+    format: yaml
+    file_path: prompts/
+    description: "Prompt YAML files from a GitHub repo"
+
+  - name: "My JSON Prompt Collection"
+    type: json_url
+    url: https://raw.githubusercontent.com/username/repo/main/dist/prompts.json
+    description: "Pre-built JSON prompt collection"
 ```
 
-### Fields
+### Source Types
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `name` | yes | Human-readable name for this source |
-| `url` | yes | GitHub URL (repo or specific file) |
-| `type` | yes | `collection` (repo with many prompts) or `single-prompt` |
-| `format` | yes | Format of prompt files: `csv`, `yaml`, `md`, `json` |
-| `file_path` | no | Path within the repo (e.g. `prompts.csv`, `prompts/`). Empty = repo root |
-| `description` | no | What this source contains |
+| Type | Required fields | Description |
+|------|-----------------|-------------|
+| `local` | `name`, `type`, `path` | Reads local `*.yaml` prompt files and validates them against `schema/prompt.schema.json` |
+| `github` | `name`, `type`, `url`, `format` | Fetches prompts from a GitHub repo. Optional `file_path` points to a file or directory inside the repo |
+| `json_url` | `name`, `type`, `url` | Fetches a pre-built JSON prompt collection from any URL |
 
-### Supported Formats
+### GitHub Supported Formats
 
 | Format | How it's scraped |
 |--------|-----------------|
 | `csv` | Reads the CSV file, looks for `act`/`title` + `prompt` columns |
 | `yaml` | Reads `.yaml`/`.yml` files, expects a `prompt` field in each |
 | `md` | Each `.md` file is treated as a complete prompt |
+| `txt` | Each `.txt` file is treated as a complete prompt |
 | `json` | Reads JSON array or `{"prompts": [...]}`, expects `title` + `prompt` fields |
 
 ## Categories
@@ -111,28 +119,30 @@ To add a new source to scrape from, edit `awesome_prompts.json`:
 
 ```bash
 pip install -r requirements.txt
-make validate      # Check all prompts and sources against schemas
-make build         # Generate dist/ artifacts
-make scrape        # Fetch prompts from configured sources
+make validate      # Check local prompts and source metadata against schemas
+make test          # Run unit tests
+make build         # Load all config.yaml sources and generate unified dist/ artifacts
 make update-readme # Update README stats
-make all           # Run everything
+make all           # Run validation, tests, build, and README update
 ```
 
 ## Stats
 
 | Metric | Count |
 |--------|-------|
-| Direct prompts (in `prompts/`) | 3 |
-| Configured sources | 3 |
-| Scraped prompts (total) | 2336 |
+| Unified prompts (in `dist/prompts.json`) | 2331 |
+| Direct prompts (from `prompts/`) | 3 |
+| Configured sources | 4 |
+| Scraped prompts cached in `scraped/` | 2336 |
 
 ### Configured Sources
 
-| Source | URL | Format | Scraped |
-|--------|-----|--------|---------|
-| Prompts Chat | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 1877 |
-| Leaked System Prompts | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
-| AI Boost Awesome Prompts | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 296 |
+| Source | Type | Location | Format | Loaded |
+|--------|------|----------|--------|--------|
+| Local Prompts | local | `prompts/` | - | 3 |
+| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 1877 |
+| Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
+| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 296 |
 
 ### Scraped Prompts
 

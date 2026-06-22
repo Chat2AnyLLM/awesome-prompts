@@ -1,5 +1,6 @@
 slug: camp-planner
 title: Camp Planner
+description: Imported from Prompts Chat
 prompt: "{\n  \"research_config\": {\n    \"topic\": \"Logistics-Oriented and Car-Free\
   \ Camping Planning Analysis\",\n    \"target_persona\": {\n      \"age_group\":\
   \ \"${age_group:30-35}\",\n      \"group_size\": \"${group_size:4}\",\n      \"\
@@ -31,3 +32,8 @@ prompt: "{\n  \"research_config\": {\n    \"topic\": \"Logistics-Oriented and Ca
   \    \"4. Step-by-Step Weekend Timeline (Chronological)\",\n      \"5. Safety Protocols\
   \ & Local Insider Tips\"\n    ],\n    \"tone\": \"Analytical, instructional, safe\
   \ and encouraging\"\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

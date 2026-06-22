@@ -1,5 +1,6 @@
 slug: restaurant-candle-close-up-intimate-not-explicit
 title: Restaurant Candle Close-up (intimate, not explicit)
+description: Imported from Prompts Chat
 prompt: "{\n  \"category\": \"CANDLELIT_RESTAURANT_CLOSEUP\",\n  \"subject\": {\n\
   \    \"demographics\": \"Adult woman, 21-29, Turkish-looking.\",\n    \"hair\":\
   \ {\n      \"color\": \"Dark brown\",\n      \"style\": \"Loose, softly styled\"\
@@ -29,3 +30,8 @@ prompt: "{\n  \"category\": \"CANDLELIT_RESTAURANT_CLOSEUP\",\n  \"subject\": {\
   : true\n  },\n  \"negative_prompt\": [\n    \"fake flames\", \"cgi\",\n    \"plastic\
   \ skin\", \"over-smoothing\",\n    \"extra fingers\", \"warped hands\",\n    \"\
   readable text\", \"logos\", \"watermark\"\n  ]\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

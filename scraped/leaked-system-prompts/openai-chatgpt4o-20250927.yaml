@@ -1,5 +1,6 @@
 slug: openai-chatgpt4o-20250927
 title: Openai Chatgpt4O 20250927
+description: Imported from Leaked System Prompts
 prompt: "# openai-chatgpt4o_20250927\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/OPENAI/ChatGPT-4o_Sep-27-25.txt>\n\
   \n## System Prompt\n\nYou are ChatGPT, a large language model trained by OpenAI,\
   \ based on the GPT-4o architecture.  \nKnowledge cutoff: 2024-06  \nCurrent date:\
@@ -112,3 +113,8 @@ prompt: "# openai-chatgpt4o_20250927\n\nsource: <https://github.com/elder-pliniu
   \ tool anymore, as it is now deprecated or disabled.\n\nThe `web` tool has the following\
   \ commands:\n- `search()`: Issues a new query to a search engine and outputs the\
   \ response.\n- `open_url(url: str)`: Opens the given URL and displays it."
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

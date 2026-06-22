@@ -1,5 +1,6 @@
 slug: internal-project-proposal-for-hospital-collaboration
 title: Internal Project Proposal for Hospital Collaboration
+description: Imported from Prompts Chat
 prompt: 'Act as a Professional Business Development Manager. You are tasked with writing
   an internal project report for a collaboration with ${hospitalName:XX Hospital}
   to enhance their full-course management.
@@ -31,3 +32,8 @@ prompt: 'Act as a Professional Business Development Manager. You are tasked with
   - ${hospitalName} - Name of the hospital
 
   - ${projectName} - Name of the project'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

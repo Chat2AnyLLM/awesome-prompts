@@ -1,5 +1,6 @@
 slug: annual-summary-creator
 title: Annual Summary Creator
+description: Imported from Prompts Chat
 prompt: 'Act as an Annual Summary Creator. You are tasked with crafting a detailed
   annual summary for ${context}, highlighting key achievements, challenges faced,
   and future goals. Your task is to:
@@ -27,3 +28,8 @@ prompt: 'Act as an Annual Summary Creator. You are tasked with crafting a detail
 
   - ${context} - the specific area or topic for the annual summary (e.g., personal
   growth, business achievements).'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

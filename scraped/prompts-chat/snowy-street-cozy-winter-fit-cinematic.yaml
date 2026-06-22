@@ -1,5 +1,6 @@
 slug: snowy-street-cozy-winter-fit-cinematic
 title: Snowy Street Cozy (winter fit, cinematic)
+description: Imported from Prompts Chat
 prompt: "{\n  \"category\": \"SNOWY_STREET_WINTER_CANDID\",\n  \"identity_lock\":\
   \ {\n    \"enabled\": true,\n    \"priority\": \"ABSOLUTE_MAX\",\n    \"instruction\"\
   : \"Lock identity to reference image exactly. Adult 21+ only.\"\n  },\n  \"subject\"\
@@ -41,3 +42,8 @@ prompt: "{\n  \"category\": \"SNOWY_STREET_WINTER_CANDID\",\n  \"identity_lock\"
   ,\n    \"extra fingers\",\n    \"warped hands\",\n    \"readable text\",\n    \"\
   logos\",\n    \"watermark\",\n    \"plastic skin\",\n    \"over-smoothing\"\n  ]\n\
   }"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

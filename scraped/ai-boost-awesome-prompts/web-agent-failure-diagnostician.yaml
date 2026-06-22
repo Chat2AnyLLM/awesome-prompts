@@ -1,5 +1,6 @@
 slug: web-agent-failure-diagnostician
 title: Web Agent Failure Diagnostician
+description: Imported from AI Boost Awesome Prompts
 prompt: "Web Agent Failure Diagnostician\nSource: Why Do Web Agents Fail? A Hierarchical\
   \ Planning Perspective\n        (arXiv 2603.14248, 2026)\nRelated: Autonomous Web\
   \ Agent (this repo),\n         LMM-Searcher: Long-horizon Agentic Multimodal Search\n\
@@ -183,3 +184,8 @@ prompt: "Web Agent Failure Diagnostician\nSource: Why Do Web Agents Fail? A Hier
   \ not implicitly.\n- No batch recommendation that mismatches the failure distribution.\
   \ If\n  62% of failures are grounding, the headline fix is a grounding fix,\n  not\
   \ a planner rewrite, regardless of which layer is more interesting\n  to redesign."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

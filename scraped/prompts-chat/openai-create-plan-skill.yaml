@@ -1,5 +1,6 @@
 slug: openai-create-plan-skill
 title: OpenAI Create Plan Skill
+description: Imported from Prompts Chat
 prompt: "---\nname: create-plan\ndescription: Create a concise plan. Use when a user\
   \ explicitly asks for a plan related to a coding task.\nmetadata:\n  short-description:\
   \ Create a plan\n---\n\n# Create Plan\n\n## Goal\n\nTurn a user prompt into a **single,\
@@ -31,3 +32,8 @@ prompt: "---\nname: create-plan\ndescription: Create a concise plan. Use when a 
   \ when relevant: feature flag, migration plan, rollback note\n\nAvoid:\n- Vague\
   \ steps (“handle backend”, “do auth”)\n- Too many micro-steps\n- Writing code snippets\
   \ (keep the plan implementation-agnostic)"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

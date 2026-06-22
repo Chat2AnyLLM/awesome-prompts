@@ -1,5 +1,6 @@
 slug: claude-in-chrome-20260328
 title: Claude In Chrome 20260328
+description: Imported from Leaked System Prompts
 prompt: "# claude-in-chrome_20260328\n\nThis content was obtained via inspecting network\
   \ traffic for the offscreen.html service worker within Claude for Chrome Chrome\
   \ extension, rather than prompt manipulation.\n\nIt is contained in the HTTP GET\
@@ -3099,3 +3100,8 @@ prompt: "# claude-in-chrome_20260328\n\nThis content was obtained via inspecting
   : \"defaultValue\",\n            \"experiment\": null,\n            \"experimentResult\"\
   : null,\n            \"ruleId\": null\n        }\n    },\n    \"hashing_algorithm\"\
   : null,\n    \"user\": null\n}\n```"
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

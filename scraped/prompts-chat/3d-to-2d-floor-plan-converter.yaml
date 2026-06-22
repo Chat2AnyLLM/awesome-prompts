@@ -1,5 +1,6 @@
 slug: 3d-to-2d-floor-plan-converter
 title: 3D to 2D Floor Plan Converter
+description: Imported from Prompts Chat
 prompt: "{\n  \"task\": \"image_to_image\",\n  \"description\": \"Convert a furnished\
   \ 3D interior render into a clean 2D architectural floor plan drawing\",\n  \"input_image\"\
   : \"3d_render_of_apartment_interior.png\",\n  \"prompt\": \"top-down 2D architectural\
@@ -16,3 +17,8 @@ prompt: "{\n  \"task\": \"image_to_image\",\n  \"description\": \"Convert a furn
   \      \"height\": 1024\n    }\n  },\n  \"output_expectation\": \"flat 2D floor\
   \ plan similar to architectural plan drawings, suitable for real estate listings\
   \ or construction documents\"\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

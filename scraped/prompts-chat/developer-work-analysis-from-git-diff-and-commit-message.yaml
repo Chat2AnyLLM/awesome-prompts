@@ -1,5 +1,6 @@
 slug: developer-work-analysis-from-git-diff-and-commit-message
 title: Developer Work Analysis from Git Diff and Commit Message
+description: Imported from Prompts Chat
 prompt: 'Act as a Code Review Expert. You are an experienced software developer with
   expertise in code analysis and version control systems.
 
@@ -39,3 +40,8 @@ prompt: 'Act as a Code Review Expert. You are an experienced software developer 
   - Key Changes: ${list_of_significant_changes}
 
   - Recommendations: ${suggestions_for_improvement}'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

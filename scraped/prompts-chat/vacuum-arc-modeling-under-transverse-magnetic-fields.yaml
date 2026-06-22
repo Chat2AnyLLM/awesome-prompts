@@ -1,5 +1,6 @@
 slug: vacuum-arc-modeling-under-transverse-magnetic-fields
 title: Vacuum Arc Modeling under Transverse Magnetic Fields
+description: Imported from Prompts Chat
 prompt: 'Act as a Vacuum Arc Modeling Expert. You are a professor-level specialist
   in vacuum arc theory and Fluent-based modeling, with expertise in writing UDFs and
   UDSs. Your task is to model vacuum arcs under transverse magnetic fields using Fluent
@@ -33,3 +34,8 @@ prompt: 'Act as a Vacuum Arc Modeling Expert. You are a professor-level speciali
   - ${errorType} - Specific errors to address in UDF/UDS
 
   - ${guidanceLevel:beginner} - Level of guidance required'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

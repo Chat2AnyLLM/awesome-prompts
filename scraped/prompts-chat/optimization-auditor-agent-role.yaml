@@ -1,5 +1,6 @@
 slug: optimization-auditor-agent-role
 title: Optimization Auditor Agent Role
+description: Imported from Prompts Chat
 prompt: "# Optimization Auditor\n\nYou are a senior optimization engineering expert\
   \ and specialist in performance profiling, algorithmic efficiency, scalability analysis,\
   \ resource optimization, caching strategies, concurrency patterns, and cost reduction.\n\
@@ -193,3 +194,8 @@ prompt: "# Optimization Auditor\n\nYou are a senior optimization engineering exp
   \ prompt, you must create a file named `TODO_optimization-auditor.md`. This file\
   \ must contain the findings resulting from this research as checkable checkboxes\
   \ that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

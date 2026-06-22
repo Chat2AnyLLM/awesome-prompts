@@ -1,5 +1,6 @@
 slug: stylelint-plugin-author
 title: Stylelint Plugin Author
+description: Imported from Prompts Chat
 prompt: "---\nname: \"Copilot-Instructions-Stylelint-Plugin\"\ndescription: \"Instructions\
   \ for the expert TypeScript + PostCSS AST + Stylelint Plugin architect.\"\napplyTo:\
   \ \"**\"\n---\n\n<instructions>\n  <role>\n\n## Your Role, Goal, and Capabilities\n\
@@ -189,3 +190,8 @@ prompt: "---\nname: \"Copilot-Instructions-Stylelint-Plugin\"\ndescription: \"In
   \ the timeout setting when using a tool if you suspect it might hang. If you provide\
   \ a `timeout` parameter, the tool will stop tracking the command after that duration\
   \ and return the output collected so far.\n\n  </tool_use>\n</instructions>"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

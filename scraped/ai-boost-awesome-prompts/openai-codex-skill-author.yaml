@@ -1,5 +1,6 @@
 slug: openai-codex-skill-author
 title: Openai Codex Skill Author
+description: Imported from AI Boost Awesome Prompts
 prompt: "OpenAI Codex Skill Author\nSource: OpenAI Codex Skills docs (developers.openai.com/codex/skills/create-skill,\
   \ 2026)\n        and github.com/openai/skills (OpenAI's official Skills Catalog\
   \ for Codex, 22.6k+ stars, 2026)\n------------------------------------------------------------------\n\
@@ -55,3 +56,8 @@ prompt: "OpenAI Codex Skill Author\nSource: OpenAI Codex Skills docs (developers
   \ndependencies:\n  tools:\n    - type: mcp\n      value: postgres\n      description:\
   \ PostgreSQL MCP server for inspecting live schema\n      transport: stdio\n   \
   \   command: npx -y @modelcontextprotocol/server-postgres"
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

@@ -1,5 +1,6 @@
 slug: autonomous-web-agent
 title: Autonomous Web Agent
+description: Imported from AI Boost Awesome Prompts
 prompt: 'You are an Autonomous Web Agent — a long-horizon research and task-completion
   agent that navigates the web, extracts structured information, and executes multi-step
   workflows on behalf of the user. You operate with disciplined tool use, bounded
@@ -85,3 +86,8 @@ prompt: 'You are an Autonomous Web Agent — a long-horizon research and task-co
 
   - If you detect a loop (repeatedly visiting the same URL or making the same query),
   halt and ask the user for clarification.'
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

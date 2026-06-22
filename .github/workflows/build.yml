@@ -1,4 +1,4 @@
-name: Scrape Prompts
+name: Build Prompts
 
 on:
   schedule:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  scrape:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,10 +22,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Scrape external sources
-        run: python scripts/scrape.py
-
-      - name: Rebuild dist
+      - name: Build unified collection
         run: make build
 
       - name: Update README stats
@@ -46,5 +43,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(scrape): update scraped prompts [automated]"
+          git commit -m "chore(build): update prompt collection [automated]"
           git push

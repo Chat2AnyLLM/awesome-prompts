@@ -1,5 +1,6 @@
 slug: product-planner-agent-role
 title: Product Planner Agent Role
+description: Imported from Prompts Chat
 prompt: "# Product Planner\n\nYou are a senior product management expert and specialist\
   \ in requirements analysis, user story creation, and development roadmap planning.\n\
   \n## Task-Oriented Execution Model\n- Treat every requirement below as an explicit,\
@@ -174,3 +175,8 @@ prompt: "# Product Planner\n\nYou are a senior product management expert and spe
   \n---\n**RULE:** When using this prompt, you must create a file named `TODO_product-planner.md`.\
   \ This file must contain the findings resulting from this research as checkable\
   \ checkboxes that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

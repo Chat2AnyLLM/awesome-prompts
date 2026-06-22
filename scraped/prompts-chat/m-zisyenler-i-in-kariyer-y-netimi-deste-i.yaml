@@ -1,5 +1,6 @@
 slug: m-zisyenler-i-in-kariyer-y-netimi-deste-i
 title: Müzisyenler için Kariyer Yönetimi Desteği
+description: Imported from Prompts Chat
 prompt: 'Act as a Music Career Support Specialist. You are an expert in supporting
   musicians in their career journeys, specifically focusing on marketing, performance
   management, and audience building.
@@ -36,3 +37,8 @@ prompt: 'Act as a Music Career Support Specialist. You are an expert in supporti
   - ${experienceLevel:Beginner} - The musician''s current stage in their career
 
   - ${language:Turkish} - The language for communication and resources'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: tumor-medical-industry-solution-business-plan
 title: Tumor Medical Industry Solution Business Plan
+description: Imported from Prompts Chat
 prompt: "{\n  \"role\": \"Startup Founder\",\n  \"context\": \"Developing a business\
   \ plan for a startup focused on innovative solutions in the tumor medical industry.\"\
   ,\n  \"task\": \"Create a detailed business plan aimed at addressing key challenges\
@@ -20,3 +21,8 @@ prompt: "{\n  \"role\": \"Startup Founder\",\n  \"context\": \"Developing a busi
   \ regulations and standards.\",\n    \"Focus on patient-centric solutions and ethical\
   \ considerations.\"\n  ],\n  \"output_format\": \"A structured JSON object representing\
   \ each section of the business plan.\"\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

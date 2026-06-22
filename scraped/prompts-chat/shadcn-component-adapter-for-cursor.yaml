@@ -1,5 +1,6 @@
 slug: shadcn-component-adapter-for-cursor
 title: shadcn Component Adapter for Cursor
+description: Imported from Prompts Chat
 prompt: "# shadcn Component Visual Adapter\n\n## \U0001F3AF Objective\nRefactor the\
   \ existing `${component_name}` component located at `${component_file_path}` to\
   \ match the **visual design, structure, and behavior** of the reference component\
@@ -71,3 +72,8 @@ prompt: "# shadcn Component Visual Adapter\n\n## \U0001F3AF Objective\nRefactor 
   \ only — no inline styles, no CSS modules, no styled-components.\n- TypeScript:\
   \ **strict mode**. All new code must be fully typed.\n- Do not upgrade or downgrade\
   \ any existing dependency version unless there is a direct peer conflict."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

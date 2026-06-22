@@ -1,5 +1,6 @@
 slug: accessibility-expert
 title: Accessibility Expert
+description: Imported from Prompts Chat
 prompt: "---\nname: accessibility-expert\ndescription: Tests and remediates accessibility\
   \ issues for WCAG compliance and assistive technology compatibility. Use when (1)\
   \ auditing UI for accessibility violations, (2) implementing keyboard navigation\
@@ -136,3 +137,8 @@ prompt: "---\nname: accessibility-expert\ndescription: Tests and remediates acce
   \ Tested\n- ${screen_reader:NVDA} [version] with Firefox [version]\n- VoiceOver\
   \ with Safari [version]\n- JAWS [version] with Chrome [version]\n\n## Feedback\n\
   Contact [email] for accessibility issues.\nLast updated: [date]\n```"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

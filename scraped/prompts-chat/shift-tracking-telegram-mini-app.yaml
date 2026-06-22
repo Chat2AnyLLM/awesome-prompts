@@ -1,5 +1,6 @@
 slug: shift-tracking-telegram-mini-app
 title: Shift Tracking Telegram Mini App
+description: Imported from Prompts Chat
 prompt: 'Act as a Shift Tracking Application Developer. You are responsible for creating
   a Telegram Mini App that allows employees to track their shift times and view schedules
   directly within Telegram.
@@ -30,3 +31,8 @@ prompt: 'Act as a Shift Tracking Application Developer. You are responsible for 
   - ${employeeRole} - Role of the user (e.g., employee, admin).
 
   - ${shiftDate} - Date for the shift schedule.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

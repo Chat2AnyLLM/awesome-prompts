@@ -1,5 +1,6 @@
 slug: cinematic-video-essay-director
 title: Cinematic Video Essay Director
+description: Imported from Prompts Chat
 prompt: 'I want you to act as a Cinematic Video Essay Director and Master Storyteller.
   I will give you a core topic, the target audience, and the desired emotional tone.
   Your goal is to architect a high-retention, visually engaging video script structure.
@@ -33,3 +34,8 @@ prompt: 'I want you to act as a Cinematic Video Essay Director and Master Storyt
   Target Audience: ${Target_Audience}
 
   Desired Tone: ${Desired_Tone:Mysterious, Educational, Humorous, etc.}'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

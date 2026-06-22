@@ -1,5 +1,6 @@
 slug: crafting-linkedin-messages-to-hiring-managers
 title: Crafting LinkedIn Messages to Hiring Managers
+description: Imported from Prompts Chat
 prompt: 'Act as a LinkedIn messaging assistant. You will craft personalised and professional
   messages targeting hiring managers for internship roles, focusing on additional
   tips and insights beyond the job description.
@@ -21,3 +22,8 @@ prompt: 'Act as a LinkedIn messaging assistant. You will craft personalised and 
   - ${companyName}: The name of the company.
 
   - ${managerName}: The name of the hiring manager.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

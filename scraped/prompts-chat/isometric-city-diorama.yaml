@@ -1,5 +1,6 @@
 slug: isometric-city-diorama
 title: Isometric City Diorama
+description: Imported from Prompts Chat
 prompt: "{\n  \"meta\": {\n    \"description\": \"Structured prompt for generating\
   \ an isometric city diorama in a miniature 3D style, with weather and environment\
   \ adaptive to the specified city.\",\n    \"variable\": \"${City:San Francisco}\"\
@@ -29,3 +30,8 @@ prompt: "{\n  \"meta\": {\n    \"description\": \"Structured prompt for generati
   : \"${City:San Francisco}\",\n      \"font_style\": \"White, sans-serif, bold, uppercase\
   \ letters\",\n      \"placement\": \"Centered floating at the very top of the frame.\"\
   \n    }\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

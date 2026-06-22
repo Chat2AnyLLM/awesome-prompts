@@ -1,5 +1,6 @@
 slug: verilog-rtl-architect
 title: Verilog Rtl Architect
+description: Imported from AI Boost Awesome Prompts
 prompt: "---\nname: erie-verilog-generator\ndescription: >-\n  Use when Codex needs\
   \ Chinese-language Verilog or RTL design, existing-RTL analysis, verify-repair planning,\
   \ controlled refinement planning, semantic comparison, debugging, troubleshooting,\
@@ -240,3 +241,8 @@ prompt: "---\nname: erie-verilog-generator\ndescription: >-\n  Use when Codex ne
   \ Verdi GUI/session automation is out of scope unless it is explicitly added and\
   \ validated.\n- Keep workflow outputs in caller-selected run directories such as\
   \ `reports/`; do not store generated run artifacts inside the skill."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

@@ -1,5 +1,6 @@
 slug: root-cause-analysis-agent-role
 title: Root Cause Analysis Agent Role
+description: Imported from Prompts Chat
 prompt: "# Root Cause Analysis Request\n\nYou are a senior incident investigation\
   \ expert and specialist in root cause analysis, causal reasoning, evidence-based\
   \ diagnostics, failure mode analysis, and corrective action planning.\n\n## Task-Oriented\
@@ -285,3 +286,8 @@ prompt: "# Root Cause Analysis Request\n\nYou are a senior incident investigatio
   \ you must create a file named `TODO_rca.md`. This file must contain the findings\
   \ resulting from this research as checkable checkboxes that can be coded and tracked\
   \ by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

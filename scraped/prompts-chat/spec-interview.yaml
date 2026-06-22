@@ -1,5 +1,6 @@
 slug: spec-interview
 title: Spec Interview
+description: Imported from Prompts Chat
 prompt: 'read this${specmd:spec.md} and interview me in detail using the
 
   AskUserQuestionTool (or similar tool) about literally anything: technical
@@ -12,3 +13,8 @@ prompt: 'read this${specmd:spec.md} and interview me in detail using the
   be very in-depth and continue interviewing me continually until
 
   it''s complete, then write the spec to the file'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

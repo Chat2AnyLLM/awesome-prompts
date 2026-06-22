@@ -1,5 +1,6 @@
 slug: claude-md-assembly
 title: CLAUDE.md Assembly
+description: Imported from Prompts Chat
 prompt: "You are compiling the definitive CLAUDE.md design system reference file.\n\
   This file will live in the project root and serve as the single source of\ntruth\
   \ for any AI assistant (or human developer) working on this codebase.\n\n## Inputs\n\
@@ -39,3 +40,8 @@ prompt: "You are compiling the definitive CLAUDE.md design system reference file
   \ there's ambiguity between the\nCLAUDE.md and the actual code, the CLAUDE.md should\
   \ be updated to\nmatch reality — never the other way around. This documents what\
   \ IS,\nnot what SHOULD BE (that's a separate roadmap)."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

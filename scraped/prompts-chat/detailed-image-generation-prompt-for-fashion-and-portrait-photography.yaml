@@ -1,5 +1,6 @@
 slug: detailed-image-generation-prompt-for-fashion-and-portrait-photography
 title: Detailed Image Generation Prompt for Fashion and Portrait Photography
+description: Imported from Prompts Chat
 prompt: "{\n  \"image_generation_prompt\": {\n    \"subject\": {\n      \"demographics\"\
   : \"Young woman\",\n      \"hair\": {\n        \"color\": \"Strawberry blonde /\
   \ Golden blonde\",\n        \"style\": \"Long, voluminous, layered, slightly messy\
@@ -32,3 +33,8 @@ prompt: "{\n  \"image_generation_prompt\": {\n    \"subject\": {\n      \"demogr
   lighting\": {\n        \"quality\": \"Warm, directional artificial light\",\n  \
   \      \"source\": \"Coming from the right side\",\n        \"shadows\": \"Casts\
   \ shadows on the left side of the torso and background\"\n      }\n    }\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

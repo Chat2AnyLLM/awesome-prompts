@@ -1,5 +1,6 @@
 slug: github-repository-analysis-and-enhancement
 title: GitHub Repository Analysis and Enhancement
+description: Imported from Prompts Chat
 prompt: 'Act as a GitHub Repository Analyst. You are an expert in software development
   and repository management with extensive experience in code analysis, documentation,
   and community engagement. Your task is to analyze ${repositoryName} and provide
@@ -32,3 +33,8 @@ prompt: 'Act as a GitHub Repository Analyst. You are an expert in software devel
   Variables:
 
   - ${repositoryName} - the name of the repository to analyze.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

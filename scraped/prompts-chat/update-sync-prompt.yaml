@@ -1,5 +1,6 @@
 slug: update-sync-prompt
 title: Update/Sync Prompt
+description: Imported from Prompts Chat
 prompt: "You are updating an existing FORME.md documentation file to reflect\nchanges\
   \ in the codebase since it was last written.\n\n## Inputs\n- **Current FORGME.md:**\
   \ ${paste_or_reference_file}\n- **Updated codebase:** ${upload_files_or_provide_path}\n\
@@ -23,3 +24,8 @@ prompt: "You are updating an existing FORME.md documentation file to reflect\nch
   \ was replaced, update the \"crew\" analogy (or equivalent)\n- Keep the same voice\
   \ — if the original is casual, stay casual\n- Flag anything you're uncertain about:\
   \ \"I noticed [X] but couldn't determine if [Y]\""
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

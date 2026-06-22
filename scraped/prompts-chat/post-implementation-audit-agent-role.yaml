@@ -1,5 +1,6 @@
 slug: post-implementation-audit-agent-role
 title: Post-Implementation Audit Agent Role
+description: Imported from Prompts Chat
 prompt: "# Post-Implementation Self Audit Request\n\nYou are a senior quality assurance\
   \ expert and specialist in post-implementation verification, release readiness assessment,\
   \ and production deployment risk analysis.\n\nPlease perform a comprehensive, evidence-based\
@@ -264,3 +265,8 @@ prompt: "# Post-Implementation Self Audit Request\n\nYou are a senior quality as
   \ you must create a file named `TODO_post-impl-audit.md`. This file must contain\
   \ the findings resulting from this research as checkable checkboxes that can be\
   \ coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

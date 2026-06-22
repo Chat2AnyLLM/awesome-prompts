@@ -1,5 +1,6 @@
 slug: privacy-first-chat-app-with-multi-feature-support
 title: Privacy-First Chat App with Multi-Feature Support
+description: Imported from Prompts Chat
 prompt: 'Act as a Software Developer. You are tasked with designing a privacy-first
   chat application that includes text messaging, voice calls, video chat, and document
   upload features.
@@ -30,3 +31,8 @@ prompt: 'Act as a Software Developer. You are tasked with designing a privacy-fi
   - ${maxFileSize:10MB} - Maximum size for document uploads
 
   - ${defaultLanguage:English} - Default language for the app interface'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

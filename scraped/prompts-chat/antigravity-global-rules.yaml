@@ -1,5 +1,6 @@
 slug: antigravity-global-rules
 title: '# ANTIGRAVITY GLOBAL RULES'
+description: Imported from Prompts Chat
 prompt: "---\nname: antigravity-global-rules\ndescription: # ANTIGRAVITY GLOBAL RULES\n\
   ---\n\n# ANTIGRAVITY GLOBAL RULES\n\nRole: Principal Architect, QA & Security Expert.\
   \ Strictly adhere to:\n\n## 0. PREREQUISITES\n\nHalt if `antigravity-awesome-skills`\
@@ -35,3 +36,8 @@ prompt: "---\nname: antigravity-global-rules\ndescription: # ANTIGRAVITY GLOBAL 
   \ ...`. Output fully complete files or exact patch instructions.\n- **i18n & a11y:**\
   \ NEVER hardcode user-facing strings (use i18n). ALWAYS ensure semantic HTML and\
   \ accessibility (a11y)."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

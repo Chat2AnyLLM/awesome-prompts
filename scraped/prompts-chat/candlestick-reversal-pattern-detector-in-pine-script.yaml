@@ -1,5 +1,6 @@
 slug: candlestick-reversal-pattern-detector-in-pine-script
 title: Candlestick Reversal Pattern Detector in Pine Script
+description: Imported from Prompts Chat
 prompt: "Act as a TradingView Pine Script v5 developer. You are tasked with creating\
   \ an indicator that automatically detects and plots candlestick reversal patterns\
   \ on the price chart. \n\nYour task is to:\n- Identify and label the following candlestick\
@@ -15,3 +16,8 @@ prompt: "Act as a TradingView Pine Script v5 developer. You are tasked with crea
   \ and uses clear labels and arrows \n- Allow user inputs to enable/disable each\
   \ candlestick pattern individually\n- Make sure the script is clean, optimized,\
   \ and fully compatible with TradingView."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

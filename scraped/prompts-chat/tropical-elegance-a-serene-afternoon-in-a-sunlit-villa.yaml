@@ -1,5 +1,6 @@
 slug: tropical-elegance-a-serene-afternoon-in-a-sunlit-villa
 title: 'Tropical Elegance: A Serene Afternoon in a Sunlit Villa'
+description: Imported from Prompts Chat
 prompt: "{\n  \"image_analysis\": {\n    \"meta\": {\n      \"file_name\": \"image_ef3de2.jpg\"\
   ,\n      \"file_type\": \"uploaded file\",\n      \"analyst_persona\": \"Technical\
   \ Photo Analyst\"\n    },\n    \"scene_environment\": {\n      \"location_type\"\
@@ -103,3 +104,8 @@ prompt: "{\n  \"image_analysis\": {\n    \"meta\": {\n      \"file_name\": \"ima
   \    \"watermark\",\n      \"text overlay (except book title)\",\n      \"cartoon\"\
   ,\n      \"illustration\",\n      \"CGI\",\n      \"unnatural skin tone\"\n    ]\n\
   \  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

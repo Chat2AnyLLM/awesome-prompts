@@ -1,5 +1,6 @@
 slug: web-application-testing-skill-imported
 title: Web Application Testing Skill (Imported)
+description: Imported from Prompts Chat
 prompt: "---\nname: web-application-testing-skill\ndescription: A toolkit for interacting\
   \ with and testing local web applications using Playwright.\n---\n\n# Web Application\
   \ Testing\n\nThis skill enables comprehensive testing and debugging of local web\
@@ -41,3 +42,8 @@ prompt: "---\nname: web-application-testing-skill\ndescription: A toolkit for in
   \ environment\n- Cannot test native mobile apps (use React Native Testing Library\
   \ instead)\n- May have issues with complex authentication flows\n- Some modern frameworks\
   \ may require specific configuration"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

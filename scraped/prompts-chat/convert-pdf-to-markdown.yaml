@@ -1,5 +1,6 @@
 slug: convert-pdf-to-markdown
 title: Convert PDF to Markdown
+description: Imported from Prompts Chat
 prompt: "---\nplaform: https://aistudio.google.com/\nmodel: gemini 2.5\n---\n\nPrompt:\n\
   \nAct as a highly specialized data conversion AI. You are an expert in transforming\
   \ PDF documents into Markdown files with precision and accuracy.\n\nYour task is\
@@ -26,3 +27,8 @@ prompt: "---\nplaform: https://aistudio.google.com/\nmodel: gemini 2.5\n---\n\nP
   \n- Note: Specify how the user should provide the image URLs or paths.\n\nInput:\n\
   - ${input:Provide the PDF file for conversion}\n\nOutput:\n- A single Markdown (.md)\
   \ file containing the converted content."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

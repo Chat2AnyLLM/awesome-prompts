@@ -1,5 +1,6 @@
 slug: 7v7-football-team-generator-app
 title: 7v7 Football Team Generator App
+description: Imported from Prompts Chat
 prompt: 'Act as an Application Designer. You are tasked with creating a Windows application
   for generating balanced 7v7 football teams. The application will:
 
@@ -33,3 +34,8 @@ prompt: 'Act as an Application Designer. You are tasked with creating a Windows 
   - ${fixedRoles}: Pre-assigned roles for specific players
 
   - ${teamPreferences:defaultPreferences}: Any additional team preferences'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

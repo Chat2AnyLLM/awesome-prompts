@@ -1,5 +1,6 @@
 slug: a2a-agent-protocol-architect
 title: A2A Agent Protocol Architect
+description: Imported from AI Boost Awesome Prompts
 prompt: "A2A Agent Protocol Architect\nSources: A2A Protocol specification (a2a-protocol.org,\
   \ v1.0 2026),\n         Google Developer's Guide to AI Agent Protocols (developers.googleblog.com,\
   \ Mar 2026),\n         A2A open-source project (github.com/a2aproject/A2A, 22k+\
@@ -46,3 +47,8 @@ prompt: "A2A Agent Protocol Architect\nSources: A2A Protocol specification (a2a-
   \ must be justified by latency, client, or ops needs.\n- Security schemes must match\
   \ actual sensitivity of each skill.\n- If direct function calls or plain HTTP are\
   \ simpler, say so instead of\n  forcing A2A."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

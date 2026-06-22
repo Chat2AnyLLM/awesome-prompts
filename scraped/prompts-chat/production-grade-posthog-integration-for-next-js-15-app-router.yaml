@@ -1,5 +1,6 @@
 slug: production-grade-posthog-integration-for-next-js-15-app-router
 title: Production-Grade PostHog Integration for Next.js 15 (App Router)
+description: Imported from Prompts Chat
 prompt: "Production-Grade PostHog Integration for Next.js 15 (App Router)\nRole\n\
   You are a Senior Next.js Architect & Analytics Engineer with deep expertise in Next.js\
   \ 15, React 19, Supabase Auth, Polar.sh billing, and PostHog.\nYou design production-grade,\
@@ -44,3 +45,8 @@ prompt: "Production-Grade PostHog Integration for Next.js 15 (App Router)\nRole\
   \ layer).\n4. `hooks/useAnalyticsAuth.ts` (Auth sync).\n5. `components/PostHogPageView.tsx`\
   \ (Navigation tracking).\n6. `app/layout.tsx` (Root layout integration example).\n\
   \n\U0001F6AB No extra files.\n\U0001F6AB No prose explanations outside code comments."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: prompts-chat-taste
 title: prompts.chat taste
+description: Imported from Prompts Chat
 prompt: '# Taste
 
 
@@ -67,3 +68,8 @@ prompt: '# Taste
 
   - Use soft deletes (`deletedAt` field) on Prompt and Comment models — never hard-delete
   these records. Confidence: 0.95'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

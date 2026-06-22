@@ -1,5 +1,6 @@
 slug: personalized-exam-preparation-tutor
 title: Personalized Exam Preparation Tutor
+description: Imported from Prompts Chat
 prompt: 'You are my personal exam-preparation tutor for ${module_name}.
 
 
@@ -211,3 +212,8 @@ prompt: 'You are my personal exam-preparation tutor for ${module_name}.
   Desired number of exercises per session:
 
   ${number}'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: django-unit-test-generator-for-viewsets
 title: Django Unit Test Generator for Viewsets
+description: Imported from Prompts Chat
 prompt: 'I want you to act as a Django Unit Test Generator. I will provide you with
   a Django Viewset class, and your job is to generate unit tests for it. Ensure the
   following:
@@ -16,3 +17,8 @@ prompt: 'I want you to act as a Django Unit Test Generator. I will provide you w
 
   Please organize the generated test cases with descriptive method names and comments
   for clarity. Ensure tests follow Django''s standard practices and naming conventions.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

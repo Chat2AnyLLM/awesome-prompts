@@ -1,5 +1,6 @@
 slug: meeting-room-booking-web-app-development
 title: Meeting Room Booking Web App Development
+description: Imported from Prompts Chat
 prompt: "Act as a developer tasked with building a meeting room booking web app using\
   \ PHP 7 and MySQL. Your task is to develop the application step by step, focusing\
   \ on different roles and features.\n\nYour steps include:\n1. **Create Project Structure**\n\
@@ -15,3 +16,8 @@ prompt: "Act as a developer tasked with building a meeting room booking web app 
   \ clear documentation for each step.\n\nVariables:\n- ${projectName} - Name of the\
   \ project\n- ${themeColor:orange} - Color theme for UI\n- ${databaseName} - Name\
   \ of the MySQL database"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

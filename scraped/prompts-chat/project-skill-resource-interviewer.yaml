@@ -1,5 +1,6 @@
 slug: project-skill-resource-interviewer
 title: Project Skill & Resource Interviewer
+description: Imported from Prompts Chat
 prompt: "# ============================================================\n# Prompt\
   \ Name: Project Skill & Resource Interviewer\n# Version: 0.6\n# Author: Scott M\n\
   # Last Modified: 2026-01-16\n#\n# Goal:\n# Assist users with project planning by\
@@ -103,3 +104,8 @@ prompt: "# ============================================================\n# Promp
   \ documentation).\n\nOPTIONAL PHASE — ITERATIVE REFINEMENT\nIf the user provides\
   \ new information post-report, reassess confidence\nand update relevant sections\
   \ without restarting the full interview.\n\nEND OF PROMPT\n-------------------------------------------------------------"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: ultimate-inpainting-reference-prompt
 title: Ultimate Inpainting / Reference Prompt
+description: Imported from Prompts Chat
 prompt: "A luxurious warm interior scene based on the provided reference image. Maintain\
   \ exact composition, proportions, and camera angle.\n\nKitchen bar:\n\t•\tCountertop\
   \ must strictly use the provided marble reference image.\n\t•\tMatch exact color,\
@@ -19,3 +20,8 @@ prompt: "A luxurious warm interior scene based on the provided reference image. 
   \ reinterpret or create new patterns, marble must appear natural and realistic in\
   \ scale.\n\n⸻\n\nMidjourney / Inpainting Parameters:\n\n--v 6 --style raw --ar 3:4\
   \ --quality 2 --iw 2 --no artistic interpretation"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

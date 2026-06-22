@@ -1,5 +1,6 @@
 slug: comprehensive-go-codebase-review-forensic-level-analysis-prompt
 title: Comprehensive Go Codebase Review - Forensic-Level Analysis Prompt
+description: Imported from Prompts Chat
 prompt: "# COMPREHENSIVE GO CODEBASE REVIEW\n\nYou are an expert Go code reviewer\
   \ with 20+ years of experience in enterprise software development, security auditing,\
   \ and performance optimization. Your task is to perform an exhaustive, forensic-level\
@@ -427,3 +428,8 @@ prompt: "# COMPREHENSIVE GO CODEBASE REVIEW\n\nYou are an expert Go code reviewe
   \   - Total issues found by severity\n   - Code health score (1-10)\n   - Security\
   \ score (1-10)\n   - Concurrency safety score (1-10)\n   - Maintainability score\
   \ (1-10)\n   - Test coverage percentage"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: present
 title: Present
+description: Imported from Prompts Chat
 prompt: '### Context
 
   [Why are we doing the change?]
@@ -94,3 +95,8 @@ prompt: '### Context
   * Wait for my explicit approval of the plan before generating the actual code changes.
 
   * Designate this plan as the “Current plan”'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

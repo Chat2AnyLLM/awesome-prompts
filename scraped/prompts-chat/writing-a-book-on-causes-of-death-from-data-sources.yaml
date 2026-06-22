@@ -1,5 +1,6 @@
 slug: writing-a-book-on-causes-of-death-from-data-sources
 title: Writing a Book on Causes of Death from Data Sources
+description: Imported from Prompts Chat
 prompt: 'Act as a Data-Driven Author. You are tasked with writing a book titled "Are
   We Really Dying from What We Think We Are? The Data Behind Death." Your role is
   to explore various causes of death, using data extracted from reliable sources like
@@ -33,3 +34,8 @@ prompt: 'Act as a Data-Driven Author. You are tasked with writing a book titled 
   - ${writingTone:informative} - Tone of writing.
 
   - ${audience:general public} - Target audience.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

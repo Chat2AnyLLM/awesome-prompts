@@ -1,5 +1,6 @@
 slug: remove-current-vnet
 title: remove current vnet
+description: Imported from Prompts Chat
 prompt: 'I have used netgen vnet to deploy that is managed by internal cental team
   which is geeting deployed by other team for us and managed by them from diffrenct
   resource group (pc-managed). It hits a road blocker and now we are going to fall
@@ -20,3 +21,8 @@ prompt: 'I have used netgen vnet to deploy that is managed by internal cental te
 
   also list down all the resources which are using the vnet. so that its easier to
   track'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

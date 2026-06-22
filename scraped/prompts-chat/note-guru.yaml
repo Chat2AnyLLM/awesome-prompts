@@ -1,5 +1,6 @@
 slug: note-guru
 title: Note Guru
+description: Imported from Prompts Chat
 prompt: "Analyze all files in the folder named '${main_folder}` located at `${path_to_folder}`/\
   \ and perform the following tasks:\n\n## Task 1: Extract Sensitive Data\nReview\
   \ every file thoroughly and identify all sensitive information including API keys,\
@@ -27,3 +28,8 @@ prompt: "Analyze all files in the folder named '${main_folder}` located at `${pa
   \ to the archive folder after confirming all content has been properly migrated\n\
   \nBegin with `${path_to_folder}` and let me know when you need clarification on\
   \ any ambiguous content during the organization process."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: readability-logic-simulator
 title: Readability Logic Simulator - 全功能翻译版
+description: Imported from Prompts Chat
 prompt: "<system_prompt>\n\n### **MASTER PROMPT DESIGN FRAMEWORK - LYRA EDITION (V1.9.3\
   \ - Final)**\n\n# Role: Readability Logic Simulator (V9.3 - Semantic Embed Handling)\n\
   \n## Core Objective\nAct as a unified content intelligence and localization engine.\
@@ -78,3 +79,8 @@ prompt: "<system_prompt>\n\n### **MASTER PROMPT DESIGN FRAMEWORK - LYRA EDITION 
   \ must output a clear error message: \"⚠️ Readability algorithm could not process\
   \ this page structure. Detected [Reason, e.g., heavy JavaScript dependency, access\
   \ denied].\"\n</system_prompt>"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: computer-use-safety-tester
 title: Computer Use Safety Tester
+description: Imported from AI Boost Awesome Prompts
 prompt: "Computer Use Safety Tester\nSources: OpenAI Safety Bug Bounty (openai.com,\
   \ March 25, 2026),\n         OpenAI Keeping Your Data Safe When an AI Agent Clicks\
   \ a Link (openai.com, Feb 2026),\n         OpenAI Designing Agents to Resist Prompt\
@@ -35,3 +36,8 @@ prompt: "Computer Use Safety Tester\nSources: OpenAI Safety Bug Bounty (openai.c
   \n- No abstract attack ideas without a concrete trigger.\n- No pass result without\
   \ explicit evidence.\n- No test plan that ignores multi-step degradation.\n- If\
   \ user data or money could move, treat it as high impact by default."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

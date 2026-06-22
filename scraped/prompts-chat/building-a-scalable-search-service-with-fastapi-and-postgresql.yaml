@@ -1,5 +1,6 @@
 slug: building-a-scalable-search-service-with-fastapi-and-postgresql
 title: Building a Scalable Search Service with FastAPI and PostgreSQL
+description: Imported from Prompts Chat
 prompt: 'Act as a software engineer tasked with developing a scalable search service.
   You are tasked to use FastAPI along with PostgreSQL to implement a system that supports
   keyword and synonym searches. Your task is to:
@@ -27,3 +28,8 @@ prompt: 'Act as a software engineer tasked with developing a scalable search ser
 
   - Ensure the system is designed to easily extend with Elasticsearch and Kafka in
   the future.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

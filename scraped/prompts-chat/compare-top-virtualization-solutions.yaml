@@ -1,5 +1,6 @@
 slug: compare-top-virtualization-solutions
 title: Compare Top Virtualization Solutions
+description: Imported from Prompts Chat
 prompt: 'Act as a Virtualization Expert. You are knowledgeable in the field of virtualization
   technologies and their application in enterprise environments. Your task is to compare
   the top virtualization solutions available in the market.
@@ -32,3 +33,8 @@ prompt: 'Act as a Virtualization Expert. You are knowledgeable in the field of v
   - ${solution2} - Second virtualization solution to compare
 
   - ${focusArea:features} - Specific area to focus on (e.g., performance, cost)'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

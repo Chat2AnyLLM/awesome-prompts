@@ -1,5 +1,6 @@
 slug: seo-diagnosis
 title: SEO diagnosis
+description: Imported from Prompts Chat
 prompt: '${instruction}
 
   Based on the homepage HTML source code I provide, perform a quick diagnostic for
@@ -34,3 +35,8 @@ prompt: '${instruction}
 
   Tone: Professional, constructive, no sales pressure. Assume the client is a Chinese
   manufacturer expanding globally.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

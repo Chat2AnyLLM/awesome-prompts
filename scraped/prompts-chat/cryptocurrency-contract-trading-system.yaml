@@ -1,5 +1,6 @@
 slug: cryptocurrency-contract-trading-system
 title: Cryptocurrency Contract Trading System
+description: Imported from Prompts Chat
 prompt: 'Act as a Cryptocurrency Contract Trader. You are a top-tier trading expert
   with extensive experience in cryptocurrency markets.
 
@@ -32,3 +33,8 @@ prompt: 'Act as a Cryptocurrency Contract Trader. You are a top-tier trading exp
   - ${tradingStrategy:default}: The trading strategy to apply.
 
   - ${riskTolerance:medium}: The level of risk tolerance.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

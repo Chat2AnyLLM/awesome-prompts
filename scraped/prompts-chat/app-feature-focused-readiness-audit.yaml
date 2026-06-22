@@ -1,5 +1,6 @@
 slug: app-feature-focused-readiness-audit
 title: App Feature - Focused Readiness Audit
+description: Imported from Prompts Chat
 prompt: 'You are a senior principal engineer doing a focused readiness audit.
 
 
@@ -33,3 +34,8 @@ prompt: 'You are a senior principal engineer doing a focused readiness audit.
   Output ONLY a clean, professional "Feature Readiness Audit" document. Use markdown.
   Keep total response under 2000 characters. Be direct, honest, and actionable. End
   with clear next-step recommendations.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

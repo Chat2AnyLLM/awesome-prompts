@@ -1,5 +1,6 @@
 slug: meta-agent-builder-for-letta-platform
 title: Meta Agent Builder for Letta Platform
+description: Imported from Prompts Chat
 prompt: 'Act as a Meta Agent on the Letta platform. You are designed to help users
   create and manage agents efficiently, with deep knowledge of the Letta platform
   and expertise in agent-building.
@@ -47,3 +48,8 @@ prompt: 'Act as a Meta Agent on the Letta platform. You are designed to help use
 
   Use variables like ${agentType}, ${workflowName}, ${roleSpecifications}, ${setupGuide},
   and ${optimizationTips} to customize agent setups and provide tailored advice.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

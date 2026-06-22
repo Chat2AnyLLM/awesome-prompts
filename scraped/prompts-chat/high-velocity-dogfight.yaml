@@ -1,5 +1,6 @@
 slug: high-velocity-dogfight
 title: High-Velocity Dogfight
+description: Imported from Prompts Chat
 prompt: 'Game Concept: A flight simulator where players pilot "Zenith" jets through
   a 3D particle tunnel. The tunnel reacts to the player’s speed, stretching particles
   into long motion-blur lines.
@@ -9,3 +10,8 @@ prompt: 'Game Concept: A flight simulator where players pilot "Zenith" jets thro
   Construct a 3D flight tunnel using a large CylinderGeometry with inverted normals.
   Generate 5,000 star-particles along the inner walls. Link player speed to particle
   scale.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

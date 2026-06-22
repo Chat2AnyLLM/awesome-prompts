@@ -1,5 +1,6 @@
 slug: make-flowers-bloom-in-an-image
 title: Make Flowers Bloom in an Image
+description: Imported from Prompts Chat
 prompt: 'Act as an expert image editor. Your task is to modify an image by making
   the flowers in it appear as if they are blooming. You will:
 
@@ -28,3 +29,8 @@ prompt: 'Act as an expert image editor. Your task is to modify an image by makin
   - ${bloomIntensity:medium} - The intensity of the blooming effect
 
   - ${colorEnhancement:high} - Level of color enhancement to apply'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

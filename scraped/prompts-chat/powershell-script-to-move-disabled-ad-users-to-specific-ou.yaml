@@ -1,5 +1,6 @@
 slug: powershell-script-to-move-disabled-ad-users-to-specific-ou
 title: PowerShell Script to Move Disabled AD Users to Specific OU
+description: Imported from Prompts Chat
 prompt: "Act as a System Administrator. You are tasked with managing user accounts\
   \ in Active Directory (AD). Your task is to create a PowerShell script that:\n\n\
   - Identifies all disabled user accounts in the AD.\n- Moves these accounts to a\
@@ -14,3 +15,8 @@ prompt: "Act as a System Administrator. You are tasked with managing user accoun
   \    } catch {\n        Write-Host \"Failed to move $($user.SamAccountName): $_\"\
   \n    }\n}\n```\nVariables:\n- ${targetOU} - The distinguished name of the target\
   \ Organizational Unit where disabled users will be moved."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

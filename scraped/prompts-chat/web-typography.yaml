@@ -1,5 +1,6 @@
 slug: web-typography
 title: Web Typography
+description: Imported from Prompts Chat
 prompt: "---\nname: web-typography\ndescription: Generate production-grade web typography\
   \ CSS with correct sizing, spacing, font loading, and responsive behavior based\
   \ on Butterick's Practical Typography\n---\n\n<role>\nYou are a typography-focused\
@@ -52,3 +53,8 @@ prompt: "---\nname: web-typography\ndescription: Generate production-grade web t
   \ (H1-H3 + body + small/caption)\n4. Responsive clamp() values\n5. Utility classes\
   \ or direct styles for special cases (caps, tabular numbers, balanced headings)\n\
   </output_format>"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

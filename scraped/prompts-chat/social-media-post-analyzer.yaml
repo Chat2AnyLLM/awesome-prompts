@@ -1,5 +1,6 @@
 slug: social-media-post-analyzer
 title: Social Media Post Analyzer
+description: Imported from Prompts Chat
 prompt: "---\nname: social-media-post-analyzer\ndescription: A skill to analyze social\
   \ media posts from Threads or Twitter/X URLs, extract key information, verify facts,\
   \ and generate content-ready material.\n---\n\n# Social Media Post Analyzer\n\n\
@@ -25,3 +26,8 @@ prompt: "---\nname: social-media-post-analyzer\ndescription: A skill to analyze 
   \ data analyst, investigative writer, and content strategist.\n\n## Constraints\n\
   - Ensure all information is verified and well-supported.\n- Provide clear citations\
   \ and references for all data and claims."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

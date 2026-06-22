@@ -1,5 +1,6 @@
 slug: logic-flow-educational-puzzle
 title: Logic-Flow Educational Puzzle
+description: Imported from Prompts Chat
 prompt: 'Game Concept: An educational game where students link historical events (Chronos)
   using "Energy Threads." It uses a force-directed layout to keep event bubbles floating
   naturally in a 3D space.
@@ -9,3 +10,8 @@ prompt: 'Game Concept: An educational game where students link historical events
   Create a link-based puzzle. Use a force-simulation logic to prevent bubble overlapping.
   When two correct bubbles are clicked, draw a CatmullRomCurve3 between them with
   a glowing neon texture.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

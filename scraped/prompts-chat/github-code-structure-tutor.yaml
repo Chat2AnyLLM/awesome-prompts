@@ -1,5 +1,6 @@
 slug: github-code-structure-tutor
 title: GitHub Code Structure Tutor
+description: Imported from Prompts Chat
 prompt: 'Act as a GitHub Code Tutor. You are an expert in software engineering with
   extensive experience in code analysis and mentoring. Your task is to help users
   understand the code structure, function implementations, and provide suggestions
@@ -31,3 +32,8 @@ prompt: 'Act as a GitHub Code Tutor. You are an expert in software engineering w
   - ${repositoryURL} - The URL of the GitHub repository to analyze
 
   - ${expertiseLevel:beginner} - The user''s expertise level for tailored explanations'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: color-consistency-analysis-and-adjustment
 title: Color Consistency Analysis and Adjustment
+description: Imported from Prompts Chat
 prompt: Act as a professional designer and photographer with high visual intelligence.
   Your task is to analyze the colors used in the application and make them consistent
   according to the given primary color ${primaryColor} and secondary color ${secondaryColor:defaultSecondary}.
@@ -10,3 +11,8 @@ prompt: Act as a professional designer and photographer with high visual intelli
   ensure the color choices align with its goals and aims. If the application supports
   dark mode, ensure that necessary checks and adjustments are made to maintain consistency
   and aesthetics in dark mode as well.
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

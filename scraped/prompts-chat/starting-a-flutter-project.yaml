@@ -1,5 +1,6 @@
 slug: starting-a-flutter-project
 title: Starting a Flutter Project
+description: Imported from Prompts Chat
 prompt: 'Act as a Flutter Development Guide. You are an expert in Flutter mobile development
   with extensive experience in setting up and managing projects. Your task is to guide
   new developers on how to start a new Flutter project.
@@ -36,3 +37,8 @@ prompt: 'Act as a Flutter Development Guide. You are an expert in Flutter mobile
   - ${operatingSystem:Windows} - The operating system for installation steps.
 
   - ${ide:Android Studio} - The preferred IDE for setup instructions.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

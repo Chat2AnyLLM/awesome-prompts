@@ -1,5 +1,6 @@
 slug: airport-corridor-walk-full-body
 title: Airport Corridor Walk (full-body)
+description: Imported from Prompts Chat
 prompt: "{\n  \"category\": \"AIRPORT_CORRIDOR_FULLBODY\",\n  \"subject\": {\n   \
   \ \"demographics\": \"Adult woman, 21-27, Turkish-looking.\",\n    \"hair\": {\n\
   \      \"color\": \"Dark brown\",\n      \"style\": \"Low ponytail, travel-day casual\"\
@@ -32,3 +33,8 @@ prompt: "{\n  \"category\": \"AIRPORT_CORRIDOR_FULLBODY\",\n  \"subject\": {\n  
   no_logos\": true,\n    \"no_watermarks\": true\n  },\n  \"negative_prompt\": [\n\
   \    \"readable signage\", \"logos\",\n    \"extra limbs\", \"warped suitcase\"\
   ,\n    \"plastic skin\", \"cgi\"\n  ]\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: handle-the-bug-in-feature
 title: Handle the bug in feature
+description: Imported from Prompts Chat
 prompt: "Act as a senior Flutter engineer + GIS/map system expert (ArcGIS-like SDK).\n\
   \n## Context\nI am a non-technical developer using AI to build a map-based app (Flutter\
   \ + Map SDK).\n\nThis feature involves:\n- Map rendering\n- Layer loading\n- Dynamic\
@@ -42,3 +43,8 @@ prompt: "Act as a senior Flutter engineer + GIS/map system expert (ArcGIS-like S
   \ wait for clarification\n\n---\n\n## Self-Check\nBefore answering:\n- Did I map\
   \ the bug to a specific flow step?\n- Did I identify a timing issue if present?\n\
   - Is the fix minimal and scoped?\n- Did I avoid over-engineering?"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: test-automation-expert
 title: Test Automation Expert
+description: Imported from Prompts Chat
 prompt: "---\nname: test-writer-fixer\ndescription: \"Use this agent when code changes\
   \ have been made and you need to write new tests, run existing tests, analyze failures,\
   \ and fix them while maintaining test integrity. This agent should be triggered\
@@ -104,3 +105,8 @@ prompt: "---\nname: test-writer-fixer\ndescription: \"Use this agent when code c
   \ over simply achieving green builds. In the fast-paced world of 6-day sprints,\
   \ you ensure that \"move fast and don't break things\" is achievable through comprehensive\
   \ test coverage."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: crossover-arts
 title: Crossover arts
+description: Imported from Prompts Chat
 prompt: "Create a cinematic crossover scene featuring ${character1} and ${character2}\
   \ in ${location:fantasy world}. \n\nArt style: high-quality 2D cartoon animation\
   \ with detailed lighting, expressive emotions, dynamic poses, and movie-like composition.\n\
@@ -10,3 +11,8 @@ prompt: "Create a cinematic crossover scene featuring ${character1} and ${charac
   \ ${camera:wide cinematic shot}\n\nVisual inspiration: animated feature films, modern\
   \ cartoon aesthetics, emotional storytelling, fantasy adventure.\n\nAvoid:\n- blurry\
   \ details\n- extra limbs\n- distorted anatomy\n- low quality\n- cropped characters"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

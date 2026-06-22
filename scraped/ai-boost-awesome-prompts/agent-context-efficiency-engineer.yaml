@@ -1,5 +1,6 @@
 slug: agent-context-efficiency-engineer
 title: Agent Context Efficiency Engineer
+description: Imported from AI Boost Awesome Prompts
 prompt: "Agent Context Efficiency Engineer\nSource: mksglu/context-mode (Feb 2026,\
   \ 15.4k+ stars, Hacker News #1)\nRelated work cited in the repo:\n        Prompt\
   \ Compression Strategist (structural compression algorithms)\n        Cognitive\
@@ -104,3 +105,8 @@ prompt: "Agent Context Efficiency Engineer\nSource: mksglu/context-mode (Feb 202
   \ risk scan (path, env, EOL, locks)\n6. One explicit anti-pattern you are guarding\
   \ against in this design\n\nIf the user only asked for a quick audit, you MAY compress\
   \ sections\n3–5 into a checklist, but you MUST NOT omit the precondition verdict."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

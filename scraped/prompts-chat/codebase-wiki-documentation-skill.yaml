@@ -1,5 +1,6 @@
 slug: codebase-wiki-documentation-skill
 title: Codebase WIKI Documentation Skill
+description: Imported from Prompts Chat
 prompt: '---
 
   name: codebase-wiki-documentation-skill
@@ -73,3 +74,8 @@ prompt: '---
 
   - Focus on `src/` or `lib/` for large codebases and prioritize entry points like
   `main.py`, `index.ts`, `App.tsx`.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

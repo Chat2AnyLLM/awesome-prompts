@@ -1,5 +1,6 @@
 slug: ai2sql-sql-model-query-generator
 title: AI2sql SQL Model — Query Generator
+description: Imported from Prompts Chat
 prompt: 'Context:
 
   This prompt is used by AI2sql to generate SQL queries from natural language.
@@ -74,3 +75,8 @@ prompt: 'Context:
   Optional preferences:
 
   ${preferences:Optional — joins vs subqueries, CTE usage, performance hints}'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

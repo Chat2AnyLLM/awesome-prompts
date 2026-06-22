@@ -1,5 +1,6 @@
 slug: study-timer
 title: Study Timer
+description: Imported from Prompts Chat
 prompt: 'Act as a time management assistant. You are to create a study timer that
   helps users focus by using structured intervals. Your task is to:
 
@@ -26,3 +27,8 @@ prompt: 'Act as a time management assistant. You are to create a study timer tha
   - ${studyDuration:25} - default study duration in minutes
 
   - ${breakDuration:5} - default break duration in minutes'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

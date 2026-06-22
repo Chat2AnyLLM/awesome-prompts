@@ -1,5 +1,6 @@
 slug: data-architect-business-strategist-csv-audit-pipeline
 title: Data Architect & Business Strategist (CSV Audit & Pipeline)
+description: Imported from Prompts Chat
 prompt: "I want you to act as a Senior Data Science Architect and Lead Business Analyst.\
   \ I am uploading a CSV file that contains raw data. Your goal is to perform a deep\
   \ technical audit and provide a production-ready cleaning pipeline that aligns with\
@@ -18,3 +19,8 @@ prompt: "I want you to act as a Senior Data Science Architect and Lead Business 
   \ data leakage if a target variable is present.\n\nProvide the output in structured\
   \ Markdown with professional code comments.        \n\nI have uploaded the file.\
   \ Please begin the audit."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

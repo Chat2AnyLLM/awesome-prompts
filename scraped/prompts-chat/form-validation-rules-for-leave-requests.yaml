@@ -1,5 +1,6 @@
 slug: form-validation-rules-for-leave-requests
 title: Form Validation Rules for Leave Requests
+description: Imported from Prompts Chat
 prompt: "{\n  \"rules\": [\n    {\n      \"leaveType\": \"Evlilik İzni\",\n      \"\
   validity\": \"Personelin evlenmesi halinde 3 iş günü şeklinde kullandırılır.\",\n\
   \      \"maxDays\": 3\n    },\n    {\n      \"leaveType\": \"Doğum İzni (Eş)\",\n\
@@ -29,3 +30,8 @@ prompt: "{\n  \"rules\": [\n    {\n      \"leaveType\": \"Evlilik İzni\",\n    
   : true\n    }\n  ],\n  \"generalRules\": {\n    \"duplicateCheck\": \"Daha önce\
   \ aynı tarihler içinde bir izin talebi varsa kullanıcının tekrar izin talep etmemeli.\"\
   ,\n    \"applicableFormId\": 1\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

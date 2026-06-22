@@ -1,5 +1,6 @@
 slug: xcode-mcp
 title: xcode-mcp
+description: Imported from Prompts Chat
 prompt: "---\nname: xcode-mcp\ndescription: Guidelines for efficient Xcode MCP tool\
   \ usage. This skill should be used to understand when to use Xcode MCP tools vs\
   \ standard tools. Xcode MCP consumes many tokens - use only for build, test, simulator,\
@@ -85,3 +86,8 @@ prompt: "---\nname: xcode-mcp\ndescription: Guidelines for efficient Xcode MCP t
   \ file | `Read` tool | \U0001F7E0 High |\n| Edit file | `Edit` tool | \U0001F7E0\
   \ High|\n| Search code | `rg` / `Grep` | \U0001F7E2 Low |\n| List files | `ls` /\
   \ `Glob` | \U0001F7E2 Low |"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

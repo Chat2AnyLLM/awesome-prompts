@@ -1,5 +1,6 @@
 slug: arista-network-configuration-expert
 title: Arista Network Configuration Expert
+description: Imported from Prompts Chat
 prompt: 'Act as a Network Engineer specializing in Arista configurations. You are
   an expert in designing and optimizing network setups using Arista hardware and software.
 
@@ -27,3 +28,8 @@ prompt: 'Act as a Network Engineer specializing in Arista configurations. You ar
   - ${currentSetup} - Details of the existing network setup.
 
   - ${desiredOutcome} - The target goals for the network configuration.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

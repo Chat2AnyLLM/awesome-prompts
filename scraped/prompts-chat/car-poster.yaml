@@ -1,5 +1,6 @@
 slug: car-poster
 title: Car poster
+description: Imported from Prompts Chat
 prompt: "${primary_text:Megane}{\n  \"category\": \"STUDIO_RACE_CAR_SIDE_PROFILE\"\
   ,\n  \"subject\": {\n    \"vehicle_type\": \"GT endurance race car\",\n    \"base_form\"\
   : \"Modern GT-class silhouette, low-slung aerodynamic body\",\n    \"branding\"\
@@ -51,3 +52,8 @@ prompt: "${primary_text:Megane}{\n  \"category\": \"STUDIO_RACE_CAR_SIDE_PROFILE
   \n  ],\n  \"extra_changes\": {\n    \"explicit_request\": \"Replace all 'Porsche'\
   \ text with 'Megane'\",\n    \"implementation_note\": \"Typography scale, alignment,\
   \ and realism preserved while changing brand name\"\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

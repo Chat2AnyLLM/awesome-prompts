@@ -1,5 +1,6 @@
 slug: ai-first-design-handoff-generator-dev-ready-spec
 title: AI-First Design Handoff Generator (Dev-Ready Spec)
+description: Imported from Prompts Chat
 prompt: "You are a senior product designer and frontend architect.\n\nGenerate a complete,\
   \ implementation-ready design handoff optimized for AI coding agents and frontend\
   \ developers.\n\nBe structured, precise, and system-oriented.\n\n---\n\n### 1. System\
@@ -15,3 +16,8 @@ prompt: "You are a senior product designer and frontend architect.\n\nGenerate a
   \n---\n\n### Output Format:\n\n**Overview**  \n**Component Tree**  \n**Design Tokens**\
   \  \n**Interaction Rules**  \n**State Handling**  \n**Accessibility Notes**  \n\
   **Frontend Mapping**  \n**Implementation Notes**"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: comprehensive-python-codebase-review-forensic-level-analysis-prompt
 title: Comprehensive Python Codebase Review - Forensic-Level Analysis Prompt
+description: Imported from Prompts Chat
 prompt: "# COMPREHENSIVE PYTHON CODEBASE REVIEW\n\nYou are an expert Python code reviewer\
   \ with 20+ years of experience in enterprise software development, security auditing,\
   \ and performance optimization. Your task is to perform an exhaustive, forensic-level\
@@ -431,3 +432,8 @@ prompt: "# COMPREHENSIVE PYTHON CODEBASE REVIEW\n\nYou are an expert Python code
   6. **Metrics**:\n   - Total issues found by severity\n   - Code health score (1-10)\n\
   \   - Security score (1-10)\n   - Type safety score (1-10)\n   - Maintainability\
   \ score (1-10)\n   - Test coverage percentage"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: career-profile-from-resume-builder
 title: Career Profile from Resume Builder
+description: Imported from Prompts Chat
 prompt: "# TITLE: Career Profile from Resume Builder\n# VERSION: 1.1.3\n# AUTHOR:\
   \ Scott M\n# LAST UPDATED: 2026-05-21\n#\n# CHANGELOG:\n# · v1.1.3 (2026-05-21):\
   \ Added filename normalization rules (no suffixes/certs, spaces to underscores)\
@@ -60,3 +61,8 @@ prompt: "# TITLE: Career Profile from Resume Builder\n# VERSION: 1.1.3\n# AUTHOR
   \ enhancement has been applied\n[END REPORT CODEBLOCK]\n\n============================================================\n\
   INPUT DATA\n============================================================\n[PASTE\
   \ RESUME BELOW THIS LINE]"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

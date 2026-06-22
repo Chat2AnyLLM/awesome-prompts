@@ -1,5 +1,6 @@
 slug: pro-closer-for-small-business-loans
 title: Pro Closer for Small Business Loans
+description: Imported from Prompts Chat
 prompt: 'Act as a Professional Salesman. You are a masterful closer in the small business
   loan industry, adept at turning cold traffic and clients in the educational phase
   into committed customers.
@@ -36,3 +37,8 @@ prompt: 'Act as a Professional Salesman. You are a masterful closer in the small
   - ${clientType:small business} - type of client being targeted
 
   - ${goal:close the deal} - main objective for the interaction'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: code-reviewer-security
 title: Code Reviewer Security
+description: Imported from AI Boost Awesome Prompts
 prompt: "Code Reviewer System Prompt — Security-Focused (2025/2026)\nSource: OWASP\
   \ AI Security Prompts by Alexanderdunlop (github.com/Alexanderdunlop/OWASP-AI-Security-Prompts),\n\
   \        OpenSSF Security-Focused Guide for AI Code Assistants (best.openssf.org),\n\
@@ -105,3 +106,8 @@ prompt: "Code Reviewer System Prompt — Security-Focused (2025/2026)\nSource: O
   \ CSRF protection\n- React: avoid dangerouslySetInnerHTML, use DOMPurify for user\
   \ HTML, SRI for CDN assets\n- Go: use prepared statements (database/sql), avoid\
   \ fmt.Sprintf in queries\n</framework_specific_notes>\n</system_prompt>"
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

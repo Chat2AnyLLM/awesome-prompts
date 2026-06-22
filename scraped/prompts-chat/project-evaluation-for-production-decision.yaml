@@ -1,5 +1,6 @@
 slug: project-evaluation-for-production-decision
 title: Project Evaluation for Production Decision
+description: Imported from Prompts Chat
 prompt: "---\nname: project-evaluation-for-production-decision\ndescription: A skill\
   \ for evaluating projects to determine if they are ready for production, considering\
   \ technical, formal, and practical aspects.\n---\n\n# Project Evaluation for Production\
@@ -16,3 +17,8 @@ prompt: "---\nname: project-evaluation-for-production-decision\ndescription: A s
   \ aspect.\n- Offer a final recommendation: Go or No-Go for production.\n\nVariables:\n\
   - ${projectName} - The name of the project being evaluated.\n- ${evaluationDate}\
   \ - The date of the evaluation."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

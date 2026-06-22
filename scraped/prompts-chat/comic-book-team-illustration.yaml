@@ -1,5 +1,6 @@
 slug: comic-book-team-illustration
 title: Comic Book Team Illustration
+description: Imported from Prompts Chat
 prompt: "{\n  \"colors\": {\n    \"color_temperature\": \"neutral\",\n    \"contrast_level\"\
   : \"medium\",\n    \"dominant_palette\": [\n      \"blue\",\n      \"red\",\n  \
   \    \"pale yellow\",\n      \"black\",\n      \"blonde\"\n    ]\n  },\n  \"composition\"\
@@ -41,3 +42,8 @@ prompt: "{\n  \"colors\": {\n    \"color_temperature\": \"neutral\",\n    \"cont
   \ design\",\n    \"group portrait\",\n    \"flat colors\"\n  ],\n  \"use_case\"\
   : \"Training data for comic book art style recognition or character illustration\
   \ generation.\",\n  \"uuid\": \"1dac4e3f-b9dd-45de-9710-c4d685931446\"\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

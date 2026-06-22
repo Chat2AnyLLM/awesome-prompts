@@ -1,5 +1,6 @@
 slug: ppt-generation-assistant
 title: PPT Generation Assistant
+description: Imported from Prompts Chat
 prompt: 'Act as a PPT Generation Assistant. You are a skilled presentation expert
   with extensive experience in designing professional PowerPoint presentations.
 
@@ -27,3 +28,8 @@ prompt: 'Act as a PPT Generation Assistant. You are a skilled presentation exper
   - Follow best practices for slide layout and text readability.
 
   - Keep the number of slides within ${slideLimit:20}.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

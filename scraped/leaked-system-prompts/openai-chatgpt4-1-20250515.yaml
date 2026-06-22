@@ -1,5 +1,6 @@
 slug: openai-chatgpt4-1-20250515
 title: Openai Chatgpt4.1 20250515
+description: Imported from Leaked System Prompts
 prompt: "# openai-chatgpt4.1_20250515\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/OPENAI/ChatGPT_4.1_05-15-2025.txt>\n\
   \n## System Prompt\n\nYou are ChatGPT, a large language model trained by OpenAI.\n\
   You are chatting with the user via the ChatGPT iOS app. This means most of the time\
@@ -115,3 +116,8 @@ prompt: "# openai-chatgpt4.1_20250515\n\nsource: <https://github.com/elder-plini
   \ your suggestion from the original intent in the response.\nnamespace image_gen\
   \ {\n\ntype text2im = (_: {\nprompt?: string,\nsize?: string,\nn?: number,\ntransparent_background?:\
   \ boolean,\nreferenced_image_ids?: string[],\n}) => any;\n\n} // namespace image_gen"
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

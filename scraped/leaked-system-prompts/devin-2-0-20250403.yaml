@@ -1,5 +1,6 @@
 slug: devin-2-0-20250403
 title: Devin 2.0 20250403
+description: Imported from Leaked System Prompts
 prompt: "# devin-2.0_20250403\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/DEVIN/Devin_2.0.md>\n\
   source: <https://github.com/elder-plinius/CL4R1T4S/blob/main/DEVIN/Devin_2.0_Commands.md>\n\
   \n> Note: the date in this filename is the date the prompt was committed to the\
@@ -450,3 +451,8 @@ prompt: "# devin-2.0_20250403\n\nsource: <https://github.com/elder-plinius/CL4R1
   \ another action in the same response first. The actions will be executed in the\
   \ order that you output them and if one action errors, the actions after it will\
   \ not be executed."
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

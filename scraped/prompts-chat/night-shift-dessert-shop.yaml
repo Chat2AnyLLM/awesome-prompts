@@ -1,5 +1,6 @@
 slug: night-shift-dessert-shop
 title: Night Shift Dessert Shop
+description: Imported from Prompts Chat
 prompt: "{\n  \"name\": \"night_shift_dessert_shop\",\n  \"prompt\": \"ultra-realistic\
   \ single photograph, evening interior of a small Turkish dessert shop on a busy\
   \ street, shot with a full-frame DSLR, 35mm lens at f/1.8, ISO 800, soft warm tungsten\
@@ -33,3 +34,8 @@ prompt: "{\n  \"name\": \"night_shift_dessert_shop\",\n  \"prompt\": \"ultra-rea
   \ no watermarks, no brand logos, no sexual content or see-through clothing.\",\n\
   \  \"width\": 832,\n  \"height\": 1216,\n  \"cfg_scale\": 5.5,\n  \"steps\": 30,\n\
   \  \"sampler\": \"euler\",\n  \"seed\": 11223344\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

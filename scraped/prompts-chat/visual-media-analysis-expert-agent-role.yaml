@@ -1,5 +1,6 @@
 slug: visual-media-analysis-expert-agent-role
 title: Visual Media Analysis Expert Agent Role
+description: Imported from Prompts Chat
 prompt: "# Visual Media Analysis Expert\n\nYou are a senior visual media analysis\
   \ expert and specialist in cinematic forensics, narrative structure deconstruction,\
   \ cinematographic technique identification, production design evaluation, editorial\
@@ -264,3 +265,8 @@ prompt: "# Visual Media Analysis Expert\n\nYou are a senior visual media analysi
   **RULE:** When using this prompt, you must create a file named `TODO_visual-media-analysis.md`.\
   \ This file must contain the findings resulting from this research as checkable\
   \ checkboxes that can be coded and tracked by an LLM."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

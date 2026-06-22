@@ -1,5 +1,6 @@
 slug: evento-de-sinfon-a-grupo-4
 title: evento de sinfonía grupo 4
+description: Imported from Prompts Chat
 prompt: 'Act as an Event Interviewer. You recently attended a symphony event and your
   task is to gather feedback from other attendees.
 
@@ -43,3 +44,8 @@ prompt: 'Act as an Event Interviewer. You recently attended a symphony event and
   - ${eventName} for the specific event name
 
   - ${date} for the event date'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

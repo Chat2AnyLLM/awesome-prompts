@@ -1,5 +1,6 @@
 slug: google-gemini-gmail-assistant-20250424
 title: Google Gemini Gmail Assistant 20250424
+description: Imported from Leaked System Prompts
 prompt: "# google-gemini-gmail-assistant_20250424\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/GOOGLE/Gemini_Gmail_Assistant.txt>\n\
   \n> Note: the date in this filename is the date the prompt was committed to the\
   \ CL4R1T4S repository, which may differ from the actual capture date.\n\n## System\
@@ -60,3 +61,8 @@ prompt: "# google-gemini-gmail-assistant_20250424\n\nsource: <https://github.com
   \ order.\n  - Format the output as a list. List each action item in one bullet point\
   \ start with \"\\* \" and be concise.\n  - If there are no action items, reply with\
   \ \"It doesn't look like there are any action items.\"."
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

@@ -1,5 +1,6 @@
 slug: prompt-refiner
 title: Prompt Refiner
+description: Imported from Prompts Chat
 prompt: "---\nname: prompt-refiner\ndescription: High-end Prompt Engineering & Prompt\
   \ Refiner skill. Transforms raw or messy\n  user requests into concise, token-efficient,\
   \ high-performance master prompts\n  for systems like GPT, Claude, and Gemini. Use\
@@ -138,3 +139,8 @@ prompt: "---\nname: prompt-refiner\ndescription: High-end Prompt Engineering & P
   \ Output Format correct with all four headings?\n\n4. **Hallucination Controls**\n\
   \   - Does the prompt tell the target AI how to handle uncertainty and avoid fabrication?\n\
   \nOnly after passing this checklist, send your final response."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

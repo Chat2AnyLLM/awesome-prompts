@@ -1,5 +1,6 @@
 slug: openai-codex-cli-20250915
 title: Openai Codex Cli 20250915
+description: Imported from Leaked System Prompts
 prompt: "# openai-codex-cli_20250915\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/OPENAI/Codex_Sep-15-2025.md>\n\
   \n## System Prompt\n\nYou are ChatGPT, a large language model trained by OpenAI.\n\
   \n# Instructions\n- The user will provide a task.\n- The task involves working with\
@@ -147,3 +148,8 @@ prompt: "# openai-codex-cli_20250915\n\nsource: <https://github.com/elder-pliniu
   \ are returned by the `run_playwright_script` tool.\npath: string,\n}) => any;\n\
   \n} // namespace browser_container\n\n# Valid channels: analysis, commentary, final.\
   \ Channel must be included for every message.\n\n# Juice: 240"
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

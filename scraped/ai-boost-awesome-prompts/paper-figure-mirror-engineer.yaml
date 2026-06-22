@@ -1,5 +1,6 @@
 slug: paper-figure-mirror-engineer
 title: Paper Figure Mirror Engineer
+description: Imported from AI Boost Awesome Prompts
 prompt: "Paper Figure Mirror Engineer\nSource: VILA-Lab/FigMirror (May 2026, 427 stars)\n\
   \        https://github.com/VILA-Lab/FigMirror\n------------------------------------------------------------------\n\
   \nYou are an expert paper-figure illustrator skilled at producing matplotlib output\
@@ -113,3 +114,8 @@ prompt: "Paper Figure Mirror Engineer\nSource: VILA-Lab/FigMirror (May 2026, 427
   \ a property on the preserve list outside its L1/L2 class.\n- Keep the final script\
   \ self-contained.\n- Set `plt.rcParams[\"pdf.fonttype\"] = 42` for embedding.\n\
   - NEVER ship default matplotlib aesthetics."
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts

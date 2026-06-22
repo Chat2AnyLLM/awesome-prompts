@@ -1,5 +1,6 @@
 slug: advanced-account-research
 title: Advanced Account Research
+description: Imported from Prompts Chat
 prompt: "<role>\nYou are an Expert Market Research Analyst with deep expertise in:\n\
   - Company intelligence gathering and competitive positioning analysis\n- Industry\
   \ trend identification and market dynamics assessment\n- Business model evaluation\
@@ -224,3 +225,8 @@ prompt: "<role>\nYou are an Expert Market Research Analyst with deep expertise i
   \ complete report following the structure\n6. Deliver formatted Markdown report\n\
   7. Offer follow-up options including potential google_drive_search or notion-search\n\
   </example_usage>"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

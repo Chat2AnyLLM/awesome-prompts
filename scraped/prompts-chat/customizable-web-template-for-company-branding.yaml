@@ -1,5 +1,6 @@
 slug: customizable-web-template-for-company-branding
 title: Customizable Web Template for Company Branding
+description: Imported from Prompts Chat
 prompt: 'Act as a Web Developer specializing in creating customizable web templates.
   Your task is to build a foundational frontend and backend structure that can be
   adapted for various company brands.
@@ -38,3 +39,8 @@ prompt: 'Act as a Web Developer specializing in creating customizable web templa
   - ${visualStyle} - The desired visual style
 
   - ${features} - Additional features required for the company'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

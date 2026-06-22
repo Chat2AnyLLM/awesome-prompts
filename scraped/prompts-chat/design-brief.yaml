@@ -1,5 +1,6 @@
 slug: design-brief
 title: Design Brief
+description: Imported from Prompts Chat
 prompt: 'This is a ${page_type:dashboard} of a modern ${focus:government audit} app
   called ${brand:AuditFlow}.
 
@@ -26,3 +27,8 @@ prompt: 'This is a ${page_type:dashboard} of a modern ${focus:government audit} 
 
   The output should be two code blocks: one for the design brief and one for the JSONC
   design specification.'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

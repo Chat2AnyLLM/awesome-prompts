@@ -1,5 +1,6 @@
 slug: astro-js
 title: Astro.js
+description: Imported from Prompts Chat
 prompt: "# Astro v6 Architecture Rules (Strict Mode)\n\n## 1. Core Philosophy\n\n\
   - Follow Astro’s “HTML-first / zero JavaScript by default” principle:\n  - Everything\
   \ is static HTML unless interactivity is explicitly required.\n  - JavaScript is\
@@ -60,3 +61,8 @@ prompt: "# Astro v6 Architecture Rules (Strict Mode)\n\n## 1. Core Philosophy\n\
   \  - React-first system\n\n- Astro IS:\n  - Static-first renderer\n  - Partial hydration\
   \ system\n  - Performance-first architecture\n\n- Think:\n  ❌ “Build an app”\n \
   \ ✅ “Ship HTML + sprinkle JS”"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

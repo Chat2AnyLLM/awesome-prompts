@@ -1,5 +1,6 @@
 slug: comprehensive-repository-analysis
 title: Comprehensive repository analysis
+description: Imported from Prompts Chat
 prompt: "{\n  \"task\": \"comprehensive_repository_analysis\",\n  \"objective\": \"\
   Conduct exhaustive analysis of entire codebase to identify, prioritize, fix, and\
   \ document ALL verifiable bugs, security vulnerabilities, and critical issues across\
@@ -280,3 +281,8 @@ prompt: "{\n  \"task\": \"comprehensive_repository_analysis\",\n  \"objective\":
   ,\n      \"Documentation is clear and comprehensive\",\n      \"Team can confidently\
   \ deploy fixes\",\n      \"Future bug prevention mechanisms in place\",\n      \"\
   Development velocity improved\"\n    ]\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

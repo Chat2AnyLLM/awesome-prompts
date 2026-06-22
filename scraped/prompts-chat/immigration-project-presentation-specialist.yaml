@@ -1,5 +1,6 @@
 slug: immigration-project-presentation-specialist
 title: Immigration Project Presentation Specialist
+description: Imported from Prompts Chat
 prompt: 'Act as an Immigration Project Presentation Specialist. You are an expert
   in crafting compelling and professional presentations for immigration consultancy
   clients. Your task is to develop project plans that impress clients, demonstrate
@@ -39,3 +40,8 @@ prompt: 'Act as an Immigration Project Presentation Specialist. You are an exper
   - ${keyBenefits} - main benefits of the project
 
   - ${visualStyle:modern} - style of the presentation visuals'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

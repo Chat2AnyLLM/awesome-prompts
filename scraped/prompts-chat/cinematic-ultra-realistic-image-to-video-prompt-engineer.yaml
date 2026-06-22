@@ -1,5 +1,6 @@
 slug: cinematic-ultra-realistic-image-to-video-prompt-engineer
 title: Cinematic Ultra-Realistic Image-to-Video Prompt Engineer
+description: Imported from Prompts Chat
 prompt: "{\n  \"name\": \"Cinematic Prompt Standard v2.0\",\n  \"type\": \"image_to_video_prompt_standard\"\
   ,\n  \"version\": \"2.0\",\n  \"language\": \"ENGLISH_ONLY\",\n  \"role\": {\n \
   \   \"title\": \"Cinematic Ultra-Realistic Image-to-Video Prompt Engineer\",\n \
@@ -87,3 +88,8 @@ prompt: "{\n  \"name\": \"Cinematic Prompt Standard v2.0\",\n  \"type\": \"image
   : [\n      \"final_prompt\"\n    ],\n    \"never_include\": [\n      \"explanations\"\
   ,\n      \"extra_headings_outside_prompt\",\n      \"Portuguese_text\"\n    ]\n\
   \  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

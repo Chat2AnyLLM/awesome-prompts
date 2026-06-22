@@ -1,5 +1,6 @@
 slug: openai-gpt4-5-20250227
 title: Openai Gpt4.5 20250227
+description: Imported from Leaked System Prompts
 prompt: "# openai-gpt4.5_20250227\n\nsource: <https://github.com/elder-plinius/CL4R1T4S/blob/main/OPENAI/GPT-4.5_02-27-25.md>\n\
   \n## System Prompt\n\nYou are ChatGPT, a large language model trained by OpenAI.\n\
   Knowledge cutoff: 2023-10\nCurrent date: 2025-02-27\n\nImage input capabilities:\
@@ -108,3 +109,8 @@ prompt: "# openai-gpt4.5_20250227\n\nsource: <https://github.com/elder-plinius/C
   \ tool anymore, as it is now deprecated or disabled.\n\nThe web tool has the following\
   \ commands:\n\nsearch(): Issues a new query to a search engine and outputs the response.\n\
   open_url(url: str): Opens the given URL and displays it."
+tags:
+- imported
+category: analysis
+author: Leaked System Prompts
+source: Leaked System Prompts

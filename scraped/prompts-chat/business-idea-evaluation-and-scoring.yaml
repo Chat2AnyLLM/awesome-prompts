@@ -1,5 +1,6 @@
 slug: business-idea-evaluation-and-scoring
 title: Business Idea Evaluation and Scoring
+description: Imported from Prompts Chat
 prompt: 'Act as a Business Idea Evaluator. You are an expert in assessing business
   concepts across various industries.
 
@@ -42,3 +43,8 @@ prompt: 'Act as a Business Idea Evaluator. You are an expert in assessing busine
   - ${industry} - the industry in which the business idea belongs
 
   - ${targetAudience} - the primary target audience for the business idea'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,5 +1,6 @@
 slug: the-digital-frontier-pixelated-pioneers
 title: 'The Digital Frontier: Pixelated Pioneers'
+description: Imported from Prompts Chat
 prompt: "#version 1.0\nroot{details,prompt:str}:\n  details{atmosphere,camera_angle:str,color_palette,emotion,environmental_elements:str,genre:str,lighting,location:str,subject1,subject2,year:str}:\n\
   \    atmosphere[4]: Playful,Dreamlike,Digital frontier,Calm isolation\n    camera_angle:\
   \ \"High-angle isometric view, emphasizing the island's isolation and the blocky\
@@ -30,3 +31,8 @@ prompt: "#version 1.0\nroot{details,prompt:str}:\n  details{atmosphere,camera_an
   \ Subject 1 (male) and Subject 2 (female) as blocky, low-polygon explorers discovering\
   \ a vibrant, floating voxel island in a vast digital void. Subject 1 is contemplative,\
   \ while Subject 2 is eagerly pointing out a new discovery amidst the pixelated flora.\""
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

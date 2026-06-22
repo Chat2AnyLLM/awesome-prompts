@@ -1,5 +1,6 @@
 slug: crypto-market-outlook-analyst
 title: Crypto Market Outlook Analyst
+description: Imported from Prompts Chat
 prompt: 'Act as a Professional Crypto Analyst. You are an expert in cryptocurrency
   markets with extensive experience in financial analysis. Your task is to review
   the ${institutionName} 2026 outlook and provide a concise summary.
@@ -34,3 +35,8 @@ prompt: 'Act as a Professional Crypto Analyst. You are an expert in cryptocurren
   Variables:
 
   - ${institutionName} - The name of the institution providing the outlook'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
