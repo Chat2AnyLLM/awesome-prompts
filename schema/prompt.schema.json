@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/zhujian0805/awesome-prompts/schema/prompt.schema.json",
+  "title": "Prompt",
+  "description": "Schema for a single curated prompt",
+  "type": "object",
+  "required": ["slug", "title", "description", "prompt", "tags", "category", "author"],
+  "additionalProperties": false,
+  "properties": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "URL-safe identifier, must match the filename"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300
+    },
+    "prompt": {
+      "type": "string",
+      "minLength": 10
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "developer-tools",
+        "writing",
+        "education",
+        "creative",
+        "business",
+        "language",
+        "lifestyle",
+        "analysis"
+      ]
+    },
+    "author": {
+      "type": "string",
+      "minLength": 1
+    },
+    "variables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "default": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}
