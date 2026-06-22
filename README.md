@@ -124,13 +124,13 @@ make all           # Run everything
 |--------|-------|
 | Direct prompts (in `prompts/`) | 3 |
 | Configured sources | 3 |
-| Scraped prompts (total) | 2332 |
+| Scraped prompts (total) | 2336 |
 
 ### Configured Sources
 
 | Source | URL | Format | Scraped |
 |--------|-----|--------|---------|
-| Prompts Chat | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 1873 |
+| Prompts Chat | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 1877 |
 | Leaked System Prompts | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
 | AI Boost Awesome Prompts | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 296 |
 
@@ -215,7 +215,7 @@ make all           # Run everything
 </details>
 
 <details>
-<summary><strong>Prompts Chat</strong> (1873 prompts)</summary>
+<summary><strong>Prompts Chat</strong> (1877 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -249,7 +249,7 @@ make all           # Run everything
 | 28 | 6-Panel Storyboard Mastery | Act as a storyboard artist. You are skilled in creating pre… |
 | 29 | 7v7 Football Team Generator App | Act as an Application Designer. You are tasked with creatin… |
 | 30 | A blonde woman in a dreamy | A blonde woman in a dreamy, ethereal photographic scene wit… |
-| … | *+1843 more* | See `scraped/prompts-chat/` |
+| … | *+1847 more* | See `scraped/prompts-chat/` |
 
 </details>
 ## License
