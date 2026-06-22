@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
-"""Update README.md with current prompt stats and scraped source info."""
+"""Update README.md with current prompt stats and scraped prompt listing."""
 
 import json
 import re
 import sys
 from pathlib import Path
 
+import yaml
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 README_PATH = REPO_ROOT / "README.md"
 CONFIG_PATH = REPO_ROOT / "awesome_prompts.json"
 DIST_DIR = REPO_ROOT / "dist"
 SCRAPED_DIR = REPO_ROOT / "scraped"
+
+# Max prompts to show per source in the table
+MAX_PER_SOURCE = 30
 
 
 def slugify(text: str) -> str:
@@ -40,9 +45,16 @@ def load_config_sources() -> list[dict]:
         return json.load(f).get("sources", [])
 
 
+def abbreviate(text: str, max_len: int = 60) -> str:
+    """Truncate text and add ellipsis."""
+    text = text.replace("\n", " ").replace("|", "/").strip()
+    if len(text) > max_len:
+        return text[:max_len - 1] + "…"
+    return text
+
+
 def generate_stats_section() -> str:
-    """Generate the Stats section."""
-    # Count direct prompts
+    """Generate the Stats section with source tables."""
     prompts_json = DIST_DIR / "prompts.json"
     prompts_count = 0
     if prompts_json.exists():
@@ -77,6 +89,40 @@ def generate_stats_section() -> str:
             count = scraped.get(slug, 0)
             lines.append(f"| {name} | [{url}]({url}) | {fmt} | {count} |")
         lines.append("")
+
+    # Generate per-source prompt tables
+    if SCRAPED_DIR.exists():
+        lines.append("### Scraped Prompts")
+        lines.append("")
+        for source_dir in sorted(SCRAPED_DIR.iterdir()):
+            if not source_dir.is_dir():
+                continue
+            yaml_files = sorted(source_dir.glob("*.yaml"))
+            if not yaml_files:
+                continue
+
+            source_name = source_dir.name.replace("-", " ").title()
+            lines.append(f"<details>")
+            lines.append(f"<summary><strong>{source_name}</strong> ({len(yaml_files)} prompts)</summary>")
+            lines.append("")
+            lines.append("| # | Title | Preview |")
+            lines.append("|---|-------|---------|")
+
+            for i, yf in enumerate(yaml_files[:MAX_PER_SOURCE], 1):
+                try:
+                    data = yaml.safe_load(yf.read_text())
+                    title = abbreviate(data.get("title", yf.stem), 40)
+                    preview = abbreviate(data.get("prompt", ""), 60)
+                    lines.append(f"| {i} | {title} | {preview} |")
+                except Exception:
+                    continue
+
+            if len(yaml_files) > MAX_PER_SOURCE:
+                lines.append(f"| … | *+{len(yaml_files) - MAX_PER_SOURCE} more* | See `scraped/{source_dir.name}/` |")
+
+            lines.append("")
+            lines.append("</details>")
+            lines.append("")
 
     return "\n".join(lines)
 
