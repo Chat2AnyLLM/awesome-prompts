@@ -1,9 +1,0 @@
-slug: library-migration
-title: library migration
-prompt: "\U0001F534 1. Data Access & Connection Management\nThese are critical because\
-  \ they affect performance, scalability, and outages.\n\n\U0001F539 Redis\n❌ Jedis\
-  \ (older pattern, topology issues)\n\n✅ Lettuce (reactive, auto-reconnect)\n\n✅\
-  \ Valkey Glide (AWS recommended)\n\n\U0001F539 JDBC Connection Pool\n❌ Apache DBCP\n\
-  \n❌ C3P0\n\n✅ HikariCP (default in Spring Boot, fastest, stable)\n\n \n\n\U0001F539\
-  \ ORM / Persistence\n❌ Old Hibernate 4.x\n\n❌ MyBatis legacy configs\n\n✅ Hibernate\
-  \ 6+\n\n✅ Spring Data JPA latest"

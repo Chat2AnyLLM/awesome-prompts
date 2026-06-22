@@ -98,10 +98,14 @@ def scrape_csv(user: str, repo: str, branch: str, file_path: str) -> list[dict]:
     return prompts
 
 
-def scrape_md_files(user: str, repo: str, branch: str, file_path: str) -> list[dict]:
-    """Scrape prompts from markdown files in a GitHub repo."""
+def scrape_text_files(user: str, repo: str, branch: str, file_path: str, fmt: str = "md") -> list[dict]:
+    """Scrape prompts from text-based files (.md or .txt) in a GitHub repo."""
+    extensions = (".md", ".txt") if fmt == "txt" else (".md",)
+    if fmt == "txt":
+        extensions = (".txt",)
+
     # If file_path points to a specific file, fetch just that
-    if file_path and file_path.endswith(".md"):
+    if file_path and any(file_path.endswith(ext) for ext in extensions):
         encoded_path = quote(file_path, safe="/")
         raw_url = f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{encoded_path}"
         content = fetch_url(raw_url)
@@ -114,7 +118,7 @@ def scrape_md_files(user: str, repo: str, branch: str, file_path: str) -> list[d
             "prompt": content.strip(),
         }]
 
-    # Otherwise list directory and fetch .md files
+    # Otherwise list directory and fetch matching files
     dir_path = file_path or ""
     encoded_dir = quote(dir_path, safe="/")
     api_url = f"https://api.github.com/repos/{user}/{repo}/contents/{encoded_dir}"
@@ -130,18 +134,18 @@ def scrape_md_files(user: str, repo: str, branch: str, file_path: str) -> list[d
     if not isinstance(items, list):
         return []
 
-    skip_files = {"readme.md", "license.md", "contributing.md", "changelog.md", "code_of_conduct.md"}
-    md_files = [
+    skip_files = {"readme.md", "license.md", "contributing.md", "changelog.md", "code_of_conduct.md", "readme.txt"}
+    matching_files = [
         item for item in items
         if isinstance(item, dict)
-        and item.get("name", "").lower().endswith(".md")
+        and any(item.get("name", "").lower().endswith(ext) for ext in extensions)
         and item.get("name", "").lower() not in skip_files
     ]
 
     prompts = []
-    for md_file in md_files[:100]:  # Cap per source
+    for f in matching_files[:500]:  # Cap per source
         # Construct URL with proper encoding for special characters
-        file_name = md_file.get("path", md_file.get("name", ""))
+        file_name = f.get("path", f.get("name", ""))
         encoded_name = quote(file_name, safe="/")
         download_url = f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{encoded_name}"
 
@@ -149,7 +153,13 @@ def scrape_md_files(user: str, repo: str, branch: str, file_path: str) -> list[d
         if not file_content or len(file_content) < 20:
             continue
 
-        name = md_file["name"].replace(".md", "")
+        # Strip extension from name
+        name = f["name"]
+        for ext in extensions:
+            if name.endswith(ext):
+                name = name[:-len(ext)]
+                break
+
         prompts.append({
             "slug": slugify(name),
             "title": name.replace("-", " ").replace("_", " ").title(),
@@ -278,8 +288,8 @@ def scrape_source(source: dict) -> list[dict]:
     try:
         if fmt == "csv":
             return scrape_csv(user, repo, branch, file_path or "prompts.csv")
-        elif fmt == "md":
-            return scrape_md_files(user, repo, branch, file_path)
+        elif fmt in ("md", "txt"):
+            return scrape_text_files(user, repo, branch, file_path, fmt)
         elif fmt in ("yaml", "yml"):
             return scrape_yaml_files(user, repo, branch, file_path)
         elif fmt == "json":

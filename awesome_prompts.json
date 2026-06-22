@@ -3,12 +3,12 @@
   "description": "Configuration for the prompt scraper. Add GitHub links here to scrape prompts from.",
   "sources": [
     {
-      "name": "Awesome ChatGPT Prompts",
-      "url": "https://github.com/f/awesome-chatgpt-prompts",
+      "name": "Prompts Chat",
+      "url": "https://github.com/f/prompts.chat",
       "type": "collection",
       "format": "csv",
       "file_path": "prompts.csv",
-      "description": "Large collection of curated ChatGPT prompts covering many roles and use cases"
+      "description": "Large community-curated collection of ChatGPT prompts (prompts.chat)"
     },
     {
       "name": "Leaked System Prompts",
@@ -19,20 +19,12 @@
       "description": "System prompts from various AI products, stored as markdown files"
     },
     {
-      "name": "Prompts Chat",
-      "url": "https://github.com/f/prompts.chat",
-      "type": "collection",
-      "format": "csv",
-      "file_path": "prompts.csv",
-      "description": "Prompts from prompts.chat website, community-curated collection"
-    },
-    {
       "name": "AI Boost Awesome Prompts",
       "url": "https://github.com/ai-boost/awesome-prompts",
       "type": "collection",
-      "format": "md",
+      "format": "txt",
       "file_path": "prompts/",
-      "description": "Curated collection of prompts organized as markdown files"
+      "description": "300+ curated role-based prompts as plain text files"
     }
   ]
 }
