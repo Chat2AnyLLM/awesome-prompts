@@ -1,13 +1,37 @@
 # Awesome Prompts
 
-A curated collection of high-quality prompts for AI assistants, stored in a machine-readable format for programmatic consumption.
+A curated collection of high-quality prompts for AI assistants, stored in a machine-readable format for programmatic consumption. Includes an automated scraper that fetches prompts from configured external sources hourly.
 
 ## Two Ways to Contribute
 
 | Method | What you do | Where it lives |
 |--------|------------|----------------|
 | **Add a prompt directly** | Write a YAML file with the full prompt text | `prompts/<slug>.yaml` |
-| **Link an external source** | Point to a GitHub repo/file containing prompts | `sources/<slug>.yaml` |
+| **Add a source link** | Add a GitHub link to `awesome_prompts.json` | `awesome_prompts.json` |
+
+## How It Works
+
+```
+awesome_prompts.json          prompts/*.yaml
+  (configured links)           (direct prompts)
+        │                            │
+        ▼                            ▼
+  scripts/scrape.py           scripts/build.py
+        │                            │
+        ▼                            ▼
+  scraped/<source>/            dist/prompts.json
+   (fetched prompts)           dist/prompts.csv
+                               dist/sources.json
+                               dist/index.json
+```
+
+A GitHub Actions workflow runs **every hour** to:
+1. Read `awesome_prompts.json` for configured source links
+2. Scrape prompts from each source (supports CSV, YAML, Markdown, JSON)
+3. Save scraped prompts to `scraped/<source-name>/`
+4. Rebuild `dist/` artifacts
+5. Update this README with latest stats
+6. Commit and push if anything changed
 
 ## For Consumers
 
@@ -23,62 +47,52 @@ curl -s https://raw.githubusercontent.com/zhujian0805/awesome-prompts/main/dist/
 curl -s https://raw.githubusercontent.com/zhujian0805/awesome-prompts/main/dist/prompts.json
 ```
 
-**External sources (links to other repos):**
+**Scraped prompts** — stored per-source under `scraped/`:
 
 ```bash
-curl -s https://raw.githubusercontent.com/zhujian0805/awesome-prompts/main/dist/sources.json
+# List what's been scraped
+ls scraped/
+# awesome-chatgpt-prompts/  leaked-system-prompts/
 ```
 
-A CSV export of direct prompts is also available at `dist/prompts.csv`.
+## Configuring Sources (`awesome_prompts.json`)
 
-### prompts.json Format
+To add a new source to scrape from, edit `awesome_prompts.json`:
 
 ```json
 {
-  "version": "1.0.0",
-  "generated_at": "2026-06-22T10:00:00Z",
-  "count": 3,
-  "prompts": [
-    {
-      "slug": "linux-terminal",
-      "title": "Linux Terminal",
-      "description": "Simulates a Linux terminal...",
-      "prompt": "I want you to act as a linux terminal...",
-      "tags": ["developer", "terminal", "simulation"],
-      "category": "developer-tools",
-      "author": "f",
-      "variables": []
-    }
-  ]
-}
-```
-
-### sources.json Format
-
-```json
-{
-  "version": "1.0.0",
-  "generated_at": "2026-06-22T10:00:00Z",
-  "count": 2,
   "sources": [
     {
-      "slug": "awesome-chatgpt-prompts",
-      "title": "Awesome ChatGPT Prompts",
-      "description": "A large collection of curated ChatGPT prompts...",
-      "url": "https://github.com/f/awesome-chatgpt-prompts",
-      "format": "csv",
+      "name": "My Prompt Collection",
+      "url": "https://github.com/username/repo",
       "type": "collection",
-      "tags": ["general", "chatgpt", "roles"],
-      "category": "creative",
-      "author": "f"
+      "format": "yaml",
+      "file_path": "prompts/",
+      "description": "What this source contains"
     }
   ]
 }
 ```
 
-## For Contributors
+### Fields
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed instructions on both contribution methods.
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | yes | Human-readable name for this source |
+| `url` | yes | GitHub URL (repo or specific file) |
+| `type` | yes | `collection` (repo with many prompts) or `single-prompt` |
+| `format` | yes | Format of prompt files: `csv`, `yaml`, `md`, `json` |
+| `file_path` | no | Path within the repo (e.g. `prompts.csv`, `prompts/`). Empty = repo root |
+| `description` | no | What this source contains |
+
+### Supported Formats
+
+| Format | How it's scraped |
+|--------|-----------------|
+| `csv` | Reads the CSV file, looks for `act`/`title` + `prompt` columns |
+| `yaml` | Reads `.yaml`/`.yml` files, expects a `prompt` field in each |
+| `md` | Each `.md` file is treated as a complete prompt |
+| `json` | Reads JSON array or `{"prompts": [...]}`, expects `title` + `prompt` fields |
 
 ## Categories
 
@@ -97,10 +111,28 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed instructions on both contrib
 
 ```bash
 pip install -r requirements.txt
-make validate   # Check all prompts and sources against schemas
-make build      # Generate dist/ artifacts
-make ci         # Run both
+make validate      # Check all prompts and sources against schemas
+make build         # Generate dist/ artifacts
+make scrape        # Fetch prompts from configured sources
+make update-readme # Update README stats
+make all           # Run everything
 ```
+
+## Stats
+
+| Metric | Count |
+|--------|-------|
+| Direct prompts (in `prompts/`) | 3 |
+| Configured sources | 2 |
+| Scraped prompts (total) | 0 |
+
+### Configured Sources
+
+| Source | URL | Format | Scraped |
+|--------|-----|--------|---------|
+| Awesome ChatGPT Prompts | [https://github.com/f/awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts) | csv | 0 |
+| Leaked System Prompts | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 0 |
+
 
 ## License
 

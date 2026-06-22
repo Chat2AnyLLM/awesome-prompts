@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "description": "Configuration for the prompt scraper. Add GitHub links here to scrape prompts from.",
+  "sources": [
+    {
+      "name": "Awesome ChatGPT Prompts",
+      "url": "https://github.com/f/awesome-chatgpt-prompts",
+      "type": "collection",
+      "format": "csv",
+      "file_path": "prompts.csv",
+      "description": "Large collection of curated ChatGPT prompts covering many roles and use cases"
+    },
+    {
+      "name": "Leaked System Prompts",
+      "url": "https://github.com/jujumilk3/leaked-system-prompts",
+      "type": "collection",
+      "format": "md",
+      "file_path": "",
+      "description": "System prompts from various AI products, stored as markdown files"
+    }
+  ]
+}
