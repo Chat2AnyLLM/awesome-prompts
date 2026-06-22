@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate all prompt YAML files against the JSON Schema."""
+"""Validate all prompt YAML files and source YAML files against their schemas."""
 
 import json
 import sys
@@ -9,17 +9,19 @@ import yaml
 from jsonschema import Draft202012Validator
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-SCHEMA_PATH = REPO_ROOT / "schema" / "prompt.schema.json"
+PROMPT_SCHEMA_PATH = REPO_ROOT / "schema" / "prompt.schema.json"
+SOURCE_SCHEMA_PATH = REPO_ROOT / "schema" / "source.schema.json"
 PROMPTS_DIR = REPO_ROOT / "prompts"
+SOURCES_DIR = REPO_ROOT / "sources"
 
 
-def load_schema() -> dict:
-    with open(SCHEMA_PATH) as f:
+def load_schema(path: Path) -> dict:
+    with open(path) as f:
         return json.load(f)
 
 
-def validate_prompt(file_path: Path, schema: dict) -> list[str]:
-    """Validate a single YAML file. Returns list of error messages."""
+def validate_file(file_path: Path, schema: dict) -> list[str]:
+    """Validate a single YAML file against a schema. Returns list of error messages."""
     errors = []
     try:
         with open(file_path) as f:
@@ -45,17 +47,17 @@ def validate_prompt(file_path: Path, schema: dict) -> list[str]:
     return errors
 
 
-def main() -> int:
-    schema = load_schema()
-    yaml_files = sorted(PROMPTS_DIR.glob("*.yaml"))
+def validate_directory(directory: Path, schema: dict, label: str) -> int:
+    """Validate all YAML files in a directory. Returns error count."""
+    yaml_files = sorted(directory.glob("*.yaml"))
 
     if not yaml_files:
-        print("WARNING: No prompt files found in prompts/")
+        print(f"  (no {label} files found)")
         return 0
 
     total_errors = 0
     for file_path in yaml_files:
-        errors = validate_prompt(file_path, schema)
+        errors = validate_file(file_path, schema)
         if errors:
             print(f"FAIL: {file_path.name}")
             for err in errors:
@@ -64,11 +66,27 @@ def main() -> int:
         else:
             print(f"  OK: {file_path.name}")
 
+    return total_errors
+
+
+def main() -> int:
+    prompt_schema = load_schema(PROMPT_SCHEMA_PATH)
+    source_schema = load_schema(SOURCE_SCHEMA_PATH)
+
+    print("=== Validating prompts/ ===")
+    prompt_errors = validate_directory(PROMPTS_DIR, prompt_schema, "prompt")
+
+    print("\n=== Validating sources/ ===")
+    source_errors = validate_directory(SOURCES_DIR, source_schema, "source")
+
+    total_errors = prompt_errors + source_errors
     if total_errors:
         print(f"\n{total_errors} error(s) found.")
         return 1
 
-    print(f"\nAll {len(yaml_files)} prompt(s) valid.")
+    prompt_count = len(list(PROMPTS_DIR.glob("*.yaml")))
+    source_count = len(list(SOURCES_DIR.glob("*.yaml")))
+    print(f"\nAll valid: {prompt_count} prompt(s), {source_count} source(s).")
     return 0
 
 

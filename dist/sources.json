@@ -1,0 +1,39 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2026-06-22T03:54:26Z",
+  "count": 2,
+  "sources": [
+    {
+      "slug": "awesome-chatgpt-prompts",
+      "title": "Awesome ChatGPT Prompts",
+      "description": "A large collection of curated ChatGPT prompts covering many roles and use cases.",
+      "url": "https://github.com/f/awesome-chatgpt-prompts",
+      "format": "csv",
+      "type": "collection",
+      "tags": [
+        "general",
+        "chatgpt",
+        "roles"
+      ],
+      "category": "creative",
+      "author": "f",
+      "notes": "The main prompt file is prompts.csv with columns: act, prompt, for_devs, type, contributor.\nIndividual prompts can also be found in the repository's markdown files.\n"
+    },
+    {
+      "slug": "system-prompts-collection",
+      "title": "System Prompts Collection",
+      "description": "Collection of system prompts leaked or shared from various AI products.",
+      "url": "https://github.com/jujumilk3/leaked-system-prompts",
+      "format": "md",
+      "type": "collection",
+      "tags": [
+        "system-prompts",
+        "reference",
+        "examples"
+      ],
+      "category": "developer-tools",
+      "author": "jujumilk3",
+      "notes": "Each prompt is stored as a markdown file. Useful as reference for prompt engineering\nand understanding how commercial AI products structure their system prompts.\n"
+    }
+  ]
+}

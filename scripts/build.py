@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build dist/prompts.json and dist/prompts.csv from prompts/*.yaml."""
+"""Build dist/ artifacts from prompts/*.yaml and sources/*.yaml."""
 
 import csv
 import json
@@ -11,26 +11,27 @@ import yaml
 from jsonschema import Draft202012Validator
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-SCHEMA_PATH = REPO_ROOT / "schema" / "prompt.schema.json"
+PROMPT_SCHEMA_PATH = REPO_ROOT / "schema" / "prompt.schema.json"
+SOURCE_SCHEMA_PATH = REPO_ROOT / "schema" / "source.schema.json"
 PROMPTS_DIR = REPO_ROOT / "prompts"
+SOURCES_DIR = REPO_ROOT / "sources"
 DIST_DIR = REPO_ROOT / "dist"
 
 VERSION = "1.0.0"
 
 
-def load_schema() -> dict:
-    with open(SCHEMA_PATH) as f:
+def load_schema(path: Path) -> dict:
+    with open(path) as f:
         return json.load(f)
 
 
-def load_and_validate_prompts(schema: dict) -> list[dict]:
-    """Load all YAML files, validate, return sorted list of prompt dicts."""
+def load_and_validate(directory: Path, schema: dict) -> list[dict]:
+    """Load all YAML files from directory, validate, return sorted list."""
     validator = Draft202012Validator(schema)
-    prompts = []
-    yaml_files = sorted(PROMPTS_DIR.glob("*.yaml"))
+    items = []
+    yaml_files = sorted(directory.glob("*.yaml"))
 
     if not yaml_files:
-        print("WARNING: No prompt files found in prompts/")
         return []
 
     for file_path in yaml_files:
@@ -44,20 +45,21 @@ def load_and_validate_prompts(schema: dict) -> list[dict]:
                 print(f"  {err.json_path}: {err.message}")
             sys.exit(1)
 
-        # Ensure slug matches filename
         if data.get("slug") != file_path.stem:
             print(f"FAIL: {file_path.name} - slug does not match filename")
             sys.exit(1)
 
-        # Normalize: ensure variables key exists
-        data.setdefault("variables", [])
-        prompts.append(data)
+        items.append(data)
 
-    return prompts
+    return items
 
 
-def write_json(prompts: list[dict]) -> None:
+def write_prompts_json(prompts: list[dict]) -> None:
     """Write dist/prompts.json."""
+    # Normalize: ensure variables key exists
+    for p in prompts:
+        p.setdefault("variables", [])
+
     output = {
         "version": VERSION,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -72,7 +74,7 @@ def write_json(prompts: list[dict]) -> None:
     print(f"  Written: {output_path} ({len(prompts)} prompts)")
 
 
-def write_csv(prompts: list[dict]) -> None:
+def write_prompts_csv(prompts: list[dict]) -> None:
     """Write dist/prompts.csv."""
     DIST_DIR.mkdir(exist_ok=True)
     output_path = DIST_DIR / "prompts.csv"
@@ -87,12 +89,58 @@ def write_csv(prompts: list[dict]) -> None:
     print(f"  Written: {output_path} ({len(prompts)} prompts)")
 
 
+def write_sources_json(sources: list[dict]) -> None:
+    """Write dist/sources.json."""
+    output = {
+        "version": VERSION,
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "count": len(sources),
+        "sources": sources,
+    }
+    DIST_DIR.mkdir(exist_ok=True)
+    output_path = DIST_DIR / "sources.json"
+    with open(output_path, "w") as f:
+        json.dump(output, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+    print(f"  Written: {output_path} ({len(sources)} sources)")
+
+
+def write_index_json(prompts: list[dict], sources: list[dict]) -> None:
+    """Write dist/index.json — a single entry point for consumers."""
+    output = {
+        "version": VERSION,
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "prompts": {
+            "count": len(prompts),
+            "file": "prompts.json",
+        },
+        "sources": {
+            "count": len(sources),
+            "file": "sources.json",
+        },
+    }
+    DIST_DIR.mkdir(exist_ok=True)
+    output_path = DIST_DIR / "index.json"
+    with open(output_path, "w") as f:
+        json.dump(output, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+    print(f"  Written: {output_path}")
+
+
 def main() -> int:
     print("Building prompt collection...")
-    schema = load_schema()
-    prompts = load_and_validate_prompts(schema)
-    write_json(prompts)
-    write_csv(prompts)
+
+    prompt_schema = load_schema(PROMPT_SCHEMA_PATH)
+    source_schema = load_schema(SOURCE_SCHEMA_PATH)
+
+    prompts = load_and_validate(PROMPTS_DIR, prompt_schema)
+    sources = load_and_validate(SOURCES_DIR, source_schema)
+
+    write_prompts_json(prompts)
+    write_prompts_csv(prompts)
+    write_sources_json(sources)
+    write_index_json(prompts, sources)
+
     print("Done.")
     return 0
 
