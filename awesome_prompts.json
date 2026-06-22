@@ -17,6 +17,22 @@
       "format": "md",
       "file_path": "",
       "description": "System prompts from various AI products, stored as markdown files"
+    },
+    {
+      "name": "Prompts Chat",
+      "url": "https://github.com/f/prompts.chat",
+      "type": "collection",
+      "format": "csv",
+      "file_path": "prompts.csv",
+      "description": "Prompts from prompts.chat website, community-curated collection"
+    },
+    {
+      "name": "AI Boost Awesome Prompts",
+      "url": "https://github.com/ai-boost/awesome-prompts",
+      "type": "collection",
+      "format": "md",
+      "file_path": "prompts/",
+      "description": "Curated collection of prompts organized as markdown files"
     }
   ]
 }
