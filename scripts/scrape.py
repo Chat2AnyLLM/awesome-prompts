@@ -11,10 +11,14 @@ import json
 import re
 import sys
 from pathlib import Path
+from urllib.parse import quote
 from urllib.request import urlopen, Request
 from urllib.error import URLError
 
 import yaml
+
+# Increase CSV field size limit for large prompt texts
+csv.field_size_limit(10 * 1024 * 1024)  # 10MB
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = REPO_ROOT / "awesome_prompts.json"
@@ -98,7 +102,8 @@ def scrape_md_files(user: str, repo: str, branch: str, file_path: str) -> list[d
     """Scrape prompts from markdown files in a GitHub repo."""
     # If file_path points to a specific file, fetch just that
     if file_path and file_path.endswith(".md"):
-        raw_url = f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{file_path}"
+        encoded_path = quote(file_path, safe="/")
+        raw_url = f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{encoded_path}"
         content = fetch_url(raw_url)
         if not content or len(content) < 20:
             return []
@@ -111,7 +116,8 @@ def scrape_md_files(user: str, repo: str, branch: str, file_path: str) -> list[d
 
     # Otherwise list directory and fetch .md files
     dir_path = file_path or ""
-    api_url = f"https://api.github.com/repos/{user}/{repo}/contents/{dir_path}"
+    encoded_dir = quote(dir_path, safe="/")
+    api_url = f"https://api.github.com/repos/{user}/{repo}/contents/{encoded_dir}"
     content = fetch_url(api_url)
     if not content:
         return []
@@ -134,9 +140,10 @@ def scrape_md_files(user: str, repo: str, branch: str, file_path: str) -> list[d
 
     prompts = []
     for md_file in md_files[:100]:  # Cap per source
-        download_url = md_file.get("download_url", "")
-        if not download_url:
-            continue
+        # Construct URL with proper encoding for special characters
+        file_name = md_file.get("path", md_file.get("name", ""))
+        encoded_name = quote(file_name, safe="/")
+        download_url = f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{encoded_name}"
 
         file_content = fetch_url(download_url)
         if not file_content or len(file_content) < 20:
@@ -156,7 +163,8 @@ def scrape_yaml_files(user: str, repo: str, branch: str, file_path: str) -> list
     """Scrape prompts from YAML files in a GitHub repo."""
     # Single file
     if file_path and (file_path.endswith(".yaml") or file_path.endswith(".yml")):
-        raw_url = f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{file_path}"
+        encoded_path = quote(file_path, safe="/")
+        raw_url = f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{encoded_path}"
         content = fetch_url(raw_url)
         if not content:
             return []
@@ -174,7 +182,8 @@ def scrape_yaml_files(user: str, repo: str, branch: str, file_path: str) -> list
 
     # Directory listing
     dir_path = file_path or ""
-    api_url = f"https://api.github.com/repos/{user}/{repo}/contents/{dir_path}"
+    encoded_dir = quote(dir_path, safe="/")
+    api_url = f"https://api.github.com/repos/{user}/{repo}/contents/{encoded_dir}"
     content = fetch_url(api_url)
     if not content:
         return []
@@ -195,9 +204,9 @@ def scrape_yaml_files(user: str, repo: str, branch: str, file_path: str) -> list
 
     prompts = []
     for yf in yaml_files[:100]:
-        download_url = yf.get("download_url", "")
-        if not download_url:
-            continue
+        file_name = yf.get("path", yf.get("name", ""))
+        encoded_name = quote(file_name, safe="/")
+        download_url = f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{encoded_name}"
 
         file_content = fetch_url(download_url)
         if not file_content:

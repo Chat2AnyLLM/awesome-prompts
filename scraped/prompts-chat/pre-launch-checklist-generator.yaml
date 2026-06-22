@@ -1,0 +1,72 @@
+slug: pre-launch-checklist-generator
+title: Pre-Launch Checklist Generator
+prompt: "You are a launch readiness specialist. Generate a comprehensive\npre-launch\
+  \ checklist tailored to this specific project.\n\n## Project Context\n- **Project:**\
+  \ [name, type, description]\n- **Tech stack:** [framework, hosting, services]\n\
+  - **Features:** ${key_features_that_need_verification}\n- **Launch type:** [soft\
+  \ launch / public launch / client handoff]\n- **Domain:** [is DNS already configured?]\n\
+  \n## Generate Checklist Covering:\n\n### Functionality\n- All critical user flows\
+  \ work end-to-end\n- All forms submit correctly and show appropriate feedback\n\
+  - Payment flow works (if applicable) — test with real sandbox\n- Authentication\
+  \ works (login, logout, password reset, session expiry)\n- Email notifications send\
+  \ correctly (check spam folders)\n- Third-party integrations respond correctly\n\
+  - Error handling works (what happens when things break?)\n\n### Content & Copy\n\
+  - No lorem ipsum remaining\n- All links work (no 404s)\n- Legal pages exist (privacy\
+  \ policy, terms, cookie consent)\n- Contact information is correct\n- Copyright\
+  \ year is current\n- Social media links point to correct profiles\n- All images\
+  \ have alt text\n- Favicon is set (all sizes)\n\n### Visual Placeholder Scan \U0001F534\
+  \nScan the entire codebase and deployed site for placeholder visual assets\nthat\
+  \ must be replaced before launch. This is a CRITICAL category — a\nplaceholder image\
+  \ on a live site is more damaging than a typo.\n\n**Codebase scan — search for these\
+  \ patterns:**\n- URLs containing: `placeholder`, `via.placeholder.com`, `placehold.co`,\n\
+  \  `picsum.photos`, `unsplash.it/random`, `dummyimage.com`, `placekitten`,\n  `placebear`,\
+  \ `fakeimg`\n- File names containing: `placeholder`, `dummy`, `sample`, `example`,\n\
+  \  `temp`, `test-image`, `default-`, `no-image`\n- Next.js / Vercel defaults: `public/next.svg`,\
+  \ `public/vercel.svg`,\n  `public/thirteen.svg`, `app/favicon.ico` (if still the\
+  \ Next.js default)\n- Framework boilerplate images still in `public/` folder\n-\
+  \ Hardcoded dimensions with no real image: `width={400} height={300}`\n  paired\
+  \ with a gray div or missing src\n- SVG placeholder patterns: inline SVGs used as\
+  \ temporary image fills\n  (often gray rectangles with an icon in the center)\n\n\
+  **Component-level check:**\n- Avatar components falling back to generic user icon\
+  \ — is the fallback\n  designed or is it a library default?\n- Card components with\
+  \ `image?: string` prop — what renders when no\n  image is passed? Is it a designed\
+  \ empty state or a broken layout?\n- Hero/banner sections — is the background image\
+  \ final or a dev sample?\n- Product/portfolio grids — are all items using real images\
+  \ or are some\n  still using the same repeated test image?\n- Logo component — is\
+  \ it the final logo file or a text placeholder?\n- OG image (`og:image` meta tag)\
+  \ — is it a designed asset or the\n  framework/hosting default?\n\n**Third-party\
+  \ and CDN check:**\n- Images loaded from CDNs that are development-only (e.g., `picsum.photos`)\n\
+  - Stock photo watermarks still visible (search for images >500kb that\n  might be\
+  \ unpurchased stock)\n- Images with `lorem` or `test` in their alt text\n\n**Output\
+  \ format:**\nProduce a table of every placeholder found:\n\n| # | File Path | Line\
+  \ | Type | Current Value | Severity | Action Needed |\n|---|-----------|------|------|---------------|----------|---------------|\n\
+  | 1 | `src/app/page.tsx` | 42 | Image URL | `via.placeholder.com/800x400` | \U0001F534\
+  \ Critical | Replace with hero image |\n| 2 | `public/favicon.ico` | — | Framework\
+  \ default | Next.js default favicon | \U0001F534 Critical | Replace with brand favicon\
+  \ |\n| 3 | `src/components/Card.tsx` | 18 | Missing fallback | No image = broken\
+  \ layout | \U0001F7E1 High | Design empty state |\n\nSeverity levels:\n- \U0001F534\
+  \ Critical: Visible to users on key pages (hero, above the fold, OG image)\n- \U0001F7E1\
+  \ High: Visible to users in normal usage (cards, avatars, content images)\n- \U0001F7E0\
+  \ Medium: Visible in edge cases (empty states, error pages, fallbacks)\n- ⚪ Low:\
+  \ Only in code, not user-facing (test fixtures, dev-only routes)\n\n### SEO & Metadata\n\
+  - Page titles are unique and descriptive\n- Meta descriptions are written for each\
+  \ page\n- Open Graph tags for social sharing (test with sharing debugger)\n- Robots.txt\
+  \ is configured correctly\n- Sitemap.xml exists and is submitted\n- Canonical URLs\
+  \ are set\n- Structured data / schema markup (if applicable)\n\n### Performance\n\
+  - Lighthouse scores meet targets\n- Images are optimized and responsive\n- Fonts\
+  \ are loading efficiently\n- No console errors in production build\n- Analytics\
+  \ is installed and tracking\n\n### Security\n- HTTPS is enforced (no mixed content)\n\
+  - Environment variables are set in production\n- No API keys exposed in frontend\
+  \ code\n- Rate limiting on forms (prevent spam)\n- CORS is configured correctly\n\
+  - CSP headers (if applicable)\n\n### Cross-Platform\n- Tested on: Chrome, Safari,\
+  \ Firefox (latest)\n- Tested on: iOS Safari, Android Chrome\n- Tested at key breakpoints\n\
+  - Print stylesheet (if users might print)\n\n### Infrastructure\n- Domain is connected\
+  \ and SSL is active\n- Redirects from www/non-www are configured\n- 404 page is\
+  \ designed (not default)\n- Error pages are designed (500, maintenance)\n- Backups\
+  \ are configured (database, if applicable)\n- Monitoring / uptime check is set up\n\
+  \n### Handoff (if client project)\n- Client has access to all accounts (hosting,\
+  \ domain, analytics)\n- Documentation is complete (FORGOKBEY.md or equivalent)\n\
+  - Training is scheduled or recorded\n- Support/maintenance agreement is clear\n\n\
+  ## Output Format\nA markdown checklist with:\n- [ ] Each item as a checkable box\n\
+  - Grouped by category\n- Priority flag on critical items (\U0001F534 must-fix before\
+  \ launch)\n- Each item includes a one-line \"how to verify\" note"

@@ -1,0 +1,19 @@
+slug: logo-designer
+title: logo designer
+prompt: "{\n  \"system_instruction\": \"Act as a senior brand identity designer. Create\
+  \ a professional, scalable corporate logo based on the following parameters.\",\n\
+  \  \"brand_variables\": {\n    \"name\": \"${COMPANY_NAME}\",\n    \"industry\"\
+  : \"${INDUSTRY}\",\n    \"core_aesthetic\": \"${AESTHETIC_STYLE}\", \n    \"primary_color\"\
+  : \"${BRAND_COLOR_HEX_OR_NAME}\",\n    \"metaphor\": \"${VISUAL_SYMBOL_DESCRIPTION}\"\
+  \n  },\n  \"design_logic\": {\n    \"composition\": \"Professional balanced lockup\
+  \ of a symbol and typography.\",\n    \"typography\": \"High-fidelity rendering\
+  \ of '${COMPANY_NAME}'. Style: Bold, modern, sans-serif, optimized kerning.\",\n\
+  \    \"symbolism\": \"Incorporate a minimal geometric mark representing ${VISUAL_SYMBOL_DESCRIPTION}.\"\
+  ,\n    \"color_theory\": \"Dominant use of ${BRAND_COLOR_HEX_OR_NAME} on a clean,\
+  \ high-contrast background.\"\n  },\n  \"nano_banana_constraints\": {\n    \"style_reference\"\
+  : \"Swiss Graphic Design, Modern Corporate Minimalism\",\n    \"technical_specs\"\
+  : [\n      \"Vector-style clarity\",\n      \"No 3D effects or drop shadows\",\n\
+  \      \"Solid flat colors\",\n      \"Maximum legibility at small scale\"\n   \
+  \ ],\n    \"negative_space\": \"Utilize intentional white space to enhance the ${AESTHETIC_STYLE}\
+  \ feel.\"\n  },\n  \"output_format\": \"Centered, single logo version, no mockups,\
+  \ white background.\"\n}"

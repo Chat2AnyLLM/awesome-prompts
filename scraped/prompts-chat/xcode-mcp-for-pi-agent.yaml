@@ -1,0 +1,100 @@
+slug: xcode-mcp-for-pi-agent
+title: xcode-mcp (for pi agent)
+prompt: "---\nname: xcode-mcp-for-pi-agent\ndescription: Guidelines for efficient\
+  \ Xcode MCP tool usage via mcporter CLI. This skill should be used to understand\
+  \ when to use Xcode MCP tools vs standard tools. Xcode MCP consumes many tokens\
+  \ - use only for build, test, simulator, preview, and SourceKit diagnostics. Never\
+  \ use for file read/write/grep operations. Use this skill whenever working with\
+  \ Xcode projects, iOS/macOS builds, SwiftUI previews, or Apple platform development.\n\
+  ---\n\n# Xcode MCP Usage Guidelines\n\nXcode MCP tools are accessed via `mcporter`\
+  \ CLI, which bridges MCP servers to standard command-line tools. This skill defines\
+  \ when to use Xcode MCP and when to prefer standard tools.\n\n## Setup\n\nXcode\
+  \ MCP must be configured in `~/.mcporter/mcporter.json`:\n\n```json\n{\n  \"mcpServers\"\
+  : {\n    \"xcode\": {\n      \"command\": \"xcrun\",\n      \"args\": [\"mcpbridge\"\
+  ],\n      \"env\": {}\n    }\n  }\n}\n```\n\nVerify the connection:\n```bash\nmcporter\
+  \ list xcode\n```\n\n---\n\n## Calling Tools\n\nAll Xcode MCP tools are called via\
+  \ mcporter:\n\n```bash\n# List available tools\nmcporter list xcode\n\n# Call a\
+  \ tool with key:value args\nmcporter call xcode.<tool_name> param1:value1 param2:value2\n\
+  \n# Call with function-call syntax\nmcporter call 'xcode.<tool_name>(param1: \"\
+  value1\", param2: \"value2\")'\n```\n\n---\n\n## Complete Xcode MCP Tools Reference\n\
+  \n### Window & Project Management\n| Tool | mcporter call | Token Cost |\n|------|---------------|------------|\n\
+  | List open Xcode windows (get tabIdentifier) | `mcporter call xcode.XcodeListWindows`\
+  \ | Low ✓ |\n\n### Build Operations\n| Tool | mcporter call | Token Cost |\n|------|---------------|------------|\n\
+  | Build the Xcode project | `mcporter call xcode.BuildProject` | Medium ✓ |\n| Get\
+  \ build log with errors/warnings | `mcporter call xcode.GetBuildLog` | Medium ✓\
+  \ |\n| List issues in Issue Navigator | `mcporter call xcode.XcodeListNavigatorIssues`\
+  \ | Low ✓ |\n\n### Testing\n| Tool | mcporter call | Token Cost |\n|------|---------------|------------|\n\
+  | Get available tests from test plan | `mcporter call xcode.GetTestList` | Low ✓\
+  \ |\n| Run all tests | `mcporter call xcode.RunAllTests` | Medium |\n| Run specific\
+  \ tests (preferred) | `mcporter call xcode.RunSomeTests` | Medium ✓ |\n\n### Preview\
+  \ & Execution\n| Tool | mcporter call | Token Cost |\n|------|---------------|------------|\n\
+  | Render SwiftUI Preview snapshot | `mcporter call xcode.RenderPreview` | Medium\
+  \ ✓ |\n| Execute code snippet in file context | `mcporter call xcode.ExecuteSnippet`\
+  \ | Medium ✓ |\n\n### Diagnostics\n| Tool | mcporter call | Token Cost |\n|------|---------------|------------|\n\
+  | Get compiler diagnostics for specific file | `mcporter call xcode.XcodeRefreshCodeIssuesInFile`\
+  \ | Low ✓ |\n| Get SourceKit diagnostics (all open files) | `mcporter call xcode.getDiagnostics`\
+  \ | Low ✓ |\n\n### Documentation\n| Tool | mcporter call | Token Cost |\n|------|---------------|------------|\n\
+  | Search Apple Developer Documentation | `mcporter call xcode.DocumentationSearch`\
+  \ | Low ✓ |\n\n### File Operations (HIGH TOKEN - NEVER USE)\n| MCP Tool | Use Instead\
+  \ | Why |\n|----------|-------------|-----|\n| `xcode.XcodeRead` | `Read` tool /\
+  \ `cat` | High token consumption |\n| `xcode.XcodeWrite` | `Write` tool | High token\
+  \ consumption |\n| `xcode.XcodeUpdate` | `Edit` tool | High token consumption |\n\
+  | `xcode.XcodeGrep` | `rg` / `grep` | High token consumption |\n| `xcode.XcodeGlob`\
+  \ | `find` / `glob` | High token consumption |\n| `xcode.XcodeLS` | `ls` command\
+  \ | High token consumption |\n| `xcode.XcodeRM` | `rm` command | High token consumption\
+  \ |\n| `xcode.XcodeMakeDir` | `mkdir` command | High token consumption |\n| `xcode.XcodeMV`\
+  \ | `mv` command | High token consumption |\n\n---\n\n## Recommended Workflows\n\
+  \n### 1. Code Change & Build Flow\n```\n1. Search code      → rg \"pattern\" --type\
+  \ swift\n2. Read file        → Read tool / cat\n3. Edit file        → Edit tool\n\
+  4. Syntax check     → mcporter call xcode.getDiagnostics\n5. Build            →\
+  \ mcporter call xcode.BuildProject\n6. Check errors     → mcporter call xcode.GetBuildLog\
+  \ (if build fails)\n```\n\n### 2. Test Writing & Running Flow\n```\n1. Read test\
+  \ file   → Read tool / cat\n2. Write/edit test  → Edit tool\n3. Get test list  \
+  \  → mcporter call xcode.GetTestList\n4. Run tests        → mcporter call xcode.RunSomeTests\
+  \ (specific tests)\n5. Check results    → Review test output\n```\n\n### 3. SwiftUI\
+  \ Preview Flow\n```\n1. Edit view        → Edit tool\n2. Render preview   → mcporter\
+  \ call xcode.RenderPreview\n3. Iterate          → Repeat as needed\n```\n\n### 4.\
+  \ Debug Flow\n```\n1. Check diagnostics → mcporter call xcode.getDiagnostics\n2.\
+  \ Build project     → mcporter call xcode.BuildProject\n3. Get build log     → mcporter\
+  \ call xcode.GetBuildLog severity:error\n4. Fix issues        → Edit tool\n5. Rebuild\
+  \           → mcporter call xcode.BuildProject\n```\n\n### 5. Documentation Search\n\
+  ```\n1. Search docs       → mcporter call xcode.DocumentationSearch query:\"SwiftUI\
+  \ NavigationStack\"\n2. Review results    → Use information in implementation\n\
+  ```\n\n---\n\n## Fallback Commands (When MCP or mcporter Unavailable)\n\nIf Xcode\
+  \ MCP is disconnected, mcporter is not installed, or the connection fails, use these\
+  \ xcodebuild commands directly:\n\n### Build Commands\n```bash\n# Debug build (simulator)\
+  \ - replace <SchemeName> with your project's scheme\nxcodebuild -scheme <SchemeName>\
+  \ -configuration Debug -sdk iphonesimulator build\n\n# Release build (device)\n\
+  xcodebuild -scheme <SchemeName> -configuration Release -sdk iphoneos build\n\n#\
+  \ Build with workspace (for CocoaPods projects)\nxcodebuild -workspace <ProjectName>.xcworkspace\
+  \ -scheme <SchemeName> -configuration Debug -sdk iphonesimulator build\n\n# Build\
+  \ with project file\nxcodebuild -project <ProjectName>.xcodeproj -scheme <SchemeName>\
+  \ -configuration Debug -sdk iphonesimulator build\n\n# List available schemes\n\
+  xcodebuild -list\n```\n\n### Test Commands\n```bash\n# Run all tests\nxcodebuild\
+  \ test -scheme <SchemeName> -sdk iphonesimulator \\\n  -destination \"platform=iOS\
+  \ Simulator,name=iPhone 16\" \\\n  -configuration Debug\n\n# Run specific test class\n\
+  xcodebuild test -scheme <SchemeName> -sdk iphonesimulator \\\n  -destination \"\
+  platform=iOS Simulator,name=iPhone 16\" \\\n  -only-testing:<TestTarget>/<TestClassName>\n\
+  \n# Run specific test method\nxcodebuild test -scheme <SchemeName> -sdk iphonesimulator\
+  \ \\\n  -destination \"platform=iOS Simulator,name=iPhone 16\" \\\n  -only-testing:<TestTarget>/<TestClassName>/<testMethodName>\n\
+  \n# Run with code coverage\nxcodebuild test -scheme <SchemeName> -sdk iphonesimulator\
+  \ \\\n  -configuration Debug -enableCodeCoverage YES\n\n# List available simulators\n\
+  xcrun simctl list devices available\n```\n\n### Clean Build\n```bash\nxcodebuild\
+  \ clean -scheme <SchemeName>\n```\n\n---\n\n## Quick Reference\n\n### USE mcporter\
+  \ + Xcode MCP For:\n- ✅ `xcode.BuildProject` — Building\n- ✅ `xcode.GetBuildLog`\
+  \ — Build errors\n- ✅ `xcode.RunSomeTests` — Running specific tests\n- ✅ `xcode.GetTestList`\
+  \ — Listing tests\n- ✅ `xcode.RenderPreview` — SwiftUI previews\n- ✅ `xcode.ExecuteSnippet`\
+  \ — Code execution\n- ✅ `xcode.DocumentationSearch` — Apple docs\n- ✅ `xcode.XcodeListWindows`\
+  \ — Get tabIdentifier\n- ✅ `xcode.getDiagnostics` — SourceKit errors\n\n### NEVER\
+  \ USE Xcode MCP For:\n- ❌ `xcode.XcodeRead` → Use `Read` tool / `cat`\n- ❌ `xcode.XcodeWrite`\
+  \ → Use `Write` tool\n- ❌ `xcode.XcodeUpdate` → Use `Edit` tool\n- ❌ `xcode.XcodeGrep`\
+  \ → Use `rg` or `grep`\n- ❌ `xcode.XcodeGlob` → Use `find` / `glob`\n- ❌ `xcode.XcodeLS`\
+  \ → Use `ls` command\n- ❌ File operations → Use standard tools\n\n---\n\n## Token\
+  \ Efficiency Summary\n\n| Operation | Best Choice | Token Impact |\n|-----------|-------------|--------------|\n\
+  | Quick syntax check | `mcporter call xcode.getDiagnostics` | \U0001F7E2 Low |\n\
+  | Full build | `mcporter call xcode.BuildProject` | \U0001F7E1 Medium |\n| Run specific\
+  \ tests | `mcporter call xcode.RunSomeTests` | \U0001F7E1 Medium |\n| Run all tests\
+  \ | `mcporter call xcode.RunAllTests` | \U0001F7E0 High |\n| Read file | `Read`\
+  \ tool / `cat` | \U0001F7E2 Low |\n| Edit file | `Edit` tool | \U0001F7E2 Low |\n\
+  | Search code | `rg` / `grep` | \U0001F7E2 Low |\n| List files | `ls` / `find` |\
+  \ \U0001F7E2 Low |"

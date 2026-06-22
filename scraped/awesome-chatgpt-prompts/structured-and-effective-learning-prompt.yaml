@@ -1,0 +1,22 @@
+slug: structured-and-effective-learning-prompt
+title: Structured and Effective Learning Prompt
+prompt: "${subject}=\n${current_level}=\n${time_available}=\n${learning_style}=\n\
+  ${goal}=\n\nStep 1: Knowledge Assessment\n1. Break down ${subject} into core components\n\
+  2. Evaluate complexity levels of each component\n3. Map prerequisites and dependencies\n\
+  4. Identify foundational concepts\nOutput detailed skill tree and learning hierarchy\n\
+  \n~ Step 2: Learning Path Design\n1. Create progression milestones based on ${current_level}\n\
+  2. Structure topics in optimal learning sequence\n3. Estimate time requirements\
+  \ per topic\n4. Align with ${time_available} constraints\nOutput structured learning\
+  \ roadmap with timeframes\n\n~ Step 3: Resource Curation\n1. Identify learning materials\
+  \ matching ${learning_style}:\n   - Video courses\n   - Books/articles\n   - Interactive\
+  \ exercises\n   - Practice projects\n2. Rank resources by effectiveness\n3. Create\
+  \ resource playlist\nOutput comprehensive resource list with priority order\n\n\
+  ~ Step 4: Practice Framework\n1. Design exercises for each topic\n2. Create real-world\
+  \ application scenarios\n3. Develop progress checkpoints\n4. Structure review intervals\n\
+  Output practice plan with spaced repetition schedule\n\n~ Step 5: Progress Tracking\
+  \ System\n1. Define measurable progress indicators\n2. Create assessment criteria\n\
+  3. Design feedback loops\n4. Establish milestone completion metrics\nOutput progress\
+  \ tracking template and benchmarks\n\n~ Step 6: Study Schedule Generation\n1. Break\
+  \ down learning into daily/weekly tasks\n2. Incorporate rest and review periods\n\
+  3. Add checkpoint assessments\n4. Balance theory and practice\nOutput detailed study\
+  \ schedule aligned with ${time_available}"

@@ -1,0 +1,62 @@
+slug: astro-js
+title: Astro.js
+prompt: "# Astro v6 Architecture Rules (Strict Mode)\n\n## 1. Core Philosophy\n\n\
+  - Follow Astro’s “HTML-first / zero JavaScript by default” principle:\n  - Everything\
+  \ is static HTML unless interactivity is explicitly required.\n  - JavaScript is\
+  \ a cost → only add when it creates real user value.\n\n- Always think in “Islands\
+  \ Architecture”:\n  - The page is static HTML\n  - Interactive parts are isolated\
+  \ islands\n  - Never treat the whole page as an app\n\n- Before writing any JavaScript,\
+  \ always ask:\n  \"Can this be solved with HTML + CSS or server-side logic?\"\n\n\
+  ---\n\n## 2. Component Model\n\n- Use `.astro` components for:\n  - Layout\n  -\
+  \ Composition\n  - Static UI\n  - Data fetching\n  - Server-side logic (frontmatter)\n\
+  \n- `.astro` components:\n  - Run at build-time or server-side\n  - Do NOT ship\
+  \ JavaScript by default\n  - Must remain framework-agnostic\n\n- NEVER use React/Vue/Svelte\
+  \ hooks inside `.astro`\n\n---\n\n## 3. Islands (Interactive Components)\n\n- Only\
+  \ use framework components (React, Vue, Svelte, etc.) for interactivity.\n\n- Treat\
+  \ every interactive component as an isolated island:\n  - Independent\n  - Self-contained\n\
+  \  - Minimal scope\n\n- NEVER:\n  - Hydrate entire pages or layouts\n  - Wrap large\
+  \ trees in a single island\n  - Create many small islands in loops unnecessarily\n\
+  \n- Prefer:\n  - Static list rendering\n  - Hydrate only the minimal interactive\
+  \ unit\n\n---\n\n## 4. Hydration Strategy (Critical)\n\n- Always explicitly define\
+  \ hydration using `client:*` directives.\n\n- Choose the LOWEST possible priority:\n\
+  \n  - `client:load`\n    → Only for critical, above-the-fold interactivity\n\n \
+  \ - `client:idle`\n    → For secondary UI after page load\n\n  - `client:visible`\n\
+  \    → For below-the-fold or heavy components\n\n  - `client:media`\n    → For responsive\
+  \ / conditional UI\n\n  - `client:only`\n    → ONLY when SSR breaks (window, localStorage,\
+  \ etc.)\n\n- Default rule:\n  ❌ Never default to `client:load`\n  ✅ Prefer `client:visible`\
+  \ or `client:idle`\n\n- Hydration is a performance budget:\n  - Every island adds\
+  \ JS\n  - Keep total JS minimal\n\n\U0001F4CC Astro does NOT hydrate components\
+  \ unless explicitly told via `client:*` :contentReference[oaicite:0]{index=0}  \n\
+  \n---\n\n## 5. Server vs Client Logic\n\n- Prefer server-side logic (inside `.astro`\
+  \ frontmatter) for:\n  - Data fetching\n  - Transformations\n  - Filtering / sorting\n\
+  \  - Derived values\n\n- Only use client-side state when:\n  - User interaction\
+  \ requires it\n  - Real-time updates are needed\n\n- Avoid:\n  - Duplicating logic\
+  \ on client\n  - Moving server logic into islands\n\n---\n\n## 6. State Management\n\
+  \n- Avoid client state unless strictly necessary.\n\n- If needed:\n  - Scope state\
+  \ inside the island only\n  - Do NOT create global app state unless required\n\n\
+  - For cross-island state:\n  - Use lightweight shared stores (e.g., nano stores)\n\
+  \  - Avoid heavy global state systems by default\n\n---\n\n## 7. Performance Constraints\
+  \ (Hard Rules)\n\n- Minimize JavaScript shipped to client:\n  - Astro only loads\
+  \ JS for hydrated components :contentReference[oaicite:1]{index=1}  \n\n- Prefer:\n\
+  \  - Static rendering\n  - Partial hydration\n  - Lazy hydration\n\n- Avoid:\n \
+  \ - Hydrating large lists\n  - Repeated islands in loops\n  - Overusing `client:load`\n\
+  \n- Each island:\n  - Has its own bundle\n  - Loads independently\n  - Should remain\
+  \ small and focused :contentReference[oaicite:2]{index=2}  \n\n---\n\n## 8. File\
+  \ & Project Structure\n\n- `/pages`\n  - Entry points (SSG/SSR)\n  - No client logic\n\
+  \n- `/components`\n  - Shared UI\n  - Islands live here\n\n- `/layouts`\n  - Static\
+  \ wrappers only\n\n- `/content`\n  - Markdown / CMS data\n\n- Keep `.astro` files\
+  \ focused on composition, not behavior\n\n---\n\n## 9. Anti-Patterns (Strictly Forbidden)\n\
+  \n- ❌ Using hooks in `.astro`\n- ❌ Turning Astro into SPA architecture\n- ❌ Hydrating\
+  \ entire layout/page\n- ❌ Using `client:load` everywhere\n- ❌ Mapping lists into\
+  \ hydrated components\n- ❌ Using client JS for static problems\n- ❌ Replacing server\
+  \ logic with client logic\n\n---\n\n## 10. Preferred Patterns\n\n- ✅ Static-first\
+  \ rendering\n- ✅ Minimal, isolated islands\n- ✅ Lazy hydration (`visible`, `idle`)\n\
+  - ✅ Server-side computation\n- ✅ HTML + CSS before JS\n- ✅ Progressive enhancement\n\
+  \n---\n\n## 11. Decision Framework (VERY IMPORTANT)\n\nFor every feature:\n\n1.\
+  \ Can this be static HTML?\n   → YES → Use `.astro`\n\n2. Does it require interaction?\n\
+  \   → NO → Stay static\n\n3. Does it require JS?\n   → YES → Create an island\n\n\
+  4. When should it load?\n   → Choose LOWEST priority `client:*`\n\n---\n\n## 12.\
+  \ Mental Model (Non-Negotiable)\n\n- Astro is NOT:\n  - Next.js\n  - SPA framework\n\
+  \  - React-first system\n\n- Astro IS:\n  - Static-first renderer\n  - Partial hydration\
+  \ system\n  - Performance-first architecture\n\n- Think:\n  ❌ “Build an app”\n \
+  \ ✅ “Ship HTML + sprinkle JS”"

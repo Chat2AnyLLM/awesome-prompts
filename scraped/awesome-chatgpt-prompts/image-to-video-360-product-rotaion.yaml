@@ -1,0 +1,78 @@
+slug: image-to-video-360-product-rotaion
+title: image to video 360 product rotaion
+prompt: "{\n  \"model\": \"veo-3.1\",\n  \"task\": \"image_to_video_360_product_rotation\"\
+  ,\n\n  \"objective\": \"Generate a photorealistic, silent, 360-degree rotation video\
+  \ from the provided front and back images of the exact same product. Preserve 100%\
+  \ of the original product identity without modification, addition, removal, or hallucination.\
+  \ The product must appear naturally filled internally using ghost mannequin volume\
+  \ reconstruction, while remaining completely faithful to the original images. The\
+  \ garment must appear professionally ironed, perfectly smooth, crisp, and retail-ready\
+  \ while preserving all original details. Output must contain absolutely no audio.\"\
+  ,\n\n  \"garment_condition_global_rule\": {\n    \"all_clothing_must_be_ironed\"\
+  : true,\n    \"appearance\": \"perfectly pressed, crisp, smooth, structured, premium\
+  \ retail presentation\",\n    \"no_new_wrinkles\": true,\n    \"no_random_fabric_folding\"\
+  : true,\n    \"maintain_original_wrinkle_data_if_present\": true,\n    \"no_artificial_wrinkle_generation\"\
+  : true,\n    \"clean_finish\": true,\n    \"brand_new_look\": true\n  },\n\n  \"\
+  input\": {\n    \"type\": \"multi_image\",\n    \"views\": [\n      {\n        \"\
+  name\": \"front\",\n        \"role\": \"primary_reference\",\n        \"weight\"\
+  : 1.0\n      },\n      {\n        \"name\": \"back\",\n        \"role\": \"secondary_reference\"\
+  ,\n        \"weight\": 1.0\n      }\n    ],\n\n    \"forensic_identity_lock\": {\n\
+  \      \"mode\": \"strict\",\n\n      \"geometry_lock\": true,\n      \"silhouette_lock\"\
+  : true,\n      \"mesh_lock\": true,\n\n      \"texture_lock\": true,\n      \"fabric_pattern_lock\"\
+  : true,\n      \"stitching_lock\": true,\n      \"wrinkle_lock\": true,\n\n    \
+  \  \"color_lock\": true,\n      \"material_lock\": true,\n      \"surface_lock\"\
+  : true,\n\n      \"logo_lock\": true,\n      \"label_lock\": true,\n      \"branding_lock\"\
+  : true,\n\n      \"proportion_lock\": true,\n      \"measurement_lock\": true,\n\
+  \n      \"prevent_hallucination\": true,\n      \"prevent_detail_invention\": true,\n\
+  \      \"prevent_detail_removal\": true\n    }\n  },\n\n  \"geometry_reconstruction\"\
+  : {\n    \"method\": \"constrained_true_3d_reconstruction\",\n\n    \"source_constraint\"\
+  : \"only_use_information_present_in_input_images\",\n\n    \"volume_generation\"\
+  : {\n      \"enabled\": true,\n      \"type\": \"ghost_mannequin_volume\",\n   \
+  \   \"visibility\": \"none\"\n    },\n\n    \"reconstruction_rules\": {\n      \"\
+  interpolate_only\": true,\n      \"no_detail_creation\": true,\n      \"no_surface_modification\"\
+  : true,\n      \"no_topology_change\": true,\n      \"no_design_interpretation\"\
+  : true\n    },\n\n    \"mesh_constraints\": {\n      \"rigid\": true,\n      \"\
+  no_deformation\": true,\n      \"no_shape_change\": true,\n      \"no_texture_shift\"\
+  : true\n    }\n  },\n\n  \"animation\": {\n    \"type\": \"360_degree_rotation\"\
+  ,\n    \"axis\": \"vertical\",\n    \"degrees\": 360,\n    \"direction\": \"clockwise\"\
+  ,\n\n    \"speed\": \"constant\",\n    \"duration_seconds\": 6,\n\n    \"motion_constraints\"\
+  : {\n      \"no_wobble\": true,\n      \"no_jitter\": true,\n      \"no_mesh_change\"\
+  : true,\n      \"no_texture_shift\": true,\n      \"no_geometry_shift\": true\n\
+  \    },\n\n    \"start_state\": \"exact_front_view\",\n    \"end_state\": \"exact_front_view\"\
+  ,\n\n    \"loop\": true\n  },\n\n  \"ghost_mannequin\": {\n    \"enabled\": true,\n\
+  \    \"visibility\": \"invisible\",\n\n    \"constraints\": {\n      \"must_not_be_visible\"\
+  : true,\n      \"must_not_modify_surface\": true,\n      \"must_not_modify_shape\"\
+  : true,\n      \"must_not_modify_wrinkles\": true,\n      \"must_not_modify_fit\"\
+  : true\n    }\n  },\n\n  \"scene\": {\n    \"background\": {\n      \"type\": \"\
+  pure_white\",\n      \"color\": \"#FFFFFF\",\n      \"uniform\": true\n    },\n\n\
+  \    \"product_state\": {\n      \"floating\": true,\n      \"no_support_visible\"\
+  : true\n    },\n\n    \"shadow\": {\n      \"type\": \"soft_contact\",\n      \"\
+  stable\": true,\n      \"physically_correct\": true\n    }\n  },\n\n  \"camera\"\
+  : {\n    \"type\": \"fixed\",\n    \"movement\": \"none\",\n    \"rotation\": \"\
+  none\",\n    \"zoom\": \"none\",\n    \"center_lock\": true,\n    \"lens\": \"85mm\"\
+  ,\n    \"distortion\": false\n  },\n\n  \"lighting\": {\n    \"type\": \"studio_softbox\"\
+  ,\n    \"consistency\": \"locked\",\n    \"variation\": false,\n    \"flicker\"\
+  : false,\n    \"must_not_change_during_rotation\": true\n  },\n\n  \"rendering\"\
+  : {\n    \"mode\": \"photorealistic\",\n    \"texture_source\": \"input_images_only\"\
+  ,\n    \"no_texture_generation\": true,\n    \"no_creative_interpretation\": true,\n\
+  \    \"no_artificial_enhancement\": true,\n    \"fabric_finish\": \"smooth_pressed_clean\"\
+  ,\n    \"retail_presentation_standard\": \"premium_ecommerce_ready\"\n  },\n\n \
+  \ \"audio\": {\n    \"enabled\": false,\n    \"generate_audio\": false,\n    \"\
+  include_audio_track\": false,\n    \"music\": false,\n    \"sound_effects\": false,\n\
+  \    \"voice\": false,\n    \"ambient_sound\": false,\n    \"silence\": true\n \
+  \ },\n\n  \"output\": {\n    \"resolution\": \"2160x2160\",\n    \"fps\": 30,\n\
+  \    \"duration_seconds\": 6,\n    \"format\": \"mp4\",\n    \"video_codec\": \"\
+  H.264\",\n    \"audio_codec\": \"none\",\n    \"include_audio_track\": false,\n\
+  \    \"loop\": true,\n    \"background\": \"pure_white\",\n    \"silent\": true\n\
+  \  },\n\n  \"hard_constraints\": [\n    \"NO audio\",\n    \"NO music\",\n    \"\
+  NO sound effects\",\n    \"NO voice\",\n    \"NO ambient sound\",\n    \"DO NOT\
+  \ add details\",\n    \"DO NOT remove details\",\n    \"DO NOT modify stitching\"\
+  ,\n    \"DO NOT modify logos\",\n    \"DO NOT modify texture\",\n    \"DO NOT modify\
+  \ structure\",\n    \"DO NOT change proportions\",\n    \"DO NOT stylize\",\n  \
+  \  \"DO NOT hallucinate\",\n    \"NO new wrinkles\",\n    \"NO messy fabric folds\"\
+  ,\n    \"MUST appear professionally ironed\"\n  ],\n\n  \"negative_prompt\": [\n\
+  \    \"music\",\n    \"sound\",\n    \"voice\",\n    \"audio\",\n    \"ambient audio\"\
+  ,\n    \"sound effects\",\n    \"hallucinated details\",\n    \"modified stitching\"\
+  ,\n    \"different fabric\",\n    \"shape morphing\",\n    \"geometry distortion\"\
+  ,\n    \"creative reinterpretation\",\n    \"wrinkled fabric\",\n    \"messy folds\"\
+  ,\n    \"creased clothing\",\n    \"unpressed garment\"\n  ]\n}"

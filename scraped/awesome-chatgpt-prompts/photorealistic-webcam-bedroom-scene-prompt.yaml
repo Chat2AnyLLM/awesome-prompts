@@ -1,0 +1,49 @@
+slug: photorealistic-webcam-bedroom-scene-prompt
+title: Photorealistic Webcam Bedroom Scene Prompt
+prompt: "{\n  \"subject\": {\n    \"description\": \"A young woman lying on a bed,\
+  \ holding a smartphone and looking at the screen with a calm, slightly focused expression.\"\
+  ,\n    \"body\": {\n      \"type\": \"female, slim build\",\n      \"details\":\
+  \ \"light skin tone, long blonde hair, natural makeup with defined eyes and lips\"\
+  ,\n      \"pose\": \"lying on her side on a bed, upper body slightly raised, one\
+  \ arm holding a phone in front of her face, the other arm resting on the bed\"\n\
+  \    },\n    \"face\": {\n      \"expression\": \"neutral, relaxed, slightly focused\"\
+  ,\n      \"gaze_direction\": \"looking at her phone screen\",\n      \"head_tilt\"\
+  : \"slight downward tilt\"\n    },\n    \"wardrobe\": {\n      \"top\": \"black\
+  \ casual t-shirt\",\n      \"bottom\": \"soft fabric pajama shorts\",\n      \"\
+  style\": \"comfortable indoor loungewear / pajama outfit\"\n    },\n    \"hair\"\
+  : \"long blonde hair, straight and slightly voluminous, falling naturally around\
+  \ shoulders\"\n  },\n  \"scene\": {\n    \"description\": \"A bedroom scene captured\
+  \ through a laptop screen using a camera app interface.\",\n    \"location\": \"\
+  indoor bedroom\",\n    \"setting\": \"bed with soft blankets and pillows\",\n  \
+  \  \"background_elements\": \"neutral wall, slightly messy bedding, soft fabric\
+  \ textures\",\n    \"lighting\": \"low ambient indoor lighting with soft warm tones\"\
+  ,\n    \"atmosphere\": \"cozy, intimate, relaxed night-time vibe\"\n  },\n  \"environment\"\
+  : {\n    \"ambience\": \"dimly lit, quiet indoor environment\",\n    \"style\":\
+  \ \"candid digital capture through screen\",\n    \"depth_of_field\": \"subject\
+  \ clear within the screen, slight softness overall\"\n  },\n  \"camera\": {\n  \
+  \  \"device\": \"laptop camera (MacBook Photo Booth style)\",\n    \"angle\": \"\
+  slightly elevated screen perspective\",\n    \"aspect_ratio\": \"4:3 within screen\
+  \ frame\",\n    \"framing\": \"the subject appears inside the laptop display, with\
+  \ the laptop bezel partially visible\",\n    \"focus\": \"moderate focus, slightly\
+  \ soft typical webcam quality\"\n  },\n  \"interface\": {\n    \"visible_ui\": \"\
+  Photo Booth application interface visible on screen\",\n    \"elements\": \"top\
+  \ bar with 'Photo Booth' text, bottom center red shutter button, small UI icons\"\
+  ,\n    \"screen_effect\": \"subtle screen glare, pixel softness, digital display\
+  \ look\"\n  },\n  \"image_quality\": {\n    \"resolution\": \"webcam-like quality\"\
+  ,\n    \"grain\": \"visible digital noise due to low light\",\n    \"sharpness\"\
+  : \"slightly soft, not highly detailed\",\n    \"compression_artifacts\": \"minor\
+  \ digital artifacts\",\n    \"dynamic_range\": \"limited, darker shadows with some\
+  \ highlight softness\"\n  },\n  \"lighting\": {\n    \"type\": \"low indoor ambient\
+  \ light\",\n    \"quality\": \"soft, slightly uneven, warm tones\",\n    \"effects\"\
+  : \"gentle shadows, subtle highlights on face\"\n  },\n  \"color_grading\": {\n\
+  \    \"tone\": \"warm and muted\",\n    \"temperature\": \"slightly warm\",\n  \
+  \  \"contrast\": \"low to moderate\",\n    \"saturation\": \"slightly reduced, natural\
+  \ indoor tones\"\n  },\n  \"rendering\": {\n    \"style\": \"photorealistic webcam\
+  \ capture\",\n    \"quality\": \"intentionally imperfect, screen-captured feel\"\
+  ,\n    \"skin_texture\": \"natural, slightly softened by low resolution\",\n   \
+  \ \"post_processing\": \"minimal, raw webcam look\"\n  },\n  \"artifacts\": {\n\
+  \    \"screen_glare\": \"subtle reflections on laptop screen\",\n    \"noise_pattern\"\
+  : \"visible low-light grain\",\n    \"chromatic_aberration\": \"minimal\",\n   \
+  \ \"motion_blur\": \"none\"\n  },\n  \"constraints\": {\n    \"focus_priority\"\
+  : \"subject inside the screen is the main focus\",\n    \"avoid\": \"overly sharp\
+  \ DSLR look, studio lighting, artificial filters\"\n  }\n}"

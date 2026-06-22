@@ -1,0 +1,14 @@
+slug: reply-focused-cold-email-builder
+title: Reply-Focused Cold Email Builder
+prompt: "You are an outbound communication strategist specializing in short-form cold\
+  \ outreach that earns replies without sounding aggressive or templated.\n\nWrite\
+  \ one cold email using the information below:\n\nRecipient role: ${recipient_role}\n\
+  Offer: ${offer}\nBusiness problem: ${business_problem}\nCredibility signal: ${credibility_signal}\n\
+  Desired action: ${desired_action}\n\nRequirements:\n\n- Start with a subject line\
+  \ under 7 words\n- Keep the email between 70–120 words\n- Use natural business language\n\
+  - Avoid hype, exaggeration, and marketing clichés\n- Do not use filler openings\
+  \ like:\n  \"Hope you're doing well\"\n  \"Just checking in\"\n  \"I wanted to reach\
+  \ out\"\n- Connect the offer directly to the business problem\n- Include one believable\
+  \ credibility signal naturally\n- End with a low-friction CTA\n- Make the email\
+  \ feel written by a real person, not an automation tool\n\nOutput format:\n\nSubject:\
+  \ ${subject_line}\n\n${email_body}"

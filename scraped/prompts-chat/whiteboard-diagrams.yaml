@@ -1,0 +1,85 @@
+slug: whiteboard-diagrams
+title: Whiteboard Diagrams
+prompt: "Steps to build an AI startup by making something people want:\n\n{\n  \"\
+  style\": {\n    \"name\": \"Whiteboard Sketch Diagram\",\n    \"description\": \"\
+  Transform any concept into an elegant hand-drawn diagram. Clean, minimal, architectural\
+  \ in feel—like a smart person's quick sketch on a whiteboard.\"\n  },\n  \"core_philosophy\"\
+  : {\n    \"essence\": \"Elegant simplicity—the lightest possible touch that still\
+  \ communicates clearly\",\n    \"mindset\": \"An architect or designer explaining\
+  \ an idea with a fine pen\",\n    \"goal\": \"Clarity through restraint and refinement\"\
+  \n  },\n  \"visual_foundation\": {\n    \"canvas_structure\": {\n      \"outer_background\"\
+  : \"#FFFFFF\",\n      \"card\": {\n        \"size\": \"95-98% of canvas—minimal\
+  \ white margin\",\n        \"color\": \"#FEFEFE\",\n        \"corner_radius\": \"\
+  12-16px subtle roundness\",\n        \"shadow\": \"NONE\",\n        \"border\":\
+  \ \"NONE\"\n      }\n    },\n    \"overall_aesthetic\": {\n      \"feel\": \"Light,\
+  \ airy, intellectual, refined\",\n      \"weight\": \"Delicate—everything feels\
+  \ thin and elegant\",\n      \"space\": \"Generous white space everywhere\"\n  \
+  \  }\n  },\n  \"line_work\": {\n    \"critical_principle\": \"THIN AND DELICATE—not\
+  \ bold, not heavy, not chunky\",\n    \"quality\": {\n      \"weight\": \"Fine,\
+  \ thin lines—like a 0.5mm pen or fine-tip marker\",\n      \"character\": \"Architectural,\
+  \ precise but hand-drawn\",\n      \"consistency\": \"Uniform thin weight throughout\"\
+  \n    },\n    \"stroke_style\": {\n      \"lines\": \"Thin, clean, slightly imperfect\"\
+  ,\n      \"corners\": \"Sharp or slightly rounded, never bulky\",\n      \"feel\"\
+  : \"Drawn quickly but skillfully\"\n    }\n  },\n  \"color_palette\": {\n    \"\
+  exact_colors\": {\n      \"card_background\": {\n        \"hex\": \"#FEFEFE\",\n\
+  \        \"description\": \"Almost white, flat, neutral\"\n      },\n      \"primary_text\"\
+  : {\n        \"hex\": \"#020202\",\n        \"description\": \"Near-black for text—crisp\
+  \ and readable\"\n      },\n      \"line_gray\": {\n        \"hex\": \"#4A4B4B\"\
+  ,\n        \"description\": \"Dark gray for all drawn lines, boxes, shapes—NOT pure\
+  \ black\"\n      },\n      \"accent_blue\": {\n        \"hex\": \"#2C68B7\",\n \
+  \       \"description\": \"Clear medium blue—for arrows, connectors, brackets, some\
+  \ labels\"\n      },\n      \"accent_red\": {\n        \"hex\": \"#B34952\",\n \
+  \       \"description\": \"Warm coral-red—for category labels, emphasis text\"\n\
+  \      },\n      \"fill_blue\": {\n        \"hex\": \"#2C68B7\",\n        \"description\"\
+  : \"Same blue for small filled squares/shapes\"\n      },\n      \"fill_gray\":\
+  \ {\n        \"hex\": \"#4A4B4B\",\n        \"description\": \"Dark gray for filled\
+  \ grid cells\"\n      }\n    },\n    \"usage\": {\n      \"text\": \"Primary text\
+  \ in #020202 black, categories in #E54B54 red\",\n      \"lines_and_shapes\": \"\
+  All outlines in #4A4B4B gray—NOT black\",\n      \"arrows_and_flow\": \"#2C68B7\
+  \ blue—thin and elegant\",\n      \"fills\": \"Small filled squares in blue or gray—never\
+  \ large solid areas\"\n    }\n  },\n  \"typography\": {\n    \"style\": {\n    \
+  \  \"type\": \"Elegant italic handwriting\",\n      \"weight\": \"Light to medium—never\
+  \ bold or heavy\",\n      \"slant\": \"Natural italic lean\",\n      \"character\"\
+  : \"Fluid, intelligent, like architect's lettering\"\n    },\n    \"colors\": {\n\
+  \      \"titles\": \"#020202 black, italic\",\n      \"category_labels\": \"#E54B54\
+  \ red\",\n      \"annotations\": \"#2C68B7 blue or #020202 black\"\n    }\n  },\n\
+  \  \"diagram_elements\": {\n    \"boxes_and_rectangles\": {\n      \"stroke\": \"\
+  THIN #4A4B4B gray outline—1-2px weight max\",\n      \"fill\": \"Empty/transparent—never\
+  \ solid filled large boxes\",\n      \"corners\": \"Slightly rounded or sharp, hand-drawn\"\
+  ,\n      \"style\": \"Light, airy, not heavy containers\"\n    },\n    \"grids_and_matrices\"\
+  : {\n      \"stroke\": \"Thin gray lines\",\n      \"cells\": \"Small—may contain\
+  \ small filled squares or numbers\",\n      \"fills\": \"Small squares filled blue\
+  \ or gray to show data\"\n    },\n    \"arrows\": {\n      \"critical\": \"THIN,\
+  \ ELEGANT, SIMPLE—not chunky PowerPoint arrows\",\n      \"stroke\": \"Thin #2C68B7\
+  \ blue line—same weight as other lines\",\n      \"heads\": \"Small, simple, minimal—just\
+  \ two short angled lines forming a point\",\n      \"style\": \"Like hand-drawn\
+  \ with a fine pen, not a thick marker\",\n      \"types\": [\n        \"Simple thin\
+  \ straight arrows\",\n        \"Thin curved arrows for flow\",\n        \"Never:\
+  \ block arrows, 3D arrows, gradient arrows, thick arrows\"\n      ]\n    },\n  \
+  \  \"brackets\": {\n      \"style\": \"Thin hand-drawn curly braces in blue\",\n\
+  \      \"weight\": \"Same thin line weight as everything else\"\n    },\n    \"\
+  dots_and_markers\": {\n      \"style\": \"Small filled circles or squares\",\n \
+  \     \"size\": \"Tiny—proportional to the thin line aesthetic\",\n      \"colors\"\
+  : \"Blue or red for emphasis\"\n    }\n  },\n  \"visual_language\": {\n    \"shapes_vocabulary\"\
+  : {\n      \"rectangles\": \"Thin outlined boxes—vertical or horizontal orientation\"\
+  ,\n      \"grids\": \"Small matrices with tiny filled cells\",\n      \"lists\"\
+  : \"Simple dashed or bulleted items inside boxes\",\n      \"flow\": \"Thin arrows\
+  \ connecting elements left-to-right\"\n    },\n    \"composition_patterns\": {\n\
+  \      \"typical_layout\": \"2-4 main elements arranged horizontally with arrows\
+  \ between\",\n      \"spacing\": \"Generous gaps between elements\",\n      \"alignment\"\
+  : \"Rough but intentional alignment\",\n      \"hierarchy\": \"Titles above boxes,\
+  \ labels below or beside\"\n    },\n    \"proportions\": {\n      \"line_weight_to_space\"\
+  : \"Very thin lines in very open space\",\n      \"text_to_diagram\": \"Text is\
+  \ secondary, diagram dominates\",\n      \"fill_to_empty\": \"Mostly empty, fills\
+  \ are small accents\"\n    }\n  },\n  \"elegance_principles\": {\n    \"lightness\"\
+  : \"Everything should feel like it could float away\",\n    \"restraint\": \"Use\
+  \ the minimum to communicate the idea\",\n    \"refinement\": \"Quality of line\
+  \ over quantity of elements\",\n    \"intelligence\": \"Looks like a smart person\
+  \ drew it quickly\",\n    \"breathing\": \"White space is as important as the marks\"\
+  \n  },\n  \"avoid\": [\n    \"Thick, heavy, bold lines\",\n    \"Chunky PowerPoint-style\
+  \ arrows\",\n    \"Block arrows or 3D arrows\",\n    \"Large solid filled areas\"\
+  ,\n    \"Dense, cluttered layouts\",\n    \"Bold or heavy typography\",\n    \"\
+  Drop shadows or gradients\",\n    \"Corporate clip-art aesthetic\",\n    \"Rounded\
+  \ bubble shapes\",\n    \"Any line weight that feels 'heavy'\",\n    \"Pure black\
+  \ (#000000) for lines—use #4A4B4B gray\",\n    \"Decorative elements\",\n    \"\
+  Overly complex diagrams\"\n  ]\n}"

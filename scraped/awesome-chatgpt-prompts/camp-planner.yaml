@@ -1,0 +1,33 @@
+slug: camp-planner
+title: Camp Planner
+prompt: "{\n  \"research_config\": {\n    \"topic\": \"Logistics-Oriented and Car-Free\
+  \ Camping Planning Analysis\",\n    \"target_persona\": {\n      \"age_group\":\
+  \ \"${age_group:30-35}\",\n      \"group_size\": \"${group_size:4}\",\n      \"\
+  travel_mode\": \"Intermodal Transportation (Public Transit + Hiking/Walking Only)\"\
+  \n    },\n    \"output_lang\": \"${lang:English}\"\n  },\n  \"context\": {\n   \
+  \ \"origin\": \"${origin:Ankara Yenimahalle}\",\n    \"destination_region\": \"\
+  ${destination:Nallihan}\",\n    \"specific_date\": \"${date:March 14, 2026}\",\n\
+  \    \"priorities\": [\n      \"Logistical feasibility\",\n      \"Safety\",\n \
+  \     \"Nature immersion\",\n      \"Minimalism/Ultralight approach\"\n    ]\n \
+  \ },\n  \"knowledge_base_requirements\": {\n    \"transport_analysis\": [\n    \
+  \  \"Main artery bus/train lines and specific stop locations\",\n      \"First/Last\
+  \ Mile connectivity (Local shuttles, taxi availability, or trekking distance from\
+  \ the final stop)\",\n      \"Weekend frequency and ticketing/payment methods (e.g.,\
+  \ local transit cards vs. cash)\"\n    ],\n    \"site_selection_criteria\": [\n\
+  \      \"Accessibility: Max 5km hiking distance from public transit drop-off points\"\
+  ,\n      \"Legality: Officially designated campsites or safe, legal wild camping\
+  \ zones\",\n      \"Resource Availability: Proximity to water sources and basic\
+  \ necessities (WC/Market)\"\n    ]\n  },\n  \"goal\": {\n    \"primary_objective\"\
+  : \"To create a sustainable, comfortable, and safe camping plan without a private\
+  \ vehicle.\",\n    \"specific_research_tasks\": [\n      \"Identify 3 distinct campsite\
+  \ typologies (e.g., lakeside, forest, high altitude) in the region.\",\n      \"\
+  Curate a gear and meal list considering a strict backpack weight limit (max 15-18kg).\"\
+  ,\n      \"Calculate distances to the nearest settlement and medical facilities\
+  \ for emergency protocols.\",\n      \"Construct a precise timeline for a Saturday\
+  \ morning departure and Sunday evening return.\"\n    ]\n  },\n  \"output_structure\"\
+  : {\n    \"format\": \"Strategic Research Report\",\n    \"sections\": [\n     \
+  \ \"1. Transportation & Logistics Matrix\",\n      \"2. Campsite Options (with Pros/Cons\
+  \ Analysis)\",\n      \"3. Gear & Meal Planning (Ultralight & Practical)\",\n  \
+  \    \"4. Step-by-Step Weekend Timeline (Chronological)\",\n      \"5. Safety Protocols\
+  \ & Local Insider Tips\"\n    ],\n    \"tone\": \"Analytical, instructional, safe\
+  \ and encouraging\"\n  }\n}"

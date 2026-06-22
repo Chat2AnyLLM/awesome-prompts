@@ -1,0 +1,87 @@
+slug: xcode-mcp
+title: xcode-mcp
+prompt: "---\nname: xcode-mcp\ndescription: Guidelines for efficient Xcode MCP tool\
+  \ usage. This skill should be used to understand when to use Xcode MCP tools vs\
+  \ standard tools. Xcode MCP consumes many tokens - use only for build, test, simulator,\
+  \ preview, and SourceKit diagnostics. Never use for file read/write/grep operations.\n\
+  ---\n\n# Xcode MCP Usage Guidelines\n\nXcode MCP tools consume significant tokens.\
+  \ This skill defines when to use Xcode MCP and when to prefer standard tools.\n\n\
+  ## Complete Xcode MCP Tools Reference\n\n### Window & Project Management\n| Tool\
+  \ | Description | Token Cost |\n|------|-------------|------------|\n| `mcp__xcode__XcodeListWindows`\
+  \ | List open Xcode windows (get tabIdentifier) | Low ✓ |\n\n### Build Operations\n\
+  | Tool | Description | Token Cost |\n|------|-------------|------------|\n| `mcp__xcode__BuildProject`\
+  \ | Build the Xcode project | Medium ✓ |\n| `mcp__xcode__GetBuildLog` | Get build\
+  \ log with errors/warnings | Medium ✓ |\n| `mcp__xcode__XcodeListNavigatorIssues`\
+  \ | List issues in Issue Navigator | Low ✓ |\n\n### Testing\n| Tool | Description\
+  \ | Token Cost |\n|------|-------------|------------|\n| `mcp__xcode__GetTestList`\
+  \ | Get available tests from test plan | Low ✓ |\n| `mcp__xcode__RunAllTests` |\
+  \ Run all tests | Medium |\n| `mcp__xcode__RunSomeTests` | Run specific tests (preferred)\
+  \ | Medium ✓ |\n\n### Preview & Execution\n| Tool | Description | Token Cost |\n\
+  |------|-------------|------------|\n| `mcp__xcode__RenderPreview` | Render SwiftUI\
+  \ Preview snapshot | Medium ✓ |\n| `mcp__xcode__ExecuteSnippet` | Execute code snippet\
+  \ in file context | Medium ✓ |\n\n### Diagnostics\n| Tool | Description | Token\
+  \ Cost |\n|------|-------------|------------|\n| `mcp__xcode__XcodeRefreshCodeIssuesInFile`\
+  \ | Get compiler diagnostics for specific file | Low ✓ |\n| `mcp__ide__getDiagnostics`\
+  \ | Get SourceKit diagnostics (all open files) | Low ✓ |\n\n### Documentation\n\
+  | Tool | Description | Token Cost |\n|------|-------------|------------|\n| `mcp__xcode__DocumentationSearch`\
+  \ | Search Apple Developer Documentation | Low ✓ |\n\n### File Operations (HIGH\
+  \ TOKEN - NEVER USE)\n| Tool | Alternative | Why |\n|------|-------------|-----|\n\
+  | `mcp__xcode__XcodeRead` | `Read` tool | High token consumption |\n| `mcp__xcode__XcodeWrite`\
+  \ | `Write` tool | High token consumption |\n| `mcp__xcode__XcodeUpdate` | `Edit`\
+  \ tool | High token consumption |\n| `mcp__xcode__XcodeGrep` | `rg` / `Grep` tool\
+  \ | High token consumption |\n| `mcp__xcode__XcodeGlob` | `Glob` tool | High token\
+  \ consumption |\n| `mcp__xcode__XcodeLS` | `ls` command | High token consumption\
+  \ |\n| `mcp__xcode__XcodeRM` | `rm` command | High token consumption |\n| `mcp__xcode__XcodeMakeDir`\
+  \ | `mkdir` command | High token consumption |\n| `mcp__xcode__XcodeMV` | `mv` command\
+  \ | High token consumption |\n\n---\n\n## Recommended Workflows\n\n### 1. Code Change\
+  \ & Build Flow\n```\n1. Search code      → rg \"pattern\" --type swift\n2. Read\
+  \ file        → Read tool\n3. Edit file        → Edit tool\n4. Syntax check    \
+  \ → mcp__ide__getDiagnostics\n5. Build            → mcp__xcode__BuildProject\n6.\
+  \ Check errors     → mcp__xcode__GetBuildLog (if build fails)\n```\n\n### 2. Test\
+  \ Writing & Running Flow\n```\n1. Read test file   → Read tool\n2. Write/edit test\
+  \  → Edit tool\n3. Get test list    → mcp__xcode__GetTestList\n4. Run tests    \
+  \    → mcp__xcode__RunSomeTests (specific tests)\n5. Check results    → Review test\
+  \ output\n```\n\n### 3. SwiftUI Preview Flow\n```\n1. Edit view        → Edit tool\n\
+  2. Render preview   → mcp__xcode__RenderPreview\n3. Iterate          → Repeat as\
+  \ needed\n```\n\n### 4. Debug Flow\n```\n1. Check diagnostics → mcp__ide__getDiagnostics\
+  \ (quick syntax check)\n2. Build project     → mcp__xcode__BuildProject\n3. Get\
+  \ build log     → mcp__xcode__GetBuildLog (severity: error)\n4. Fix issues     \
+  \   → Edit tool\n5. Rebuild           → mcp__xcode__BuildProject\n```\n\n### 5.\
+  \ Documentation Search\n```\n1. Search docs       → mcp__xcode__DocumentationSearch\n\
+  2. Review results    → Use information in implementation\n```\n\n---\n\n## Fallback\
+  \ Commands (When MCP Unavailable)\n\nIf Xcode MCP is disconnected or unavailable,\
+  \ use these xcodebuild commands:\n\n### Build Commands\n```bash\n# Debug build (simulator)\
+  \ - replace <SchemeName> with your project's scheme\nxcodebuild -scheme <SchemeName>\
+  \ -configuration Debug -sdk iphonesimulator build\n\n# Release build (device)\n\
+  xcodebuild -scheme <SchemeName> -configuration Release -sdk iphoneos build\n\n#\
+  \ Build with workspace (for CocoaPods projects)\nxcodebuild -workspace <ProjectName>.xcworkspace\
+  \ -scheme <SchemeName> -configuration Debug -sdk iphonesimulator build\n\n# Build\
+  \ with project file\nxcodebuild -project <ProjectName>.xcodeproj -scheme <SchemeName>\
+  \ -configuration Debug -sdk iphonesimulator build\n\n# List available schemes\n\
+  xcodebuild -list\n```\n\n### Test Commands\n```bash\n# Run all tests\nxcodebuild\
+  \ test -scheme <SchemeName> -sdk iphonesimulator \\\n  -destination \"platform=iOS\
+  \ Simulator,name=iPhone 16\" \\\n  -configuration Debug\n\n# Run specific test class\n\
+  xcodebuild test -scheme <SchemeName> -sdk iphonesimulator \\\n  -destination \"\
+  platform=iOS Simulator,name=iPhone 16\" \\\n  -only-testing:<TestTarget>/<TestClassName>\n\
+  \n# Run specific test method\nxcodebuild test -scheme <SchemeName> -sdk iphonesimulator\
+  \ \\\n  -destination \"platform=iOS Simulator,name=iPhone 16\" \\\n  -only-testing:<TestTarget>/<TestClassName>/<testMethodName>\n\
+  \n# Run with code coverage\nxcodebuild test -scheme <SchemeName> -sdk iphonesimulator\
+  \ \\\n  -configuration Debug -enableCodeCoverage YES\n\n# List available simulators\n\
+  xcrun simctl list devices available\n```\n\n### Clean Build\n```bash\nxcodebuild\
+  \ clean -scheme <SchemeName>\n\n```\n\n---\n\n## Quick Reference\n\n### USE Xcode\
+  \ MCP For:\n- ✅ `BuildProject` - Building\n- ✅ `GetBuildLog` - Build errors\n- ✅\
+  \ `RunSomeTests` - Running specific tests\n- ✅ `GetTestList` - Listing tests\n-\
+  \ ✅ `RenderPreview` - SwiftUI previews\n- ✅ `ExecuteSnippet` - Code execution\n\
+  - ✅ `DocumentationSearch` - Apple docs\n- ✅ `XcodeListWindows` - Get tabIdentifier\n\
+  - ✅ `mcp__ide__getDiagnostics` - SourceKit errors\n\n### NEVER USE Xcode MCP For:\n\
+  - ❌ `XcodeRead` → Use `Read` tool\n- ❌ `XcodeWrite` → Use `Write` tool\n- ❌ `XcodeUpdate`\
+  \ → Use `Edit` tool\n- ❌ `XcodeGrep` → Use `rg` or `Grep` tool\n- ❌ `XcodeGlob`\
+  \ → Use `Glob` tool\n- ❌ `XcodeLS` → Use `ls` command\n- ❌ File operations → Use\
+  \ standard tools\n\n---\n\n## Token Efficiency Summary\n\n| Operation | Best Choice\
+  \ | Token Impact |\n|-----------|-------------|--------------|\n| Quick syntax check\
+  \ | `mcp__ide__getDiagnostics` | \U0001F7E2 Low |\n| Full build | `mcp__xcode__BuildProject`\
+  \ | \U0001F7E1 Medium |\n| Run specific tests | `mcp__xcode__RunSomeTests` | \U0001F7E1\
+  \ Medium |\n| Run all tests | `mcp__xcode__RunAllTests` | \U0001F7E0 High |\n| Read\
+  \ file | `Read` tool | \U0001F7E0 High |\n| Edit file | `Edit` tool | \U0001F7E0\
+  \ High|\n| Search code | `rg` / `Grep` | \U0001F7E2 Low |\n| List files | `ls` /\
+  \ `Glob` | \U0001F7E2 Low |"

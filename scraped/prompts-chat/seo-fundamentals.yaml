@@ -1,0 +1,46 @@
+slug: seo-fundamentals
+title: seo-fundamentals
+prompt: "---\nname: seo-fundamentals\ndescription: SEO fundamentals, E-E-A-T, Core\
+  \ Web Vitals, and 2025 Google algorithm updates\nversion: 1.0\npriority: high\n\
+  tags: [seo, marketing, google, e-e-a-t, core-web-vitals]\n---\n\n# SEO Fundamentals\
+  \ (2025)\n\n## Core Framework: E-E-A-T\n\n```\nExperience     → First-hand experience,\
+  \ real stories\nExpertise      → Credentials, certifications, knowledge\nAuthoritativeness\
+  \ → Backlinks, media mentions, recognition\nTrustworthiness  → HTTPS, contact info,\
+  \ transparency, reviews\n```\n\n## 2025 Algorithm Updates\n\n| Update | Impact |\
+  \ Focus |\n|--------|--------|-------|\n| March 2025 Core | 63% SERP fluctuation\
+  \ | Content quality |\n| June 2025 Core | E-E-A-T emphasis | Authority signals |\n\
+  | Helpful Content | AI content penalties | People-first content |\n\n## Core Web\
+  \ Vitals Targets\n\n| Metric | Target | Measurement |\n|--------|--------|-------------|\n\
+  | **LCP** | < 2.5s | Largest Contentful Paint |\n| **INP** | < 200ms | Interaction\
+  \ to Next Paint |\n| **CLS** | < 0.1 | Cumulative Layout Shift |\n\n## Technical\
+  \ SEO Checklist\n\n```\nSite Structure:\n☐ XML sitemap submitted\n☐ robots.txt configured\n\
+  ☐ Canonical tags correct\n☐ Hreflang tags (multilingual)\n☐ 301 redirects proper\n\
+  ☐ No 404 errors\n\nPerformance:\n☐ Images optimized (WebP)\n☐ Lazy loading\n☐ Minification\
+  \ (CSS/JS/HTML)\n☐ GZIP/Brotli compression\n☐ Browser caching\n☐ CDN active\n\n\
+  Mobile:\n☐ Responsive design\n☐ Mobile-friendly test passed\n☐ Touch targets 48x48px\
+  \ min\n☐ Font size 16px min\n☐ Viewport meta correct\n\nStructured Data:\n☐ Article\
+  \ schema\n☐ Organization schema\n☐ Person/Author schema\n☐ FAQPage schema\n☐ Breadcrumb\
+  \ schema\n☐ Review/Rating schema\n```\n\n## AI Content Guidelines\n\n```\n❌ Don't:\n\
+  - Publish purely AI-generated content\n- Skip fact-checking\n- Create duplicate\
+  \ content\n- Keyword stuffing\n\n✅ Do:\n- AI draft + human edit\n- Add original\
+  \ insights\n- Expert review\n- E-E-A-T principles\n- Plagiarism check\n```\n\n##\
+  \ Content Format for SEO Success\n\n```\nTitle: Question-based or keyword-rich\n\
+  ├── Meta description (150-160 chars)\n├── H1: Main keyword\n├── H2: Related topics\n\
+  │   ├── H3: Subtopics\n│   └── Bullet points/lists\n├── FAQ section (with FAQPage\
+  \ schema)\n├── Internal links to related content\n└── External links to authoritative\
+  \ sources\n\nElements:\n☐ Author bio with credentials\n☐ \"Last updated\" date\n\
+  ☐ Original statistics/data\n☐ Citations and references\n☐ Summary/TL;DR box\n☐ Visual\
+  \ content (images, charts)\n☐ Social share buttons\n```\n\n## Quick Reference\n\n\
+  ```javascript\n// Essential meta tags\n<meta name=\"description\" content=\"...\"\
+  >\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<link\
+  \ rel=\"canonical\" href=\"https://example.com/page\">\n\n// Open Graph for social\n\
+  <meta property=\"og:title\" content=\"...\">\n<meta property=\"og:description\"\
+  \ content=\"...\">\n<meta property=\"og:image\" content=\"...\">\n\n// Schema markup\
+  \ example\n<script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\"\
+  ,\n  \"@type\": \"Article\",\n  \"headline\": \"...\",\n  \"author\": { \"@type\"\
+  : \"Person\", \"name\": \"...\" },\n  \"datePublished\": \"2025-12-30\",\n  \"dateModified\"\
+  : \"2025-12-30\"\n}\n</script>\n```\n\n## SEO Tools (2025)\n\n| Tool | Purpose |\n\
+  |------|---------|\n| Google Search Console | Performance, indexing |\n| PageSpeed\
+  \ Insights | Core Web Vitals |\n| Lighthouse | Technical audit |\n| Semrush/Ahrefs\
+  \ | Keywords, backlinks |\n| Surfer SEO | Content optimization |\n\n---\n\n**Last\
+  \ Updated:** 2025-12-30"

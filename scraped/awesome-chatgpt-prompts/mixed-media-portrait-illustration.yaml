@@ -1,0 +1,60 @@
+slug: mixed-media-portrait-illustration
+title: Mixed Media Portrait Illustration
+prompt: "{\n  \"subject\": {\n    \"description\": \"A portrait of a man with short,\
+  \ dark, textured hair, looking slightly upward. He wears thick-framed, vibrant orange\
+  \ glasses. The face is rendered with black ink-style cross-hatching directly over\
+  \ a newspaper background.\",\n    \"count\": 1,\n    \"orientation\": \"front-facing\"\
+  ,\n    \"pose_or_state\": \"static, head tilted slightly up\",\n    \"expression\"\
+  : \"neutral, contemplative\"\n  },\n  \"scale_and_proportion\": {\n    \"subject_to_frame_ratio\"\
+  : \"Subject occupies ~75% of the frame height\",\n    \"proportions\": \"locked\
+  \ to reference\",\n    \"negative_space\": \"Moderate, occupied by paint splatters\
+  \ and newspaper text\"\n  },\n  \"composition\": {\n    \"shot_type\": \"close-up\
+  \ portrait\",\n    \"camera_angle\": \"eye-level, looking slightly up\",\n    \"\
+  framing\": \"centered\",\n    \"symmetry\": \"Face is centered and mostly symmetrical;\
+  \ background splatters are asymmetrical\",\n    \"background\": \"Aged, yellowed\
+  \ vintage newspaper with columns of text and small faded images, layered with large\
+  \ blue and orange paint splatters and drips\",\n    \"depth_of_field\": \"flat (2D\
+  \ mixed media style)\"\n  },\n  \"temporal_context\": {\n    \"era\": \"Contemporary\
+  \ mixed media art with mid-century vintage newspaper and glasses style\",\n    \"\
+  modern_elements\": false,\n    \"retro_stylization\": true,\n    \"trend_influence\"\
+  : false\n  },\n  \"style\": {\n    \"visual_type\": \"Mixed media illustration\"\
+  ,\n    \"realism_level\": \"maximum for the specified art style\",\n    \"art_style\"\
+  : \"Pen and ink sketch over newspaper collage\",\n    \"stylization\": \"Literal\
+  \ reproduction of the specific mixed media style\",\n    \"interpretation\": \"\
+  literal reproduction only\"\n  },\n  \"lighting\": {\n    \"setup_type\": \"Simulated\
+  \ in the sketch\",\n    \"light_direction\": \"Frontal/top-down, defined by shadows\
+  \ under the jaw, nose, and brow\",\n    \"light_quality\": \"High contrast rendering\"\
+  ,\n    \"contrast\": \"high (black ink against light paper)\",\n    \"shadow_behavior\"\
+  : \"rendered through hatching and solid black areas\",\n    \"color_temperature\"\
+  : \"warm overall due to paper, with cool blue accents\",\n    \"lighting_variation\"\
+  : \"none\"\n  },\n  \"materials\": {\n    \"primary_materials\": [\n      \"yellowed\
+  \ vintage newspaper\",\n      \"black ink / charcoal\",\n      \"vibrant blue and\
+  \ orange paint (acrylic or spray paint look)\"\n    ],\n    \"surface_finish\":\
+  \ \"matte paper and ink\",\n    \"light_reflection\": \"minimal, only visible as\
+  \ highlights on the glasses frames and in the pupils\",\n    \"material_accuracy\"\
+  : \"exact\"\n  },\n  \"color_palette\": {\n    \"dominant_colors\": [\n      \"\
+  Sepia/Cream (newspaper)\",\n      \"Black (ink lines)\",\n      \"Vibrant Orange\
+  \ (glasses and splatters)\",\n      \"Bright Blue (splatters)\"\n    ],\n    \"\
+  saturation\": \"High in orange and blue; low/natural in the newspaper background\"\
+  ,\n    \"contrast_level\": \"High (chromatic and tonal contrast)\",\n    \"color_shift\"\
+  : false\n  },\n  \"texture_and_detail\": {\n    \"surface_detail\": \"Fine newsprint\
+  \ texture, visible ink lines, paint drip edges\",\n    \"grain_noise\": \"paper\
+  \ grain texture preserved\",\n    \"micro_details\": \"Text on newspaper remains\
+  \ visible through the facial features\",\n    \"sharpness\": \"sharp ink lines and\
+  \ crisp paint edges\"\n  },\n  \"camera_render_settings\": {\n    \"lens_equivalent\"\
+  : \"50mm look\",\n    \"perspective_distortion\": \"none\",\n    \"aperture_look\"\
+  : \"N/A (flat illustration)\",\n    \"resolution\": \"high\",\n    \"render_quality\"\
+  : \"clean, no digital compression artifacts\"\n  },\n  \"constraints\": {\n    \"\
+  no_additional_objects\": true,\n    \"no_reframing\": true,\n    \"no_crop\": true,\n\
+  \    \"no_stylization\": true,\n    \"no_artistic_license\": true,\n    \"no_text\"\
+  : false,\n    \"no_watermark\": true,\n    \"no_effects\": true,\n    \"no_dramatic_lighting\"\
+  : true,\n    \"no_color_grading\": true\n  },\n  \"iteration_instruction\": {\n\
+  \    \"compare_to_reference\": true,\n    \"fix_geometry_first\": true,\n    \"\
+  then_fix_composition\": true,\n    \"then_fix_lighting\": true,\n    \"then_fix_color\"\
+  : true,\n    \"ignore_aesthetic_improvements\": true\n  },\n  \"negative_prompt\"\
+  : [\n    \"creative\",\n    \"cinematic\",\n    \"artistic\",\n    \"stylized\"\
+  ,\n    \"illustration (different from reference)\",\n    \"abstract\",\n    \"dramatic\"\
+  ,\n    \"wide-angle\",\n    \"fisheye\",\n    \"exaggeration\",\n    \"reinterpretation\"\
+  ,\n    \"extra elements\",\n    \"modernized\",\n    \"retro look (different from\
+  \ reference)\",\n    \"color grading\",\n    \"AI artifacts\",\n    \"blur\",\n\
+  \    \"depth of field\"\n  ]\n}"

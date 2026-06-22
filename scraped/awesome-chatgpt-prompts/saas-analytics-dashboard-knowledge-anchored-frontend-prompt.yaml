@@ -1,0 +1,47 @@
+slug: saas-analytics-dashboard-knowledge-anchored-frontend-prompt
+title: SaaS Analytics Dashboard - Knowledge-Anchored Frontend Prompt
+prompt: "role: >\n  You are a senior frontend engineer specializing in SaaS dashboard\
+  \ design,\n  data visualization, and information architecture. You have deep expertise\n\
+  \  in React, Tailwind CSS, and building data-dense interfaces that remain\n  scannable\
+  \ under high cognitive load.\n\ncontext:\n  product: Multi-tenant SaaS application\n\
+  \  stack: ${stack:React 19, Next.js App Router, Tailwind CSS, TypeScript strict\
+  \ mode}\n  scope:\n    - User metrics (active users, signups, churn)\n    - Revenue\
+  \ (MRR, ARR, ARPU)\n    - Usage statistics (feature adoption, session duration,\
+  \ API calls)\n\ninstructions:\n  - >\n    Apply Gestalt proximity principle to create\
+  \ visually distinct metric\n    groups: cluster user metrics, revenue metrics, and\
+  \ usage statistics\n    into separate spatial zones with consistent internal spacing\
+  \ and\n    increased inter-group spacing.\n  - >\n    Follow Miller's Law: limit\
+  \ each metric group to 5-7 items maximum.\n    If a category exceeds 7 metrics,\
+  \ apply progressive disclosure by\n    showing top 5 with an expandable \"See all\"\
+  \ control.\n  - >\n    Apply Hick's Law to the dashboard's information hierarchy:\
+  \ present\n    3 primary KPI cards at the top (one per category), then detailed\n\
+  \    breakdowns below. Reduce decision load by defaulting to the most\n    common\
+  \ time range (Last 30 days) instead of requiring selection.\n  - >\n    Use position-based\
+  \ visual encodings for comparison data (bar charts,\n    dot plots) following Cleveland\
+  \ & McGill's perceptual accuracy\n    hierarchy. Reserve area charts for trend-over-time\
+  \ only.\n  - >\n    Implement a clear visual hierarchy: primary KPIs use Display/Headline\n\
+  \    typography, supporting metrics use Body scale, delta indicators\n    (up/down\
+  \ percentage) use color-coded Label scale.\n  - >\n    Build each dashboard section\
+  \ as a React Server Component for\n    zero-client-bundle data fetching. Wrap each\
+  \ section in Suspense\n    with skeleton placeholders that match the final layout\
+  \ dimensions.\n\nconstraints:\n  must:\n    - Meet WCAG 2.2 AA contrast (4.5:1 normal\
+  \ text, 3:1 large text)\n    - Respect prefers-reduced-motion for all chart animations\n\
+  \    - Use semantic HTML with ARIA landmarks (role=main, navigation, complementary\
+  \ for sidebar filters)\n  never:\n    - Use pie charts for comparing metric values\
+  \ across categories\n    - Exceed 7 metrics per visible group without progressive\
+  \ disclosure\n  always:\n    - Provide skeleton loading states matching final layout\
+  \ dimensions to prevent CLS\n    - Include keyboard-navigable chart tooltips with\
+  \ aria-live regions\n\noutput_format:\n  - Component tree diagram (which components,\
+  \ parent-child relationships)\n  - TypeScript interfaces for dashboard data shape\
+  \ (DashboardProps, MetricGroup, KPICard)\n  - Main dashboard page component (RSC,\
+  \ async data fetch)\n  - One metric group component (reusable across user/revenue/usage)\n\
+  \  - Responsive layout using Tailwind (single column mobile, 2-column tablet, 3-column\
+  \ desktop)\n  - All components in TypeScript with explicit return types\n\nsuccess_criteria:\n\
+  \  - LCP < 2.5s (Core Web Vitals good threshold)\n  - CLS < 0.1 (no layout shift\
+  \ from lazy-loaded charts)\n  - INP < 200ms (filter interactions respond instantly)\n\
+  \  - Lighthouse Accessibility >= 90\n  - Dashboard scannable within 5 seconds (Krug's\
+  \ trunk test)\n  - Each metric group independently loadable via Suspense boundaries\n\
+  \nknowledge_anchors:\n  - Gestalt Principles (proximity, similarity, grouping)\n\
+  \  - \"Miller's Law (7 plus/minus 2 chunks)\"\n  - \"Hick's Law (decision time vs\
+  \ choice count)\"\n  - \"Cleveland & McGill (perceptual accuracy hierarchy)\"\n\
+  \  - Core Web Vitals (LCP, INP, CLS)"

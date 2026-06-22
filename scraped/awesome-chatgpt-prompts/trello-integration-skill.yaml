@@ -1,0 +1,79 @@
+slug: trello-integration-skill
+title: trello-integration-skill
+prompt: "---\nname: trello-integration-skill\ndescription: This skill allows you to\
+  \ interact with Trello account to list boards, view lists, and create cards automatically.\n\
+  ---\n\n# Trello Integration Skill\n\nThe Trello Integration Skill provides a seamless\
+  \ connection between the AI agent and the user's Trello account. It empowers the\
+  \ agent to autonomously fetch existing boards and lists, and create new task cards\
+  \ on specific boards based on user prompts.\n\n## Features\n- **Fetch Boards**:\
+  \ Retrieve a list of all Trello boards the user has access to, including their Name,\
+  \ ID, and URL.\n- **Fetch Lists**: Retrieve all lists (columns like \"To Do\", \"\
+  In Progress\", \"Done\") belonging to a specific board.\n- **Create Cards**: Automatically\
+  \ create new cards with titles and descriptions in designated lists.\n\n---\n\n\
+  ##  Setup & Prerequisites\n\nTo use this skill locally, you need to provide your\
+  \ Trello Developer API credentials.\n\n1. Generate your credentials at the [Trello\
+  \ Developer Portal (Power-Ups Admin)](https://trello.com/app-key).\n2. Create an\
+  \ API Key.\n3. Generate a Secret Token (Read/Write access).\n4. Add these credentials\
+  \ to the project's root `.env` file:\n\n```env\n# Trello Integration\nTRELLO_API_KEY=your_api_key_here\n\
+  TRELLO_TOKEN=your_token_here\n```\n\n---\n\n##  Usage & Architecture\n\nThe skill\
+  \ utilizes standalone Node.js scripts located in the `.agent/skills/trello_skill/scripts/`\
+  \ directory.\n\n### 1. List All Boards\nFetches all boards for the authenticated\
+  \ user to determine the correct target `boardId`.\n\n**Execution:**\n```bash\nnode\
+  \ .agent/skills/trello_skill/scripts/list_boards.js\n```\n\n### 2. List Columns\
+  \ (Lists) in a Board\nFetches the lists inside a specific board to find the exact\
+  \ `listId` (e.g., retrieving the ID for the \"To Do\" column).\n\n**Execution:**\n\
+  ```bash\nnode .agent/skills/trello_skill/scripts/list_lists.js <boardId>\n```\n\n\
+  ### 3. Create a New Card\nPushes a new card to the specified list. \n\n**Execution:**\n\
+  ```bash\nnode .agent/skills/trello_skill/scripts/create_card.js <listId> \"<Card\
+  \ Title>\" \"<Optional Description>\"\n```\n*(Always wrap the card title and description\
+  \ in double quotes to prevent bash argument splitting).*\n\n---\n\n##  AI Agent\
+  \ Workflow\n\nWhen the user requests to manage or add a task to Trello, follow these\
+  \ steps autonomously:\n1. **Identify the Target**: If the target `listId` is unknown,\
+  \ first run `list_boards.js` to identify the correct `boardId`, then execute `list_lists.js\
+  \ <boardId>` to retrieve the corresponding `listId` (e.g., for \"To Do\").\n2. **Execute\
+  \ Command**: Run the `create_card.js <listId> \"Task Title\" \"Task Description\"\
+  ` script.\n3. **Report Back**: Confirm the successful creation with the user and\
+  \ provide the direct URL to the newly created Trello card.\n\x1FFILE:create_card.js\x1E\
+  \nconst path = require('path');\nrequire('dotenv').config({ path: path.join(__dirname,\
+  \ '../../../../.env') });\n\nconst API_KEY = process.env.TRELLO_API_KEY;\nconst\
+  \ TOKEN = process.env.TRELLO_TOKEN;\n\nif (!API_KEY || !TOKEN) {\n    console.error(\"\
+  Error: TRELLO_API_KEY or TRELLO_TOKEN is missing from the .env file.\");\n    process.exit(1);\n\
+  }\n\nconst listId = process.argv[2];\nconst cardName = process.argv[3];\nconst cardDesc\
+  \ = process.argv[4] || \"\";\n\nif (!listId || !cardName) {\n    console.error(`Usage:\
+  \ node create_card.js <listId> \"${card_name}\" [\"${card_description}\"]`);\n \
+  \   process.exit(1);\n}\n\nasync function createCard() {\n    const url = `https://api.trello.com/1/cards?idList=${listId}&key=${API_KEY}&token=${TOKEN}`;\n\
+  \n    try {\n        const response = await fetch(url, {\n            method: 'POST',\n\
+  \            headers: {\n                'Accept': 'application/json',\n       \
+  \         'Content-Type': 'application/json'\n            },\n            body:\
+  \ JSON.stringify({\n                name: cardName,\n                desc: cardDesc,\n\
+  \                pos: 'top'\n            })\n        });\n\n        if (!response.ok)\
+  \ {\n            const errText = await response.text();\n            throw new Error(`HTTP\
+  \ error! status: ${response.status}, message: ${errText}`);\n        }\n       \
+  \ const card = await response.json();\n        console.log(`Successfully created\
+  \ card!`);\n        console.log(`Name: ${card.name}`);\n        console.log(`ID:\
+  \ ${card.id}`);\n        console.log(`URL: ${card.url}`);\n    } catch (error) {\n\
+  \        console.error(\"Failed to create card:\", error.message);\n    }\n}\n\n\
+  createCard();\n\x1FFILE:list_board.js\x1E\nconst path = require('path');\nrequire('dotenv').config({\
+  \ path: path.join(__dirname, '../../../../.env') });\n\nconst API_KEY = process.env.TRELLO_API_KEY;\n\
+  const TOKEN = process.env.TRELLO_TOKEN;\n\nif (!API_KEY || !TOKEN) {\n    console.error(\"\
+  Error: TRELLO_API_KEY or TRELLO_TOKEN is missing from the .env file.\");\n    process.exit(1);\n\
+  }\n\nasync function listBoards() {\n    const url = `https://api.trello.com/1/members/me/boards?key=${API_KEY}&token=${TOKEN}&fields=name,url`;\n\
+  \    try {\n        const response = await fetch(url);\n        if (!response.ok)\
+  \ throw new Error(`HTTP error! status: ${response.status}`);\n        const boards\
+  \ = await response.json();\n        console.log(\"--- Your Trello Boards ---\");\n\
+  \        boards.forEach(b => console.log(`Name: ${b.name}\\nID: ${b.id}\\nURL: ${b.url}\\\
+  n`));\n    } catch (error) {\n        console.error(\"Failed to fetch boards:\"\
+  , error.message);\n    }\n}\n\nlistBoards();\n\x1FFILE:list_lists.js\x1E\nconst\
+  \ path = require('path');\nrequire('dotenv').config({ path: path.join(__dirname,\
+  \ '../../../../.env') });\n\nconst API_KEY = process.env.TRELLO_API_KEY;\nconst\
+  \ TOKEN = process.env.TRELLO_TOKEN;\n\nif (!API_KEY || !TOKEN) {\n    console.error(\"\
+  Error: TRELLO_API_KEY or TRELLO_TOKEN is missing from the .env file.\");\n    process.exit(1);\n\
+  }\n\nconst boardId = process.argv[2];\nif (!boardId) {\n    console.error(\"Usage:\
+  \ node list_lists.js <boardId>\");\n    process.exit(1);\n}\n\nasync function listLists()\
+  \ {\n    const url = `https://api.trello.com/1/boards/${boardId}/lists?key=${API_KEY}&token=${TOKEN}&fields=name`;\n\
+  \    try {\n        const response = await fetch(url);\n        if (!response.ok)\
+  \ throw new Error(`HTTP error! status: ${response.status}`);\n        const lists\
+  \ = await response.json();\n        console.log(`--- Lists in Board ${boardId} ---`);\n\
+  \        lists.forEach(l => console.log(`Name: \"${l.name}\"\\nID: ${l.id}\\n`));\n\
+  \    } catch (error) {\n        console.error(\"Failed to fetch lists:\", error.message);\n\
+  \    }\n}\n\nlistLists();"
