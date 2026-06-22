@@ -123,17 +123,17 @@ make all           # Run everything
 | Metric | Count |
 |--------|-------|
 | Direct prompts (in `prompts/`) | 3 |
-| Configured sources | 2 |
-| Scraped prompts (total) | 0 |
+| Configured sources | 4 |
+| Scraped prompts (total) | 100 |
 
 ### Configured Sources
 
 | Source | URL | Format | Scraped |
 |--------|-----|--------|---------|
 | Awesome ChatGPT Prompts | [https://github.com/f/awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts) | csv | 0 |
-| Leaked System Prompts | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 0 |
-
-
+| Leaked System Prompts | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 100 |
+| Prompts Chat | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 0 |
+| AI Boost Awesome Prompts | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | md | 0 |
 ## License
 
 MIT
