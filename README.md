@@ -130,10 +130,10 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 2348 |
+| Unified prompts (in `dist/prompts.json`) | 2349 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 2353 |
+| Scraped prompts cached in `scraped/` | 2354 |
 
 ### Configured Sources
 
@@ -142,12 +142,12 @@ make all           # Run validation, tests, build, and README update
 | Local Prompts | local | `prompts/` | - | 3 |
 | Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 1891 |
 | Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
-| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 299 |
+| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 300 |
 
 ### Scraped Prompts
 
 <details>
-<summary><strong>Ai Boost Awesome Prompts</strong> (299 prompts)</summary>
+<summary><strong>Ai Boost Awesome Prompts</strong> (300 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -164,24 +164,24 @@ make all           # Run validation, tests, build, and README update
 | 11 | Agent Context Efficiency Engineer | Agent Context Efficiency Engineer Source: mksglu/context-mo… |
 | 12 | Agent Cooperation Designer | Agent Cooperation Designer Sources: Competition and Coopera… |
 | 13 | Agent Cost Observability Architect | Agent Cost Observability Architect Source: getagentseal/cod… |
-| 14 | Agent Eval Designer | Agent Eval Designer Sources: Anthropic Demystifying Evals f… |
-| 15 | Agent First Language Architect | Agent-First Language Architect Source: vercel-labs/zerolang… |
-| 16 | Agent Governance Orchestrator | Agent Governance Orchestrator Sources: The Orchestration of… |
-| 17 | Agent Harness Designer | Agent Harness Designer Sources: OpenAI Harness Engineering … |
-| 18 | Agent Harness Performance Engineer | Agent Harness Performance Engineer Source: affaan-m/everyth… |
-| 19 | Agent Memory Architect | Agent Memory Architect Sources: AgeMem: Unified Long- and S… |
-| 20 | Agent Permission Auto Mode Architect | Agent Permission Auto-Mode Architect Sources: Anthropic — C… |
-| 21 | Agent Powered Vulnerability Scanner Arc… | Agent-Powered Vulnerability Scanner Architect Sources: verc… |
-| 22 | Agent Protocol Advisor | Agent Protocol Advisor Sources: Google Developer's Guide to… |
-| 23 | Agent Red Team Architect | Agent Red Team Architect Sources: The Promptware Kill Chain… |
-| 24 | Agent Reliability Engineer | Agent Reliability Engineer Sources: Towards a Science of AI… |
-| 25 | Agent Skill Designer | Agent Skill Designer Sources: Anthropic Agent Skills Docs (… |
-| 26 | Agent Skill Optimizer Architect | Agent Skill Optimizer Architect Source: microsoft/SkillOpt … |
-| 27 | Agent Skill Supply Chain Auditor | Agent Skill Supply-Chain Security Auditor Sources: Supply-C… |
-| 28 | Agent State Hygiene Architect | Agent State Hygiene Architect Source: vibeforge1111/keep-co… |
-| 29 | Agent Style Enforcer | Agent Style Enforcer — Literature-Backed Technical-Prose Ru… |
-| 30 | Agent Tool Engineer | Agent Tool Engineer Sources: Anthropic — Writing effective … |
-| … | *+269 more* | See `scraped/ai-boost-awesome-prompts/` |
+| 14 | Agent Environment Engineering Architect | Agent Environment Engineering Architect Sources: "EurekAgen… |
+| 15 | Agent Eval Designer | Agent Eval Designer Sources: Anthropic Demystifying Evals f… |
+| 16 | Agent First Language Architect | Agent-First Language Architect Source: vercel-labs/zerolang… |
+| 17 | Agent Governance Orchestrator | Agent Governance Orchestrator Sources: The Orchestration of… |
+| 18 | Agent Harness Designer | Agent Harness Designer Sources: OpenAI Harness Engineering … |
+| 19 | Agent Harness Performance Engineer | Agent Harness Performance Engineer Source: affaan-m/everyth… |
+| 20 | Agent Memory Architect | Agent Memory Architect Sources: AgeMem: Unified Long- and S… |
+| 21 | Agent Permission Auto Mode Architect | Agent Permission Auto-Mode Architect Sources: Anthropic — C… |
+| 22 | Agent Powered Vulnerability Scanner Arc… | Agent-Powered Vulnerability Scanner Architect Sources: verc… |
+| 23 | Agent Protocol Advisor | Agent Protocol Advisor Sources: Google Developer's Guide to… |
+| 24 | Agent Red Team Architect | Agent Red Team Architect Sources: The Promptware Kill Chain… |
+| 25 | Agent Reliability Engineer | Agent Reliability Engineer Sources: Towards a Science of AI… |
+| 26 | Agent Skill Designer | Agent Skill Designer Sources: Anthropic Agent Skills Docs (… |
+| 27 | Agent Skill Optimizer Architect | Agent Skill Optimizer Architect Source: microsoft/SkillOpt … |
+| 28 | Agent Skill Supply Chain Auditor | Agent Skill Supply-Chain Security Auditor Sources: Supply-C… |
+| 29 | Agent State Hygiene Architect | Agent State Hygiene Architect Source: vibeforge1111/keep-co… |
+| 30 | Agent Style Enforcer | Agent Style Enforcer — Literature-Backed Technical-Prose Ru… |
+| … | *+270 more* | See `scraped/ai-boost-awesome-prompts/` |
 
 </details>
 
