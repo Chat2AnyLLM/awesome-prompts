@@ -130,10 +130,10 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 2349 |
+| Unified prompts (in `dist/prompts.json`) | 2350 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 2354 |
+| Scraped prompts cached in `scraped/` | 2355 |
 
 ### Configured Sources
 
@@ -142,12 +142,12 @@ make all           # Run validation, tests, build, and README update
 | Local Prompts | local | `prompts/` | - | 3 |
 | Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 1891 |
 | Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
-| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 300 |
+| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 301 |
 
 ### Scraped Prompts
 
 <details>
-<summary><strong>Ai Boost Awesome Prompts</strong> (300 prompts)</summary>
+<summary><strong>Ai Boost Awesome Prompts</strong> (301 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -181,7 +181,7 @@ make all           # Run validation, tests, build, and README update
 | 28 | Agent Skill Supply Chain Auditor | Agent Skill Supply-Chain Security Auditor Sources: Supply-C… |
 | 29 | Agent State Hygiene Architect | Agent State Hygiene Architect Source: vibeforge1111/keep-co… |
 | 30 | Agent Style Enforcer | Agent Style Enforcer — Literature-Backed Technical-Prose Ru… |
-| … | *+270 more* | See `scraped/ai-boost-awesome-prompts/` |
+| … | *+271 more* | See `scraped/ai-boost-awesome-prompts/` |
 
 </details>
 
