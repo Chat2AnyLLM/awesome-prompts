@@ -1,45 +1,13 @@
 slug: echoes-of-the-rust-age
 title: Echoes of the Rust Age
 description: Imported from Prompts Chat
-prompt: "{\n  \"title\": \"Echoes of the Rust Age\",\n  \"description\": \"Two survivors\
-  \ navigate a treacherous landscape composed entirely of discarded technology and\
-  \ rusted metal.\",\n  \"prompt\": \"You will perform an image edit using the people\
-  \ from the provided photos as the main subjects. Preserve their core likeness. Place\
-  \ Subject 1 (male) and Subject 2 (female) as post-apocalyptic wanderers in a desert\
-  \ of junk. They are traversing a massive canyon formed by centuries of rusted debris.\
-  \ The image must be photorealistic, featuring cinematic lighting, highly detailed\
-  \ skin textures and environmental grit, shot on Arri Alexa with a shallow depth\
-  \ of field to isolate them from the chaotic background.\",\n  \"details\": {\n \
-  \   \"year\": \"2189 (The Rust Era)\",\n    \"genre\": \"Cinematic Photorealism\"\
-  ,\n    \"location\": \"A sprawling canyon formed not by rock, but by towering piles\
-  \ of rusted shipping containers, ancient vehicles, and tangled rebar, all half-buried\
-  \ in orange sand.\",\n    \"lighting\": [\n      \"Harsh, directional desert sunlight\"\
-  ,\n      \"High contrast shadows\",\n      \"Golden hour rim lighting on metal surfaces\"\
-  \n    ],\n    \"camera_angle\": \"Low-angle medium close-up, emphasizing the scale\
-  \ of the junk piles behind them.\",\n    \"emotion\": [\n      \"Weary\",\n    \
-  \  \"Resilient\",\n      \"Focused\"\n    ],\n    \"color_palette\": [\n      \"\
-  Rust orange\",\n      \"Metallic grey\",\n      \"Dusty beige\",\n      \"Scorched\
-  \ black\",\n      \"Faded denim blue\"\n    ],\n    \"atmosphere\": [\n      \"\
-  Arid\",\n      \"Desolate\",\n      \"Gritty\",\n      \"Heat-hazed\"\n    ],\n\
-  \    \"environmental_elements\": \"Tumbleweeds made of wire, shimmering heat haze\
-  \ distorting the background, fine sand blowing in the wind.\",\n    \"subject1\"\
-  : {\n      \"costume\": \"Patchwork leather vest, welding goggles around neck, grease-stained\
-  \ tactical pants, heavy boots.\",\n      \"subject_expression\": \"Squinting against\
-  \ the sun, gritted teeth showing exertion.\",\n      \"subject_action\": \"Hauling\
-  \ a heavy, salvaged turbine engine part over his shoulder.\"\n    },\n    \"negative_prompt\"\
-  : {\n      \"exclude_visuals\": [\n        \"clean clothing\",\n        \"water\"\
-  ,\n        \"vegetation\",\n        \"lush forests\",\n        \"blue sky\",\n \
-  \       \"paved roads\",\n        \"luxury items\"\n      ],\n      \"exclude_styles\"\
-  : [\n        \"cartoon\",\n        \"3d render\",\n        \"illustration\",\n \
-  \       \"sketch\",\n        \"low resolution\",\n        \"blurry\"\n      ],\n\
-  \      \"exclude_colors\": [\n        \"neon green\",\n        \"saturated purple\"\
-  ,\n        \"clean white\"\n      ],\n      \"exclude_objects\": [\n        \"cars\
-  \ in good condition\",\n        \"modern smartphones\",\n        \"plastic\"\n \
-  \     ]\n    },\n    \"subject2\": {\n      \"costume\": \"Layers of desert linen\
-  \ wraps, makeshift shoulder armor made from a rusted license plate, fingerless gloves.\"\
-  ,\n      \"subject_expression\": \"Alert and scanning the horizon, eyes wide with\
-  \ intense focus.\",\n      \"subject_action\": \"Pointing towards a distant gap\
-  \ in the scrap heaps, signaling a safe path forward.\"\n    }\n  }\n}"
+prompt: You will perform an image edit using the people from the provided photos as
+  the main subjects. Preserve their core likeness. Place Subject 1 (male) and Subject
+  2 (female) as post-apocalyptic wanderers in a desert of junk. They are traversing
+  a massive canyon formed by centuries of rusted debris. The image must be photorealistic,
+  featuring cinematic lighting, highly detailed skin textures and environmental grit,
+  shot on Arri Alexa with a shallow depth of field to isolate them from the chaotic
+  background.
 tags:
 - imported
 category: analysis
