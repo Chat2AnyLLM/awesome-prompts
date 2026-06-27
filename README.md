@@ -130,10 +130,10 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 2367 |
+| Unified prompts (in `dist/prompts.json`) | 2366 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 2372 |
+| Scraped prompts cached in `scraped/` | 2371 |
 
 ### Configured Sources
 
@@ -141,7 +141,7 @@ make all           # Run validation, tests, build, and README update
 |--------|------|----------|--------|--------|
 | Local Prompts | local | `prompts/` | - | 3 |
 | Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 1905 |
-| Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
+| Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 162 |
 | AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 304 |
 
 ### Scraped Prompts
@@ -186,7 +186,7 @@ make all           # Run validation, tests, build, and README update
 </details>
 
 <details>
-<summary><strong>Leaked System Prompts</strong> (163 prompts)</summary>
+<summary><strong>Leaked System Prompts</strong> (162 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -220,7 +220,7 @@ make all           # Run validation, tests, build, and README update
 | 28 | Anthropic Claude Sonnet 3.7 20250224 | # anthropic-claude-sonnet-3.7_20250224  source: <https://x.… |
 | 29 | Anthropic Claude Sonnet 3.7 20250516 | # anthropic-claude-sonnet-3.7_20250516  source: <https://gi… |
 | 30 | Anthropic Claude Sonnet 4 20250522 | # anthropic-claude-sonnet-4_20250522  source: <https://docs… |
-| … | *+133 more* | See `scraped/leaked-system-prompts/` |
+| … | *+132 more* | See `scraped/leaked-system-prompts/` |
 
 </details>
 
