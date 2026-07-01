@@ -130,10 +130,10 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 2386 |
+| Unified prompts (in `dist/prompts.json`) | 2387 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 2391 |
+| Scraped prompts cached in `scraped/` | 2392 |
 
 ### Configured Sources
 
@@ -142,12 +142,12 @@ make all           # Run validation, tests, build, and README update
 | Local Prompts | local | `prompts/` | - | 3 |
 | Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 1917 |
 | Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
-| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 311 |
+| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 312 |
 
 ### Scraped Prompts
 
 <details>
-<summary><strong>Ai Boost Awesome Prompts</strong> (311 prompts)</summary>
+<summary><strong>Ai Boost Awesome Prompts</strong> (312 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -181,7 +181,7 @@ make all           # Run validation, tests, build, and README update
 | 28 | Agent Reliability Engineer | Agent Reliability Engineer Sources: Towards a Science of AI… |
 | 29 | Agent Skill Compositional Risk Auditor | Agent Skill Compositional Risk Auditor Sources: When Safe S… |
 | 30 | Agent Skill Designer | Agent Skill Designer Sources: Anthropic Agent Skills Docs (… |
-| … | *+281 more* | See `scraped/ai-boost-awesome-prompts/` |
+| … | *+282 more* | See `scraped/ai-boost-awesome-prompts/` |
 
 </details>
 
