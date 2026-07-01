@@ -130,10 +130,10 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 2382 |
+| Unified prompts (in `dist/prompts.json`) | 2383 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 2387 |
+| Scraped prompts cached in `scraped/` | 2388 |
 
 ### Configured Sources
 
@@ -142,12 +142,12 @@ make all           # Run validation, tests, build, and README update
 | Local Prompts | local | `prompts/` | - | 3 |
 | Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 1914 |
 | Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
-| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 310 |
+| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 311 |
 
 ### Scraped Prompts
 
 <details>
-<summary><strong>Ai Boost Awesome Prompts</strong> (310 prompts)</summary>
+<summary><strong>Ai Boost Awesome Prompts</strong> (311 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -173,15 +173,15 @@ make all           # Run validation, tests, build, and README update
 | 20 | Agent Harness Designer | Agent Harness Designer Sources: OpenAI Harness Engineering … |
 | 21 | Agent Harness Performance Engineer | Agent Harness Performance Engineer Source: affaan-m/everyth… |
 | 22 | Agent Memory Architect | Agent Memory Architect Sources: AgeMem: Unified Long- and S… |
-| 23 | Agent Permission Auto Mode Architect | Agent Permission Auto-Mode Architect Sources: Anthropic — C… |
-| 24 | Agent Powered Vulnerability Scanner Arc… | Agent-Powered Vulnerability Scanner Architect Sources: verc… |
-| 25 | Agent Protocol Advisor | Agent Protocol Advisor Sources: Google Developer's Guide to… |
-| 26 | Agent Red Team Architect | Agent Red Team Architect Sources: The Promptware Kill Chain… |
-| 27 | Agent Reliability Engineer | Agent Reliability Engineer Sources: Towards a Science of AI… |
-| 28 | Agent Skill Compositional Risk Auditor | Agent Skill Compositional Risk Auditor Sources: When Safe S… |
-| 29 | Agent Skill Designer | Agent Skill Designer Sources: Anthropic Agent Skills Docs (… |
-| 30 | Agent Skill Effectiveness Auditor | Agent Skill Effectiveness Auditor Source: SWE-Skills-Bench:… |
-| … | *+280 more* | See `scraped/ai-boost-awesome-prompts/` |
+| 23 | Agent Native Memory System Architect | Agent-Native Memory System Architect Source: "Are We Ready … |
+| 24 | Agent Permission Auto Mode Architect | Agent Permission Auto-Mode Architect Sources: Anthropic — C… |
+| 25 | Agent Powered Vulnerability Scanner Arc… | Agent-Powered Vulnerability Scanner Architect Sources: verc… |
+| 26 | Agent Protocol Advisor | Agent Protocol Advisor Sources: Google Developer's Guide to… |
+| 27 | Agent Red Team Architect | Agent Red Team Architect Sources: The Promptware Kill Chain… |
+| 28 | Agent Reliability Engineer | Agent Reliability Engineer Sources: Towards a Science of AI… |
+| 29 | Agent Skill Compositional Risk Auditor | Agent Skill Compositional Risk Auditor Sources: When Safe S… |
+| 30 | Agent Skill Designer | Agent Skill Designer Sources: Anthropic Agent Skills Docs (… |
+| … | *+281 more* | See `scraped/ai-boost-awesome-prompts/` |
 
 </details>
 
