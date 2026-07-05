@@ -130,17 +130,17 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 2405 |
+| Unified prompts (in `dist/prompts.json`) | 2437 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 2410 |
+| Scraped prompts cached in `scraped/` | 2442 |
 
 ### Configured Sources
 
 | Source | Type | Location | Format | Loaded |
 |--------|------|----------|--------|--------|
 | Local Prompts | local | `prompts/` | - | 3 |
-| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 1929 |
+| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 1961 |
 | Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
 | AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 318 |
 
@@ -225,41 +225,41 @@ make all           # Run validation, tests, build, and README update
 </details>
 
 <details>
-<summary><strong>Prompts Chat</strong> (1929 prompts)</summary>
+<summary><strong>Prompts Chat</strong> (1961 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
 | 1 | 12-Month AI and Computer Vision Roadmap… | {   "role": "AI and Computer Vision Specialist Coach",   "c… |
-| 2 | 1950s Diner Photo Transformation | {   "prompt": "You will perform an image edit using the per… |
-| 3 | 2026 Mobile Poster Creator | Act as a graphic design assistant. Your task is to create a… |
-| 4 | 2026 Size Neler getirecek | {   "task": "Photorealistic premium mystical 2026 astrology… |
-| 5 | 2046 Puzzle Game Challenge | Act as a game developer. You are tasked with creating a tex… |
-| 6 | 21st.dev component prompt | You are given a task to integrate an existing React compone… |
-| 7 | 30-Day Skill Mastery Challenge Prompt T… | # 30-Day Skill Mastery Challenge Prompt Template ## Goal St… |
-| 8 | 30 tweet Project | Act as a Senior Crypto Narrative Strategist & Rally.fun Alg… |
-| 9 | 3D Avatar Prompt | Use a user-uploaded image as the source and convert the per… |
-| 10 | 3D Cartoon Animation: Baby Bunny Advent… | Vertical 9:16, 3D cartoon-style animation of a cute baby bu… |
-| 11 | 3D Character Render In High-End Disney … | 3D character render in high-end Pixar Disney animation styl… |
-| 12 | 3D City Prompt | Hyper-realistic 3D square diorama of ${city_name:Istanbul},… |
-| 13 | 3D FACTORY | I NEED THIS FULLY INTEGRATED, IMPLEMENTED, ENFORCED, HARDEN… |
-| 14 | 3D FPS Game | Develop a first-person shooter game using Three.js and Java… |
-| 15 | 3D Isometric Miniature City View with W… | Present a clear, 45° top-down view of a vertical (9:16) iso… |
-| 16 | 3D Isometric Miniature Diorama | "When I give you a movie quote, never reply with text or a … |
-| 17 | 3D Kinetic Ball Simulation | I want you to act as an expert front-end game engineer spec… |
-| 18 | 3D Mechanical Part Image to Technical D… | {   "task": "image_to_image",   "input_image": "3d_render_o… |
-| 19 | 3D Medical Anatomy Model Render Prompt | {   "fixed_prompt_components": {     "composition": "Wide a… |
-| 20 | 3D Physics Sandbox Architect | I want you to act as a Senior WebGL Game Architect speciali… |
-| 21 | 3D Racing Game | Create an exciting 3D racing game using Three.js and JavaSc… |
-| 22 | 3D Space Explorer | Build an immersive 3D space exploration game using Three.js… |
-| 23 | 3D to 2D Floor Plan Converter | {   "task": "image_to_image",   "description": "Convert a f… |
-| 24 | 3x3 Grid Storyboarding from Photo | Act as a storyboard artist. You are skilled in visual story… |
-| 25 | 4 Optimized Versions of A Prompt (in Ar… | Act as a certified and expert AI prompt engineer  Analyze a… |
-| 26 | $500/Hour AI Consultant Prompt | You are Lyra, a master-level Al prompt optimization special… |
-| 27 | 5x2 Reverse Construction Process - Vill… | Act as an architectural visualization expert specialized in… |
-| 28 | 6-Panel Storyboard Mastery | Act as a storyboard artist. You are skilled in creating pre… |
-| 29 | 7v7 Football Team Generator App | Act as an Application Designer. You are tasked with creatin… |
-| 30 | A blonde woman in a dreamy | A blonde woman in a dreamy, ethereal photographic scene wit… |
-| … | *+1899 more* | See `scraped/prompts-chat/` |
+| 2 | 1337 | "Create a detailed efficiency guide for ${game_name}.  The … |
+| 3 | 1950s Diner Photo Transformation | {   "prompt": "You will perform an image edit using the per… |
+| 4 | 2026 Mobile Poster Creator | Act as a graphic design assistant. Your task is to create a… |
+| 5 | 2026 Size Neler getirecek | {   "task": "Photorealistic premium mystical 2026 astrology… |
+| 6 | 2046 Puzzle Game Challenge | Act as a game developer. You are tasked with creating a tex… |
+| 7 | 21st.dev component prompt | You are given a task to integrate an existing React compone… |
+| 8 | 30-Day Skill Mastery Challenge Prompt T… | # 30-Day Skill Mastery Challenge Prompt Template ## Goal St… |
+| 9 | 30 tweet Project | Act as a Senior Crypto Narrative Strategist & Rally.fun Alg… |
+| 10 | 3D Avatar Prompt | Use a user-uploaded image as the source and convert the per… |
+| 11 | 3D Cartoon Animation: Baby Bunny Advent… | Vertical 9:16, 3D cartoon-style animation of a cute baby bu… |
+| 12 | 3D Character Render In High-End Disney … | 3D character render in high-end Pixar Disney animation styl… |
+| 13 | 3D City Prompt | Hyper-realistic 3D square diorama of ${city_name:Istanbul},… |
+| 14 | 3D FACTORY | I NEED THIS FULLY INTEGRATED, IMPLEMENTED, ENFORCED, HARDEN… |
+| 15 | 3D FPS Game | Develop a first-person shooter game using Three.js and Java… |
+| 16 | 3D Isometric Miniature City View with W… | Present a clear, 45° top-down view of a vertical (9:16) iso… |
+| 17 | 3D Isometric Miniature Diorama | "When I give you a movie quote, never reply with text or a … |
+| 18 | 3D Kinetic Ball Simulation | I want you to act as an expert front-end game engineer spec… |
+| 19 | 3D Mechanical Part Image to Technical D… | {   "task": "image_to_image",   "input_image": "3d_render_o… |
+| 20 | 3D Medical Anatomy Model Render Prompt | {   "fixed_prompt_components": {     "composition": "Wide a… |
+| 21 | 3D Physics Sandbox Architect | I want you to act as a Senior WebGL Game Architect speciali… |
+| 22 | 3D Racing Game | Create an exciting 3D racing game using Three.js and JavaSc… |
+| 23 | 3D Space Explorer | Build an immersive 3D space exploration game using Three.js… |
+| 24 | 3D to 2D Floor Plan Converter | {   "task": "image_to_image",   "description": "Convert a f… |
+| 25 | 3x3 Grid Storyboarding from Photo | Act as a storyboard artist. You are skilled in visual story… |
+| 26 | 4 Optimized Versions of A Prompt (in Ar… | Act as a certified and expert AI prompt engineer  Analyze a… |
+| 27 | $500/Hour AI Consultant Prompt | You are Lyra, a master-level Al prompt optimization special… |
+| 28 | 5x2 Reverse Construction Process - Vill… | Act as an architectural visualization expert specialized in… |
+| 29 | 6-Panel Storyboard Mastery | Act as a storyboard artist. You are skilled in creating pre… |
+| 30 | 7v7 Football Team Generator App | Act as an Application Designer. You are tasked with creatin… |
+| … | *+1931 more* | See `scraped/prompts-chat/` |
 
 </details>
 ## License
