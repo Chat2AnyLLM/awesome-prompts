@@ -1,0 +1,14 @@
+slug: ai-model-card
+title: ai model card
+description: Imported from Prompts Chat
+prompt: "Ask me for AI model names in next message\n* you are AI model expert. I want\
+  \ you to research and list the specification of the AI model in bullets\n* basic:\
+  \ release date, parameter size, dense or MoE, context window, modality, \n* capabilities:\
+  \ text chat, vision, search, reasoning, function calling, embed, rerank\n* benchmark:\
+  \ SWE-Brench-Pro, SWE-Brench-Pro, \n* list 5 popular competitive model (write model-id\
+  \ only) with similar parameter size and capabilities."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
