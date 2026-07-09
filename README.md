@@ -130,10 +130,10 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 2318 |
+| Unified prompts (in `dist/prompts.json`) | 2406 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 2320 |
+| Scraped prompts cached in `scraped/` | 2411 |
 
 ### Configured Sources
 
@@ -141,86 +141,86 @@ make all           # Run validation, tests, build, and README update
 |--------|------|----------|--------|--------|
 | Local Prompts | local | `prompts/` | - | 3 |
 | Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 1974 |
-| Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 108 |
-| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 238 |
+| Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 152 |
+| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 285 |
 
 ### Scraped Prompts
 
 <details>
-<summary><strong>Ai Boost Awesome Prompts</strong> (238 prompts)</summary>
+<summary><strong>Ai Boost Awesome Prompts</strong> (285 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
 | 1 | 3D Generative Artist | Role You are a world-class 3D Generative Artist and Technic… |
-| 2 | A2A Agent Protocol Architect | A2A Agent Protocol Architect Sources: A2A Protocol specific… |
-| 3 | A2Ui Agent To User Interface Architect | A2UI Agent-to-User Interface Architect Sources: A2UI Protoc… |
-| 4 | Abstract Chain Of Thought Architect | Abstract Chain-of-Thought Architect Sources: "Thinking With… |
-| 5 | Academic Peer Reviewer | Role You are a Distinguished Academic Peer Reviewer with 20… |
-| 6 | Adaptive Learning Designer | Role You are a Senior Adaptive Learning Designer with 15+ y… |
-| 7 | Adhd Parallel Ideation Skill | --- name: adhd description: Parallel divergent ideation for… |
-| 8 | Adk Skilltoolset Designer | ADK SkillToolset Designer Sources: Google Developer's Guide… |
-| 9 | Agent Atlas Trajectory Auditor | AgentAtlas Trajectory Auditor Source: "AgentAtlas: Beyond O… |
-| 10 | Agent Context Efficiency Engineer | Agent Context Efficiency Engineer Source: mksglu/context-mo… |
-| 11 | Agent Cooperation Designer | Agent Cooperation Designer Sources: Competition and Coopera… |
-| 12 | Agent Environment Engineering Architect | Agent Environment Engineering Architect Sources: "EurekAgen… |
-| 13 | Agent First Language Architect | Agent-First Language Architect Source: vercel-labs/zerolang… |
-| 14 | Agent Governance Orchestrator | Agent Governance Orchestrator Sources: The Orchestration of… |
-| 15 | Agent Harness Performance Engineer | Agent Harness Performance Engineer Source: affaan-m/everyth… |
-| 16 | Agent Memory Architect | Agent Memory Architect Sources: AgeMem: Unified Long- and S… |
-| 17 | Agent Permission Auto Mode Architect | Agent Permission Auto-Mode Architect Sources: Anthropic — C… |
-| 18 | Agent Protocol Advisor | Agent Protocol Advisor Sources: Google Developer's Guide to… |
-| 19 | Agent Red Team Architect | Agent Red Team Architect Sources: The Promptware Kill Chain… |
-| 20 | Agent Reliability Engineer | Agent Reliability Engineer Sources: Towards a Science of AI… |
-| 21 | Agent Skill Compositional Risk Auditor | Agent Skill Compositional Risk Auditor Sources: When Safe S… |
-| 22 | Agent Skill Designer | Agent Skill Designer Sources: Anthropic Agent Skills Docs (… |
-| 23 | Agent Skill Effectiveness Auditor | Agent Skill Effectiveness Auditor Source: SWE-Skills-Bench:… |
-| 24 | Agent Skill Optimizer Architect | Agent Skill Optimizer Architect Source: microsoft/SkillOpt … |
-| 25 | Agent Skill Supply Chain Auditor | Agent Skill Supply-Chain Security Auditor Sources: Supply-C… |
-| 26 | Agent Style Enforcer | Agent Style Enforcer — Literature-Backed Technical-Prose Ru… |
-| 27 | Agent Tool Engineer | Agent Tool Engineer Sources: Anthropic — Writing effective … |
-| 28 | Agent Trajectory Triage Specialist | Agent Trajectory Triage Specialist Sources: Signals: Trajec… |
-| 29 | Agent Virtual Filesystem Architect | Agent Virtual Filesystem Architect Sources: strukto-ai/mira… |
-| 30 | Agent World Model Architect | Agent World Model Architect Sources: VLA-World: Vision-Lang… |
-| … | *+208 more* | See `scraped/ai-boost-awesome-prompts/` |
+| 2 | 5W3H Intent Architect | You are a 5W3H Structured Intent Architect. Your job is to … |
+| 3 | A2A Agent Protocol Architect | A2A Agent Protocol Architect Sources: A2A Protocol specific… |
+| 4 | A2Ui Agent To User Interface Architect | A2UI Agent-to-User Interface Architect Sources: A2UI Protoc… |
+| 5 | Academic Paper Architect | # Academic Paper Architect — Full-Spectrum Manuscript Orche… |
+| 6 | Academic Peer Reviewer | Role You are a Distinguished Academic Peer Reviewer with 20… |
+| 7 | Accessibility Auditor | # Accessibility Auditor # Source: msitarzewski/agency-agent… |
+| 8 | Adaptive Learning Designer | Role You are a Senior Adaptive Learning Designer with 15+ y… |
+| 9 | Adhd Parallel Ideation Skill | --- name: adhd description: Parallel divergent ideation for… |
+| 10 | Ag Ui Frontend Architect | AG-UI Frontend Integration Architect Sources: AG-UI Protoco… |
+| 11 | Agent Atlas Trajectory Auditor | AgentAtlas Trajectory Auditor Source: "AgentAtlas: Beyond O… |
+| 12 | Agent Context Efficiency Engineer | Agent Context Efficiency Engineer Source: mksglu/context-mo… |
+| 13 | Agent Cost Observability Architect | Agent Cost Observability Architect Source: getagentseal/cod… |
+| 14 | Agent Eval Designer | Agent Eval Designer Sources: Anthropic Demystifying Evals f… |
+| 15 | Agent First Language Architect | Agent-First Language Architect Source: vercel-labs/zerolang… |
+| 16 | Agent Governance Orchestrator | Agent Governance Orchestrator Sources: The Orchestration of… |
+| 17 | Agent Harness Designer | Agent Harness Designer Sources: OpenAI Harness Engineering … |
+| 18 | Agent Memory Architect | Agent Memory Architect Sources: AgeMem: Unified Long- and S… |
+| 19 | Agent Native Memory System Architect | Agent-Native Memory System Architect Source: "Are We Ready … |
+| 20 | Agent Permission Auto Mode Architect | Agent Permission Auto-Mode Architect Sources: Anthropic — C… |
+| 21 | Agent Powered Vulnerability Scanner Arc… | Agent-Powered Vulnerability Scanner Architect Sources: verc… |
+| 22 | Agent Protocol Advisor | Agent Protocol Advisor Sources: Google Developer's Guide to… |
+| 23 | Agent Red Team Architect | Agent Red Team Architect Sources: The Promptware Kill Chain… |
+| 24 | Agent Reliability Engineer | Agent Reliability Engineer Sources: Towards a Science of AI… |
+| 25 | Agent Skill Compositional Risk Auditor | Agent Skill Compositional Risk Auditor Sources: When Safe S… |
+| 26 | Agent Skill Designer | Agent Skill Designer Sources: Anthropic Agent Skills Docs (… |
+| 27 | Agent Skill Effectiveness Auditor | Agent Skill Effectiveness Auditor Source: SWE-Skills-Bench:… |
+| 28 | Agent Skill Optimizer Architect | Agent Skill Optimizer Architect Source: microsoft/SkillOpt … |
+| 29 | Agent Skill Supply Chain Auditor | Agent Skill Supply-Chain Security Auditor Sources: Supply-C… |
+| 30 | Agent Style Enforcer | Agent Style Enforcer — Literature-Backed Technical-Prose Ru… |
+| … | *+255 more* | See `scraped/ai-boost-awesome-prompts/` |
 
 </details>
 
 <details>
-<summary><strong>Leaked System Prompts</strong> (108 prompts)</summary>
+<summary><strong>Leaked System Prompts</strong> (152 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
-| 1 | Anthropic Claude 2.1 20240306 | # anthropic-claude_2.1_20240306  source: <https://twitter.c… |
-| 2 | Anthropic Claude Fable 5 20260609 | # anthropic-claude-fable-5_20260609  source: <https://githu… |
-| 3 | Anthropic Claude Haiku 3 20240712 | # anthropic-claude-haiku-3_20240712  source: <https://docs.… |
-| 4 | Anthropic Claude Haiku 4.5 20251015 | # anthropic-claude-haiku-4.5_20251015  source: <https://pla… |
-| 5 | Anthropic Claude Haiku 4.5 20251119 | # anthropic-claude-haiku-4.5_20251119  source: <https://pla… |
-| 6 | Anthropic Claude Opus 20240306 | # anthropic-claude-opus_20240306  source: <https://twitter.… |
-| 7 | Anthropic Claude Opus 3 20240712 | # anthropic-claude-opus-3_20240712  source: <https://docs.a… |
-| 8 | Anthropic Claude Opus 4.1 20250805 | # anthropic-claude-opus-4.1_20250805  source: <https://plat… |
-| 9 | Anthropic Claude Opus 4 20250522 | # anthropic-claude-opus-4_20250522  source: <https://docs.a… |
-| 10 | Anthropic Claude Opus 4 20250731 | # anthropic-claude-opus-4_20250731  source: <https://docs.a… |
-| 11 | Anthropic Claude Opus 4 20250805 | # anthropic-claude-opus-4_20250805  source: <https://platfo… |
-| 12 | Anthropic Claude Opus 4.5 Full 20251124 | # anthropic-claude-opus-4.5-full_20251124  source: <https:/… |
-| 13 | Anthropic Claude Opus 4.6 20260206 | # anthropic-claude-opus-4.6_20260206  source: <https://gith… |
-| 14 | Anthropic Claude Opus 4.7 20260416 | # anthropic-claude-opus-4.7_20260416  source: <https://gith… |
-| 15 | Anthropic Claude Sonnet 3 20240311 | # anthropic-claude-sonnet-3_20240311  source: <https://gith… |
-| 16 | Anthropic Claude Sonnet 3.5 20240712 | # anthropic-claude-sonnet-3.5_20240712  source: <https://do… |
-| 17 | Anthropic Claude Sonnet 3.5 20241022 | # anthropic-claude-sonnet-3.5_20241022  source: <https://do… |
-| 18 | Anthropic Claude Sonnet 3.7 20250224 | # anthropic-claude-sonnet-3.7_20250224  source: <https://x.… |
-| 19 | Anthropic Claude Sonnet 3.7 20250516 | # anthropic-claude-sonnet-3.7_20250516  source: <https://gi… |
-| 20 | Anthropic Claude Sonnet 4 20250522 | # anthropic-claude-sonnet-4_20250522  source: <https://docs… |
-| 21 | Anthropic Claude Sonnet 4 20250731 | # anthropic-claude-sonnet-4_20250731  source: <https://plat… |
-| 22 | Anthropic Claude Sonnet 4.5 20250929 | # anthropic-claude-sonnet-4.5_20250929  source: <https://pl… |
-| 23 | Anthropic Claude Sonnet 4.5 20251119 | # anthropic-claude-sonnet-4.5_20251119  source: <https://pl… |
-| 24 | Anthropic Claude Sonnet 4.5 20260128 | # anthropic-claude-sonnet-4.5_20260128  ## Q (User)  wrap t… |
-| 25 | Anthropic Claude Sonnet 4.5 Full 202509… | # anthropic-claude-sonnet-4.5-full_20250929  source: <https… |
-| 26 | Anthropic Claude User Styles 20250420 | # anthropic-claude-user-styles_20250420  source: <https://g… |
-| 27 | Brave Leo Ai 20250903 | # brave-leo-ai_20250903  source:  ![Image](https://github.c… |
-| 28 | Claude Code Output Style Explanatory 20… | # claude-code-output-style-explanatory_20251007  source: Ex… |
-| 29 | Claude Code Output Style Learning 20251… | # claude-code-output-style-learning_20251007  source: Extra… |
-| 30 | Claude In Chrome 20260328 | # claude-in-chrome_20260328  This content was obtained via … |
-| … | *+78 more* | See `scraped/leaked-system-prompts/` |
+| 1 | Anthropic Claude 2.0 20240306 | # anthropic-claude_2.0_20240306  source: <https://twitter.c… |
+| 2 | Anthropic Claude 2.1 20240306 | # anthropic-claude_2.1_20240306  source: <https://twitter.c… |
+| 3 | Anthropic Claude 4.1 20250806 | # anthropic-claude-4.1_20250806  source: <https://github.co… |
+| 4 | Anthropic Claude 4 20250522 | # anthropic-claude-4_20250522  source: <https://github.com/… |
+| 5 | Anthropic Claude Api Tool Use 20250119 | # anthropic-claude-api-tool-use_20250119  ## claude-3-5-son… |
+| 6 | Anthropic Claude Code 20250304 | # anthropic-claude-code_20250304  source: <https://github.c… |
+| 7 | Anthropic Claude Design 20260417 | # anthropic-claude-design_20260417  source: <https://github… |
+| 8 | Anthropic Claude Fable 5 20260609 | # anthropic-claude-fable-5_20260609  source: <https://githu… |
+| 9 | Anthropic Claude Haiku 3 20240712 | # anthropic-claude-haiku-3_20240712  source: <https://docs.… |
+| 10 | Anthropic Claude Haiku 4.5 20251015 | # anthropic-claude-haiku-4.5_20251015  source: <https://pla… |
+| 11 | Anthropic Claude Haiku 4.5 20251119 | # anthropic-claude-haiku-4.5_20251119  source: <https://pla… |
+| 12 | Anthropic Claude Opus 20240306 | # anthropic-claude-opus_20240306  source: <https://twitter.… |
+| 13 | Anthropic Claude Opus 3 20240712 | # anthropic-claude-opus-3_20240712  source: <https://docs.a… |
+| 14 | Anthropic Claude Opus 4.1 20250805 | # anthropic-claude-opus-4.1_20250805  source: <https://plat… |
+| 15 | Anthropic Claude Opus 4 20250522 | # anthropic-claude-opus-4_20250522  source: <https://docs.a… |
+| 16 | Anthropic Claude Opus 4 20250731 | # anthropic-claude-opus-4_20250731  source: <https://docs.a… |
+| 17 | Anthropic Claude Opus 4 20250805 | # anthropic-claude-opus-4_20250805  source: <https://platfo… |
+| 18 | Anthropic Claude Opus 4.5 20251124 | # anthropic-claude-opus-4.5_20251124  source: <https://plat… |
+| 19 | Anthropic Claude Opus 4.5 Full 20251124 | # anthropic-claude-opus-4.5-full_20251124  source: <https:/… |
+| 20 | Anthropic Claude Opus 4.6 20260206 | # anthropic-claude-opus-4.6_20260206  source: <https://gith… |
+| 21 | Anthropic Claude Opus 4.7 20260416 | # anthropic-claude-opus-4.7_20260416  source: <https://gith… |
+| 22 | Anthropic Claude Sonnet 3 20240306 | # anthropic-claude-sonnet-3_20240306  source: <https://twit… |
+| 23 | Anthropic Claude Sonnet 3 20240311 | # anthropic-claude-sonnet-3_20240311  source: <https://gith… |
+| 24 | Anthropic Claude Sonnet 3.5 20240909 | # anthropic-claude-sonnet-3.5_20240909  source: <https://do… |
+| 25 | Anthropic Claude Sonnet 3.5 20241122 | # anthropic-claude-sonnet-3.5_20241122  source: <https://do… |
+| 26 | Anthropic Claude Sonnet 3.7 20250224 | # anthropic-claude-sonnet-3.7_20250224  source: <https://x.… |
+| 27 | Anthropic Claude Sonnet 3.7 20250516 | # anthropic-claude-sonnet-3.7_20250516  source: <https://gi… |
+| 28 | Anthropic Claude Sonnet 4 20250522 | # anthropic-claude-sonnet-4_20250522  source: <https://docs… |
+| 29 | Anthropic Claude Sonnet 4 20250731 | # anthropic-claude-sonnet-4_20250731  source: <https://plat… |
+| 30 | Anthropic Claude Sonnet 4.5 20250929 | # anthropic-claude-sonnet-4.5_20250929  source: <https://pl… |
+| … | *+122 more* | See `scraped/leaked-system-prompts/` |
 
 </details>
 
