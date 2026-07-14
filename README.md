@@ -141,13 +141,13 @@ make all           # Run validation, tests, build, and README update
 |--------|------|----------|--------|--------|
 | Local Prompts | local | `prompts/` | - | 3 |
 | Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 2004 |
-| Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 162 |
-| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 332 |
+| Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
+| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 331 |
 
 ### Scraped Prompts
 
 <details>
-<summary><strong>Ai Boost Awesome Prompts</strong> (332 prompts)</summary>
+<summary><strong>Ai Boost Awesome Prompts</strong> (331 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -181,12 +181,12 @@ make all           # Run validation, tests, build, and README update
 | 28 | Agent Protocol Advisor | Agent Protocol Advisor Sources: Google Developer's Guide to… |
 | 29 | Agent Red Team Architect | Agent Red Team Architect Sources: The Promptware Kill Chain… |
 | 30 | Agent Reliability Engineer | Agent Reliability Engineer Sources: Towards a Science of AI… |
-| … | *+302 more* | See `scraped/ai-boost-awesome-prompts/` |
+| … | *+301 more* | See `scraped/ai-boost-awesome-prompts/` |
 
 </details>
 
 <details>
-<summary><strong>Leaked System Prompts</strong> (162 prompts)</summary>
+<summary><strong>Leaked System Prompts</strong> (163 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -220,7 +220,7 @@ make all           # Run validation, tests, build, and README update
 | 28 | Anthropic Claude Sonnet 3.7 20250224 | # anthropic-claude-sonnet-3.7_20250224  source: <https://x.… |
 | 29 | Anthropic Claude Sonnet 3.7 20250516 | # anthropic-claude-sonnet-3.7_20250516  source: <https://gi… |
 | 30 | Anthropic Claude Sonnet 4 20250522 | # anthropic-claude-sonnet-4_20250522  source: <https://docs… |
-| … | *+132 more* | See `scraped/leaked-system-prompts/` |
+| … | *+133 more* | See `scraped/leaked-system-prompts/` |
 
 </details>
 
