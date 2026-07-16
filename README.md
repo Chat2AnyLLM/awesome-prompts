@@ -130,10 +130,10 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 2180 |
+| Unified prompts (in `dist/prompts.json`) | 2508 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 2179 |
+| Scraped prompts cached in `scraped/` | 2513 |
 
 ### Configured Sources
 
@@ -142,9 +142,48 @@ make all           # Run validation, tests, build, and README update
 | Local Prompts | local | `prompts/` | - | 3 |
 | Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 2016 |
 | Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
-| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 0 |
+| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 334 |
 
 ### Scraped Prompts
+
+<details>
+<summary><strong>Ai Boost Awesome Prompts</strong> (334 prompts)</summary>
+
+| # | Title | Preview |
+|---|-------|---------|
+| 1 | 3D Generative Artist | Role You are a world-class 3D Generative Artist and Technic… |
+| 2 | 5W3H Intent Architect | You are a 5W3H Structured Intent Architect. Your job is to … |
+| 3 | A2A Agent Protocol Architect | A2A Agent Protocol Architect Sources: A2A Protocol specific… |
+| 4 | A2Ui Agent To User Interface Architect | A2UI Agent-to-User Interface Architect Sources: A2UI Protoc… |
+| 5 | Abstract Chain Of Thought Architect | Abstract Chain-of-Thought Architect Sources: "Thinking With… |
+| 6 | Academic Paper Architect | # Academic Paper Architect — Full-Spectrum Manuscript Orche… |
+| 7 | Academic Peer Reviewer | Role You are a Distinguished Academic Peer Reviewer with 20… |
+| 8 | Accessibility Auditor | # Accessibility Auditor # Source: msitarzewski/agency-agent… |
+| 9 | Adaptive Learning Designer | Role You are a Senior Adaptive Learning Designer with 15+ y… |
+| 10 | Adhd Parallel Ideation Skill | --- name: adhd description: Parallel divergent ideation for… |
+| 11 | Adk Skilltoolset Designer | ADK SkillToolset Designer Sources: Google Developer's Guide… |
+| 12 | Ag Ui Frontend Architect | AG-UI Frontend Integration Architect Sources: AG-UI Protoco… |
+| 13 | Agent Atlas Trajectory Auditor | AgentAtlas Trajectory Auditor Source: "AgentAtlas: Beyond O… |
+| 14 | Agent Context Efficiency Engineer | Agent Context Efficiency Engineer Source: mksglu/context-mo… |
+| 15 | Agent Cooperation Designer | Agent Cooperation Designer Sources: Competition and Coopera… |
+| 16 | Agent Cost Observability Architect | Agent Cost Observability Architect Source: getagentseal/cod… |
+| 17 | Agent Data Injection Attack Auditor | Agent Data Injection Attack Auditor Source: "Agent Data Inj… |
+| 18 | Agent Environment Engineering Architect | Agent Environment Engineering Architect Sources: "EurekAgen… |
+| 19 | Agent Eval Designer | Agent Eval Designer Sources: Anthropic Demystifying Evals f… |
+| 20 | Agent First Language Architect | Agent-First Language Architect Source: vercel-labs/zerolang… |
+| 21 | Agent Governance Orchestrator | Agent Governance Orchestrator Sources: The Orchestration of… |
+| 22 | Agent Harness Designer | Agent Harness Designer Sources: OpenAI Harness Engineering … |
+| 23 | Agent Harness Performance Engineer | Agent Harness Performance Engineer Source: affaan-m/everyth… |
+| 24 | Agent Memory Architect | Agent Memory Architect Sources: AgeMem: Unified Long- and S… |
+| 25 | Agent Native Memory System Architect | Agent-Native Memory System Architect Source: "Are We Ready … |
+| 26 | Agent Permission Auto Mode Architect | Agent Permission Auto-Mode Architect Sources: Anthropic — C… |
+| 27 | Agent Powered Vulnerability Scanner Arc… | Agent-Powered Vulnerability Scanner Architect Sources: verc… |
+| 28 | Agent Protocol Advisor | Agent Protocol Advisor Sources: Google Developer's Guide to… |
+| 29 | Agent Red Team Architect | Agent Red Team Architect Sources: The Promptware Kill Chain… |
+| 30 | Agent Reliability Engineer | Agent Reliability Engineer Sources: Towards a Science of AI… |
+| … | *+304 more* | See `scraped/ai-boost-awesome-prompts/` |
+
+</details>
 
 <details>
 <summary><strong>Leaked System Prompts</strong> (163 prompts)</summary>
