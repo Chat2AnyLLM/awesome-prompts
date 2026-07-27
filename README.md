@@ -130,24 +130,24 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 2543 |
+| Unified prompts (in `dist/prompts.json`) | 2547 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 2548 |
+| Scraped prompts cached in `scraped/` | 2552 |
 
 ### Configured Sources
 
 | Source | Type | Location | Format | Loaded |
 |--------|------|----------|--------|--------|
 | Local Prompts | local | `prompts/` | - | 3 |
-| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 2040 |
+| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 2043 |
 | Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
-| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 345 |
+| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 346 |
 
 ### Scraped Prompts
 
 <details>
-<summary><strong>Ai Boost Awesome Prompts</strong> (345 prompts)</summary>
+<summary><strong>Ai Boost Awesome Prompts</strong> (346 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -181,7 +181,7 @@ make all           # Run validation, tests, build, and README update
 | 28 | Agent Protocol Advisor | Agent Protocol Advisor Sources: Google Developer's Guide to… |
 | 29 | Agent Red Team Architect | Agent Red Team Architect Sources: The Promptware Kill Chain… |
 | 30 | Agent Reliability Engineer | Agent Reliability Engineer Sources: Towards a Science of AI… |
-| … | *+315 more* | See `scraped/ai-boost-awesome-prompts/` |
+| … | *+316 more* | See `scraped/ai-boost-awesome-prompts/` |
 
 </details>
 
@@ -225,7 +225,7 @@ make all           # Run validation, tests, build, and README update
 </details>
 
 <details>
-<summary><strong>Prompts Chat</strong> (2040 prompts)</summary>
+<summary><strong>Prompts Chat</strong> (2043 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -259,7 +259,7 @@ make all           # Run validation, tests, build, and README update
 | 28 | 5x2 Reverse Construction Process - Vill… | Act as an architectural visualization expert specialized in… |
 | 29 | 6-Panel Storyboard Mastery | Act as a storyboard artist. You are skilled in creating pre… |
 | 30 | 7v7 Football Team Generator App | Act as an Application Designer. You are tasked with creatin… |
-| … | *+2010 more* | See `scraped/prompts-chat/` |
+| … | *+2013 more* | See `scraped/prompts-chat/` |
 
 </details>
 ## License
