@@ -130,17 +130,17 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 2562 |
+| Unified prompts (in `dist/prompts.json`) | 2567 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 2567 |
+| Scraped prompts cached in `scraped/` | 2572 |
 
 ### Configured Sources
 
 | Source | Type | Location | Format | Loaded |
 |--------|------|----------|--------|--------|
 | Local Prompts | local | `prompts/` | - | 3 |
-| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 2054 |
+| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 2059 |
 | Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
 | AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 350 |
 
@@ -225,7 +225,7 @@ make all           # Run validation, tests, build, and README update
 </details>
 
 <details>
-<summary><strong>Prompts Chat</strong> (2054 prompts)</summary>
+<summary><strong>Prompts Chat</strong> (2059 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -259,7 +259,7 @@ make all           # Run validation, tests, build, and README update
 | 28 | 5x2 Reverse Construction Process - Vill… | Act as an architectural visualization expert specialized in… |
 | 29 | 6-Panel Storyboard Mastery | Act as a storyboard artist. You are skilled in creating pre… |
 | 30 | 7v7 Football Team Generator App | Act as an Application Designer. You are tasked with creatin… |
-| … | *+2024 more* | See `scraped/prompts-chat/` |
+| … | *+2029 more* | See `scraped/prompts-chat/` |
 
 </details>
 ## License
