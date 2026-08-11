@@ -130,10 +130,10 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 2588 |
+| Unified prompts (in `dist/prompts.json`) | 2598 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 2593 |
+| Scraped prompts cached in `scraped/` | 2603 |
 
 ### Configured Sources
 
@@ -141,52 +141,52 @@ make all           # Run validation, tests, build, and README update
 |--------|------|----------|--------|--------|
 | Local Prompts | local | `prompts/` | - | 3 |
 | Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 2082 |
-| Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 161 |
-| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 350 |
+| Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
+| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 358 |
 
 ### Scraped Prompts
 
 <details>
-<summary><strong>Ai Boost Awesome Prompts</strong> (350 prompts)</summary>
+<summary><strong>Ai Boost Awesome Prompts</strong> (358 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
 | 1 | 3D Generative Artist | Role You are a world-class 3D Generative Artist and Technic… |
 | 2 | 5W3H Intent Architect | You are a 5W3H Structured Intent Architect. Your job is to … |
-| 3 | A2Ui Agent To User Interface Architect | A2UI Agent-to-User Interface Architect Sources: A2UI Protoc… |
-| 4 | Abstract Chain Of Thought Architect | Abstract Chain-of-Thought Architect Sources: "Thinking With… |
-| 5 | Academic Paper Architect | # Academic Paper Architect — Full-Spectrum Manuscript Orche… |
-| 6 | Academic Peer Reviewer | Role You are a Distinguished Academic Peer Reviewer with 20… |
-| 7 | Accessibility Auditor | # Accessibility Auditor # Source: msitarzewski/agency-agent… |
-| 8 | Adaptive Learning Designer | Role You are a Senior Adaptive Learning Designer with 15+ y… |
-| 9 | Adhd Parallel Ideation Skill | --- name: adhd description: Parallel divergent ideation for… |
-| 10 | Adk Skilltoolset Designer | ADK SkillToolset Designer Sources: Google Developer's Guide… |
-| 11 | Ag Ui Frontend Architect | AG-UI Frontend Integration Architect Sources: AG-UI Protoco… |
-| 12 | Agent Atlas Trajectory Auditor | AgentAtlas Trajectory Auditor Source: "AgentAtlas: Beyond O… |
-| 13 | Agent Context Efficiency Engineer | Agent Context Efficiency Engineer Source: mksglu/context-mo… |
-| 14 | Agent Cooperation Designer | Agent Cooperation Designer Sources: Competition and Coopera… |
-| 15 | Agent Cost Observability Architect | Agent Cost Observability Architect Source: getagentseal/cod… |
-| 16 | Agent Data Injection Attack Auditor | Agent Data Injection Attack Auditor Source: "Agent Data Inj… |
-| 17 | Agent Environment Engineering Architect | Agent Environment Engineering Architect Sources: "EurekAgen… |
-| 18 | Agent Eval Designer | Agent Eval Designer Sources: Anthropic Demystifying Evals f… |
-| 19 | Agent First Language Architect | Agent-First Language Architect Source: vercel-labs/zerolang… |
-| 20 | Agent Governance Orchestrator | Agent Governance Orchestrator Sources: The Orchestration of… |
-| 21 | Agent Harness Designer | Agent Harness Designer Sources: OpenAI Harness Engineering … |
-| 22 | Agent Harness Performance Engineer | Agent Harness Performance Engineer Source: affaan-m/everyth… |
-| 23 | Agent Memory Architect | Agent Memory Architect Sources: AgeMem: Unified Long- and S… |
-| 24 | Agent Native Memory System Architect | Agent-Native Memory System Architect Source: "Are We Ready … |
-| 25 | Agent Permission Auto Mode Architect | Agent Permission Auto-Mode Architect Sources: Anthropic — C… |
-| 26 | Agent Powered Vulnerability Scanner Arc… | Agent-Powered Vulnerability Scanner Architect Sources: verc… |
-| 27 | Agent Protocol Advisor | Agent Protocol Advisor Sources: Google Developer's Guide to… |
-| 28 | Agent Red Team Architect | Agent Red Team Architect Sources: The Promptware Kill Chain… |
-| 29 | Agent Reliability Engineer | Agent Reliability Engineer Sources: Towards a Science of AI… |
-| 30 | Agent Safety Testing At Scale Architect | Agent Safety Testing at Scale Architect Source: "Safety Tes… |
-| … | *+320 more* | See `scraped/ai-boost-awesome-prompts/` |
+| 3 | A2A Agent Protocol Architect | A2A Agent Protocol Architect Sources: A2A Protocol specific… |
+| 4 | A2Ui Agent To User Interface Architect | A2UI Agent-to-User Interface Architect Sources: A2UI Protoc… |
+| 5 | Abstract Chain Of Thought Architect | Abstract Chain-of-Thought Architect Sources: "Thinking With… |
+| 6 | Academic Paper Architect | # Academic Paper Architect — Full-Spectrum Manuscript Orche… |
+| 7 | Academic Peer Reviewer | Role You are a Distinguished Academic Peer Reviewer with 20… |
+| 8 | Accessibility Auditor | # Accessibility Auditor # Source: msitarzewski/agency-agent… |
+| 9 | Adaptive Learning Designer | Role You are a Senior Adaptive Learning Designer with 15+ y… |
+| 10 | Adhd Parallel Ideation Skill | --- name: adhd description: Parallel divergent ideation for… |
+| 11 | Adk Skilltoolset Designer | ADK SkillToolset Designer Sources: Google Developer's Guide… |
+| 12 | Ag Ui Frontend Architect | AG-UI Frontend Integration Architect Sources: AG-UI Protoco… |
+| 13 | Agent Atlas Trajectory Auditor | AgentAtlas Trajectory Auditor Source: "AgentAtlas: Beyond O… |
+| 14 | Agent Context Efficiency Engineer | Agent Context Efficiency Engineer Source: mksglu/context-mo… |
+| 15 | Agent Cooperation Designer | Agent Cooperation Designer Sources: Competition and Coopera… |
+| 16 | Agent Cost Observability Architect | Agent Cost Observability Architect Source: getagentseal/cod… |
+| 17 | Agent Data Injection Attack Auditor | Agent Data Injection Attack Auditor Source: "Agent Data Inj… |
+| 18 | Agent Environment Engineering Architect | Agent Environment Engineering Architect Sources: "EurekAgen… |
+| 19 | Agent Eval Designer | Agent Eval Designer Sources: Anthropic Demystifying Evals f… |
+| 20 | Agent First Language Architect | Agent-First Language Architect Source: vercel-labs/zerolang… |
+| 21 | Agent Governance Orchestrator | Agent Governance Orchestrator Sources: The Orchestration of… |
+| 22 | Agent Harness Designer | Agent Harness Designer Sources: OpenAI Harness Engineering … |
+| 23 | Agent Harness Performance Engineer | Agent Harness Performance Engineer Source: affaan-m/everyth… |
+| 24 | Agent Memory Architect | Agent Memory Architect Sources: AgeMem: Unified Long- and S… |
+| 25 | Agent Native Memory System Architect | Agent-Native Memory System Architect Source: "Are We Ready … |
+| 26 | Agent Permission Auto Mode Architect | Agent Permission Auto-Mode Architect Sources: Anthropic — C… |
+| 27 | Agent Powered Vulnerability Scanner Arc… | Agent-Powered Vulnerability Scanner Architect Sources: verc… |
+| 28 | Agent Protocol Advisor | Agent Protocol Advisor Sources: Google Developer's Guide to… |
+| 29 | Agent Red Team Architect | Agent Red Team Architect Sources: The Promptware Kill Chain… |
+| 30 | Agent Reliability Engineer | Agent Reliability Engineer Sources: Towards a Science of AI… |
+| … | *+328 more* | See `scraped/ai-boost-awesome-prompts/` |
 
 </details>
 
 <details>
-<summary><strong>Leaked System Prompts</strong> (161 prompts)</summary>
+<summary><strong>Leaked System Prompts</strong> (163 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -220,7 +220,7 @@ make all           # Run validation, tests, build, and README update
 | 28 | Anthropic Claude Sonnet 3.7 20250224 | # anthropic-claude-sonnet-3.7_20250224  source: <https://x.… |
 | 29 | Anthropic Claude Sonnet 3.7 20250516 | # anthropic-claude-sonnet-3.7_20250516  source: <https://gi… |
 | 30 | Anthropic Claude Sonnet 4 20250522 | # anthropic-claude-sonnet-4_20250522  source: <https://docs… |
-| … | *+131 more* | See `scraped/leaked-system-prompts/` |
+| … | *+133 more* | See `scraped/leaked-system-prompts/` |
 
 </details>
 
