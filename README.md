@@ -130,10 +130,10 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 2609 |
+| Unified prompts (in `dist/prompts.json`) | 2607 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 2614 |
+| Scraped prompts cached in `scraped/` | 2612 |
 
 ### Configured Sources
 
@@ -142,12 +142,12 @@ make all           # Run validation, tests, build, and README update
 | Local Prompts | local | `prompts/` | - | 3 |
 | Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 2091 |
 | Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
-| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 360 |
+| AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 358 |
 
 ### Scraped Prompts
 
 <details>
-<summary><strong>Ai Boost Awesome Prompts</strong> (360 prompts)</summary>
+<summary><strong>Ai Boost Awesome Prompts</strong> (358 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -177,11 +177,11 @@ make all           # Run validation, tests, build, and README update
 | 24 | Agent Memory Architect | Agent Memory Architect Sources: AgeMem: Unified Long- and S… |
 | 25 | Agent Native Memory System Architect | Agent-Native Memory System Architect Source: "Are We Ready … |
 | 26 | Agent Permission Auto Mode Architect | Agent Permission Auto-Mode Architect Sources: Anthropic — C… |
-| 27 | Agent Powered Vulnerability Scanner Arc… | Agent-Powered Vulnerability Scanner Architect Sources: verc… |
-| 28 | Agent Protocol Advisor | Agent Protocol Advisor Sources: Google Developer's Guide to… |
-| 29 | Agent Red Team Architect | Agent Red Team Architect Sources: The Promptware Kill Chain… |
-| 30 | Agent Reliability Engineer | Agent Reliability Engineer Sources: Towards a Science of AI… |
-| … | *+330 more* | See `scraped/ai-boost-awesome-prompts/` |
+| 27 | Agent Protocol Advisor | Agent Protocol Advisor Sources: Google Developer's Guide to… |
+| 28 | Agent Red Team Architect | Agent Red Team Architect Sources: The Promptware Kill Chain… |
+| 29 | Agent Reliability Engineer | Agent Reliability Engineer Sources: Towards a Science of AI… |
+| 30 | Agent Safety Testing At Scale Architect | Agent Safety Testing at Scale Architect Source: "Safety Tes… |
+| … | *+328 more* | See `scraped/ai-boost-awesome-prompts/` |
 
 </details>
 
