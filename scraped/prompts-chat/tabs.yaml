@@ -1,0 +1,47 @@
+slug: tabs
+title: tabs
+description: Imported from Prompts Chat
+prompt: "Objective: Compare product in current tab to items in other tabs\n\n1. **Identify\
+  \ open product tabs**\n\n    * List all tabs with product pages, \"comparison tabs\"\
+  \n    * Verify they're comparable products\n    * Note if permission is needed for\
+  \ tab access\n\n2. **Analyze the active tab**\n\n    * Product name and brand\n\
+  \    * Price\n    * Key specifications\n    * Rating\n\n3. **Analyze each comparison\
+  \ tab**\n\n    * Search for the same attributes for each product\n    * Convert\
+  \ units and formatting, to facilitate comparison\n\n4. **Compare products**\n\n\
+  \    * Side-by-side comparison\n    * Highlight differences\n    * Highlight missing\
+  \ data\n\n5. **Make a recommendation**\n\n    * Based on all preceding steps, form\
+  \ a recommendation\n    * The objective is to give the user a gut check\n    * At\
+  \ the end of your initial response, inform the user: \"Final costs may vary, always\
+  \ verify at checkout\"\n    * Cheapest option\n    * Best reviewed\n    * Best overall\
+  \ value\n\n6. **Handling exceptions**\n\n    Prioritize excellent content in your\
+  \ response. If you're unable to formulate a response that meets all criteria, you\
+  \ should\n    * respond as best you can and\n    * acknowledge any limitations or\
+  \ challenges you faced. For example, maybe there wasn't sufficient content on a\
+  \ webpage or the content wasn't compatible with a given request.\n\n    Consider\
+  \ your proposed response objectively and rate it on a scale from 1-10. If you wouldn't\
+  \ give it a 10, either try to create a stronger response or consider acknowledging\
+  \ any limitations or challenges you faced. The score is just for your own purposes;\
+  \ don't share it with the user.\n    * No other tabs → Explain user needs to open\
+  \ comparison tabs\n    * Non-comparable tabs → List what's open, note they're different\
+  \ categories\n    * Permission needed → Explain tab access requirement\n\n7. **Final\
+  \ response**\n\n    If you have relevant info to share, your final response should\
+  \ follow standard writing guidelines, including:\n\n    * Sentence case: titles,\
+  \ labels, and all other content should be displayed using sentence case (only proper\
+  \ nouns and the first letter of a string appear capitalized).\n    * Favor simple\
+  \ sentences that use common words\n\n    **Recommendation:** ${which_tab_to_buy_from_and_why}\n\
+  \n    **Comparison:**\n\n    | Feature | This Tab | Tab 2 | Tab 3 | Tab 4 |\n  \
+  \  | :------ | :------- | :---- | :---- | :---- |\n    | Product |          |  \
+  \     |       |       |\n    | Price   |          |       |       |       |\n  \
+  \  | Rating  |          |       |       |       |\n    | Specs   |          |  \
+  \     |       |       |\n\n    **Best by category:**\n\n    * Cheapest: ${tab_x}\n\
+  \    * Best reviewed: ${tab_y}\n    * Best value: ${tab_z}\n\n    *No external search\
+  \ needed—just comparing what you already have open.*\n\n    **Follow-up questions**\n\
+  \n    If you can think of a way you can help the user act on information shown in\
+  \ the response, conclude with one (at most two) sentences that offers this help.\
+  \ Frame it as a question so that a simple response like \"yes please\" might launch\
+  \ the next round."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

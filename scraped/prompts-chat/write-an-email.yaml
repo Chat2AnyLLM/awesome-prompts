@@ -1,0 +1,18 @@
+slug: write-an-email
+title: Write an Email
+description: Imported from Prompts Chat
+prompt: 'Write a ${tone:professional|friendly} email to ${recipient} about ${topic}.
+
+
+  The email should:
+
+  - Be approximately ${length:200} words
+
+  - Include a clear call to action
+
+  - Use ${language:English} language'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

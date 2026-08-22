@@ -130,17 +130,17 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 526 |
+| Unified prompts (in `dist/prompts.json`) | 2623 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 523 |
+| Scraped prompts cached in `scraped/` | 2628 |
 
 ### Configured Sources
 
 | Source | Type | Location | Format | Loaded |
 |--------|------|----------|--------|--------|
 | Local Prompts | local | `prompts/` | - | 3 |
-| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 0 |
+| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 2105 |
 | Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 163 |
 | AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 360 |
 
@@ -221,6 +221,45 @@ make all           # Run validation, tests, build, and README update
 | 29 | Anthropic Claude Sonnet 3.7 20250516 | # anthropic-claude-sonnet-3.7_20250516  source: <https://gi… |
 | 30 | Anthropic Claude Sonnet 4 20250522 | # anthropic-claude-sonnet-4_20250522  source: <https://docs… |
 | … | *+133 more* | See `scraped/leaked-system-prompts/` |
+
+</details>
+
+<details>
+<summary><strong>Prompts Chat</strong> (2105 prompts)</summary>
+
+| # | Title | Preview |
+|---|-------|---------|
+| 1 | 12-Month AI and Computer Vision Roadmap… | {   "role": "AI and Computer Vision Specialist Coach",   "c… |
+| 2 | 1337 | "Create a detailed efficiency guide for ${game_name}.  The … |
+| 3 | 1940s village life | Give a prompt for 2 minutes  i need to generate ai video ea… |
+| 4 | 1950s Diner Photo Transformation | {   "prompt": "You will perform an image edit using the per… |
+| 5 | 2026 Mobile Poster Creator | Act as a graphic design assistant. Your task is to create a… |
+| 6 | 2026 Size Neler getirecek | {   "task": "Photorealistic premium mystical 2026 astrology… |
+| 7 | 2046 Puzzle Game Challenge | Act as a game developer. You are tasked with creating a tex… |
+| 8 | 21st.dev component prompt | You are given a task to integrate an existing React compone… |
+| 9 | 30-Day Skill Mastery Challenge Prompt T… | # 30-Day Skill Mastery Challenge Prompt Template ## Goal St… |
+| 10 | 30 tweet Project | Act as a Senior Crypto Narrative Strategist & Rally.fun Alg… |
+| 11 | 3D Avatar Prompt | Use a user-uploaded image as the source and convert the per… |
+| 12 | 3D Cartoon Animation: Baby Bunny Advent… | Vertical 9:16, 3D cartoon-style animation of a cute baby bu… |
+| 13 | 3D Character Render In High-End Disney … | 3D character render in high-end Pixar Disney animation styl… |
+| 14 | 3D City Prompt | Hyper-realistic 3D square diorama of ${city_name:Istanbul},… |
+| 15 | 3D FACTORY | I NEED THIS FULLY INTEGRATED, IMPLEMENTED, ENFORCED, HARDEN… |
+| 16 | 3D FPS Game | Develop a first-person shooter game using Three.js and Java… |
+| 17 | 3D Isometric Miniature City View with W… | Present a clear, 45° top-down view of a vertical (9:16) iso… |
+| 18 | 3D Isometric Miniature Diorama | "When I give you a movie quote, never reply with text or a … |
+| 19 | 3D Kinetic Ball Simulation | I want you to act as an expert front-end game engineer spec… |
+| 20 | 3D Mechanical Part Image to Technical D… | {   "task": "image_to_image",   "input_image": "3d_render_o… |
+| 21 | 3D Medical Anatomy Model Render Prompt | {   "fixed_prompt_components": {     "composition": "Wide a… |
+| 22 | 3D Physics Sandbox Architect | I want you to act as a Senior WebGL Game Architect speciali… |
+| 23 | 3D Racing Game | Create an exciting 3D racing game using Three.js and JavaSc… |
+| 24 | 3D Space Explorer | Build an immersive 3D space exploration game using Three.js… |
+| 25 | 3D to 2D Floor Plan Converter | {   "task": "image_to_image",   "description": "Convert a f… |
+| 26 | 3x3 Grid Storyboarding from Photo | Act as a storyboard artist. You are skilled in visual story… |
+| 27 | 4 Optimized Versions of A Prompt (in Ar… | Act as a certified and expert AI prompt engineer  Analyze a… |
+| 28 | $500/Hour AI Consultant Prompt | You are Lyra, a master-level Al prompt optimization special… |
+| 29 | 5x2 Reverse Construction Process - Vill… | Act as an architectural visualization expert specialized in… |
+| 30 | 6-Panel Storyboard Mastery | Act as a storyboard artist. You are skilled in creating pre… |
+| … | *+2075 more* | See `scraped/prompts-chat/` |
 
 </details>
 ## License
