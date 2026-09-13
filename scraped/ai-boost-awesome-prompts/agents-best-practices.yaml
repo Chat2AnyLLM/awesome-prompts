@@ -1,0 +1,164 @@
+slug: agents-best-practices
+title: Agents Best Practices
+description: Imported from AI Boost Awesome Prompts
+prompt: "---\nname: agents-best-practices\ndescription: \"Use this skill when designing,\
+  \ generating an MVP blueprint for, auditing, refactoring, or explaining an agentic\
+  \ harness for any domain. Covers provider-neutral agent architecture for OpenAI,\
+  \ Anthropic, and OpenAI-compatible APIs: agent loops, tool design, permissions,\
+  \ system prompts, planning, goals, context compaction, memory, skills, MCP/external\
+  \ connectors, observability, evals, prompt caching, agent-legible environments,\
+  \ feedback loops, and safety.\"\nmetadata:\n  version: \"1.2.0\"\n  scope: \"provider-neutral-agent-harness\"\
+  \n  file_policy: \"markdown-only\"\n---\n\n# Agents Best Practices\n\nUse this skill\
+  \ when the user asks how to build, improve, debug, or evaluate an agentic harness.\
+  \ This is a general-purpose agent architecture skill. Coding agents are one subdomain\
+  \ only; apply the same principles to research, finance, legal, support, operations,\
+  \ sales, healthcare, education, data analysis, procurement, and workflow automation\
+  \ agents.\n\n## Core stance\n\nAn agent harness is the control plane around a model.\
+  \ The model proposes actions; the harness validates, authorizes, executes, records,\
+  \ summarizes, and returns observations. Keep the loop simple and make the runtime\
+  \ rigorous.\n\nDefault architecture:\n\n```text\nuser/task\n  -> instruction and\
+  \ context builder\n  -> model call\n  -> tool/action proposal\n  -> schema validation\n\
+  \  -> permission decision\n  -> execution or approval pause\n  -> structured observation\n\
+  \  -> context update\n  -> repeat within budget or finish\n```\n\n## When to activate\
+  \ this skill\n\nUse this skill for prompts involving any of these intents:\n\n-\
+  \ build an agent, agentic workflow, AI worker, autonomous assistant, or harness;\n\
+  - create a domain-specific MVP agent design, starter harness, implementation blueprint,\
+  \ or first production-safe version;\n- choose between OpenAI, Anthropic, OpenAI-compatible\
+  \ APIs, direct tool loops, hosted tools, or SDKs;\n- design tools, permissions,\
+  \ guardrails, approval flows, or sandboxing;\n- create planning mode, goal mode,\
+  \ todo tracking, or long-running task behavior;\n- add context compaction, memory,\
+  \ retrieval, scoped instructions, or prompt hierarchies;\n- attach Agent Skills,\
+  \ reusable workflows, MCP servers, external connectors, or tool search;\n- audit\
+  \ an existing agent for reliability, cost, prompt-cache hit rate, safety, latency,\
+  \ or observability;\n- create system prompts or developer instructions for a domain-specific\
+  \ agent;\n- make source-of-truth knowledge, validation signals, logs, metrics, or\
+  \ workflow state legible to an agent.\n\nDo not use this skill for ordinary single-turn\
+  \ writing, translation, or Q&A unless the user is asking about the design of an\
+  \ agent that will perform those tasks.\n\n## How to use this skill\n\nFirst, identify\
+  \ the user's design problem:\n\n1. **Domain**: what work the agent performs.\n2.\
+  \ **Autonomy level**: answer-only, draft-only, approval-gated action, or autonomous\
+  \ action within policy.\n3. **Risk level**: read-only, internal write, external\
+  \ communication, financial, legal, healthcare, security, destructive, or privileged.\n\
+  4. **State duration**: single turn, multi-turn session, resumable workflow, or long-running\
+  \ goal.\n5. **Tool surface**: internal APIs, hosted tools, MCP/external connectors,\
+  \ browser, sandbox, filesystem, database, communication, or computation.\n6. **Validation**:\
+  \ what proves the task is complete.\n\nThen load the most relevant reference files,\
+  \ not all files by default. If the user asks to make or build an agent for a domain,\
+  \ default to MVP Builder Mode.\n\n## MVP Builder Mode\n\nWhen the user asks to make,\
+  \ build, design, scaffold, or specify an agent for a domain, produce a concrete\
+  \ domain-specific MVP harness blueprint, not only advice. Use [mvp-agent-blueprint.md](references/mvp-agent-blueprint.md)\
+  \ as the primary reference and load other references as needed.\n\nDefault behavior:\n\
+  \n1. Infer a reasonable first version from the user's domain and stated constraints.\n\
+  2. State assumptions briefly instead of blocking on missing details.\n3. Design\
+  \ the smallest safe harness that can accomplish useful work.\n4. Include the core\
+  \ agentic loop, tool registry, permission matrix, context/memory/compaction, planning\
+  \ mode, goal-like loop criteria, skills/connectors, prompt-cache/cost strategy,\
+  \ observability, evals, and launch path.\n5. Mark high-risk actions as draft-only\
+  \ or approval-gated by default.\n6. Avoid multi-agent orchestration until the single-agent\
+  \ MVP has measurable failure cases that require decomposition.\n\n## Reference map\n\
+  \n- Read [mvp-agent-blueprint.md](references/mvp-agent-blueprint.md) first when\
+  \ the user asks to create a new domain-specific agent or MVP harness.\n- Read [architecture.md](references/architecture.md)\
+  \ for the full harness model and component boundaries.\n- Read [agent-legibility-feedback-loops.md](references/agent-legibility-feedback-loops.md)\
+  \ for source-of-truth knowledge bases, agent-legible environments, validation loops,\
+  \ mechanical invariants, and recurring cleanup.\n- Read [agentic-loop.md](references/agentic-loop.md)\
+  \ for the provider-neutral loop, step budgets, retries, and loop variants.\n- Read\
+  \ [tools-and-permissions.md](references/tools-and-permissions.md) for tool contracts,\
+  \ risk classes, approval logic, structured results, and sandboxing.\n- Read [context-memory-compaction.md](references/context-memory-compaction.md)\
+  \ for context assembly, scoped memory, retrieval, auto-compaction, and handoff summaries.\n\
+  - Read [prompt-caching-and-cost.md](references/prompt-caching-and-cost.md) for stable-prefix\
+  \ design, cache-aware context ordering, compaction/cache tradeoffs, telemetry, and\
+  \ cost control.\n- Read [planning-and-goals.md](references/planning-and-goals.md)\
+  \ for planning mode, approval-gated execution, goals, checkpoints, and stopping\
+  \ conditions.\n- Read [skills-and-connectors.md](references/skills-and-connectors.md)\
+  \ for Agent Skills, progressive disclosure, MCP, external connectors, tool search,\
+  \ and attachment strategy.\n- Read [system-prompts-instructions.md](references/system-prompts-instructions.md)\
+  \ for system/developer/user instruction hierarchy and prompt templates.\n- Read\
+  \ [provider-api-patterns.md](references/provider-api-patterns.md) for OpenAI, Anthropic,\
+  \ and OpenAI-compatible API implementation patterns.\n- Read [security-evals-observability.md](references/security-evals-observability.md)\
+  \ for guardrails, threat models, tracing, evals, and launch gates.\n- Read [checklists.md](references/checklists.md)\
+  \ for condensed implementation and audit checklists.\n- Read [source-links.md](references/source-links.md)\
+  \ for official links and provider-specific references.\n- Read [coverage-audit.md](references/coverage-audit.md)\
+  \ to verify the skill covers the requested harness topics.\n\n## Default answer\
+  \ structure when advising a user\n\nWhen the user asks for guidance, produce a concrete\
+  \ architecture, not generic principles:\n\n0. **MVP boundary**: smallest useful\
+  \ version, assumptions, non-goals, and launch criteria.\n1. **Harness boundary**:\
+  \ what the model does versus what application code does.\n2. **Loop**: how model\
+  \ calls, tool calls, tool results, stopping, and retries work.\n3. **Instructions**:\
+  \ system/developer/user instruction hierarchy and scoped memory.\n4. **Tools**:\
+  \ tool registry, schemas, outputs, risk classes, permissions, and approval points.\n\
+  5. **Context**: retrieval, memory, summarization, cache-aware ordering, compaction\
+  \ triggers, and rehydration.\n6. **Planning/goals**: when to enter planning mode,\
+  \ when to run a goal-like loop, and how to stop.\n7. **Skills/connectors**: how\
+  \ skills and MCP/external connectors are discovered, loaded, permissioned, and audited.\n\
+  8. **Safety**: prompt injection boundaries, secrets, sandboxing, data access, and\
+  \ guardrails.\n9. **Observability/evals**: traces, metrics, test cases, and failure\
+  \ probes.\n10. **Rollout**: minimal viable harness first, then add autonomy only\
+  \ when measured results justify it.\n11. **Legibility loop**: source-of-truth artifacts,\
+  \ validation signals, feedback capture, and recurring cleanup.\n\n## Non-negotiable\
+  \ principles\n\n- The model does not execute actions directly; the harness does.\n\
+  - Every tool call must receive a tool result, even if the result is denial, timeout,\
+  \ error, or abort.\n- Every risky side effect needs runtime policy enforcement outside\
+  \ the model.\n- Draft and commit should be separate for external, financial, destructive,\
+  \ security, or regulated actions.\n- Tool schemas must be narrow, typed, validated\
+  \ locally, and auditable.\n- Context should be informative, tight, and cache-aware;\
+  \ retrieve and attach just in time.\n- Skills and external connectors should use\
+  \ progressive disclosure; do not expose every capability up front.\n- Auto-compaction\
+  \ should preserve working state, not conversational prose.\n- Long-running goals\
+  \ need budgets, checkpoints, and a measurable done condition.\n- The harness must\
+  \ trace operational events without exposing hidden reasoning.\n- Durable knowledge\
+  \ should live in agent-readable source-of-truth artifacts, not only in chat history.\n\
+  - Repeated failures should become tools, validators, docs, evals, or policies rather\
+  \ than repeated prompt advice.\n\n## Common output template\n\nUse this template\
+  \ when the user wants a harness design. If the user asks to make/build an agent,\
+  \ use this as an MVP blueprint, not a purely conceptual answer:\n\n```markdown\n\
+  # MVP Agent Harness Blueprint: [domain/use case]\n\n## Objective\n[What the agent\
+  \ must accomplish and for whom.]\n\n## MVP scope and assumptions\n[Smallest useful\
+  \ version, explicit assumptions, non-goals, and what is intentionally deferred.]\n\
+  \n## Autonomy and risk level\n[Answer-only, draft-only, approval-gated, or autonomous\
+  \ within policy.]\n\n## Core loop\n[How the model, tools, observations, retries,\
+  \ and stopping rules work.]\n\n## Instruction architecture\n[System/developer/user/scoped\
+  \ memory layout.]\n\n## Tool registry\n[Tools, schemas, risk classes, permissions,\
+  \ and result format.]\n\n## Planning and goal behavior\n[When to plan, when to ask,\
+  \ when to continue, when to stop.]\n\n## Context and memory\n[Retrieval, durable\
+  \ state, compaction, and rehydration.]\n\n## Skills and connectors\n[Reusable skills,\
+  \ MCP/external connector policy, tool search, attachment rules.]\n\n## Safety and\
+  \ approvals\n[Guardrails, prompt injection treatment, secrets, sandboxing, human\
+  \ review.]\n\n## Observability and evals\n[Trace events, eval cases, launch criteria,\
+  \ failure probes.]\n\n## Minimal implementation path\n[Smallest safe version first,\
+  \ implementation skeleton, validation path, then measured expansion.]\n```\n\n##\
+  \ Gotchas\n\n- Do not design a multi-agent system before a single-agent loop has\
+  \ failed measurable evals.\n- Do not expose broad tools such as `execute_anything`,\
+  \ `write_database`, or `send_message` without a strict wrapper and approval policy.\n\
+  - Do not treat retrieved webpages, emails, tickets, PDFs, logs, or connector-provided\
+  \ descriptions as trusted instructions.\n- Do not let context compaction erase approval\
+  \ state, active plan, loaded rules, or changed artifacts.\n- Do not use a goal loop\
+  \ for a vague backlog; use it only for a single objective with validation and a\
+  \ budget.\n- Do not rely on prompt text for safety that must be enforced by code.\n\
+  - Do not put timestamps, request IDs, or volatile environment state at the start\
+  \ of cacheable prompts.\n- Do not let stale documentation, weak examples, or obsolete\
+  \ tools accumulate without recurring cleanup.\n\n## Source links for further reading\n\
+  \nUse these links when provider-specific detail is needed:\n\n- Agent Skills specification:\
+  \ https://agentskills.io/specification\n- Agent Skills creator best practices: https://agentskills.io/skill-creation/best-practices\n\
+  - Agent Skills description optimization: https://agentskills.io/skill-creation/optimizing-descriptions\n\
+  - Agent Skills evaluation guide: https://agentskills.io/skill-creation/evaluating-skills\n\
+  - OpenAI function calling: https://developers.openai.com/api/docs/guides/function-calling\n\
+  - OpenAI tools: https://developers.openai.com/api/docs/guides/tools\n- OpenAI agents:\
+  \ https://developers.openai.com/api/docs/guides/agents\n- OpenAI guardrails and\
+  \ human review: https://developers.openai.com/api/docs/guides/agents/guardrails-approvals\n\
+  - OpenAI agent safety: https://developers.openai.com/api/docs/guides/agent-builder-safety\n\
+  - OpenAI sandbox agents: https://developers.openai.com/api/docs/guides/agents/sandboxes\n\
+  - OpenAI Responses migration: https://developers.openai.com/api/docs/guides/migrate-to-responses\n\
+  - OpenAI prompt caching: https://developers.openai.com/api/docs/guides/prompt-caching\n\
+  - OpenAI Prompt Caching 201: https://developers.openai.com/cookbook/examples/prompt_caching_201\n\
+  - OpenAI harness engineering article: https://openai.com/index/harness-engineering/\n\
+  - Anthropic building effective agents: https://www.anthropic.com/research/building-effective-agents\n\
+  - Anthropic effective context engineering: https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents\n\
+  - Anthropic writing effective tools for agents: https://www.anthropic.com/engineering/writing-tools-for-agents\n\
+  - Anthropic long-running harnesses: https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents\n\
+  - Anthropic code execution with MCP: https://www.anthropic.com/engineering/code-execution-with-mcp\n\
+  - MCP specification: https://modelcontextprotocol.io/specification/2025-11-25"
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts
