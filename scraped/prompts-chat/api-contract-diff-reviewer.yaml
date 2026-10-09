@@ -1,0 +1,35 @@
+slug: api-contract-diff-reviewer
+title: API Contract Diff Reviewer
+description: Imported from Prompts Chat
+prompt: "---\nname: api-contract-diff-reviewer\ndescription: Review API/OpenAPI diffs\
+  \ for breaking changes and draft a migration checklist for consumers.\n---\n\n#\
+  \ API Contract Diff Reviewer\n\nWhen the user pastes an API diff, OpenAPI change,\
+  \ or before/after schema, produce a structured breaking-change review.\n\n## Workflow\n\
+  1. Read `references/breaking-change-rules.md` and apply those rules.\n2. Classify\
+  \ each change: **breaking** / **non-breaking** / **unclear**.\n3. Output:\n   -\
+  \ Summary (3–6 bullets)\n   - Breaking changes table (path | change | why it breaks\
+  \ | mitigation)\n   - Suggested `CHANGELOG` snippet\n   - Consumer migration checklist\
+  \ (copy of `templates/migration-checklist.md` filled in)\n4. If the diff is incomplete,\
+  \ ask for missing paths before guessing.\n\n## Rules\n- Never invent endpoints that\
+  \ are not in the input.\n- Prefer precise JSON Pointer / path references.\n- Call\
+  \ out auth, pagination, and error-shape changes explicitly.\n\x1FFILE:references/breaking-change-rules.md\x1E\
+  \n# Breaking change heuristics\n\nTreat as **breaking** unless a documented deprecation\
+  \ window exists:\n- Removing or renaming a field, endpoint, query param, or header\n\
+  - Making an optional field required\n- Narrowing types (string→enum, number→integer,\
+  \ adding maxLength that rejects prior values)\n- Changing auth scheme or required\
+  \ scopes\n- Changing pagination defaults in a way that truncates prior results\n\
+  - Changing error envelope shape clients parse\n\nUsually **non-breaking**:\n- Adding\
+  \ optional fields\n- Adding new endpoints\n- Widening types safely\n- Adding new\
+  \ enum values only if clients ignore unknowns\n\n**Unclear** (ask):\n- Semantic\
+  \ meaning changes with same shape\n- Performance/rate-limit changes with no schema\
+  \ diff\n\x1FFILE:templates/migration-checklist.md\x1E\n# Consumer migration checklist\n\
+  \n- [ ] Identify all callers of changed paths\n- [ ] Update request/response types\n\
+  - [ ] Add compatibility shims or adapters if needed\n- [ ] Expand contract tests\
+  \ for new error cases\n- [ ] Document rollout order (server first vs client first)\n\
+  - [ ] Set monitoring alerts on 4xx spike for changed routes\n- [ ] Communicate deprecation\
+  \ date to external partners"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

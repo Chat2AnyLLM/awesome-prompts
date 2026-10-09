@@ -1,0 +1,46 @@
+slug: moody-urban-night-railway-portrait
+title: Moody Urban Night Railway Portrait
+description: Imported from Prompts Chat
+prompt: "A vertical nighttime photograph of a young woman standing outdoors\nnext\
+  \ to metal stairs near a railway. She has light skin, brown hair\npulled back into\
+  \ a low ponytail with loose strands framing her face\nand falling over her forehead,\
+  \ defined eyebrows, and a serious,\npensive expression. She is wearing an oversized\
+  \ brown leather bomber\njacket with visible zipper and ribbed cuffs, a black crew-neck\n\
+  t-shirt underneath, and a pleated olive green military-style mini\nskirt. She stands\
+  \ slightly turned, with her arms crossed over her\nchest, looking off to the left\
+  \ side of the frame, avoiding eye\ncontact with the camera. The setting is an industrial\
+  \ area near train\ntracks: metal stairs with white railing on the right going up\
+  \ an\nembankment, metal catenary poles and railway electrification\nstructures in\
+  \ the background, an electrical control box on the upper\nright, and a tall street\
+  \ light pole on the upper left. The steep\nslope behind her is covered in green\
+  \ grass and dirt. The night sky is\ndark grey-purple. Strong artificial light from\
+  \ a street lamp in the\nupper left corner creates a slight lens flare, casting hard\
+  \ direct\nlight on her face and jacket. Shot from a slightly low angle,\nAmerican\
+  \ shot framing. Photorealistic, high detail, cinematic\nlighting, moody urban night\
+  \ atmosphere, 8k, masterpiece, best\nquality, ultra-detailed, sharp focus.\n\n\n\
+  Negative\nPrompt:\ncartoon, anime,\nillustration, painting, drawing, 3d render,\
+  \ cgi, deformed, distorted,\nbad anatomy, disfigured, poorly drawn face, mutation,\
+  \ mutated, extra\nlimb, ugly, poorly drawn hands, missing limb, floating limbs,\n\
+  disconnected limbs, malformed hands, out of focus, extreme zoom,\nabsurd, blurry,\
+  \ wet, watermark, signature, text, username, artist\nname, low quality, worst quality,\
+  \ normal quality, lowres, jpeg\nartifacts, dead, out of frame, cropped, mutation,\
+  \ mutilated, out of\nframe, extra fingers, too many fingers, cross-eyed, bad hands,\n\
+  missing fingers, extra digit, fewer digits, cropped, worst quality,\nlow quality,\
+  \ normal quality, jpeg artifacts, signature, watermark,\nusername, blurry, artist\
+  \ name, monochrome, grayscale, duplicate,\nmorbid, mutilated, out of frame, extra\
+  \ toes, crossed eyes.\n\nsd_xl_base_1.0.safetensors o Juggernaut XL v9\nResolution:\
+  \ 832x1216\n(9:16 aspect ratio)\nSteps: 30-40\nSampler: DPM++ 2M\nKarras o Euler\
+  \ a\nCFG Scale: 7-8\nClip Skip: 2 (para\nSD 1.5) / 1 (para SDXL)\nDenoising Strength:\n\
+  0.75 (si usas img2img)\n\nIP-Adapter Weight:\n0.6-0.8\nIP-Adapter Model:\nip-adapter-plus_sd15.safetensors\n\
+  Reference Image: La\nimagen original de la modelo\n\nControlNet Unit 0:\n  Model:\n\
+  control_v11p_sd15_openpose\n  Preprocessor:\nopenpose_full\n  Weight: 0.8-1.0\n\
+  \  Guidance Start:\n0.0\n  Guidance End: 1.0\n  \nControlNet Unit 1\n  Model:\n\
+  control_v11f1p_sd15_depth\n  Preprocessor:\ndepth_midas\nWeight: 0.4-0.6\nInstantID\
+  \ Weight:\n0.8\nIdentityNet Scale:\n0.5-0.8\nPreserve Face\nDetails: Enabled\nadd_detail.safetensors\
+  \ (Weight: 0.4-0.6)\nepi_noiseoffset2.safetensors (Weight: 0.3-0.5)\ncinematic_lighting.safetensors\
+  \ (Weight: 0.5)"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,0 +1,27 @@
+slug: website-design-system-builder
+title: Website Design System Builder
+description: Imported from Prompts Chat
+prompt: "Analyze the current website's design system by reviewing its key pages: homepage,\
+  \ \na product or pricing page, an interior content page, a form or contact page,\
+  \ and \nany page with unique UI patterns (testimonials, pricing tables, etc.).\n\
+  \nWhere possible, inspect actual computed CSS values (via element inspection) rather\
+  \ \nthan estimating visually, so colors, sizes, and spacing are accurate rather\
+  \ than \napproximate.\n\nDocument the following:\n\n- Color palette: primary, secondary,\
+  \ accent, and neutral colors with hex/rgb \n  values and where each is used\n- Typography:\
+  \ font families, weights, sizes, and line-heights for H1-H6, body \n  text, and\
+  \ captions/labels\n- Spacing and layout: spacing scale, container widths, grid structure,\
+  \ and \n  responsive breakpoints\n- Buttons and CTAs: primary/secondary/tertiary\
+  \ button styles, including hover \n  and active states if visible\n- Forms and inputs:\
+  \ field styling, borders, focus states\n- Navigation: header/nav structure and styling,\
+  \ footer structure\n- Cards and containers: border-radius, shadows, borders\n- Iconography\
+  \ and imagery style\n\nFlag any inconsistencies across pages (e.g., different button\
+  \ styles in \ndifferent places) instead of picking one and ignoring the rest.\n\n\
+  Output the result as a single markdown (.md) file with H2 headers for each \ncategory,\
+  \ tables for color palettes and typography scales, and code blocks for \nCSS values.\
+  \ Structure it so a developer or designer could use it directly. \nSave it as [site-name]-design-system.md\
+  \ so I can export it from this thread."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

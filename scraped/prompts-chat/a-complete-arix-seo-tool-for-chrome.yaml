@@ -1,0 +1,37 @@
+slug: a-complete-arix-seo-tool-for-chrome
+title: A complete ARIX SEO Tool for Chrome
+description: Imported from Prompts Chat
+prompt: "Act as an Expert Chrome Extension Developer (Manifest V3) and Backend Engineer.\n\
+  \nI need you to write the complete, production-ready code for a premium Chrome Extension\
+  \ called \"ARIX Pro SEO Toolkit\". \n\nCRITICAL RULES:\n1. NO SCRAPING. Use ONLY\
+  \ official, top-tier SEO APIs.\n2. Use Manifest V3, Vanilla JavaScript, HTML, and\
+  \ CSS. No React, no build steps.\n3. To protect API keys, the extension must NOT\
+  \ call the APIs directly from the popup. It must call a simple, free Vercel Serverless\
+  \ Function (backend proxy) which I will deploy.\n\nTECH STACK & DATA SOURCES:\n\
+  1. Off-Page SEO (DR, Traffic, Backlinks): DataForSEO API (or Moz API as a fallback).\
+  \ \n2. Technical SEO / Core Web Vitals: Google PageSpeed Insights API.\n\nFILE STRUCTURE\
+  \ REQUIRED:\nPlease provide the complete code for:\n1. `manifest.json` (Manifest\
+  \ V3, permissions: activeTab, storage).\n2. `popup.html` (Clean, modern, dark-mode\
+  \ UI with tabs for Overview, Off-Page, and Technical).\n3. `popup.css` (Premium\
+  \ styling, clean typography, loading states).\n4. `popup.js` (Main controller. It\
+  \ should fetch data from my Vercel backend URL, not directly from the APIs).\n5.\
+  \ `api/index.js` (The Vercel Serverless function. This file will hold the API keys\
+  \ securely and make the actual requests to DataForSEO and Google PSI, then return\
+  \ the JSON to the extension).\n\nSPECIFIC LOGIC REQUIREMENTS:\n- BACKEND (api/index.js):\
+  \ \n  - Accept a `domain` and `type` (offpage or technical) query parameter.\n \
+  \ - If `type=offpage`, use the DataForSEO API (Basic Auth) to fetch Domain Rank,\
+  \ Organic Traffic, and Backlink count. (Provide clear instructions on how to format\
+  \ the DataForSEO REST API call).\n  - If `type=technical`, call the Google PageSpeed\
+  \ Insights API and return the SEO score and Core Web Vitals.\n  - Return clean JSON\
+  \ to the frontend.\n- FRONTEND (popup.js):\n  - Get the current tab's URL.\n  -\
+  \ Show a sleek loading skeleton while waiting for the Vercel backend.\n  - Display\
+  \ the data in clean cards (e.g., \"Domain Rating: 45\", \"Est. Traffic: 10k\", \"\
+  Backlinks: 5.2k\").\n  - Include basic local caching (`chrome.storage.local`) for\
+  \ 24 hours so we don't waste API credits if the user clicks the same site twice.\n\
+  \nPlease output the code for each file clearly labeled. Ensure the Vercel backend\
+  \ code is ready to be deployed in a single `api/` folder."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -130,17 +130,17 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 2676 |
+| Unified prompts (in `dist/prompts.json`) | 2916 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 2681 |
+| Scraped prompts cached in `scraped/` | 2921 |
 
 ### Configured Sources
 
 | Source | Type | Location | Format | Loaded |
 |--------|------|----------|--------|--------|
 | Local Prompts | local | `prompts/` | - | 3 |
-| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 2140 |
+| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 2380 |
 | Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 180 |
 | AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 361 |
 
@@ -225,7 +225,7 @@ make all           # Run validation, tests, build, and README update
 </details>
 
 <details>
-<summary><strong>Prompts Chat</strong> (2140 prompts)</summary>
+<summary><strong>Prompts Chat</strong> (2380 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -233,8 +233,8 @@ make all           # Run validation, tests, build, and README update
 | 2 | 1337 | "Create a detailed efficiency guide for ${game_name}.  The … |
 | 3 | 1940s village life | Give a prompt for 2 minutes  i need to generate ai video ea… |
 | 4 | 1950s Diner Photo Transformation | {   "prompt": "You will perform an image edit using the per… |
-| 5 | 2026 Mobile Poster Creator | Act as a graphic design assistant. Your task is to create a… |
-| 6 | 2026 Size Neler getirecek | {   "task": "Photorealistic premium mystical 2026 astrology… |
+| 5 | 2026 FASHION EDITORIAL | A 20-year-old adult Dutch female model with fair skin and l… |
+| 6 | 2026 Mobile Poster Creator | Act as a graphic design assistant. Your task is to create a… |
 | 7 | 2046 Puzzle Game Challenge | Act as a game developer. You are tasked with creating a tex… |
 | 8 | 21st.dev component prompt | You are given a task to integrate an existing React compone… |
 | 9 | 2D documentary script generator | Suspense full 2D documentary script generator prompt like A… |
@@ -259,7 +259,7 @@ make all           # Run validation, tests, build, and README update
 | 28 | 4 Optimized Versions of A Prompt (in Ar… | Act as a certified and expert AI prompt engineer  Analyze a… |
 | 29 | $500/Hour AI Consultant Prompt | You are Lyra, a master-level Al prompt optimization special… |
 | 30 | 5x2 Reverse Construction Process - Vill… | Act as an architectural visualization expert specialized in… |
-| … | *+2110 more* | See `scraped/prompts-chat/` |
+| … | *+2350 more* | See `scraped/prompts-chat/` |
 
 </details>
 ## License

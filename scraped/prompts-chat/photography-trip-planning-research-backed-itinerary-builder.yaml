@@ -2,7 +2,7 @@ slug: photography-trip-planning-research-backed-itinerary-builder
 title: Photography Trip Planning — Research-Backed Itinerary Builder
 description: Imported from Prompts Chat
 prompt: "# Photography Trip Planning Prompt\n## Reusable Template for Travel Photographers\n\
-  ### v3.0\n\n---\n\n> **Two ways to use this template:**\n>\n> **Lightweight mode**\
+  ### v4.0\n\n---\n\n> **Two ways to use this template:**\n>\n> **Lightweight mode**\
   \ — Skip all sections marked `[OPTIONAL]` and the entire Technical Notes section.\
   \ Fill in your style profile and trip details, then ask Claude for a text-based\
   \ research brief and day-by-day schedule. No scripting required.\n>\n> **Full production\
@@ -253,7 +253,7 @@ prompt: "# Photography Trip Planning Prompt\n## Reusable Template for Travel Pho
   \ coordinates are accurate before including\n\n### Schedule splits (PowerPoint):\n\
   - Do not split a city's daily schedule across slides by default. Combine all days\
   \ for one city onto a single slide.\n- Only split to a continuation slide if the\
-  \ actual rendered content would overflow the available slide height — check total\
+  \ actual rendered content would overflow the available slide height. Check total\
   \ row count against available vertical space, not a fixed threshold.\n\n---\n\n\
   ## STYLE PREFERENCES\n\n[FILL IN — describe your general planning philosophy. Examples\
   \ below.]\n\n> [EXAMPLE]:\n> - Quality over quantity — fewer, richer locations beat\

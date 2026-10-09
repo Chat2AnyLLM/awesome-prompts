@@ -1,0 +1,54 @@
+slug: python-app-source-with-pyinstaller-build-and-installer
+title: Python App Source with PyInstaller Build and Installer
+description: Imported from Prompts Chat
+prompt: "complete source code for the application + `build.bat` + PyInstaller configuration\
+  \ + installer configuration + CSV template + documentation, rather than just a partial\
+  \ prototype. i will upload csv and bulk pdf file. after clickig button match name\
+  \ and pdf file process file will be send to provided email id which in csv\nnote:\
+  \ This error originates from a subprocess, and is likely not a problem with pip.\n\
+  \  ERROR: Failed building wheel for Levenshtein\nFailed to build Levenshtein\nerror:\
+  \ failed-wheel-build-for-install\n\n× Failed to build installable wheels for some\
+  \ pyproject.toml based projects\n╰─> Levenshtein\nERROR: Failed to install required\
+  \ packages\ncpanel webmail Set up email on application tool\nPDF Auto MATCHING LOGIC:\
+  \ EmployeeID, FirstName, MiddleName, LastName\nNAME-BASED MATCHING\nIf Employee\
+  \ ID is not found in the filename, implement a controlled secondary matching method\
+  \ based on employee name.\nExample:\nPDF:\n\n```\nAbel Harry Anthony.pdf\n```\n\n\
+  CSV:\n\n```\n10152 | Abel | Harry | Anthony | abel@example.com\n```\n\nThe application\
+  \ should identify:\n\n```\nAbel Harry Anthony\n```\n\nand match it with the CSV\
+  \ record.\nThe matching logic can be changed so the application uses any 3 of the\
+  \ 4 CSV fields:\n\n* `ID`\n* `First Name`\n* `Middle Name`\n* `Last Name`\n\nInput\
+  \ PDF:\n10004_Vihang_Wani_SalarySlip_March_2026.pdf\n\nno need to rename the pdf\
+  \ file once it's attached also show dashboard me all attachments before sending\
+  \ email\ncan be built as a Windows desktop application that:\n\n1. Imports an employee\
+  \ CSV.\n2. Lets you select a folder containing hundreds/thousands of PDFs.\n3. Extracts\
+  \ the Employee ID from each filename.\n4. Finds the matching employee in the CSV.\n\
+  5. Renames the PDF according to a defined format.\n6. Shows success, unmatched,\
+  \ duplicate, and error reports.\n7. Provides a one-click Windows build that produces\
+  \ a `.exe`.\n\nFor your example:Input: SumitShyamraoTunkikar_0020063_Aug_2026.pdf\n\
+  CSV: 20063 | Sumit | Shyamrao | Tunkikar\nOutput: 20063_Sumit_Shyamrao_Tunkikar.pdf\n\
+  Or\nInput: Abel Harry Anthony.pdf\nCSV: 10152 | Abel | Harry | Anthony\nOutput:10152_Abel_Harry_Anthony.pdf\n\
+  Or\nInput: AbhishekYadav_0020311_Aug_2026.pdf\nCSV: 20311 | Abhishek | Yadav\nOutput:20311_Abhishek_Yadav.pdf\n\
+  SAFETY\nOriginal PDFs are preserved by default.\nThe output is written to a separate\
+  \ folder.\nAdd Naming Templates: Configure rename patterns:\nadd Placeholders: ${employeeid}\
+  \ ${firstname} ${middlename} ${surname} ${month} ${year} \nDefine how renamed pdf\
+  \ should look\nexample: Pattern\n${employeeid}${firstname}${surname}SalarySlip${month}${year}\n\
+  Or\n${employeeid}${firstname}${middlename}${surname}SalarySlip${month}_${year}\n\
+  Live preview\n20311_Abhishek_Yadav_SalarySlip_August_2026.pdf\n\nthe specification\
+  \ to:\n          The matching logic can be changed so the application uses any 3\
+  \ of the 4 CSV fields:\n\n* `ID + First Name + Middle Name + Surname`\n* `ID + First\
+  \ Name + Surname`\n* `First Name + Middle Name + Surname` when no ID is present\n\
+  * Handle concatenated names such as `SumitShyamraoTunkikar`\n* Handle spaced names\
+  \ such as `Abel Harry Anthony`\n* Normalize leading-zero IDs: `0020063` → `20063`\n\
+  * Preserve the original PDFs\n* Never overwrite an existing output PDF\n* Separate\
+  \ Input and Output folders\n* Add configurable naming templates:\n   * `${employeeid}`\n\
+  \   * `${firstname}`\n   * `${middlename}`\n   * `${surname}`\n   * `${month} I\
+  \ will select month`\n   * `${year} I will select year`\n* Extract `Month` and `Year`\
+  \ from the original filename where available\n* Provide a live preview\n* Provide\
+  \ a Preview/Review table before processing\n* Export unmatched/duplicate/error reports\n\
+  * Include Undo for the current output run\nMatch method: uses any 3 of the 4 CSV\
+  \ must"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

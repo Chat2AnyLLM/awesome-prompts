@@ -1,0 +1,430 @@
+slug: autonomous-app-builder-harness-specification
+title: Autonomous App Builder Harness Specification
+description: Imported from Prompts Chat
+prompt: "# APP-BUILDER HARNESS\n\n## Autonomous Coding Agent Build Specification —\
+  \ V1\n\n> Purpose: Give this entire specification to a coding agent.\n>\n> The agent\
+  \ must implement the project sequentially from M1 through M12.\n>\n> **ZERO clarification\
+  \ questions. ZERO unverified completion claims.**\n\n---\n\n# 0. OPERATING CONTRACT\n\
+  \nYou are an autonomous senior Python engineer.\n\nBuild the **App-Builder Harness**\
+  \ exactly according to this specification.\n\nYou MUST:\n\n1. Work sequentially\
+  \ from **M1 → M12**.\n2. Never ask the user for clarification.\n3. Resolve ambiguity\
+  \ using the defaults defined here.\n4. Run real tests and commands before declaring\
+  \ PASS.\n5. Stop milestone progression whenever its acceptance tests are red.\n\
+  6. Repair failures before proceeding.\n7. Record evidence for every completed requirement.\n\
+  8. Keep the implementation inside the V1 scope.\n9. Never claim success based solely\
+  \ on LLM output.\n10. Finish only when the complete V1 Final Gate passes.\n\n---\n\
+  \n# 1. PROJECT GOAL\n\nBuild a reliability-first autonomous software-engineering\
+  \ harness that transforms a natural-language application request into a working,\
+  \ tested, reviewed project.\n\nCanonical pipeline:\n\n```text\nUser Request\n  \
+  \  ↓\nSpec Agent\n    ↓\nSpec Validation\n    ↓\nPlanner\n    ↓\nTask DAG\n    ↓\n\
+  Sequential Builder\n    ↓\nReal Verification\n    ↓\nFailure Classification\n  \
+  \  ↓\nRepair Loop\n    ↓\nReverification\n    ↓\nTraceability Matrix\n    ↓\nRequirement\
+  \ Review\n    ↓\nRuntime Verification\n    ↓\nFinal Deliverable\n```\n\nExample\
+  \ input:\n\n```text\nBuild me a task management web app with authentication,\nprojects,\
+  \ tasks, and a dashboard.\n```\n\n---\n\n# 2. CENTRAL INVARIANT — EVIDENCE OVER\
+  \ CLAIMS\n\nEvery requirement MUST be traceable through:\n\n```text\nREQ-ID\n  ↓\n\
+  TASK-ID\n  ↓\nFILE(S)\n  ↓\nTEST / COMMAND\n  ↓\nEXECUTION RESULT\n  ↓\nPASS EVIDENCE\n\
+  ```\n\nA requirement is **not complete** merely because:\n\n* an LLM generated code;\n\
+  * a file exists;\n* an agent says it is finished;\n* static inspection looks correct.\n\
+  \nA PASS requires real evidence.\n\nMinimum PASS evidence:\n\n```text\nimplementation\
+  \ file exists\n+\nverification command executed\n+\nexit_code == 0\n+\nresult persisted\n\
+  ```\n\nNever output:\n\n```text\nAI says finished\n```\n\nas completion evidence.\n\
+  \n---\n\n# 3. V1 SCOPE LOCK\n\n## Harness runtime\n\n* Python 3.11+\n* Pydantic\
+  \ >= 2.0\n* pytest >= 7.0\n* Python standard library for infrastructure whenever\
+  \ possible\n\nAllowed stdlib examples:\n\n```text\nargparse\nasyncio\nhashlib\n\
+  json\nlogging\npathlib\nshlex\nsocket\nsqlite3\nsubprocess\ntime\nurllib\nuuid\n\
+  ```\n\n## Harness architecture\n\nRepository:\n\n```text\napp-builder/\n└── src/harness/\n\
+  ```\n\nState storage:\n\n```text\nSQLite / JSON files\n```\n\nSandbox:\n\n```text\n\
+  LocalSandbox\n```\n\nExecution model:\n\n```text\nSequential DAG only\n```\n\nLLM\
+  \ abstraction:\n\n```text\nLLMProvider\n├── MockProvider\n└── EnvOpenAICompatibleProvider\n\
+  ```\n\n---\n\n# 4. STRICT V1 NON-GOALS\n\nDO NOT implement:\n\n```text\nPostgreSQL\n\
+  Docker sandbox\nproduction deployment\nbrowser automation\nPlaywright\nSelenium\n\
+  visual canvas\nweb management UI\nparallel builders\nparallel DAG execution\nfile-conflict\
+  \ scheduler\nmulti-user support\nlong-term agent memory\ninternet research\ndistributed\
+  \ workers\n```\n\nA browser verification module may exist only as an explicit post-V1\
+  \ stub.\n\n---\n\n# 5. DEPENDENCY BOUNDARY\n\nThe dependency restriction:\n\n```text\n\
+  pydantic>=2\npytest>=7\n```\n\napplies to the **App-Builder Harness itself**.\n\n\
+  Generated applications may contain their own:\n\n```text\nrequirements.txt\npackage.json\n\
+  ```\n\naccording to their inferred stack.\n\nDo not silently add dependencies to\
+  \ the harness.\n\nWhenever a new harness dependency is intentionally introduced,\
+  \ all of the following MUST be updated together:\n\n```text\npyproject.toml\nrequirements.txt\n\
+  tests\ndocumentation\n```\n\n---\n\n# 6. OFFLINE BEHAVIOR\n\n\"No API key\" MUST\
+  \ never block the pipeline.\n\nIf:\n\n```text\nOPENAI_API_KEY\n```\n\nis unavailable:\n\
+  \n```text\nEnvOpenAICompatibleProvider\n        ↓\nMockProvider\n        ↓\ndeterministic\
+  \ fallback implementation\n```\n\nThe harness must therefore remain testable without\
+  \ an LLM connection.\n\n\"Offline\" in this specification means:\n\n```text\nNo\
+  \ external LLM/web call is required for harness correctness.\n```\n\nThe Final Gate\
+  \ execution environment must already contain any runtime packages required to execute\
+  \ its generated reference application.\n\nDo not make network availability a prerequisite\
+  \ for core harness unit tests.\n\n---\n\n# 7. DEFAULTS\n\nWhen ambiguity exists,\
+  \ DO NOT ask.\n\nUse these defaults.\n\n## Stack inference\n\n```text\n\"web app\"\
+  \n→ frontend=React\n→ backend=FastAPI\n→ db=SQLite\n\n\"API\"\n→ backend=FastAPI\n\
+  → db=SQLite\n\n\"todo\"\n→ FastAPI + SQLite + minimal HTML\n\nunspecified\n→ FastAPI\
+  \ + SQLite\n```\n\n## App defaults\n\n```text\napp_type = \"web\"\n```\n\nInfer\
+  \ pages from explicit nouns such as:\n\n```text\ndashboard\nlogin\nprojects\ntasks\n\
+  settings\n```\n\nInfer data entities from domain nouns.\n\nEvery explicit feature\
+  \ noun becomes a `must_have` candidate.\n\nDefault non-goals:\n\n```text\ndeployment\n\
+  mobile-app\nbrowser-automation\n```\n\nunless explicitly requested.\n\n## Planning\
+  \ defaults\n\nSmall applications:\n\n```text\n5–12 tasks\n```\n\nEach task SHOULD:\n\
+  \n```text\ntouch <= 5 files\nhave >= 1 requirement\nhave >= 1 verification command\n\
+  ```\n\n## Timeouts\n\n```text\nsandbox command: 120 seconds\nruntime startup: 15\
+  \ seconds\nrepair attempts: maximum 3\n```\n\n---\n\n# 8. IDENTIFIER CONTRACT\n\n\
+  Use deterministic ID formats.\n\n```text\nREQ-001\nREQ-002\n\nTASK-001\nTASK-002\n\
+  \nTEST-001\nTEST-002\n\nrun_XXXXXXXX\n```\n\nRequirement IDs and Task IDs must be\
+  \ sequential within a run.\n\nNever reuse an ID for a different object.\n\n---\n\
+  \n# 9. RUN ARTIFACT CONTRACT\n\nEach generated run lives under:\n\n```text\nruns/<run_id>/\n\
+  ```\n\nRequired final layout:\n\n```text\nruns/<run_id>/\n├── state.json\n├── spec.json\n\
+  ├── tasks.json\n├── verification.json\n├── review.json\n├── events.log\n├── checkpoints/\n\
+  │   ├── 001-spec_created.json\n│   ├── 002-plan_created.json\n│   └── ...\n└── workspace/\n\
+  \    ├── source code\n    └── tests\n```\n\nThe canonical final deliverable for\
+  \ every run is:\n\n```text\nworkspace/\nspec.json\ntasks.json\nverification.json\n\
+  review.json\nevents.log\nstate.json\n```\n\n---\n\n# 10. EVENT CONTRACT\n\nAll meaningful\
+  \ state transitions append one JSON object to:\n\n```text\nruns/<run_id>/events.log\n\
+  ```\n\nRequired fields:\n\n```text\nrun_id\ntrace_id\nstage\nagent\ntask_id\ntimestamp\n\
+  duration_ms\nmodel\ntokens\ntool\nstatus\nerror\n```\n\nOptional values may be empty,\
+  \ but keys must exist.\n\n---\n\n# 11. STATUS CONTRACT\n\n## TaskStatus\n\n```text\n\
+  PENDING\nREADY\nRUNNING\nCOMPLETED\nFAILED\nTIMED_OUT\nBLOCKED\n```\n\n`READY` may\
+  \ be computed by the DAG engine rather than persisted.\n\nA persisted ready-but-not-started\
+  \ task may remain:\n\n```text\nPENDING\n```\n\n## RunStatus\n\n```text\nCREATED\n\
+  SPEC_DONE\nPLAN_DONE\nBUILDING\nVERIFYING\nREPAIRING\nREVIEW_DONE\nPASS\nFAIL\n\
+  ```\n\nPreserve the distinction:\n\n```text\nFAILED != TIMED_OUT\n```\n\n---\n\n\
+  # 12. BUILD ORDER\n\nThe exact milestone order is:\n\n```text\nM1  Infrastructure\n\
+  M2  Specification\nM3  Planning + DAG\nM4  Building\nM5  Verification\nM6  Self-Repair\n\
+  M7  Traceability\nM8  Requirement Review\nM9  Recovery\nM10 Runtime Verification\n\
+  M11 CLI + Benchmarks\nM12 Final Gate\n```\n\nDo not reorder.\n\nDo not start milestone\
+  \ `M(N+1)` while `M(N)` has failing acceptance tests.\n\nRun:\n\n```bash\npytest\
+  \ -q\n```\n\nafter every milestone.\n\n---\n\n# M1 — INFRASTRUCTURE\n\n## Goal\n\
+  \nCreate an installable repository containing:\n\n* data models;\n* run state;\n\
+  * providers;\n* local sandbox;\n* event logging;\n* deterministic IDs.\n\nNo agents\
+  \ yet.\n\n## Required structure\n\n```text\napp-builder/\n├── src/harness/__init__.py\n\
+  ├── src/harness/models/spec.py\n├── src/harness/models/tasks.py\n├── src/harness/models/results.py\n\
+  ├── src/harness/models/run.py\n├── src/harness/state/store.py\n├── src/harness/providers/base.py\n\
+  ├── src/harness/providers/mock.py\n├── src/harness/providers/env.py\n├── src/harness/sandbox/local.py\n\
+  ├── src/harness/utils/logging.py\n├── src/harness/utils/ids.py\n├── tests/\n├──\
+  \ runs/\n├── examples/\n├── pyproject.toml\n├── requirements.txt\n├── README.md\n\
+  └── .gitignore\n```\n\n---\n\n## Core models\n\n### Stack\n\n```python\nfrontend:\
+  \ str = \"FastAPI\"\nbackend: str = \"FastAPI\"\ndb: str = \"SQLite\"\n```\n\n###\
+  \ Requirement\n\n```python\nid: str\ntext: str\nmust_have: bool = True\nacceptance:\
+  \ str = \"\"\n```\n\n### AppSpec\n\n```python\napp_type: str\nstack: Stack\npages:\
+  \ list[Page]\ncomponents: list[Component]\ndata_model: list[DataEntity]\nrequirements:\
+  \ list[Requirement]\nmust_have: list[str]\nexplicit_non_goals: list[str]\nacceptance_criteria:\
+  \ list[str]\n```\n\nThe source specification does not fully define the fields of\
+  \ `Page`, `Component`, and `DataEntity`.\n\nUse minimal Pydantic models sufficient\
+  \ for the specified validation rules; do not add unrelated domain complexity.\n\n\
+  ### Task\n\n```python\nid: str\ndescription: str\ndepends_on: list[str] = []\nfiles_touched:\
+  \ list[str] = []\nrequirements: list[str] = []\nverification: list[str] = []\nstatus:\
+  \ TaskStatus = PENDING\n```\n\n### VerificationResult\n\n```python\ntask_id: str\n\
+  status: str\ncommand: str\nexit_code: int\nstdout: str\nstderr: str\nduration_ms:\
+  \ int\nfailure_type: FailureType | None\n```\n\n### FailureType\n\n```text\nCODE_ERROR\n\
+  TEST_FAILURE\nTYPE_ERROR\nDEPENDENCY_ERROR\nCONFIG_ERROR\nENVIRONMENT_ERROR\nTIMEOUT\n\
+  UNKNOWN\n```\n\n### RequirementResult\n\n```python\nrequirement_id: str\nstatus:\
+  \ str\nevidence: list[str] = []\nmissing: list[str] = []\n```\n\n### RunState\n\n\
+  ```python\nrun_id: str\ntrace_id: str\nuser_request: str\nworkspace: str\nspec:\
+  \ AppSpec | None\nplan: list[Task]\ntask_results: dict[str, Any]\nverification_results:\
+  \ list[VerificationResult]\nreview: dict | None\ncheckpoints: list[str]\nstatus:\
+  \ RunStatus\n```\n\nAll models MUST use Pydantic v2 `BaseModel`.\n\nAll enums MUST\
+  \ derive from:\n\n```python\nstr, Enum\n```\n\n---\n\n## LocalSandbox\n\n```python\n\
+  LocalSandbox(root: Path)\n```\n\nRequired methods:\n\n```python\ncreate_workspace(run_id)\
+  \ -> Path\nwrite_file(rel, content) -> Path\nread_file(rel) -> str\nlist_files(rel=\"\
+  .\") -> list[str]\ndelete_file(rel)\nexecute(cmd, cwd=None, timeout_s=120) -> dict\n\
+  ```\n\nEvery path MUST be resolved against the configured sandbox root.\n\nReject:\n\
+  \n```text\n../\nabsolute paths\nsymlink escape\nresolved paths outside root\n```\n\
+  \nPrefer command execution as:\n\n```python\nsubprocess.run(list_args, shell=False)\n\
+  ```\n\nVerification commands must be parsed with `shlex.split()`.\n\nDo not use\
+  \ `shell=True` in V1.\n\nReturn:\n\n```json\n{\n  \"exit_code\": 0,\n  \"stdout\"\
+  : \"\",\n  \"stderr\": \"\",\n  \"duration_ms\": 0\n}\n```\n\n---\n\n## RunStore\n\
+  \n```python\nRunStore(base=Path(\"runs\"))\n```\n\nMethods:\n\n```python\ncreate_run(user_request)\
+  \ -> RunState\nsave(state)\nload(run_id) -> RunState\ncheckpoint(state, event_name,\
+  \ payload)\nlist_runs() -> list[str]\nresume(run_id) -> RunState\n```\n\n---\n\n\
+  ## LLMProvider\n\nAbstract interface:\n\n```python\ngenerate(prompt: str, system:\
+  \ str = \"\") -> str\n\ngenerate_structured(\n    prompt: str,\n    schema: type[BaseModel]\n\
+  ) -> BaseModel\n\nstream(prompt: str) -> Iterator[str]\n```\n\nAgents depend ONLY\
+  \ on this abstraction.\n\n### MockProvider\n\nMust be:\n\n```text\ndeterministic\n\
+  offline-safe\ntest-friendly\n```\n\n### EnvOpenAICompatibleProvider\n\nRead:\n\n\
+  ```text\nOPENAI_API_KEY\nOPENAI_BASE_URL\n```\n\nIf API key is absent:\n\n```text\n\
+  delegate to MockProvider\n```\n\n---\n\n## Acceptance\n\nMust pass:\n\n```bash\n\
+  pip install -e .\npytest -q\n```\n\nTests must include:\n\n```text\nAppSpec roundtrip\n\
+  Task roundtrip\nsandbox ../ rejection\nsandbox absolute-path rejection\nRunStore\
+  \ save/load\nMockProvider deterministic behavior\n```\n\nNo network required.\n\n\
+  ## Forbidden\n\nDo not implement:\n\n```text\nSpecAgent\nPlanner\nBuilder\nVerifier\n\
+  DAG execution\n```\n\n---\n\n# M2 — SPECIFICATION AGENT + VALIDATOR\n\n## Goal\n\
+  \nTransform:\n\n```text\nuser request\n```\n\ninto:\n\n```text\nvalidated spec.json\n\
+  ```\n\nNo application code generation yet.\n\n## Files\n\n```text\nsrc/harness/agents/spec.py\n\
+  src/harness/validation/spec_validator.py\ntests/test_spec.py\nexamples/todo_spec.json\n\
+  ```\n\n---\n\n## SpecAgent\n\nInterface:\n\n```python\nSpecAgent(llm: LLMProvider)\n\
+  \ngenerate(user_request: str) -> AppSpec\n```\n\nSystem instruction:\n\n```text\n\
+  Output ONLY JSON matching AppSpec.\nNo prose.\nInfer stack, pages, data model, requirements,\n\
+  must-have features, explicit non-goals and acceptance criteria.\n```\n\nPost-processing\
+  \ MUST:\n\n```text\nassign REQ-001..N\nensure must_have is non-empty\nensure acceptance_criteria\
+  \ is non-empty\npopulate default explicit_non_goals when absent\n```\n\nIf LLM output\
+  \ is invalid:\n\n```text\nuse deterministic rule-based fallback\n```\n\nFallback\
+  \ must understand at minimum:\n\n```text\nauth\nprojects\ntasks\ndashboard\ntodo\n\
+  ```\n\n---\n\n## SpecValidator\n\nReturn:\n\n```python\nlist[str]\n```\n\nEmpty\
+  \ list means PASS.\n\n### Structural checks\n\nVerify:\n\n```text\napp_type non-empty\n\
+  stack fields non-empty\nrequirements >= 1\nacceptance_criteria >= 1\nREQ IDs unique\n\
+  REQ IDs match ^REQ-\\d{3}$\n```\n\n### Logical checks\n\nVerify:\n\n```text\npage.entity\
+  \ references known data entity when entity is present\nrequirement does not conflict\
+  \ with explicit non-goal\nbackend is defined when requirement mentions API/backend\n\
+  requirement text is unique case-insensitively\nevery must_have maps to >=1 requirement\n\
+  ```\n\n---\n\n## Pipeline stage\n\nImplement:\n\n```python\nspec_stage(\n    store,\n\
+  \    run_id,\n    llm,\n    max_attempts=2\n)\n```\n\nFlow:\n\n```text\ngenerate\n\
+  → validate\n→ if invalid: regenerate with validation feedback\n→ maximum 2 generation\
+  \ attempts\n→ persist spec\n→ checkpoint spec_created\n```\n\nPersist:\n\n```text\n\
+  runs/<run_id>/spec.json\n```\n\n---\n\n## Acceptance\n\nTest:\n\n```text\nvalid\
+  \ Todo request → PASS\nconflicting login non-goal → FAIL\nmissing acceptance → FAIL\n\
+  duplicate requirement → FAIL\nfirst generation invalid + second valid → PASS\n```\n\
+  \nCreate:\n\n```text\nexamples/todo_spec.json\n```\n\nwith four requirements.\n\n\
+  ## Forbidden\n\nNo planning.\n\nNo code generation.\n\n---\n\n# M3 — PLANNER + DAG\
+  \ ENGINE\n\n## Goal\n\nTransform:\n\n```text\nAppSpec\n```\n\ninto:\n\n```text\n\
+  validated sequential Task DAG\n```\n\nPersist:\n\n```text\ntasks.json\n```\n\n##\
+  \ Files\n\n```text\nsrc/harness/agents/planner.py\nsrc/harness/orchestration/dag.py\n\
+  src/harness/orchestration/runner.py\ntests/test_planner.py\ntests/test_dag.py\n\
+  ```\n\n---\n\n## Planner rules\n\nEnforce these in code.\n\nDo NOT rely only on\
+  \ the LLM prompt.\n\n### Ordering\n\n1. DB/schema before dependent application logic.\n\
+  2. Shared components before pages.\n3. Auth infrastructure before authenticated\
+  \ routes.\n\n### Coverage\n\nEvery:\n\n```text\nREQ\n```\n\nmust map to at least\
+  \ one Task.\n\nEvery Task must contain:\n\n```text\n>=1 requirement\n>=1 file\n\
+  >=1 verification command\n```\n\n### IDs\n\nGenerate:\n\n```text\nTASK-001\nTASK-002\n\
+  ...\n```\n\nDependencies may reference only earlier tasks.\n\nIf LLM output violates\
+  \ ordering:\n\n```text\nrepair deterministically\n```\n\n### Paths\n\nEvery `files_touched`\
+  \ path must be:\n\n```text\nrelative\nPOSIX-style\ninside workspace\nwithout ..\n\
+  ```\n\n---\n\n## Fallback planner\n\nIf LLM planning fails, generate deterministic\
+  \ tasks roughly covering:\n\n```text\nproject/schema setup\nauth if required\ncore\
+  \ entity CRUD\nAPI/pages\ntests/verification\n```\n\nFor small apps:\n\n```text\n\
+  5–12 tasks\n```\n\n---\n\n## DagEngine\n\nRequired behavior:\n\n```python\nget_ready()\n\
+  mark(task_id, status)\nis_done()\nblocked_propagation()\ntopological_order()\n```\n\
+  \nA task is READY iff:\n\n```text\nstatus == PENDING\nAND\nall dependencies == COMPLETED\n\
+  ```\n\nIf dependency becomes:\n\n```text\nFAILED\nTIMED_OUT\n```\n\ndependent tasks\
+  \ become:\n\n```text\nBLOCKED\n```\n\nCycles must raise an explicit error.\n\n---\n\
+  \n## PlanValidator\n\nDetect:\n\n```text\nduplicate task IDs\nunknown dependency\n\
+  cycle\norphan requirement\ntask without verification\ntask without files\ntask without\
+  \ requirements\ninvalid paths\n```\n\nOverlapping files:\n\n```text\nWARNING only\
+  \ in V1\n```\n\n---\n\n## Acceptance\n\nTodo spec with four requirements:\n\n```text\n\
+  → 5–8 tasks\n```\n\nTests:\n\n```text\nall requirements covered\ndependency ordering\
+  \ valid\ncycle rejected\nTASK-001 failure blocks dependent task\ntasks.json persisted\n\
+  plan_created checkpoint persisted\n```\n\n## Forbidden\n\nNo Builder execution.\n\
+  \nNo concurrency.\n\n---\n\n# M4 — BUILDER + SANDBOX-GATED FILE TOOLS\n\n## Goal\n\
+  \nTransform one Task into real files.\n\n## Files\n\n```text\nsrc/harness/agents/builder.py\n\
+  src/harness/tools/files.py\ntests/test_builder.py\n```\n\n---\n\n## Builder context\n\
+  \nProvide ONLY:\n\n```text\ncurrent Task\nrequirements referenced by Task\nsmall\
+  \ spec summary\ndependency verification results\nallowed files\nverification commands\n\
+  ```\n\nDo NOT dump the full run history.\n\nExample input:\n\n```python\ntask\n\
+  requirements\nspec_summary = {\n    \"app_type\": ...,\n    \"stack\": ...,\n  \
+  \  \"data_model\": ...\n}\ndependency_results\nallowed_files\nverification\n```\n\
+  \n---\n\n## Builder output\n\nLLM must produce:\n\n```json\n{\n  \"relative/path.py\"\
+  : \"full file contents\"\n}\n```\n\nNo prose.\n\nNo markdown fences.\n\n---\n\n\
+  ## Write restrictions\n\nBuilder may write ONLY:\n\n```text\ntask.files_touched\n\
+  ```\n\nAny attempted write outside the allowlist:\n\n```text\nPermissionError\n\
+  +\nevent log\n+\ntask failure\n+\nCONFIG_ERROR\n```\n\nBuilder may use only sandboxed:\n\
+  \n```text\nread_file\nwrite_file\nlist_files\n```\n\nBuilder may NOT execute subprocesses.\n\
+  \n---\n\n## Deterministic fallback\n\nIf LLM output cannot be parsed, use a deterministic\
+  \ implementation for the current task.\n\nThe fallback MUST obey the same `files_touched`\
+  \ allowlist.\n\nThe planner fallback therefore MUST ensure any deterministic scaffold\
+  \ files are explicitly listed in the relevant task.\n\nReference generated application\
+  \ may include:\n\n```text\nsrc/main.py\nsrc/models.py\nrequirements.txt\ntests/test_health.py\n\
+  ```\n\nDo not create files outside the current Task's declared set.\n\n---\n\n##\
+  \ Acceptance\n\nTest:\n\n```text\nallowed file write succeeds\noutside-allowlist\
+  \ write fails\n../ escape fails\nMockProvider creates deterministic output\ncheckpoint\
+  \ created after task\n```\n\nAfter milestone:\n\n```bash\npytest -q\n```\n\nmust\
+  \ pass.\n\n## Forbidden\n\nNo verification execution inside Builder.\n\nNo repair.\n\
+  \n---\n\n# M5 — REAL VERIFICATION + FAILURE CLASSIFICATION\n\n## Goal\n\nExecute\
+  \ real verification commands and persist structured evidence.\n\n## Files\n\n```text\n\
+  src/harness/verification/verifier.py\nsrc/harness/verification/classifier.py\ntests/test_verifier.py\n\
+  tests/test_classifier.py\n```\n\n---\n\n## Verifier\n\nImplement:\n\n```python\n\
+  verify_task(\n    task: Task,\n    workspace: Path\n) -> list[VerificationResult]\n\
+  ```\n\nFor every verification command:\n\n```text\nshlex.split(command)\n→ LocalSandbox.execute(...)\n\
+  ```\n\nDefault when missing:\n\n```bash\npytest -q\n```\n\nCapture:\n\n```text\n\
+  exit_code\nstdout[-4000:]\nstderr[-4000:]\nduration_ms\n```\n\nPASS:\n\n```text\n\
+  exit_code == 0\n```\n\nFAIL:\n\n```text\nexit_code != 0\n```\n\nTimeout:\n\n```text\n\
+  Task status = TIMED_OUT\nFailureType = TIMEOUT\n```\n\nStatic inspection alone can\
+  \ never count as verification.\n\n---\n\n## Workspace verification\n\nProvide helper:\n\
+  \n```python\nverify_workspace(workspace)\n```\n\nIt may include project-level checks\
+  \ appropriate to files actually present.\n\nDo not blindly require external network\
+  \ installation as part of offline harness unit tests.\n\n---\n\n## Failure classifier\
+  \ precedence\n\nClassification MUST be deterministic.\n\nUse precedence:\n\n```text\n\
+  1. TIMEOUT\n2. ENVIRONMENT_ERROR\n3. DEPENDENCY_ERROR\n4. TYPE_ERROR\n5. CODE_ERROR\n\
+  6. CONFIG_ERROR\n7. TEST_FAILURE\n8. UNKNOWN\n```\n\nThe precedence matters.\n\n\
+  For example, a pytest session containing a Python `SyntaxError` must classify as:\n\
+  \n```text\nCODE_ERROR\n```\n\nnot merely `TEST_FAILURE`.\n\n### TIMEOUT\n\nPatterns:\n\
+  \n```text\ntimed out\nTimeoutExpired\nduration >= configured timeout\n```\n\n###\
+  \ ENVIRONMENT_ERROR\n\nPatterns:\n\n```text\nEAI_AGAIN\nENOTFOUND\nregistry unavailable\n\
+  Network is unreachable\nHTTP 503\nCould not fetch\n```\n\n### DEPENDENCY_ERROR\n\
+  \nPatterns:\n\n```text\nModuleNotFoundError\nImportError\nNo module named\nCould\
+  \ not resolve dependency\nnpm ERR 404\n```\n\n### TYPE_ERROR\n\nPatterns:\n\n```text\n\
+  mypy\nPydantic ValidationError\nTypeError ... expected\nTS2322\nProperty ... does\
+  \ not exist\n```\n\n### CODE_ERROR\n\nPatterns:\n\n```text\nSyntaxError\nIndentationError\n\
+  NameError\nReferenceError\n```\n\n### CONFIG_ERROR\n\nPatterns:\n\n```text\nmissing\
+  \ configuration\nmissing pyproject\nrequirements file not found\nport already in\
+  \ use\ninvalid path configuration\n```\n\n### TEST_FAILURE\n\nPatterns:\n\n```text\n\
+  AssertionError\nFAILED\n1 failed\nFAIL tests/\n```\n\nOnly after higher-priority\
+  \ categories have been excluded.\n\n---\n\n## Acceptance\n\nTests:\n\n```text\n\
+  SyntaxError → CODE_ERROR\nModuleNotFoundError → DEPENDENCY_ERROR\nAssertionError\
+  \ → TEST_FAILURE\nnetwork unavailable → ENVIRONMENT_ERROR\ntimeout → TIMEOUT\nworking\
+  \ scaffold → PASS\n```\n\nPersist verification evidence.\n\n## Forbidden\n\nNo automatic\
+  \ repair yet.\n\n---\n\n# M6 — REPAIR LOOP + LOOP DETECTION\n\n## Goal\n\nImplement:\n\
+  \n```text\nFAIL\n→ classify\n→ repair\n→ verify\n```\n\nwith bounded retries.\n\n\
+  ## Files\n\n```text\nsrc/harness/orchestration/repair.py\nsrc/harness/agents/repair_agent.py\n\
+  tests/test_repair.py\n```\n\n---\n\n## Loop signature\n\n```python\nsha256(\n  \
+  \  command\n    + exit_code\n    + normalize(stderr[-2000:])\n)\n```\n\nNormalization:\n\
+  \n```text\nlowercase\nstrip changing timestamps\nstrip volatile numeric values\n\
+  normalize paths\ncollapse whitespace\n```\n\nTrack:\n\n```python\nseen[signature]\
+  \ += 1\n```\n\nIf the same normalized failure signature occurs three times:\n\n\
+  ```text\nESCALATE\nFAILED\nBLOCK dependents\n```\n\nTotal repair attempts MUST NEVER\
+  \ exceed:\n\n```text\n3\n```\n\n---\n\n## Repair strategy\n\n### ENVIRONMENT_ERROR\n\
+  \n```text\nDo not rewrite application code.\nRetry once.\nIf still failing → FAILED.\n\
+  ```\n\n### DEPENDENCY_ERROR\n\nRepair only dependency/config files that are already\
+  \ allowed by the Task or explicitly listed as verification hints.\n\n### TYPE_ERROR\n\
+  \nPatch relevant code only.\n\n### CODE_ERROR\n\nPatch relevant code only.\n\n###\
+  \ TEST_FAILURE\n\nPatch implementation or tests only when justified by requirement\
+  \ evidence.\n\nDo not simply weaken tests to obtain PASS.\n\n### CONFIG_ERROR\n\n\
+  Patch configuration files only.\n\n### TIMEOUT\n\nAllow one bounded adjustment/retry.\n\
+  \nDo not create an unbounded timeout.\n\n---\n\n## RepairAgent context\n\nProvide:\n\
+  \n```text\nTask\nrelevant requirement slice\nfailing VerificationResult\nFailureType\n\
+  allowed files\ncurrent relevant file contents\n```\n\nTruncate large source context\
+  \ around:\n\n```text\n8000 chars per repair context\n```\n\nOutput:\n\n```json\n\
+  {\n  \"relative/path\": \"full corrected contents\"\n}\n```\n\n---\n\n## Acceptance\n\
+  \nTests:\n\n```text\nrepair SyntaxError → PASS within <=3 attempts\nsame failure\
+  \ 3 times → ESCALATE\ndependents become BLOCKED\nENVIRONMENT_ERROR does not modify\
+  \ code\nfiles outside allowlist cannot be repaired\n```\n\n---\n\n# M7 — TRACEABILITY\
+  \ MATRIX\n\n## Goal\n\nConstruct mechanical evidence:\n\n```text\nRequirement\n\
+  → Tasks\n→ Files\n→ Verification\n→ Result\n```\n\n## Files\n\n```text\nsrc/harness/trace/matrix.py\n\
+  tests/test_trace.py\n```\n\n---\n\n## Matrix structure\n\nFor every requirement:\n\
+  \n```json\n{\n  \"REQ-001\": {\n    \"tasks\": [],\n    \"files\": [],\n    \"tests\"\
+  : [],\n    \"evidence\": [],\n    \"status\": \"PASS|FAIL\",\n    \"missing\": []\n\
+  \  }\n}\n```\n\nCompute:\n\n```text\ntasks\n= tasks referencing REQ\n\nfiles\n=\
+  \ union(task.files_touched)\n\ntests\n= union(task.verification)\n\nevidence\n=\
+  \ existing files\n  + successful verification commands\n```\n\nPASS only if:\n\n\
+  ```text\n>=1 expected implementation file exists\nAND\n>=1 relevant verification\
+  \ result PASS\n```\n\nNo evidence:\n\n```text\nFAIL\n```\n\nProse can never substitute\
+  \ for evidence.\n\n---\n\n## Acceptance\n\nTodo reference run:\n\n```text\n4/4 requirements\
+  \ traced\n```\n\nDelete an implementation file:\n\n```text\nassociated requirement\
+  \ becomes FAIL\n```\n\n---\n\n# M8 — REQUIREMENT REVIEW\n\n## Goal\n\nPerform the\
+  \ final requirement-level audit.\n\n## Files\n\n```text\nsrc/harness/agents/reviewer.py\n\
+  tests/test_review.py\n```\n\n---\n\n## ReviewAgent\n\nDefault authority:\n\n```text\n\
+  rule-based evidence\n```\n\nLLM review is optional and explanatory only.\n\nAn LLM\
+  \ MAY:\n\n```text\nadd rationale\nsummarize evidence\nidentify concerns\n```\n\n\
+  An LLM MUST NOT:\n\n```text\nturn evidence-based FAIL into PASS\n```\n\n---\n\n\
+  ## Output\n\nPersist:\n\n```text\nruns/<run_id>/review.json\n```\n\nShape:\n\n```json\n\
+  {\n  \"requirements\": [\n    {\n      \"id\": \"REQ-001\",\n      \"status\": \"\
+  PASS\",\n      \"evidence\": [],\n      \"missing\": []\n    }\n  ],\n  \"overall_status\"\
+  : \"PASS\"\n}\n```\n\nOverall PASS only if:\n\n```text\nevery requirement == PASS\n\
+  ```\n\n---\n\n## Acceptance\n\nTests:\n\n```text\ncomplete evidence → PASS\nmissing\
+  \ implementation file → FAIL\nmissing successful verification → FAIL\nLLM cannot\
+  \ override FAIL\nreview JSON validates\n```\n\n---\n\n# M9 — CHECKPOINTING + CRASH\
+  \ RECOVERY\n\n## Goal\n\nResume interrupted runs without repeating completed work.\n\
+  \n## Files\n\n```text\nsrc/harness/state/checkpoints.py\nsrc/harness/orchestration/pipeline.py\n\
+  tests/test_recovery.py\n```\n\n---\n\n## Required checkpoint events\n\n```text\n\
+  spec_created\nplan_created\ntask_started\ntask_completed\nverification_completed\n\
+  repair_started\nreview_completed\n```\n\nFilename convention:\n\n```text\ncheckpoints/<sequence>-<event>-<optional-task>.json\n\
+  ```\n\nExample:\n\n```text\n001-spec_created.json\n002-plan_created.json\n003-task_started-TASK-001.json\n\
+  004-task_completed-TASK-001.json\n```\n\n---\n\n## Resume algorithm\n\n```text\n\
+  load state.json\n↓\nvalidate state\n↓\nload latest checkpoint state\n↓\nreconstruct\
+  \ task statuses\n↓\nkeep COMPLETED\nkeep FAILED\nkeep BLOCKED\nconvert interrupted\
+  \ RUNNING → PENDING\nconvert READY → PENDING\n↓\ncontinue unfinished pipeline\n\
+  ```\n\nCompleted tasks MUST NOT execute again.\n\nUse file hashes where appropriate\
+  \ to prove completed output was not rewritten during resume.\n\n---\n\n## Corruption\
+  \ handling\n\nCorrupt:\n\n```text\nstate.json\ncheckpoint JSON\n```\n\nmust produce\
+  \ a clear explicit error.\n\nNever silently restart the run from scratch.\n\n---\n\
+  \n## Acceptance\n\nSimulate crash after:\n\n```text\nTASK-002\n```\n\nResume must:\n\
+  \n```text\nfinish remaining tasks\nnot rerun TASK-001\nnot alter completed file\
+  \ hashes\n```\n\nTest checkpoint sequencing.\n\n---\n\n# M10 — RUNTIME VERIFICATION\n\
+  \n## Goal\n\nProve that the generated application actually starts and responds.\n\
+  \nStatic tests alone are insufficient.\n\n## Files\n\n```text\nsrc/harness/verification/runtime.py\n\
+  src/harness/verification/browser.py\ntests/test_runtime.py\n```\n\n---\n\n## RuntimeVerifier\n\
+  \n### Entry detection\n\nRecognize at minimum:\n\n```text\nsrc/main.py:app\napp.py:app\n\
+  package.json\n```\n\nNo recognized entry:\n\n```text\nFAIL\nCONFIG_ERROR\n```\n\n\
+  ### Start\n\nFastAPI:\n\n```bash\npython -m uvicorn src.main:app --port <free_port>\n\
+  ```\n\nNode fallback:\n\n```bash\nnpm run dev -- --port <free_port>\n```\n\nUse\
+  \ an OS-assigned/free local port.\n\nStart process with:\n\n```python\nsubprocess.Popen\n\
+  ```\n\nwith:\n\n```text\ncwd jailed inside workspace\nshell=False\n```\n\nThe verification\
+  \ layer may own process execution; application-building agents may not.\n\n### Startup\
+  \ timeout\n\n```text\n15 seconds\n```\n\n### Checks\n\nVerify:\n\n```text\nprocess\
+  \ remains alive\nTCP port accepts connection\nGET /health OR / returns 2xx\nGET\
+  \ /docs or /api/health when available\nSQLite DB can be opened when expected\n```\n\
+  \n### Cleanup\n\nAlways terminate spawned process.\n\nUse `finally` cleanup.\n\n\
+  Never leave orphan development servers.\n\n### Result\n\nReturn structured:\n\n\
+  ```json\n{\n  \"status\": \"PASS\",\n  \"checks\": [\n    {\n      \"name\": \"\
+  health\",\n      \"ok\": true,\n      \"detail\": \"HTTP 200\"\n    }\n  ],\n  \"\
+  evidence\": []\n}\n```\n\nCapture useful log snippets.\n\n---\n\n## Browser V1 stub\n\
+  \nImplement only:\n\n```python\ndef verify_acceptance(...):\n    raise NotImplementedError(\n\
+  \        \"Browser verification deferred post-V1\"\n    )\n```\n\nTest that the\
+  \ browser verifier remains explicitly deferred.\n\nDo NOT install Playwright or\
+  \ Selenium.\n\n---\n\n## Acceptance\n\nReference application:\n\n```text\nstarts\n\
+  port opens\nhealth endpoint returns 200\nruntime verifier PASS\n```\n\nBroken startup:\n\
+  \n```text\nFAIL\ndiagnostics captured\nrepair hint available\n```\n\n---\n\n# M11\
+  \ — CLI + BENCHMARKS\n\n## Goal\n\nExpose the entire harness through a deterministic\
+  \ command-line interface and provide a quick regression benchmark.\n\n## Files\n\
+  \n```text\nsrc/harness/cli.py\nsrc/harness/orchestration/pipeline.py\nsrc/harness/benchmarks.py\n\
+  tests/test_cli.py\ntests/test_benchmarks.py\n```\n\nAdd console entrypoint:\n\n\
+  ```toml\n[project.scripts]\nbuilder = \"harness.cli:main\"\n```\n\nUse:\n\n```text\n\
+  argparse only\n```\n\nNo Click/Typer dependency.\n\n---\n\n## CLI commands\n\n###\
+  \ New run\n\n```bash\nbuilder new \"Build a Todo app\"\n```\n\nEquivalent module\
+  \ form:\n\n```bash\npython -m harness.cli new \"Build a Todo app\"\n```\n\nIt must\
+  \ execute the full pipeline.\n\n### Resume\n\n```bash\nbuilder resume <run_id>\n\
+  ```\n\n### Logs\n\n```bash\nbuilder logs <run_id>\n```\n\nPrint or tail the run's\
+  \ structured event log in readable form.\n\n### Benchmark\n\n```bash\nbuilder bench\
+  \ --quick\n```\n\n---\n\n## Progress output\n\n`builder new` must emit five user-facing\
+  \ high-level stages:\n\n```text\n[1/5] SPEC\n[2/5] PLAN\n[3/5] BUILD\n[4/5] VERIFY\n\
+  [5/5] REVIEW\n```\n\nDetailed internal milestones remain M1–M12; the five-stage\
+  \ CLI view is only presentation.\n\nOn success:\n\n```text\nBUILD COMPLETE\n```\n\
+  \nOn failure:\n\n```text\nBUILD FAILED\n```\n\nand return non-zero exit status.\n\
+  \n---\n\n## Quick benchmark\n\n`builder bench --quick` runs a deterministic small\
+  \ Todo scenario.\n\nIt must validate at minimum:\n\n```text\nspec generated\nplan\
+  \ generated\nfiles written\nverification executed\nruntime checked\nreview produced\n\
+  required artifacts exist\n```\n\nReturn:\n\n```text\n0 → PASS\nnon-zero → FAIL\n\
+  ```\n\n---\n\n## Acceptance\n\nMust pass:\n\n```bash\nbuilder new \"Build a Todo\
+  \ app\"\nbuilder bench --quick\n```\n\nOffline LLM fallback must still function.\n\
+  \nVerify:\n\n```text\nall required artifacts exist\nfive-stage output matches expected\
+  \ format\nevents.log contains required keys\nquick benchmark passes\n```\n\n## Forbidden\n\
+  \nNo Web UI.\n\nNo production Docker environment.\n\n---\n\n# M12 — FINAL GATE\n\
+  \n## Goal\n\nProve V1 reliability before declaring completion.\n\nAll gates are\
+  \ mandatory.\n\n---\n\n## Gate 1 — Vertical Slice\n\nRun:\n\n```bash\nbuilder new\
+  \ \"Build a Simple Todo App with add/list/complete\"\n```\n\nExpected pipeline:\n\
+  \n```text\nSPEC\n→ >=3 REQs\n→ PLAN\n→ >=3 tasks\n→ BUILD\n→ real files\n→ VERIFY\n\
+  → pytest PASS\n→ RUNTIME\n→ PASS\n→ REVIEW\n→ PASS\n```\n\nSave a stable demonstration\
+  \ run under:\n\n```text\nruns/demo_todo/\n```\n\nIf any stage fails:\n\n```text\n\
+  fix the harness\nrerun\ndo not proceed\n```\n\n---\n\n## Gate 2 — Failure Injection\n\
+  \nInject:\n\n```python\nSyntaxError\n```\n\ninto:\n\n```text\nworkspace/src/main.py\n\
+  ```\n\nThe harness must:\n\n```text\nDETECT\n→ FAIL\n\nCLASSIFY\n→ CODE_ERROR\n\n\
+  LOCALIZE\n→ TASK-ID\n\nCAPTURE\n→ diagnostics\n\nREPAIR\n→ relevant file only\n\n\
+  REVERIFY\n→ PASS\n```\n\nThen simulate identical failure repeatedly using a no-op\
+  \ repair implementation.\n\nExpected:\n\n```text\nsame signature x3\n→ LOOP DETECTED\n\
+  → ESCALATE\n→ task FAILED\n→ dependents BLOCKED\n```\n\n---\n\n## Gate 3 — V1 Capability\
+  \ Checklist\n\nAll MUST be ✓:\n\n```text\n[ ] valid spec generated\n[ ] spec validated\n\
+  [ ] valid DAG generated\n[ ] sequential execution\n[ ] real files created\n[ ] real\
+  \ verification executed\n[ ] failures localized\n[ ] failures classified\n[ ] failures\
+  \ repaired\n[ ] repair bounded <=3\n[ ] loop detection works\n[ ] checkpoints written\n\
+  [ ] crash resume works\n[ ] completed tasks not rerun\n[ ] traceability matrix generated\n\
+  [ ] requirement review generated\n[ ] runtime verified\n[ ] final working project\
+  \ retained\n```\n\n---\n\n## Gate 4 — Documentation\n\nREADME must document:\n\n\
+  ```text\nquickstart\nbuilder new\nbuilder resume\nbuilder logs\nbuilder bench --quick\n\
+  architecture\nevidence principle\nfailure handling\ncheckpoint recovery\n```\n\n\
+  Include an ASCII architecture diagram.\n\nCreate:\n\n```text\nexamples/todo_run/\n\
+  ├── spec.json\n├── tasks.json\n├── verification.json\n└── review.json\n```\n\n---\n\
+  \n## Gate 5 — Full Test Suite\n\nRun:\n\n```bash\npytest -q\nbuilder bench --quick\n\
+  ```\n\nBoth must pass.\n\n---\n\n## V1 Forbidden-Feature Audit\n\nAssert the implementation\
+  \ does NOT contain functional implementations for:\n\n```text\ndocker/\nweb_ui/\n\
+  parallel workers\nparallel DAG scheduler\nPlaywright\nSelenium\nPostgreSQL backend\n\
+  web research\n```\n\nThe browser verification stub is allowed.\n\n---\n\n# FINAL\
+  \ DEFINITION OF DONE\n\nV1 is complete only when:\n\n```text\nM1 PASS\nM2 PASS\n\
+  M3 PASS\nM4 PASS\nM5 PASS\nM6 PASS\nM7 PASS\nM8 PASS\nM9 PASS\nM10 PASS\nM11 PASS\n\
+  M12 PASS\n```\n\nEvery bug fix MUST include a regression test.\n\nEvery new module\
+  \ MUST have tests.\n\nKeep source files focused.\n\nPrefer:\n\n```text\n<400 lines\
+  \ per file\n```\n\nSplit larger files when practical.\n\nNever store:\n\n```text\n\
+  API keys\nsecrets\nabsolute host-specific paths\n```\n\nNever delete historical\
+  \ checkpoints to hide failures.\n\n---\n\n# FINAL RUN SUMMARY FORMAT\n\nAt the end\
+  \ of every run, print a requirement-level summary.\n\nExample:\n\n```text\nREQ-001\n\
+  Implemented: YES\nTested: YES\nRuntime: YES\nEvidence:\n- src/main.py\n- pytest\
+  \ -q → exit_code 0\nStatus: PASS\n\nREQ-002\nImplemented: YES\nTested: NO\nRuntime:\
+  \ NO\nMissing:\n- successful verification result\nStatus: FAIL\n```\n\nFinal status:\n\
+  \n```text\nPASS\n```\n\nonly when every requirement has evidence-backed PASS status.\n\
+  \nNever use:\n\n```text\n\"AI says finished\"\n```\n\nas evidence.\n\n---\n\n# EXECUTION\
+  \ COMMAND\n\nStart now.\n\nImplement:\n\n```text\nM1\n```\n\nRun its tests.\n\n\
+  If green, continue to:\n\n```text\nM2\n```\n\nContinue sequentially until M12.\n\
+  \nDo not ask questions.\n\nDo not stop at intermediate milestones.\n\nDo not skip\
+  \ failed gates.\n\nDo not declare V1 complete until the Final Gate is green."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

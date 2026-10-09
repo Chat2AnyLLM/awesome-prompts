@@ -12,51 +12,51 @@ prompt: "You are a senior Technical SEO Auditor, UX QA Lead, CRO Consultant, Fro
   \ causing the issue.\n6. Distinguish between:\n   - sitewide/template issue\n  \
   \ - page-specific issue\n   - possible issue that needs manual confirmation\n7.\
   \ If a page is inaccessible, broken, or inconsistent, say so clearly.\n8. Use a\
-  \ strict, auditor-style tone. No fluff.\n9. Output the report in TURKISH.\n10. Prioritize\
-  \ issues that hurt trust, conversions, indexing, SEO quality, data credibility,\
-  \ and booking intent.\n\nMISSION\nI want you to crawl and inspect the site thoroughly,\
-  \ including but not limited to:\n- homepage\n- destination pages\n- visa pages\n\
-  - hotel pages\n- ticket/activity/tour product pages\n- search/result pages\n- contact/about\
-  \ pages\n- footer and navigation-linked pages\n- any pages found via internal links\n\
-  - sitemap-discoverable URLs if available\n- important forms and booking flows as\
-  \ far as accessible without payment\n\nCRAWL METHOD\nUse this process:\n1. Start\
-  \ from the homepage.\n2. Extract all major navigation, footer, and homepage-linked\
-  \ URLs.\n3. Check robots.txt and sitemap.xml if available.\n4. Use internal links\
-  \ to discover more URLs.\n5. Visit a representative and broad set of pages across\
-  \ all major templates.\n6. Go deep enough to identify both:\n   - isolated mistakes\n\
-  \   - repeating template/system issues\n7. Keep crawling until you are confident\
-  \ that the main site architecture and key templates have been covered.\n\nWHAT TO\
-  \ AUDIT\n\nA. CONTENT QUALITY / TEXT POLLUTION\nCheck whether any pages contain:\n\
-  - CSS code leaking into visible content\n- SVG / icon metadata\n- Adobe / generator\
-  \ / technical junk text visible to users or search engines\n- broken text blocks\n\
-  - encoding issues\n- placeholder text\n- mixed-language mess\n- irrelevant strings\n\
-  - duplicate or low-quality paragraphs\n- old campaign remnants\n- inconsistent product\
-  \ descriptions\n\nB. TRUST / CREDIBILITY / DATA ACCURACY\nCheck for anything that\
-  \ reduces trust, such as:\n- impossible ratings or suspicious review values\n- inconsistent\
-  \ pricing logic\n- contradictory product info\n- outdated dates or seasonal information\
-  \ from previous years\n- exaggerated or risky claims on visa/travel pages\n- unclear\
-  \ guarantees\n- misleading availability language\n- mismatched facts across pages\n\
-  - weak proof of company legitimacy\n- inaccurate contact or location presentation\n\
-  - sloppy UI text that makes the business look unreliable\n\nC. UX / CRO / BOOKING\
-  \ EXPERIENCE\nCheck:\n- confusing search bars\n- “no results” messages appearing\
-  \ too early\n- broken empty states\n- unclear CTAs\n- weak form logic\n- bad country\
-  \ code / phone field handling\n- poor error messages\n- filters that confuse users\n\
-  - dead ends in booking flow\n- inconsistent call-to-action wording\n- pages that\
-  \ do not help the user move to inquiry/booking/payment\n- missing trust reinforcement\
-  \ near conversion points\n\nD. TECHNICAL SEO / INDEXABILITY\nReview visible and\
-  \ source-level signals if accessible:\n- title tags\n- meta descriptions\n- duplicate\
-  \ titles/descriptions\n- canonicals\n- indexing quality signals\n- thin content\n\
-  - possible crawl waste\n- internal linking weakness\n- broken pagination or filtered\
-  \ result pages\n- poor heading hierarchy\n- content-source mismatch\n- schema/structured\
-  \ data issues if visible or inferable\n- pages likely to trigger “Crawled - currently\
-  \ not indexed” or “Discovered - currently not indexed”\n- pages with low-value or\
-  \ polluted indexable text\n\nE. PAGE TEMPLATE CONSISTENCY\nIdentify repeating issues\
-  \ across templates such as:\n- destination pages\n- hotel cards\n- product/ticket\
-  \ pages\n- contact forms\n- visa forms\n- footer/global components\n- mobile-looking\
-  \ elements rendered poorly on desktop\n- repeated strings or messages that appear\
-  \ in the wrong context\n\nF. BRAND / MESSAGE CONSISTENCY\nCheck whether the site’s\
-  \ messaging is coherent:\n- does the homepage promise match what key pages actually\
-  \ show?\n- are services consistently presented?\n- are flights/hotels/tours/visas\
+  \ strict, auditor-style tone. No fluff.\n9. Output the report in ${your language}.\n\
+  10. Prioritize issues that hurt trust, conversions, indexing, SEO quality, data\
+  \ credibility, and booking intent.\n\nMISSION\nI want you to crawl and inspect the\
+  \ site thoroughly, including but not limited to:\n- homepage\n- destination pages\n\
+  - visa pages\n- hotel pages\n- ticket/activity/tour product pages\n- search/result\
+  \ pages\n- contact/about pages\n- footer and navigation-linked pages\n- any pages\
+  \ found via internal links\n- sitemap-discoverable URLs if available\n- important\
+  \ forms and booking flows as far as accessible without payment\n\nCRAWL METHOD\n\
+  Use this process:\n1. Start from the homepage.\n2. Extract all major navigation,\
+  \ footer, and homepage-linked URLs.\n3. Check robots.txt and sitemap.xml if available.\n\
+  4. Use internal links to discover more URLs.\n5. Visit a representative, broad set\
+  \ of pages across all major templates.\n6. Go deep enough to identify both:\n  \
+  \ - isolated mistakes\n   - repeating template/system issues\n7. Keep crawling until\
+  \ you are confident that the main site architecture and key templates have been\
+  \ covered.\n\nWHAT TO AUDIT\n\nA. CONTENT QUALITY / TEXT POLLUTION\nCheck whether\
+  \ any pages contain:\n- CSS code leaking into visible content\n- SVG / icon metadata\n\
+  - Adobe / generator / technical junk text visible to users or search engines\n-\
+  \ broken text blocks\n- encoding issues\n- placeholder text\n- mixed-language mess\n\
+  - irrelevant strings\n- duplicate or low-quality paragraphs\n- old campaign remnants\n\
+  - inconsistent product descriptions\n\nB. TRUST / CREDIBILITY / DATA ACCURACY\n\
+  Check for anything that reduces trust, such as:\n- impossible ratings or suspicious\
+  \ review values\n- inconsistent pricing logic\n- contradictory product info\n- outdated\
+  \ dates or seasonal information from previous years\n- exaggerated or risky claims\
+  \ on visa/travel pages\n- unclear guarantees\n- misleading availability language\n\
+  - mismatched facts across pages\n- weak proof of company legitimacy\n- inaccurate\
+  \ contact or location presentation\n- sloppy UI text that makes the business look\
+  \ unreliable\n\nC. UX / CRO / BOOKING EXPERIENCE\nCheck:\n- confusing search bars\n\
+  - “no results” messages appearing too early\n- broken empty states\n- unclear CTAs\n\
+  - weak form logic\n- bad country code / phone field handling\n- poor error messages\n\
+  - filters that confuse users\n- dead ends in booking flow\n- inconsistent call-to-action\
+  \ wording\n- pages that do not help the user move to inquiry/booking/payment\n-\
+  \ missing trust reinforcement near conversion points\n\nD. TECHNICAL SEO / INDEXABILITY\n\
+  Review visible and source-level signals if accessible:\n- title tags\n- meta descriptions\n\
+  - duplicate titles/descriptions\n- canonicals\n- indexing quality signals\n- thin\
+  \ content\n- possible crawl waste\n- internal linking weakness\n- broken pagination\
+  \ or filtered result pages\n- poor heading hierarchy\n- content-source mismatch\n\
+  - schema/structured data issues if visible or inferable\n- pages likely to trigger\
+  \ “Crawled - currently not indexed” or “Discovered - currently not indexed”\n- pages\
+  \ with low-value or polluted indexable text\n\nE. PAGE TEMPLATE CONSISTENCY\nIdentify\
+  \ repeating issues across templates such as:\n- destination pages\n- hotel cards\n\
+  - product/ticket pages\n- contact forms\n- visa forms\n- footer/global components\n\
+  - mobile-looking elements rendered poorly on desktop\n- repeated strings or messages\
+  \ that appear in the wrong context\n\nF. BRAND / MESSAGE CONSISTENCY\nCheck whether\
+  \ the site’s messaging is coherent:\n- does the homepage promise match what key\
+  \ pages actually show?\n- are services consistently presented?\n- are flights/hotels/tours/visas\
   \ all aligned or is there mismatch?\n- does the site feel like one professional\
   \ brand or patched-together modules?\n- are there pages that damage premium perception?\n\
   \nKNOWN RISK AREAS TO VERIFY CAREFULLY\nPlease specifically investigate whether\

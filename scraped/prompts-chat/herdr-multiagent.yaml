@@ -1,0 +1,191 @@
+slug: herdr-multiagent
+title: herdr-multiagent
+description: Imported from Prompts Chat
+prompt: "---\nname: herdr-multiagent\ndescription: \"Playbook for running several\
+  \ coding agents in parallel under Herdr: stage decomposition, one git worktree +\
+  \ isolated env + pane per agent, file-based briefs, state monitoring, review and\
+  \ merge. Agent-agnostic: the child kind comes from `herdr pane current` (.result.pane.agent)\
+  \ and matches the orchestrator (omp, opencode, claude, codex, kimi, ...). Use for\
+  \ multi-agent parallel work in separate worktrees. Requires HERDR_ENV=1.\"\n---\n\
+  \n# Multi-agent work through Herdr\n\nPlaybook: split the project's remaining work\
+  \ into independent stages, put each stage\non its own agent in its own git worktree\
+  \ and Herdr pane, hand it a file-based brief,\nmonitor it, and accept the result.\n\
+  \nThis skill is agent-agnostic: the kind of the children equals the kind of the\n\
+  orchestrator. Launched from opencode, the children are opencode; from omp, they\
+  \ are\nomp; from claude, they are claude. Never hardcode the orchestrator's kind\
+  \ from\nmemory and never pick a \"popular\" kind.\n\n## 0. Preconditions\n\n```bash\n\
+  test \"${HERDR_ENV:-}\" = 1   # if this fails, stop - we are not inside Herdr\n\
+  ```\n\nIf the check fails, tell the user the session is not running under Herdr\
+  \ and stop.\nDo not drive someone else's Herdr from outside it.\n\nThe basic pane/agent\
+  \ commands live in Herdr's own skill (`herdr --skill`).\nThe installed binary is\
+  \ the authority on syntax; when unsure read\n`herdr agent`, `herdr pane`, `herdr\
+  \ integration` instead of guessing.\n\n## 1. Determine your own kind - before anything\
+  \ else\n\n```bash\nherdr pane current --current\n```\n\nThe `.result.pane.agent`\
+  \ field IS the orchestrator's kind, and the same value goes\nto `--kind` for the\
+  \ children:\n\n```bash\nKIND=$(herdr pane current --current | jq -r '.result.pane.agent')\n\
+  # without jq:\nKIND=$(herdr pane current --current | sed -E 's/.*\"agent\":\"([^\"\
+  ]+)\".*/\\1/' | head -1)\necho \"$KIND\"\n```\n\nEmpty or `unknown` - ask the user\
+  \ which kind to start the children with.\nBelow, `$KIND` always means this resolved\
+  \ value, never a literal.\n\nCheck the Herdr integration for this kind (it provides\
+  \ `agent list/wait/prompt`):\n\n```bash\nherdr integration status | grep -i \"$KIND\"\
+  \n```\n\n- `current` - good.\n- `not installed` - run `herdr integration install\
+  \ \"$KIND\"`. Only **new** sessions\n  pick the integration up, so install it BEFORE\
+  \ starting children; the orchestrator\n  itself stays invisible to `agent list`,\
+  \ which is fine - it needs no monitoring.\n- The kind is absent from `herdr integration\
+  \ install` (e.g. `amp`, `cline`, `kiro`,\n  `maki`) - there will be no structural\
+  \ monitoring, use the §7 fallback\n  (`pane read` + git). Not a blocker.\n\nState\
+  \ it explicitly to the user: \"children kind = $KIND\".\n\n## 2. Decomposition -\
+  \ the main step, do not rush\n\n- Read the project plan/spec and the current state\
+  \ (`git log`, tests,\n  `git worktree list`).\n- Split the remaining work into stages\
+  \ with **non-overlapping file areas**.\n  Two agents on one package - only deliberately\
+  \ and with an explicit order\n  (afterwards, not in parallel).\n- Additive edits\
+  \ to shared files (config, lock) are acceptable - record in the briefs\n  \"additive\
+  \ only, no signature changes\"; the orchestrator resolves merge conflicts.\n- Write\
+  \ down the matrix \"stage -> files it MAY / MUST NOT touch\".\n\nBefore launch:\
+  \ everything finished in main is committed, the tree is clean.\n\n## 3. Worktree\
+  \ + isolated environment per agent\n\n```bash\ngit worktree add ../<proj>-s<N> -b\
+  \ stage-<N>-<name>\n```\n\nPython trap: a shared venv imports SOMEONE ELSE's code\
+  \ (editable install of the main\nrepo). Give each worktree its own venv:\n\n```bash\n\
+  cd ../<proj>-s<N> && python -m venv .venv \\\n  && ./.venv/Scripts/python.exe -m\
+  \ pip install -q -e \"./api[dev]\"\n```\n\nInstall several venvs sequentially in\
+  \ one background command (the pip cache is shared).\nJS stack: its own `node_modules`\
+  \ per worktree (`npm ci`).\n\nIf the orchestrator has a command-wrapper hook (rtk\
+  \ and similar): a relative\ninterpreter path (`../.venv/Scripts/python.exe`) in\
+  \ briefs does not resolve through\nsuch a hook (\"command not found\"). In briefs\
+  \ and prompts use only ABSOLUTE paths to\nthe python/npm of that worktree.\n\n##\
+  \ 4. Briefs - as files, not on the command line\n\n`<repo>/.briefs/stage-<N>.md`\
+  \ (untracked). Brief structure:\n\n- **context**: what to read first (spec, contract,\
+  \ key files), what is already done;\n- **task**: concrete requirements referencing\
+  \ spec items;\n- **boundaries**: files allowed/forbidden, \"do not leave the worktree\"\
+  , \"do NOT push\";\n- **acceptance**: exact test/linter commands (with the absolute\
+  \ interpreter path of\n  the worktree), \"pre-existing tests stay green\", commit\
+  \ to its own branch, final report.\n\nA brief must not assume a particular agent\
+  \ kind: do not write \"run omp/skill/...\"\ninto it - write the goal, the boundaries\
+  \ and the acceptance commands. The child\ndecides which of its own tools to use.\n\
+  \nThe prompt to the agent is short: \"Read the file <brief> and complete it fully\"\
+  .\n\n## 5. Panes: create them, name them IMMEDIATELY\n\nRecommended layout - main-left:\
+  \ the orchestrator pane on the left at full height, all\nchildren in a column on\
+  \ the right, one under another. If the user has layout plugins\nbuilt around main-left,\
+  \ any other scheme breaks their view.\nIf the user explicitly asks for a different\
+  \ layout, follow the user.\n\nFirst child - `split --current --direction right`,\
+  \ the rest -\n`split --pane <previous child> --direction down` INSIDE the right\
+  \ column.\nDo NOT split the orchestrator pane, and do not split agent panes to the\
+  \ right - only\nthe down-chain inside the right column.\n\n```bash\nherdr pane split\
+  \ --current --direction right --cwd \"<worktree1>\" --no-focus\nherdr pane split\
+  \ --pane <agent1-pane> --direction down --cwd \"<worktree2>\" --no-focus\n```\n\n\
+  The new pane ID comes from JSON `.result.pane.pane_id`. Do not touch the user's\
+  \ focus\n(`--no-focus`). The child gets its name in step 6 via `agent start`; additionally\n\
+  `herdr pane rename <pane_id> \"s<N>-<name>\"` for clarity.\n\n## 6. Starting a child\
+  \ of your own kind\n\nThe standard path is `agent start`, which also validates that\
+  \ the expected agent\nactually came up in the pane:\n\n```bash\nherdr agent start\
+  \ s1-<name> --kind \"$KIND\" --pane <pane_id> -- <autonomy-flags>\n```\n\nThe name\
+  \ must match `[a-z][a-z0-9_-]{0,31}` and be unique among live agents.\n\n### Autonomy\
+  \ flags\n\nA child works unattended, otherwise it stops at an approval. The flag\
+  \ belongs to the\nCLI, not to Herdr. Confirmed ones:\n\n| kind | launch |\n|---|---|\n\
+  | `omp` | `-- --yolo` |\n| `claude` | `-- --dangerously-skip-permissions` (or `--permission-mode\
+  \ bypassPermissions`) |\n| `opencode` | `-- --auto` |\n\nFor any other kind (codex,\
+  \ gemini, kimi, cursor, copilot, droid, kilo, grok, hermes,\nqodercli, mastracode,\
+  \ pi, ...) do NOT invent a flag. Resolve the canonical executable\nand read its\
+  \ help:\n\n```bash\nherdr agent start --help        # the --kind help text names\
+  \ the canonical executable\n<executable> --help | grep -iE \"permission|approve|yolo|auto|dangerous|allow\"\
+  \n```\n\nNo flag found - check whether the CLI has an autonomy mode in its config\n\
+  (e.g. `~/.omp/agent/config.yml: tools.approvalMode: yolo`,\n`~/.claude/settings.json:\
+  \ permissions`, `opencode.json: permission`), and warn the\nuser that the child\
+  \ may stop at approvals - those surface as the `blocked` state (§7).\n\n### If `agent\
+  \ start` timed out\n\nKnown bug on Windows in PowerShell panes: `agent start` sends\
+  \ a mangled\n`Start-Process` -> timeout. Workaround - launch the CLI in the pane\
+  \ directly:\n\n```bash\nherdr pane run <pane_id> \"<executable> <autonomy-flags>\"\
+  \nsleep 3 && herdr pane read <pane_id> --lines 15   # expect the CLI prompt\nherdr\
+  \ agent rename <pane_id> s1-<name>            # if herdr recognized the agent\n\
+  ```\n\nIf `herdr agent explain <pane_id>` still reports no recognized agent afterwards,\n\
+  structural monitoring is unavailable for that pane - use the §7 fallback.\n\n###\
+  \ Handing over the brief\n\nNOT via `pane run`: Enter gets swallowed while the TUI\
+  \ renders the paste. Two steps\nwith a pause:\n\n```bash\nherdr pane send-text <pane_id>\
+  \ \"Read the file <absolute path to the brief> - that is your brief. Complete it\
+  \ fully (code, tests, linter, commit to your own branch), then give a final report.\"\
+  \nsleep 5 && herdr pane send-keys <pane_id> Enter\n```\n\nStandard alternative once\
+  \ the integration is installed and `agent start` succeeded:\n\n```bash\nherdr agent\
+  \ prompt s1-<name> \"Read the file <brief> and complete it fully\" --wait --timeout\
+  \ 300000\n```\n\nVerify with `pane read` that the brief actually WENT IN: input\
+  \ empty, agent working.\n\n## 7. Monitoring - through the integration, NOT cron\n\
+  \n```bash\nherdr agent list                       # states of all children\nherdr\
+  \ agent wait s1-<name> --until idle --timeout 1800000\nherdr agent prompt s1-<name>\
+  \ \"<text>\"  # push an instruction to a working child\nherdr agent read s1-<name>\
+  \ --lines 40\n```\n\nState semantics: `idle` - ready for input and its tab has been\
+  \ seen in the UI;\n`done` - the same idle state after unseen background work (reading\
+  \ through the CLI\ndoes not mark the tab seen); `blocked` - Herdr recognized an\
+  \ approval/question UI,\nthe child is WAITING for a human; `unknown` - an agent\
+  \ is present but cannot be\nclassified, which is NOT evidence of completion.\n\n\
+  Orchestrator loop: `agent wait` in turn or on an event -> acceptance (§8).\n`blocked`\
+  \ -> `agent read`, understand the question, answer via `agent prompt` or ask\nthe\
+  \ user. Suspicious silence -> `pane read <pane_id>`.\n\nKeep the `wait` timeout\
+  \ moderate (~30 min) and re-arm it on each return: very large\nvalues end up as\
+  \ \"timed out\".\n\nFallback when the integration for `$KIND` is unavailable or\
+  \ `agent explain` did not\nrecognize the child: periodic `herdr pane read <pane_id>\
+  \ --lines 60` plus\n`git log/status` in the worktree. Cron only as a last resort,\
+  \ and always remove it\nwhen done.\n\nChild session dropped: the work in the worktree\
+  \ survives. Restart with the same CLI\nand its continue flag (check `--help`): `omp\
+  \ --resume`, `claude --continue`,\n`opencode --continue`. Then prompt: \"Your session\
+  \ was interrupted. Check git status\nand finish the brief <file>\".\n\n## 8. Acceptance\
+  \ and merge\n\n- Each branch: tests + linter in its own worktree, review `git diff\
+  \ main...<branch> --stat`.\n- Do not take the child's final report on faith - run\
+  \ the acceptance commands yourself.\n- Merge into main only with the user's confirmation;\
+  \ resolve additive overlaps manually.\n- After the merge: `git worktree remove`;\
+  \ branches as agreed with the user.\n- Release the children's panes without touching\
+  \ the user's pane.\n\n\x1FFILE:README.md\x1E\n# herdr-multiagent\n\nAn agent skill\
+  \ (playbook) for driving a project with **several coding agents in\nparallel** through\
+  \ [Herdr](https://herdr.dev), a terminal multiplexer for coding\nagents — one git\
+  \ worktree and one pane per stage, file-based briefs, state\nmonitoring and acceptance.\n\
+  \nThe skill is **agent-agnostic**: the kind of the children is resolved from Herdr\
+  \ and\nmatches the kind of the orchestrator. Launched from `opencode`, the children\
+  \ are\n`opencode`; from `omp`, they are `omp`; from `claude`, they are `claude`.\
+  \ Any kind\nlisted by `herdr agent start --help` works (pi, claude, codex, gemini,\
+  \ cursor, devin,\nagy, cline, omp, mastracode, opencode, copilot, kimi, kiro, droid,\
+  \ amp, grok, hermes,\nkilo, qodercli, maki).\n\n## What it covers\n\n- §1 resolve\
+  \ your own kind, verify the Herdr integration for it;\n- §2 decompose into stages\
+  \ with non-overlapping file areas;\n- §3 worktree + isolated environment (own venv\
+  \ / node_modules — otherwise agents\n  import someone else's code through the main\
+  \ repo's editable install);\n- §4 briefs as files, not on the command line;\n- §5\
+  \ main-left pane layout, `--no-focus` (the user's focus is never taken);\n- §6 starting\
+  \ a child, autonomy flags per kind, the Windows `agent start` timeout\n  workaround,\
+  \ correct brief hand-over (Enter gets swallowed by `pane run`);\n- §7 monitoring\
+  \ via `herdr agent list/wait/prompt/read`, the semantics of\n  `idle/done/blocked/unknown`,\
+  \ fallback to `pane read` + git, recovering a dropped\n  child session;\n- §8 acceptance\
+  \ and merge only with the user's confirmation.\n\n## Requirements\n\n- Herdr, with\
+  \ the session running inside one of its panes (`HERDR_ENV=1`). Outside\n  Herdr\
+  \ the skill stops.\n- Git (worktrees).\n- One supported agent CLI on `PATH`.\n-\
+  \ For structural monitoring: `herdr integration install <kind>`. Kinds without an\n\
+  \  integration fall back to `pane read` + git — not a blocker.\n- Verified on Windows\
+  \ (Git Bash + PowerShell panes); the commands are POSIX, with an\n  explicit note\
+  \ where Windows venv paths differ.\n\n## Installation\n\nA skill is a directory\
+  \ containing `SKILL.md`. Put it into your agent's skills root:\n\n| Agent | path\
+  \ (verified on the author's machine) |\n|---|---|\n| omp, pi | `~/.agents/skills/herdr-multiagent/SKILL.md`\
+  \ |\n| Claude Code | `~/.claude/skills/herdr-multiagent/SKILL.md` |\n| opencode\
+  \ | `~/.config/opencode/skills/herdr-multiagent/SKILL.md` |\n| project-local | `<repo>/.agents/skills/herdr-multiagent/SKILL.md`\
+  \ |\n\nThe layout is non-recursive: `<skills-root>/<skill-name>/SKILL.md`. A nested\
+  \ path\nlike `skills/team/herdr-multiagent/SKILL.md` is not discovered.\n\nCheck\
+  \ your own CLI's docs for the exact skills root — the directories differ per\nagent,\
+  \ while `SKILL.md` with `name` + `description` frontmatter is read the same way.\n\
+  \n## Usage\n\nExplicitly: ask the agent to \"work according to the herdr-multiagent\
+  \ skill\", or\ninvoke `/skill:herdr-multiagent` (in omp, when skill commands are\
+  \ enabled).\n\nAutomatically: the skill is picked up when the task reads like \"\
+  build this with\nseveral agents in parallel\" and the agent runs inside Herdr.\n\
+  \nThe first thing the agent does is check `HERDR_ENV=1` and resolve its own kind;\
+  \ then\nit proposes a decomposition and asks for confirmation before starting any\
+  \ child.\n\n## Layout\n\n```\nherdr-multiagent/\n├─ SKILL.md      # the skill body:\
+  \ frontmatter (name, description) + §0–§8\n└─ README.md     # this file, for humans;\
+  \ the agent does not need it\n```\n\nExtra assets (scripts, brief templates, `references/*.md`)\
+  \ go into the same directory\nand are read by the agent via `skill://herdr-multiagent/<path>`.\
+  \ There are none here:\nthe playbook fits in a single file, and the brief template\
+  \ is described in prose in §4.\n\n## Safety\n\nChildren run in an autonomy mode\
+  \ (`omp --yolo`, `claude\n--dangerously-skip-permissions`, `opencode --auto`) —\
+  \ without approval prompts. That\nmeans full filesystem and shell access inside\
+  \ their worktree. The skill constrains\nthem through the brief (\"do not leave the\
+  \ worktree\", \"do NOT push\"), but that is an\ninstruction, not isolation. Merging\
+  \ into main happens only on the user's explicit\nconfirmation.\n\n## License\n\n\
+  Free to use."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

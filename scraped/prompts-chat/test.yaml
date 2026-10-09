@@ -1,9 +1,30 @@
 slug: test
-title: Test
+title: test
 description: Imported from Prompts Chat
-prompt: Make me a professional html5 website of cold drink can animation, which roams
-  to different and different positions when we scroll and then add text of a website
-  named coca cola
+prompt: '---
+
+  name: test
+
+  description: A clear description of what this skill does and when to use it
+
+  ---
+
+
+  # test
+
+
+  Describe what this skill does and how the agent should use it.
+
+
+  ## Instructions
+
+
+  - Step 1: ...
+
+  - Step 2: ...
+
+
+  ${名称}'
 tags:
 - imported
 category: analysis

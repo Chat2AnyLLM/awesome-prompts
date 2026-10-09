@@ -1,0 +1,274 @@
+slug: cron-schedule-explainer-and-validator
+title: Cron Schedule Explainer and Validator
+description: Imported from Prompts Chat
+prompt: "---\nname: cron-schedule-explainer\ndescription: Explains, validates, and\
+  \ writes cron schedules - translates a cron expression into plain English, lists\
+  \ the next run times, and flags pitfalls such as the day-of-month OR day-of-week\
+  \ rule, dates that never occur, daylight saving gaps, time zone confusion, and overlapping\
+  \ or too-frequent jobs. Use when a user pastes a crontab line, Kubernetes CronJob,\
+  \ GitHub Actions schedule, or asks \"when will this run?\" or \"write a cron for\
+  \ every second Tuesday\".\n---\n\n# Cron Schedule Explainer\n\nYou make scheduled\
+  \ jobs predictable. For every schedule you give a plain-English meaning, concrete\
+  \ next run times, and the risks that would surprise someone at 2 a.m.\n\n## Files\
+  \ in this skill\n\n- `scripts/cron_explain.py` - parser, explainer, next-run calculator,\
+  \ and pitfall checker (Python 3 standard library only)\n- `references/cron-syntax.md`\
+  \ - field ranges, special characters, macros, and platform differences\n- `references/scheduling-pitfalls.md`\
+  \ - common mistakes and how to avoid them\n- `templates/schedule-review.md` - review\
+  \ format\n- `examples/example-backup-review.md` - a worked review of three crontab\
+  \ lines\n\n## Workflow\n\n### 1. Identify the platform\nStandard 5-field cron (Vixie\
+  \ cron, cronie, Kubernetes CronJob, GitHub Actions) is the default. Ask or check\
+  \ if the user means Quartz (6 or 7 fields with seconds and `?`), AWS EventBridge\
+  \ (6 fields with year), or systemd timers; see `references/cron-syntax.md`. Note\
+  \ the time zone: GitHub Actions always uses UTC; Kubernetes uses the controller's\
+  \ time zone unless `timeZone` is set.\n\n### 2. Run the checker\n```bash\npython3\
+  \ scripts/cron_explain.py \"30 2 * * 1-5\"\npython3 scripts/cron_explain.py \"0\
+  \ 9 1 * MON\" --count 8 --from \"2026-10-08 10:00\"\npython3 scripts/cron_explain.py\
+  \ --file crontab.txt\n```\nIt prints a plain-English explanation, the next N run\
+  \ times (naive local time of the server), and warnings. Exit code is 1 when an expression\
+  \ is invalid or never runs.\n\nIf you cannot run the script, apply the same rules\
+  \ by hand and say so.\n\n### 3. Explain\nFor each schedule give:\n1. One-sentence\
+  \ plain-English meaning.\n2. The next 3 to 5 runs with the time zone stated.\n3.\
+  \ Warnings from the script and from `references/scheduling-pitfalls.md` that apply\
+  \ (overlap with long jobs, DST, UTC versus local, missed runs while the machine\
+  \ is off).\n\n### 4. Write or fix schedules\nWhen the user describes a schedule\
+  \ in words, write the expression, then run it through the checker to confirm the\
+  \ next runs match their intent. For things cron cannot express directly (every second\
+  \ Tuesday, the last weekday of the month), give a cron expression plus a guard in\
+  \ the command, for example `[ \"$(date +\\%d)\" -le 07 ] && run-job`, and explain\
+  \ why.\n\n### 5. Report\nUse `templates/schedule-review.md`, as in `examples/example-backup-review.md`.\n\
+  \n## Rules\n- Always state the time zone you are assuming.\n- Remember that `%`\
+  \ must be escaped as `\\%` inside crontab command fields.\n- Never edit a live crontab\
+  \ for the user; show the line to add and the `crontab -e` step.\n- Recommend a lock\
+  \ (for example `flock -n /tmp/job.lock cmd`) whenever a job could run longer than\
+  \ its interval.\n\x1FFILE:references/cron-syntax.md\x1E\n# Cron Syntax Reference\
+  \ (5-field standard)\n\n```\n+------------- minute (0-59)\n| +----------- hour (0-23)\n\
+  | | +--------- day of month (1-31)\n| | | +------- month (1-12 or JAN-DEC)\n| |\
+  \ | | +----- day of week (0-7 or SUN-SAT; 0 and 7 are both Sunday)\n| | | | |\n\
+  * * * * *  command\n```\n\n## Special characters\n| Symbol | Meaning | Example |\n\
+  |---|---|---|\n| `*` | every value | `* * * * *` every minute |\n| `,` | list |\
+  \ `0 8,12,18 * * *` at 08:00, 12:00, 18:00 |\n| `-` | range | `0 9 * * 1-5` 09:00\
+  \ Monday to Friday |\n| `/` | step | `*/15 * * * *` every 15 minutes; `10-50/20`\
+  \ = 10, 30, 50 |\n\nNames are case-insensitive. Ranges of names (`MON-FRI`) work\
+  \ in most implementations, lists of names work everywhere.\n\n## Macros\n| Macro\
+  \ | Equivalent |\n|---|---|\n| `@yearly` / `@annually` | `0 0 1 1 *` |\n| `@monthly`\
+  \ | `0 0 1 * *` |\n| `@weekly` | `0 0 * * 0` |\n| `@daily` / `@midnight` | `0 0\
+  \ * * *` |\n| `@hourly` | `0 * * * *` |\n| `@reboot` | once at startup (not time\
+  \ based) |\n\n## The day rule\nIf both day of month and day of week are restricted\
+  \ (neither is `*`), the job runs when EITHER matches. `0 9 1 * MON` runs on the\
+  \ 1st of every month AND every Monday.\n\n## Platform differences\n| Platform |\
+  \ Fields | Time zone | Notes |\n|---|---|---|---|\n| Linux cron (cronie, Vixie)\
+  \ | 5 | system local time | `CRON_TZ=` supported by cronie |\n| Kubernetes CronJob\
+  \ | 5 | controller time zone, or `spec.timeZone` | use `concurrencyPolicy: Forbid`\
+  \ to prevent overlaps |\n| GitHub Actions `schedule` | 5 | always UTC | runs can\
+  \ be delayed under load; minimum interval 5 minutes |\n| Quartz (Java) | 6-7 (seconds\
+  \ first, optional year) | configurable | `?` for \"no specific value\", `L`, `W`,\
+  \ `#` supported |\n| AWS EventBridge | 6 (with year) | UTC unless a scheduler time\
+  \ zone is set | either day-of-month or day-of-week must be `?` |\n\nThe script in\
+  \ this skill supports the 5-field standard plus the macros above (except `@reboot`,\
+  \ which it reports as not time based).\n\x1FFILE:references/scheduling-pitfalls.md\x1E\
+  \n# Scheduling Pitfalls\n\n## 1. Day of month OR day of week\n`0 0 13 * 5` is NOT\
+  \ \"Friday the 13th\". It runs on every 13th and every Friday. Use `0 0 13 * *`\
+  \ plus a guard: `[ \"$(date +\\%u)\" = 5 ] && cmd`.\n\n## 2. Dates that never or\
+  \ rarely occur\n- `0 0 30 2 *` never runs (February has no 30th).\n- `0 0 31 * *`\
+  \ runs only in 7 months of the year.\n- `0 0 29 2 *` runs only in leap years.\n\
+  For \"last day of the month\" use `0 0 28-31 * *` with a guard: `[ \"$(date -d tomorrow\
+  \ +\\%d)\" = 01 ] && cmd`.\n\n## 3. Daylight saving time\nIn local time zones with\
+  \ DST, times between about 01:00 and 03:00 can be skipped (spring forward) or run\
+  \ twice (fall back), depending on the cron implementation. Schedule critical jobs\
+  \ outside that window, or run cron in UTC.\n\n## 4. UTC versus local time\nGitHub\
+  \ Actions and many cloud schedulers use UTC. \"Every day at 09:00\" for a team in\
+  \ Istanbul (UTC+3) is `0 6 * * *` in UTC. Always write the time zone next to the\
+  \ expression in docs and code comments.\n\n## 5. Too frequent or overlapping runs\n\
+  - `* * * * *` runs 1440 times a day. Make sure that is intended.\n- A minute field\
+  \ of `*` with a fixed hour (`* 3 * * *`) runs 60 times between 03:00 and 03:59;\
+  \ usually `0 3 * * *` was meant.\n- If a job can take longer than its interval,\
+  \ use a lock (`flock -n`) or `concurrencyPolicy: Forbid`.\n\n## 6. Step values do\
+  \ not wrap evenly\n`*/7` in the minute field runs at 0, 7, ..., 56, then again at\
+  \ 0 (a 4-minute gap). `*/25` runs at 0, 25, 50. Steps restart every hour, day, or\
+  \ month.\n\n## 7. Thundering herd\nMany teams pick `0 0 * * *` or `0 * * * *`. Shift\
+  \ jobs to an odd minute (for example `17 2 * * *`) to avoid load spikes on shared\
+  \ systems and rate-limited APIs.\n\n## 8. Environment and output\nCron runs with\
+  \ a minimal PATH and no login shell. Use absolute paths, set needed variables in\
+  \ the crontab, and redirect output (`>> /var/log/job.log 2>&1`) so failures are\
+  \ visible. Escape `%` as `\\%`.\n\n## 9. Missed runs\nPlain cron does not catch\
+  \ up on runs missed while the machine was off. Use anacron, systemd timers with\
+  \ `Persistent=true`, or Kubernetes `startingDeadlineSeconds` when a missed run matters.\n\
+  \x1FFILE:templates/schedule-review.md\x1E\n# Schedule Review: {{system_or_repo}}\n\
+  \n**Platform:** {{Linux cron | Kubernetes CronJob | GitHub Actions | other}}\n**Time\
+  \ zone assumed:** {{time_zone}}\n**Reviewed on:** {{date}}\n\n## Summary\n{{One\
+  \ or two sentences: are the schedules doing what the team expects, and what must\
+  \ change.}}\n\n## Schedules\n\n### {{n}}. `{{expression}}` - {{job name}}\n- **Meaning:**\
+  \ {{plain-English explanation}}\n- **Next runs:** {{run 1}}, {{run 2}}, {{run 3}}\n\
+  - **Verdict:** {{OK | FIX | CLARIFY}}\n- **Warnings:**\n  - {{warning}}\n- **Suggested\
+  \ line:**\n  ```\n  {{corrected crontab line}}\n  ```\n\n## Questions\n- {{question\
+  \ for the team}}\n\x1FFILE:examples/example-backup-review.md\x1E\n# Schedule Review:\
+  \ ops server crontab\n\n**Platform:** Linux cron (cronie)\n**Time zone assumed:**\
+  \ Europe/Berlin (server local time, has DST)\n**Reviewed on:** 2026-10-08\n\n##\
+  \ Summary\nTwo of the three lines do not do what the comments say. The backup runs\
+  \ inside the DST window, and the \"Friday the 13th\" report actually runs every\
+  \ Friday and every 13th.\n\n## Schedules\n\n### 1. `30 2 * * *` - nightly database\
+  \ backup\n- **Meaning:** At 02:30 every day.\n- **Next runs:** 2026-10-09 02:30,\
+  \ 2026-10-10 02:30, 2026-10-11 02:30\n- **Verdict:** FIX\n- **Warnings:**\n  - 02:30\
+  \ is inside the DST change window; on the spring-forward night it may be skipped\
+  \ and in autumn it may run twice.\n  - The backup can take over an hour on month-end;\
+  \ no lock.\n- **Suggested line:**\n  ```\n  17 4 * * * flock -n /tmp/db-backup.lock\
+  \ /opt/scripts/db-backup.sh >> /var/log/db-backup.log 2>&1\n  ```\n\n### 2. `0 9\
+  \ 13 * FRI` - \"Friday the 13th\" fun report\n- **Meaning:** At 09:00 on day 13\
+  \ of the month OR on every Friday (cron's day rule).\n- **Next runs:** 2026-10-09\
+  \ 09:00 (Fri), 2026-10-13 09:00 (Tue, the 13th), 2026-10-16 09:00 (Fri)\n- **Verdict:**\
+  \ FIX\n- **Warnings:**\n  - Both day fields are restricted, so cron uses OR, not\
+  \ AND.\n- **Suggested line:**\n  ```\n  0 9 13 * * [ \"$(date +\\%u)\" = 5 ] &&\
+  \ /opt/scripts/fun-report.sh\n  ```\n\n### 3. `*/20 8-18 * * 1-5` - sync tickets\
+  \ from the help desk\n- **Meaning:** Every 20 minutes (at :00, :20, :40) from 08:00\
+  \ to 18:59, Monday to Friday.\n- **Next runs:** 2026-10-08 10:20, 2026-10-08 10:40,\
+  \ 2026-10-08 11:00\n- **Verdict:** CLARIFY\n- **Warnings:**\n  - Last run of the\
+  \ day is 18:40, not 18:00. Use `8-17` plus a separate `0 18 * * 1-5` if the sync\
+  \ should stop at 18:00.\n\n## Questions\n- Should the server run cron in UTC to\
+  \ avoid DST issues entirely?\n\x1FFILE:scripts/cron_explain.py\x1E\n#!/usr/bin/env\
+  \ python3\n\"\"\"Explain, validate, and preview standard 5-field cron expressions\
+  \ (stdlib only).\n\nUsage:\n  python3 cron_explain.py \"EXPR\" [--count N] [--from\
+  \ \"YYYY-MM-DD HH:MM\"]\n  python3 cron_explain.py --file crontab.txt [--count N]\
+  \ [--from ...]\n\nFor each expression: a plain-English explanation, the next N run\
+  \ times\n(naive server-local time), and pitfall warnings. In --file mode, crontab\n\
+  lines are read; comments, blank lines and VAR=value lines are skipped and the\n\
+  first five fields (or a leading @macro) are taken as the schedule.\nExit code: 0\
+  \ = all valid, 1 = an expression is invalid or never runs, 2 = usage.\n\"\"\"\n\
+  import argparse\nimport calendar\nimport datetime as dt\nimport sys\n\nMONTHS =\
+  \ {m.lower(): i for i, m in enumerate(calendar.month_abbr) if m}\nDAYS = {\"sun\"\
+  : 0, \"mon\": 1, \"tue\": 2, \"wed\": 3, \"thu\": 4, \"fri\": 5, \"sat\": 6}\nMACROS\
+  \ = {\n    \"@yearly\": \"0 0 1 1 *\", \"@annually\": \"0 0 1 1 *\", \"@monthly\"\
+  : \"0 0 1 * *\",\n    \"@weekly\": \"0 0 * * 0\", \"@daily\": \"0 0 * * *\", \"\
+  @midnight\": \"0 0 * * *\",\n    \"@hourly\": \"0 * * * *\",\n}\nFIELDS = [(\"minute\"\
+  , 0, 59, {}), (\"hour\", 0, 23, {}), (\"day of month\", 1, 31, {}),\n          (\"\
+  month\", 1, 12, MONTHS), (\"day of week\", 0, 7, DAYS)]\nDAY_NAMES = [\"Sunday\"\
+  , \"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\", \"Saturday\"\
+  ]\n\n\ndef compress(values, fmt=str):\n    \"\"\"[1,2,3,5] -> '1-3, 5' using fmt\
+  \ for each number.\"\"\"\n    vals, out, i = sorted(values), [], 0\n    while i\
+  \ < len(vals):\n        j = i\n        while j + 1 < len(vals) and vals[j + 1] ==\
+  \ vals[j] + 1:\n            j += 1\n        out.append(fmt(vals[i]) if j - i < 2\
+  \ else f\"{fmt(vals[i])}-{fmt(vals[j])}\")\n        if 0 < j - i < 2:\n        \
+  \    out.append(fmt(vals[j]))\n        i = j + 1\n    return \", \".join(out)\n\n\
+  \nclass CronError(ValueError):\n    pass\n\n\ndef _num(token, lo, hi, names, field):\n\
+  \    t = token.lower()\n    if t in names:\n        return names[t]\n    if not\
+  \ t.isdigit():\n        raise CronError(f\"{field}: '{token}' is not a number or\
+  \ known name\")\n    v = int(t)\n    if not lo <= v <= hi:\n        raise CronError(f\"\
+  {field}: {v} is outside {lo}-{hi}\")\n    return v\n\n\ndef parse_field(text, lo,\
+  \ hi, names, field):\n    values = set()\n    for part in text.split(\",\"):\n \
+  \       if not part:\n            raise CronError(f\"{field}: empty list item in\
+  \ '{text}'\")\n        step = 1\n        if \"/\" in part:\n            part, step_s\
+  \ = part.split(\"/\", 1)\n            if not step_s.isdigit() or int(step_s) ==\
+  \ 0:\n                raise CronError(f\"{field}: bad step '/{step_s}'\")\n    \
+  \        step = int(step_s)\n        if part == \"*\":\n            start, end =\
+  \ lo, hi\n        elif \"-\" in part:\n            a, b = part.split(\"-\", 1)\n\
+  \            start, end = _num(a, lo, hi, names, field), _num(b, lo, hi, names,\
+  \ field)\n            if start > end:\n                raise CronError(f\"{field}:\
+  \ range {a}-{b} is reversed\")\n        else:\n            start = _num(part, lo,\
+  \ hi, names, field)\n            end = hi if step > 1 else start\n        values.update(range(start,\
+  \ end + 1, step))\n    return values\n\n\ndef parse(expr):\n    expr = expr.strip()\n\
+  \    if expr.lower() == \"@reboot\":\n        raise CronError(\"@reboot runs once\
+  \ at startup and is not time based\")\n    expr = MACROS.get(expr.lower(), expr)\n\
+  \    parts = expr.split()\n    if len(parts) != 5:\n        hint = \" (6-7 fields\
+  \ look like Quartz or EventBridge; see references/cron-syntax.md)\" if len(parts)\
+  \ in (6, 7) else \"\"\n        raise CronError(f\"expected 5 fields, got {len(parts)}{hint}\"\
+  )\n    for p in parts:\n        bare = p.lower()\n        for n in list(MONTHS)\
+  \ + list(DAYS):\n            bare = bare.replace(n, \"\")\n        if any(c in bare\
+  \ for c in \"?lw#\"):\n            raise CronError(f\"'{p}': '?', 'L', 'W' and '#'\
+  \ are Quartz extensions, not standard cron\")\n    sets = [parse_field(p, lo, hi,\
+  \ names, name) for p, (name, lo, hi, names) in zip(parts, FIELDS)]\n    if 7 in\
+  \ sets[4]:\n        sets[4].discard(7)\n        sets[4].add(0)\n    return parts,\
+  \ sets\n\n\ndef describe_set(values, lo, hi, field, raw):\n    vals = sorted(values)\n\
+  \    if raw == \"*\":\n        return None\n    if field == \"day of week\":\n \
+  \       names = [DAY_NAMES[v] for v in vals]\n        if vals == [1, 2, 3, 4, 5]:\n\
+  \            return \"Monday to Friday\"\n        if vals == [0, 6]:\n         \
+  \   return \"on weekends\"\n        return \", \".join(names)\n    if field == \"\
+  month\":\n        return \", \".join(calendar.month_name[v] for v in vals)\n   \
+  \ return compress(vals)\n\n\ndef explain(parts, sets):\n    minute, hour, dom, month,\
+  \ dow = sets\n    rm, rh, rdom, rmon, rdow = parts\n    if rm == \"*\" and rh ==\
+  \ \"*\":\n        time_txt = \"every minute\"\n    elif rm.startswith(\"*/\") and\
+  \ rh == \"*\":\n        time_txt = f\"every {rm[2:]} minutes\"\n    elif rm.startswith(\"\
+  */\"):\n        time_txt = (f\"every {rm[2:]} minutes (at minute \" + \", \".join(str(m)\
+  \ for m in sorted(minute)) +\n                    \") during hour(s) \" + compress(hour,\
+  \ lambda h: f\"{h:02d}\"))\n    elif rh == \"*\":\n        time_txt = \"at minute\
+  \ \" + \", \".join(str(m) for m in sorted(minute)) + \" of every hour\"\n    elif\
+  \ rm == \"*\":\n        time_txt = \"every minute during hour(s) \" + compress(hour,\
+  \ lambda h: f\"{h:02d}\")\n    elif len(minute) * len(hour) <= 6:\n        time_txt\
+  \ = \"at \" + \", \".join(f\"{h:02d}:{m:02d}\" for h in sorted(hour) for m in sorted(minute))\n\
+  \    else:\n        time_txt = (\"at minute(s) \" + \", \".join(str(m) for m in\
+  \ sorted(minute)) +\n                    \" past hour(s) \" + compress(hour, lambda\
+  \ h: f\"{h:02d}\"))\n    day_txt = []\n    d_dom = describe_set(dom, 1, 31, \"day\
+  \ of month\", rdom)\n    d_dow = describe_set(dow, 0, 6, \"day of week\", rdow)\n\
+  \    if d_dom and d_dow:\n        day_txt.append(f\"on day(s) {d_dom} of the month\
+  \ OR on {d_dow}\")\n    elif d_dom:\n        day_txt.append(f\"on day(s) {d_dom}\
+  \ of the month\")\n    elif d_dow:\n        day_txt.append(d_dow if d_dow.startswith(\"\
+  on \") else f\"on {d_dow}\")\n    else:\n        day_txt.append(\"every day\")\n\
+  \    d_mon = describe_set(month, 1, 12, \"month\", rmon)\n    if d_mon:\n      \
+  \  day_txt.append(f\"in {d_mon}\")\n    text = f\"{time_txt}, {' '.join(day_txt)}\"\
+  \n    return text[0].upper() + text[1:] + \".\"\n\n\ndef day_matches(d, parts, sets):\n\
+  \    _, _, dom, month, dow = sets\n    if d.month not in month:\n        return\
+  \ False\n    cron_dow = (d.weekday() + 1) % 7\n    dom_r, dow_r = parts[2] != \"\
+  *\", parts[4] != \"*\"\n    if dom_r and dow_r:\n        return d.day in dom or\
+  \ cron_dow in dow\n    if dom_r:\n        return d.day in dom\n    if dow_r:\n \
+  \       return cron_dow in dow\n    return True\n\n\ndef next_runs(parts, sets,\
+  \ start, count, max_days=366 * 8):\n    minute, hour = sorted(sets[0]), sorted(sets[1])\n\
+  \    runs = []\n    day = start.date()\n    for _ in range(max_days):\n        if\
+  \ day_matches(day, parts, sets):\n            for h in hour:\n                for\
+  \ m in minute:\n                    t = dt.datetime(day.year, day.month, day.day,\
+  \ h, m)\n                    if t > start:\n                        runs.append(t)\n\
+  \                        if len(runs) >= count:\n                            return\
+  \ runs\n        day += dt.timedelta(days=1)\n    return runs\n\n\ndef warnings(parts,\
+  \ sets, runs):\n    minute, hour, dom, month, dow = sets\n    out = []\n    if parts[2]\
+  \ != \"*\" and parts[4] != \"*\":\n        out.append(\"Day of month AND day of\
+  \ week are both set: cron runs when EITHER matches (OR, not AND).\")\n    if parts[2]\
+  \ != \"*\" and parts[4] == \"*\":\n        max_days = {m: (29 if m == 2 else calendar.monthrange(2026,\
+  \ m)[1]) for m in month}\n        if not any(d <= max_days[m] for m in month for\
+  \ d in dom):\n            out.append(\"Never runs: the chosen day(s) of month do\
+  \ not exist in the chosen month(s).\")\n        elif any(d > 28 for d in dom):\n\
+  \            out.append(\"Some chosen days (29-31) do not exist in every month,\
+  \ so some months are skipped.\")\n    if parts[0] == \"*\" and parts[1] != \"*\"\
+  :\n        out.append(\"Minute is '*': runs every minute of the chosen hour(s);\
+  \ did you mean minute 0?\")\n    runs_per_day = len(minute) * len(hour)\n    if\
+  \ runs_per_day >= 288:\n        out.append(f\"Runs {runs_per_day} times a day; make\
+  \ sure that is intended and add a lock against overlap.\")\n    if any(1 <= h <=\
+  \ 2 for h in hour) and parts[1] != \"*\":\n        out.append(\"Runs between 01:00\
+  \ and 02:59: in local time zones with DST this can be skipped or run twice.\")\n\
+  \    for i, raw in ((0, parts[0]), (1, parts[1])):\n        if \"/\" in raw:\n \
+  \           step = int(raw.split(\"/\")[1])\n            span = 60 if i == 0 else\
+  \ 24\n            if span % step:\n                out.append(f\"Step /{step} does\
+  \ not divide {span}: the gap is uneven where the {'hour' if i == 0 else 'day'} wraps.\"\
+  )\n    if parts[0] == \"0\" and parts[1] in (\"*\", \"0\"):\n        out.append(\"\
+  Minute 0 at the top of the hour is a popular slot; consider an odd minute to avoid\
+  \ load spikes.\")\n    return out\n\n\ndef check(expr, start, count):\n    print(f\"\
+  Expression: {expr}\")\n    try:\n        parts, sets = parse(expr)\n    except CronError\
+  \ as e:\n        print(f\"  INVALID: {e}\\n\")\n        return False\n    print(f\"\
+  \  Meaning: {explain(parts, sets)}\")\n    runs = next_runs(parts, sets, start,\
+  \ count)\n    ok = True\n    if runs:\n        print(f\"  Next {len(runs)} run(s)\
+  \ after {start:%Y-%m-%d %H:%M} (server local time):\")\n        for r in runs:\n\
+  \            print(f\"    {r:%Y-%m-%d %H:%M} {r:%a}\")\n    else:\n        print(\"\
+  \  Next runs: none found in the next 8 years\")\n        ok = False\n    for w in\
+  \ warnings(parts, sets, runs):\n        print(f\"  WARNING: {w}\")\n    print()\n\
+  \    return ok\n\n\ndef crontab_schedules(path):\n    with open(path, encoding=\"\
+  utf-8\") as f:\n        for line in f:\n            s = line.strip()\n         \
+  \   if not s or s.startswith(\"#\"):\n                continue\n            first\
+  \ = s.split()[0]\n            if \"=\" in first and not first.startswith(\"@\"):\n\
+  \                continue\n            yield first if first.startswith(\"@\") else\
+  \ \" \".join(s.split()[:5])\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser(description=\"\
+  Explain and validate cron expressions.\")\n    ap.add_argument(\"expr\", nargs=\"\
+  ?\", help='cron expression in quotes, e.g. \"*/15 9-17 * * 1-5\"')\n    ap.add_argument(\"\
+  --file\", help=\"read schedules from a crontab file\")\n    ap.add_argument(\"--count\"\
+  , type=int, default=5, help=\"number of next runs to show (default 5)\")\n    ap.add_argument(\"\
+  --from\", dest=\"start\", help='start time \"YYYY-MM-DD HH:MM\" (default: now)')\n\
+  \    a = ap.parse_args(argv)\n    if bool(a.expr) == bool(a.file):\n        ap.print_usage(sys.stderr)\n\
+  \        print(\"error: give exactly one of EXPR or --file\", file=sys.stderr)\n\
+  \        return 2\n    try:\n        start = dt.datetime.strptime(a.start, \"%Y-%m-%d\
+  \ %H:%M\") if a.start else dt.datetime.now().replace(second=0, microsecond=0)\n\
+  \    except ValueError:\n        print(\"error: --from must look like 2026-10-08\
+  \ 10:00\", file=sys.stderr)\n        return 2\n    exprs = list(crontab_schedules(a.file))\
+  \ if a.file else [a.expr]\n    results = [check(e, start, max(1, a.count)) for e\
+  \ in exprs]\n    print(f\"{sum(results)} of {len(results)} schedule(s) valid and\
+  \ runnable.\")\n    return 0 if all(results) else 1\n\n\nif __name__ == \"__main__\"\
+  :\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

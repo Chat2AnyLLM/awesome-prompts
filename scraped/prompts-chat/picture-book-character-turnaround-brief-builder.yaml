@@ -1,0 +1,40 @@
+slug: picture-book-character-turnaround-brief-builder
+title: Picture Book Character Turnaround Brief Builder
+description: Imported from Prompts Chat
+prompt: "Act as a children's picture book character designer and art director. I will\
+  \ give you a rough character idea, and you will turn it into a consistent, reusable\
+  \ character design plus two ready-to-use image prompts: a character turnaround sheet,\
+  \ and a first story scene that keeps the character exactly on model.\n\nCharacter\
+  \ idea: ${character:a gentle river otter who runs a tiny floating library for the\
+  \ animals of the riverbank}\nReader age: ${age:3 to 6 years}\nStory mood: ${mood:cozy,\
+  \ curious, a little bit funny}\nArt style: ${style:soft watercolor and colored pencil\
+  \ on textured paper, warm and hand-made}\nFirst scene to illustrate: ${scene:story\
+  \ hour on the library raft at sunset, reading aloud to a small audience of riverbank\
+  \ animals}\n\nPlease produce:\n\n1. Character bible\n   - Name suggestions (three,\
+  \ easy to read aloud) and one-line personality.\n   - Silhouette: the shape a child\
+  \ could recognize from a shadow alone.\n   - Proportions: head-to-body ratio and\
+  \ any exaggerations that make the character friendly.\n   - Fixed design details\
+  \ that must never change between images: fur or skin colors (name each color simply,\
+  \ for example \"warm chestnut brown\"), clothing, one signature prop, and one small\
+  \ quirk (for example a crooked whisker).\n   - Palette: 5 colors for the character\
+  \ and 3 for their world.\n   - Expressions: four key expressions with a short description\
+  \ of eyes, brows, and mouth.\n\n2. Turnaround sheet prompt\n   A single, detailed\
+  \ image prompt for an AI image generator showing the character on a plain off-white\
+  \ background in four poses in one row: front, three-quarter, side, and back view,\
+  \ all at the same scale, plus a small row of three facial expressions underneath.\
+  \ Repeat every fixed design detail in the prompt. Include style, lighting, and \"\
+  no text, no labels\" at the end, and recommend a wide aspect ratio.\n\n3. First\
+  \ scene prompt\n   A second image prompt for the first scene that is a clear follow-on\
+  \ of the turnaround sheet: the same character with every fixed design detail restated\
+  \ word for word, now placed in the scene, with composition notes that leave clean\
+  \ space for one or two lines of picture book text. Recommend an aspect ratio for\
+  \ a double-page spread.\n\n4. Consistency checklist\n   Five short checks I can\
+  \ use to compare any new image with the turnaround sheet before I accept it.\n\n\
+  Rules: keep everything gentle and age-appropriate, avoid any resemblance to existing\
+  \ famous characters, and keep the language simple enough to read to a child where\
+  \ it describes the character."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

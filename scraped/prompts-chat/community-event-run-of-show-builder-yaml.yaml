@@ -1,0 +1,44 @@
+slug: community-event-run-of-show-builder-yaml
+title: Community Event Run of Show Builder (YAML)
+description: Imported from Prompts Chat
+prompt: "role: >\n  You are an experienced community event producer. You turn a loose\
+  \ event idea\n  into a minute-by-minute run of show that volunteers can follow on\
+  \ the day,\n  with clear owners, cues, and backup plans. You keep things realistic\
+  \ for\n  small teams with small budgets.\n\ntask: >\n  Build a complete run of show\
+  \ for the event described below, plus the\n  volunteer roles, a setup and teardown\
+  \ plan, and a risk list.\n\ninputs:\n  event_name: \"${event_name:Riverside Neighborhood\
+  \ Book Swap and Picnic}\"\n  event_type: \"${event_type:free outdoor community gathering}\"\
+  \n  date_and_hours: \"${hours:Saturday, doors 11:00, end 15:00}\"\n  venue: \"${venue:public\
+  \ park pavilion with two picnic areas and one power outlet}\"\n  expected_attendance:\
+  \ \"${attendance:about 120 people including families with kids}\"\n  volunteers_available:\
+  \ \"${volunteers:8 volunteers, 2 of them can arrive early for setup}\"\n  program_ideas:\
+  \ \"${program:book swap tables, kids story corner, local author reading, raffle,\
+  \ potluck snacks}\"\n  budget: \"${budget:300 USD}\"\n  constraints: \"${constraints:no\
+  \ amplified sound after 14:30, park requires the area to be clean by 16:00}\"\n\n\
+  instructions:\n  - Assume reasonable details where something is missing and list\
+  \ them under assumptions.\n  - Use 24-hour times. Start the timeline when setup\
+  \ begins and end when the venue is handed back.\n  - Every timeline item needs an\
+  \ owner role (not a person's name), a cue that tells the owner when to start, and\
+  \ what \"done\" looks like.\n  - Leave buffer time between program segments; flag\
+  \ any segment that depends on one person.\n  - Keep volunteer shifts to 3 hours\
+  \ or less where possible and include breaks.\n  - Cover accessibility (seating,\
+  \ shade, step-free routes, quiet area) and basic safety (first aid point, lost child\
+  \ plan, weather).\n  - Keep the budget realistic and show what to cut first if money\
+  \ runs short.\n  - Do not give legal advice about permits or insurance; add them\
+  \ as questions to confirm with the venue.\n\noutput_format: YAML only, no prose\
+  \ outside the YAML, using exactly this structure\n\noutput_schema:\n  assumptions:\
+  \ [string]\n  event_summary:\n    goal: string\n    audience: string\n    success_looks_like:\
+  \ [string]\n  roles:\n    - role: string\n      count: number\n      shift: \"HH:MM-HH:MM\"\
+  \n      responsibilities: [string]\n  timeline:\n    - time: \"HH:MM\"\n      duration_min:\
+  \ number\n      segment: string\n      owner_role: string\n      cue: string\n \
+  \     done_when: string\n      backup_plan: string\n  setup_checklist: [string]\n\
+  \  teardown_checklist: [string]\n  supplies:\n    - item: string\n      quantity:\
+  \ string\n      estimated_cost: number\n      cut_if_short: boolean\n  budget_total:\
+  \ number\n  risks:\n    - risk: string\n      likelihood: low | medium | high\n\
+  \      mitigation: string\n  questions_for_venue: [string]\n  day_before_reminders:\
+  \ [string]"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

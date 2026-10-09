@@ -1,0 +1,26 @@
+slug: local-business-management-mvp-phase-1-foundation
+title: Local Business Management MVP Phase 1 Foundation
+description: Imported from Prompts Chat
+prompt: "# MVP Phase 1 — Foundation\n\n## Objective\n\nCreate the technical foundation\
+  \ of the Local Business Management System.\n\nDo NOT implement business features\
+  \ yet.\n\nThe goal is to have a clean Go application that:\n\n1. Starts successfully\n\
+  2. Loads configuration\n3. Connects to PostgreSQL\n4. Runs database migrations\n\
+  5. Exposes an HTTP API\n6. Has structured logging\n7. Has health checks\n8. Has\
+  \ clean application startup/shutdown\n\n## Stack\n\n* Go\n* PostgreSQL\n* HTTP REST\
+  \ API\n* SQL migrations\n* Environment/configuration system\n* Structured logging\n\
+  \n## Initial Structure\n\n```text\ncmd/\n  server/\n    main.go\n\ninternal/\n \
+  \ platform/\n    config/\n    database/\n    http/\n    logging/\n\n  core/\n\n\
+  migrations/\n\napi/\n\ngo.mod\n```\n\n## Required Endpoint\n\n```http\nGET /health\n\
+  ```\n\nExpected response:\n\n```json\n{\n  \"status\": \"ok\",\n  \"database\":\
+  \ \"ok\"\n}\n```\n\n## Requirements\n\nImplement graceful shutdown.\n\nDatabase\
+  \ connection must use connection pooling.\n\nConfiguration must come from environment\
+  \ variables/configuration rather than hardcoded values.\n\nCreate a migration mechanism\
+  \ that can safely evolve PostgreSQL schemas.\n\nDo not create the module/plugin\
+  \ architecture yet beyond the minimal structure necessary to keep future boundaries\
+  \ clean.\n\n## Deliverable\n\nA running local Go server connected to PostgreSQL\
+  \ with a clean project structure and migration system.\n\nNothing else."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

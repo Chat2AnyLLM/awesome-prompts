@@ -1,0 +1,94 @@
+slug: post-implementation-audit
+title: Post-Implementation Audit
+description: Imported from Prompts Chat
+prompt: "---\nname: post-implementation-audit\ndescription: Read-only audit of completed\
+  \ code changes. Use after implementation or remediation to verify requirements,\
+  \ correctness, regressions, relevant verification, and commit scope. Do not use\
+  \ to implement or fix changes.\n---\n\n# Post-Implementation Audit\n\nIndependently\
+  \ audit completed code changes using available evidence.\n\nThis workflow is read-only.\
+  \ Find meaningful problems when they exist; do not manufacture findings.\n\n## Scope\
+  \ and boundary\n\nFollow the current task, applicable repository instructions such\
+  \ as `AGENTS.md`, and the actual implementation context.\n\nDo not broaden the audit\
+  \ merely because additional review is possible.\n\nDo not implement, remediate,\
+  \ refactor, stage, commit, or intentionally modify repository state while this workflow\
+  \ is active.\n\nIf a required verification step would intentionally modify tracked\
+  \ files, do not run it during the audit. Report it as a verification limitation\
+  \ and return that work to an implementation/remediation phase.\n\nUnexpected side\
+  \ effects from otherwise appropriate verification commands must be reported, not\
+  \ reverted or cleaned up.\n\nDo not create an audit file unless explicitly requested.\n\
+  \n## 1. Establish target and baseline\n\nDetermine what change is actually being\
+  \ audited before judging it.\n\nWhen Git is available, prefer the baseline in this\
+  \ order:\n\n1. explicit baseline or commit range from the task;\n2. a known implementation\
+  \ start point supported by context;\n3. clearly attributable staged or working-tree\
+  \ changes.\n\nNever select an arbitrary number of recent commits as the baseline.\n\
+  \nDistinguish implementation changes from pre-existing or unrelated repository changes.\n\
+  \nIf the boundary cannot be established reliably, state the limitation and audit\
+  \ only what can be attributed with reasonable confidence.\n\nDo not invent missing\
+  \ requirements, acceptance criteria, history, or implementation boundaries.\n\n\
+  ## 2. Verify requirements, correctness, and regressions\n\nTrace available requirements\
+  \ and acceptance criteria to the implementation.\n\nCheck for meaningful issues\
+  \ such as:\n\n- missing or partial behavior;\n- incorrect requirement interpretation;\n\
+  - regressions or unintended behavior changes;\n- scope creep or unrelated modifications;\n\
+  - incorrect logic or state transitions;\n- relevant error or failure paths;\n- plausible\
+  \ boundary, lifecycle, async, concurrency, persistence, caching, or integration\
+  \ problems.\n\nInspect enough surrounding code to understand the changed behavior.\n\
+  \nOnly investigate risk areas that are plausible for the implementation.\n\nReview\
+  \ security, performance, data integrity, or deployment concerns only when the change\
+  \ makes them relevant.\n\nDo not report subjective style preferences or speculative\
+  \ possibilities as defects.\n\nA maintainability concern is a finding only when\
+  \ it creates a concrete correctness, reviewability, change-safety, or long-term\
+  \ engineering risk.\n\n## 3. Verify evidence\n\nRun the smallest relevant set of\
+  \ non-mutating verification commands needed for confidence.\n\nExpand verification\
+  \ when scope or risk warrants it.\n\nNever claim that a command, test, path, or\
+  \ behavior was verified unless it actually was.\n\nIf important verification cannot\
+  \ be completed, record:\n\n- what was not verified;\n- why;\n- what confidence is\
+  \ lost.\n\nA verification limitation is not automatically a finding.\n\nTreat it\
+  \ as a finding only when the missing verification itself violates an explicit requirement\
+  \ or represents a concrete defect.\n\n## 4. Review commits when applicable\n\nWhen\
+  \ commits are part of the audited implementation, verify that each represents one\
+  \ coherent concern and is independently understandable, reviewable, and reasonably\
+  \ revertible.\n\nReport material problems such as:\n\n- unrelated concerns mixed\
+  \ together;\n- hidden scope expansion;\n- accidental unrelated changes;\n- misleading\
+  \ commit boundaries;\n- excessive size that materially harms reviewability or rollback\
+  \ safety.\n\nDo not require commits when none were authorized or expected.\n\n##\
+  \ 5. Complete the full audit\n\nDo not stop at the first issue.\n\nComplete the\
+  \ full in-scope review and collect every meaningful finding supported by evidence.\n\
+  \nEach finding must be backed by code, diff, test output, command output, reproducible\
+  \ behavior, or a credible demonstrated failure path.\n\nDistinguish fact from inference.\n\
+  \nAfter completing the audit, report the result and stop. Do not remediate findings.\n\
+  \n## Severity\n\nUse severity only for actual findings:\n\n**Critical** — catastrophic\
+  \ failure, severe security compromise, irreversible data loss/corruption, or fundamentally\
+  \ unusable core behavior.\n\n**High** — major incorrect behavior, serious regression,\
+  \ significant security/reliability failure, or failure of an important requirement.\n\
+  \n**Medium** — real actionable defect with bounded impact.\n\n**Low** — minor but\
+  \ legitimate defect with limited concrete impact.\n\nDo not use `Low` for optional\
+  \ polish or subjective preference.\n\n## Result\n\nUse exactly one primary result:\n\
+  \n### CLEAR\n\nUse when:\n\n- no meaningful finding remains;\n- intended behavior\
+  \ is sufficiently established;\n- relevant verification completed successfully;\n\
+  - no material unexplained verification gap remains;\n- no material scope contamination\
+  \ exists.\n\n### FINDINGS\n\nUse when one or more meaningful implementation findings\
+  \ exist.\n\nVerification limitations may be reported alongside `FINDINGS`.\n\n###\
+  \ INCOMPLETE\n\nUse when no meaningful implementation defect has been established,\
+  \ but missing context or important verification prevents a reliable `CLEAR`.\n\n\
+  Do not treat absence of discovered defects as proof of correctness.\n\n## Re-audit\n\
+  \nWhen previous findings are available, preserve their identifiers and mark each:\n\
+  \n- `RESOLVED`\n- `UNRESOLVED`\n- `NOT VERIFIED`\n\nVerify the underlying issue,\
+  \ not only its visible symptom, and check whether remediation introduced regressions.\n\
+  \nThen perform a fresh audit of the affected scope.\n\nDo not invent prior finding\
+  \ IDs when they are unavailable.\n\n## Output\n\nStart with:\n\n**Result:** `CLEAR`\
+  \ / `FINDINGS` / `INCOMPLETE`\n\nBriefly state:\n\n- scope audited;\n- baseline\
+  \ used;\n- important evidence inspected;\n- verification commands actually executed;\n\
+  - material limitations.\n\nFor each new finding include:\n\n**ID:** `AUDIT-001`\
+  \  \n**Severity:** Critical / High / Medium / Low  \n**Evidence:** concrete supporting\
+  \ evidence  \n**Impact:** concrete failure or risk  \n**Recommended remediation:**\
+  \ smallest appropriate correction  \n**Verification:** how a re-audit can prove\
+  \ resolution\n\nFor re-audited findings also include:\n\n**Status:** RESOLVED /\
+  \ UNRESOLVED / NOT VERIFIED\n\nFor `INCOMPLETE`, state what evidence is missing.\n\
+  \nFor `CLEAR`, state that no meaningful findings remain and summarize the evidence\
+  \ supporting that conclusion.\n\nDo not invent owners, deadlines, metrics, findings,\
+  \ or recommendations merely to make the report appear more comprehensive."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

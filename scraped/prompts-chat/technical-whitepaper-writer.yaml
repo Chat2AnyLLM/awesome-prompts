@@ -1,0 +1,231 @@
+slug: technical-whitepaper-writer
+title: technical-whitepaper-writer
+description: Imported from Prompts Chat
+prompt: "# Technical Whitepaper Writer\n\n## Why this skill exists\n\nMost AI-generated\
+  \ whitepapers read like marketing documents: vague claims, excessive adjectives,\
+  \ feature lists presented as innovation, unsupported performance numbers, generic\
+  \ architecture diagrams, and roadmaps used as substitutes for technical evidence.\n\
+  \nA strong whitepaper instead explains **why a problem exists, what the proposed\
+  \ system does, how it works, why the design is structured that way, what assumptions\
+  \ it makes, how it behaves under normal and failure conditions, and where the design\
+  \ remains limited.**\n\nThe goal is a document that reads like **engineering and\
+  \ technical research**, not a sales brochure.\n\nThe whitepaper should let a technically\
+  \ capable reader answer:\n\n1. What problem is being solved?\n2. Why do existing\
+  \ approaches fail or become insufficient?\n3. What is being proposed?\n4. How does\
+  \ the proposed system actually work?\n5. What are the major components, and how\
+  \ do they interact?\n6. What assumptions does the design make?\n7. What happens\
+  \ during normal operation?\n8. What happens when something goes wrong?\n9. What\
+  \ evidence supports the technical claims?\n10. What are the limitations and unresolved\
+  \ risks?\n11. How is this different from existing approaches?\n12. What would someone\
+  \ need to implement, evaluate, or deploy it?\n\nWriting should prioritize **clarity,\
+  \ technical precision, traceability, and intellectual honesty** over impressive-sounding\
+  \ language.\n\n---\n\n## Step 1 — Gather inputs before writing\n\nDo not begin drafting\
+  \ the full whitepaper until the core information is available. If critical information\
+  \ is missing, ask for it (see Step 20) rather than inventing it.\n\n**1. The problem.**\
+  \ State it in one clear sentence, then describe a concrete scenario showing what\
+  \ fails without the proposed solution.\n\n- Avoid: *\"The industry needs a revolutionary\
+  \ new approach.\"*\n- Prefer: *\"Current systems require each application to independently\
+  \ integrate multiple model providers, resulting in duplicated integration logic,\
+  \ inconsistent observability, and difficult provider switching.\"*\n\n**2. The project\
+  \ type.** Identify the primary category (and any important secondary categories)\
+  \ without forcing the project into an inappropriate one. Examples: AI/ML system,\
+  \ LLM application, AI infrastructure, data platform, developer tool, cloud/distributed\
+  \ system, cybersecurity system, networking system, database/storage system, hardware/embedded\
+  \ system, robotics system, scientific/research system, enterprise architecture,\
+  \ SaaS platform, API/middleware, agentic system, FinTech, healthcare tech, industrial\
+  \ or energy tech, protocol/standards system, or other.\n\n**3. The core mechanism.**\
+  \ Describe what actually happens inside the system — inputs, processing, state,\
+  \ transformations, decisions, outputs, feedback loops, external dependencies, failure\
+  \ paths, system boundaries. Not a feature list.\n\n- Avoid: *\"The platform provides\
+  \ intelligent routing, security, observability, and scalability.\"*\n- Prefer: *\"\
+  An incoming request is classified according to model, latency, cost, and policy\
+  \ requirements. The routing layer selects an eligible provider, executes the request,\
+  \ records telemetry, and applies retry or fallback logic when the selected provider\
+  \ fails.\"*\n\n**4. System boundaries.** What's inside the system vs. external?\
+  \ Which components are controlled vs. dependencies? Where does data enter and leave?\
+  \ Where does trust begin and end?\n\n**5. Actors and stakeholders.** Only include\
+  \ actors relevant to the system (e.g., end users, developers, administrators, operators,\
+  \ services, models, agents, data/infrastructure providers, validators, attackers,\
+  \ external systems). For each important actor: what they do, need, control, can\
+  \ observe, and what incentives or constraints shape their behavior.\n\n**6. Resources,\
+  \ economics, or tokens — only when applicable.** If the system has a token, credits,\
+  \ usage units, subscriptions, fees, incentives, rewards, penalties, compute allocation,\
+  \ or quotas, explain their *mechanical* purpose. Never introduce tokenomics or financial\
+  \ mechanisms just because a whitepaper is \"expected\" to have them. Omit this section\
+  \ if no economic mechanism exists.\n\n**7. Known limitations and risks.** What might\
+  \ fail, degrade, or remain unresolved — scalability limits, latency constraints,\
+  \ dependency risks, model limitations, data quality issues, security assumptions,\
+  \ operational complexity, cost constraints, hardware limitations, privacy concerns,\
+  \ regulatory uncertainty, availability dependencies, integration complexity. State\
+  \ these explicitly; do not hide them.\n\n---\n\n## Step 2 — Choose the whitepaper\
+  \ structure\n\nDo not force every project into an identical template. The default\
+  \ technical spine:\n\n1. Abstract\n2. Introduction\n3. Problem and Motivation\n\
+  4. Existing Approaches\n5. Design Goals and Non-Goals\n6. Proposed Architecture\n\
+  7. Core Mechanism\n8. System Workflow\n9. Technical Design\n10. Security / Safety\
+  \ / Reliability Model\n11. Performance and Scalability\n12. Implementation Considerations\n\
+  13. Worked Example\n14. Evaluation / Evidence\n15. Limitations and Open Problems\n\
+  16. Future Work\n17. Conclusion\n18. References\n\nNot every section is mandatory\
+  \ — use only what materially improves understanding:\n\n- A simple software architecture\
+  \ may skip heavy mathematical analysis.\n- An AI research system may need experiments\
+  \ and evaluation methodology.\n- A cybersecurity system may need a detailed threat\
+  \ model.\n- A hardware system may need physical constraints and benchmarking.\n\
+  - A distributed system may need consistency, fault tolerance, and failure analysis.\n\
+  - A commercial SaaS platform may need deployment/operational architecture rather\
+  \ than formal proofs.\n\n---\n\n## Step 3 — Establish the technical delta\n\nIf\
+  \ the project builds on or extends existing technology, explicitly trace:\n\n> What\
+  \ existed before → What limitation remained → What this design changes → Why that\
+  \ change matters.\n\n- Avoid: *\"This is the world's first revolutionary architecture.\"\
+  *\n- Prefer: *\"Existing approach A provides X but requires Y. Approach B removes\
+  \ Y but introduces Z. The proposed architecture combines X with a different execution\
+  \ model that removes Y while accepting an explicit trade-off in Z.\"*\n\n---\n\n\
+  ## Step 4 — Build the mechanism from a minimal model\n\nIntroduce complexity progressively\
+  \ rather than presenting the full architecture at once:\n\n1. **Intuition** — the\
+  \ idea in simple language.\n2. **Minimal model** — the smallest system that could\
+  \ solve the problem.\n3. **Architecture** — the major components.\n4. **Data / request\
+  \ flow** — how information moves through the system.\n5. **Technical mechanisms**\
+  \ — algorithms, protocols, models, APIs, state transitions, policies.\n6. **Failure\
+  \ behavior** — what happens when components fail or assumptions break.\n7. **Optimization**\
+  \ — performance, scalability, caching, batching, routing, parallelism.\n\n---\n\n\
+  ## Step 5 — Apply evidence discipline\n\nClaims like *faster, cheaper, more secure,\
+  \ scalable, reliable, accurate, lower latency, higher throughput, reduced hallucination,\
+  \ improved efficiency* must never be asserted without support.\n\nWhere possible,\
+  \ provide: benchmark results, measurements, formulas, thresholds, experimental results,\
+  \ architectural reasoning, citations, assumptions, or comparison methodology.\n\n\
+  - Avoid: *\"The architecture provides extremely low latency.\"*\n- Prefer: *\"In\
+  \ the evaluated configuration, the routing layer adds a median of X ms of processing\
+  \ overhead under Y workload.\"*\n\nIf a number is unavailable, say so. **Never fabricate\
+  \ measurements.**\n\n---\n\n## Step 6 — Analyze each important actor\n\nFor each\
+  \ actor: responsibility, inputs, outputs, permissions, dependencies, incentives,\
+  \ constraints, failure modes, and consequences of incorrect behavior. Example set\
+  \ (adapt to the actual project):\n\n- **User** — submits a request and receives\
+  \ a response.\n- **Application** — authenticates the request and invokes the platform\
+  \ API.\n- **Model Provider** — processes the inference request.\n- **Gateway** —\
+  \ applies routing, policy, retry, and observability logic.\n- **Operator** — configures\
+  \ policies and monitors system health.\n\n---\n\n## Step 7 — Define the threat,\
+  \ failure, or risk model\n\nDepending on the project, analyze relevant risks: malicious\
+  \ users, compromised components, unauthorized access, data leakage, model manipulation,\
+  \ prompt injection, supply-chain attacks, denial of service, corrupted data, incorrect\
+  \ outputs, infrastructure/dependency failure, network partitions, hardware failure,\
+  \ operator error, configuration errors, adversarial inputs, economic attacks, privacy\
+  \ violations.\n\nFor every significant threat:\n\n> Threat → Attack/Failure Mechanism\
+  \ → Impact → Mitigation → Remaining Risk\n\n- Avoid: *\"The system is highly secure.\"\
+  *\n- Prefer: explaining secure **against what**, **under which assumptions**, and\
+  \ **with what controls**.\n\n---\n\n## Step 8 — Include a worked example\n\nEvery\
+  \ substantive whitepaper needs at least one concrete, end-to-end example — a transaction\
+  \ lifecycle, API request, inference request, data pipeline, user workflow, state\
+  \ transition, attack scenario, failure scenario, or numerical calculation. Include\
+  \ real numbers where useful.\n\nExample shape:\n\n> 1. Client submits request.\n\
+  > 2. Gateway validates policy.\n> 3. Router selects provider.\n> 4. Provider executes\
+  \ inference.\n> 5. Response passes through validation.\n> 6. Telemetry is recorded.\n\
+  > 7. Client receives response.\n\n---\n\n## Step 9 — Explain architecture clearly\n\
+  \nArchitecture descriptions should answer: What are the major components? What does\
+  \ each do? How are they connected? What protocols/interfaces link them? Where is\
+  \ state stored? Where does computation happen? Where are decisions made? Where are\
+  \ the security boundaries? Where can failures occur?\n\nUse layered structure only\
+  \ where it reflects reality, e.g.:\n\n```text\nUser / Client Layer\n        ↓\n\
+  API / Interface Layer\n        ↓\nApplication / Orchestration Layer\n        ↓\n\
+  Core Processing Layer\n        ↓\nData / Model / Storage Layer\n        ↓\nInfrastructure\
+  \ Layer\n```\n\nDo not add layers for visual symmetry alone.\n\n---\n\n## Step 10\
+  \ — Handle mathematics appropriately\n\nUse equations when they clarify the mechanism:\
+  \ optimization objectives, probability models, scoring functions, cost/latency/throughput\
+  \ calculations, capacity planning, cryptographic formulas, ML objectives, resource\
+  \ allocation, economic models, reliability calculations. Always explain each equation\
+  \ in plain language. Never add math purely for appearance.\n\n---\n\n## Step 11\
+  \ — Handle AI/ML systems appropriately\n\nDistinguish clearly between model architecture,\
+  \ training, fine-tuning, inference, retrieval, orchestration, evaluation, safety,\
+  \ monitoring, data pipelines, and human-in-the-loop processes.\n\nFrame the pipeline\
+  \ explicitly:\n\n> Input → Processing → Model / Retrieval / Tool Use → Validation\
+  \ → Output\n\nWhere relevant, cover: model selection, training methodology, dataset\
+  \ assumptions, context management, retrieval strategy, evaluation methodology, hallucination\
+  \ mitigation, guardrails, latency, inference cost, observability, and model failure\
+  \ modes.\n\nAvoid vague terms like \"intelligent,\" \"cognitive,\" or \"human-like\"\
+  \ unless technically defined.\n\n---\n\n## Step 12 — Compare against existing approaches\n\
+  \nWhere relevant, compare on concrete dimensions:\n\n| Dimension | Existing Approach\
+  \ | Proposed Approach |\n|---|---|---|\n| Architecture | ... | ... |\n| Latency\
+  \ | ... | ... |\n| Scalability | ... | ... |\n| Cost | ... | ... |\n| Security |\
+  \ ... | ... |\n| Flexibility | ... | ... |\n| Operational Complexity | ... | ...\
+  \ |\n\nEvery row needs a defensible basis — don't build the table just to look complete.\n\
+  \n---\n\n## Step 13 — Discuss trade-offs\n\nEvery meaningful architecture has trade-offs.\
+  \ Discuss the relevant ones explicitly: performance vs. cost, flexibility vs. complexity,\
+  \ security vs. usability, consistency vs. availability, latency vs. accuracy, centralization\
+  \ vs. decentralization, automation vs. human control, compute vs. memory, precision\
+  \ vs. recall, privacy vs. observability.\n\nNever claim the design eliminates trade-offs\
+  \ — explain **which were chosen, and why**.\n\n---\n\n## Step 14 — Separate current\
+  \ capability from future work\n\nDo not present roadmap items as evidence the system\
+  \ currently works. Distinguish:\n\n- **Current design** — what exists or is technically\
+  \ specified today.\n- **Experimental / validated** — what has been implemented and\
+  \ tested.\n- **Proposed extensions** — what could be built later.\n- **Open research\
+  \ problems** — what remains unresolved.\n\nA roadmap is not proof of technical viability.\n\
+  \n---\n\n## Step 15 — Anti-pattern filter\n\nBefore presenting a draft, scan for\
+  \ and rewrite:\n\n**Marketing language** — revolutionary, groundbreaking, game-changing,\
+  \ next-generation, world-class, unprecedented, highly intelligent, infinitely scalable,\
+  \ military-grade, enterprise-grade — unless technically defined and supported.\n\
+  \n**Unsupported claims** — \"10x faster,\" \"99.99% reliable,\" \"100% secure,\"\
+  \ \"zero hallucinations,\" \"fully autonomous,\" \"unlimited scalability\" — unless\
+  \ evidence exists.\n\n**Feature dumping** — a list of features is not an architecture.\n\
+  \n**Buzzword substitution** — \"AI + blockchain + cloud + quantum + autonomous agents\"\
+  \ is not a mechanism.\n\n**Roadmap-as-proof** — future plans don't demonstrate present\
+  \ viability.\n\n**Tokenomics without purpose** — don't invent economic mechanisms.\n\
+  \n**Novelty without comparison** — don't claim innovation without explaining what\
+  \ came before.\n\n**Security without threat modeling** — don't claim security without\
+  \ naming threats and mitigations.\n\n**Architecture without data flow** — components\
+  \ alone don't explain a system.\n\n**Missing limitations** — every serious design\
+  \ has them; state them.\n\n---\n\n## Step 16 — External research and citations\n\
+  \nWhen using external information: cite every external technical claim, prefer primary\
+  \ and authoritative sources, cite research papers for scientific claims, official\
+  \ documentation for technical specs, standards bodies for standards, and vendor\
+  \ docs for vendor-specific behavior.\n\nUse inline numbered citations:\n\n> Transformer\
+  \ architectures use self-attention to model relationships between tokens [1].\n\n\
+  ```markdown\n## References\n[1] Vaswani et al., \"Attention Is All You Need,\" 2017.\n\
+  ```\n\n**Never fabricate references. Never cite a source that doesn't actually support\
+  \ the statement.**\n\n---\n\n## Step 17 — Writing style\n\nWrite as an experienced\
+  \ engineer or researcher explaining a complex system to another technically capable\
+  \ person.\n\n**Prefer:** precise language, short-to-medium paragraphs, clear explanations,\
+  \ explicit assumptions, concrete examples, technical depth where useful, structured-text\
+  \ diagrams where appropriate, meaningful section titles.\n\n**Avoid:** excessive\
+  \ adjectives, startup-style hype, repetitive conclusions, generic mission statements,\
+  \ unnecessary jargon, artificial complexity, fake certainty.\n\nThe tone: *\"Here\
+  \ is the problem. Here is why existing approaches struggle. Here is the mechanism\
+  \ we propose. Here is how it works. Here is the evidence. Here is where it can fail.\"\
+  *\n\nNot: *\"We are revolutionizing the future of technology.\"*\n\n---\n\n## Step\
+  \ 18 — Output structure\n\nProduce the whitepaper in Markdown, adapting section\
+  \ numbers to the actual project (omit irrelevant sections):\n\n```markdown\n# Title\n\
+  \n## Abstract\n## 1. Introduction\n## 2. Problem and Motivation\n## 3. Existing\
+  \ Approaches\n## 4. Design Goals and Non-Goals\n## 5. Proposed Architecture\n##\
+  \ 6. Core Mechanism\n## 7. System Workflow\n## 8. Technical Design\n## 9. Security,\
+  \ Safety, and Reliability\n## 10. Performance and Scalability\n## 11. Worked Example\n\
+  ## 12. Evaluation\n## 13. Limitations and Open Problems\n## 14. Future Work\n##\
+  \ 15. Conclusion\n## References\n```\n\n**Length should follow technical complexity,\
+  \ not an arbitrary page count.** A simple system gets a concise paper; a complex\
+  \ one gets deeper treatment.\n\n---\n\n## Step 19 — Pre-publish self-check\n\nBefore\
+  \ declaring the whitepaper complete, verify each item:\n\n| Check | Status |\n|---|---|\n\
+  | Problem is concrete | PASS / FAIL |\n| Failure scenario is explained | PASS /\
+  \ FAIL |\n| Project type is correctly identified | PASS / FAIL |\n| Core mechanism\
+  \ is clearly explained | PASS / FAIL |\n| System boundaries are defined | PASS /\
+  \ FAIL |\n| Architecture is understandable | PASS / FAIL |\n| Data / request flow\
+  \ is explained | PASS / FAIL |\n| Existing approaches are discussed | PASS / FAIL\
+  \ |\n| Technical delta is clear | PASS / FAIL |\n| Important actors are analyzed\
+  \ | PASS / FAIL |\n| Threat / failure model exists | PASS / FAIL |\n| Major claims\
+  \ have evidence | PASS / FAIL |\n| At least one worked example exists | PASS / FAIL\
+  \ |\n| Trade-offs are acknowledged | PASS / FAIL |\n| Limitations are explicitly\
+  \ stated | PASS / FAIL |\n| Future work is separated from current capability | PASS\
+  \ / FAIL |\n| External claims are cited | PASS / FAIL |\n| No fabricated numbers\
+  \ or references | PASS / FAIL |\n| No marketing hype substitutes for technical explanation\
+  \ | PASS / FAIL |\n\nReport a short **Whitepaper Quality Check** summarizing these\
+  \ results. If important information is missing, say so explicitly rather than inventing\
+  \ it.\n\n---\n\n## Step 20 — Missing information policy\n\nIf critical information\
+  \ is missing, ask for it before drafting that portion. **Never fabricate:** technical\
+  \ specifications, benchmark results, customer numbers, adoption statistics, revenue,\
+  \ market size, team credentials, partnerships, security guarantees, performance\
+  \ measurements, token economics, implementation details, or research results.\n\n\
+  When something is unknown, mark it clearly:\n\n> **Not specified** / **Requires\
+  \ validation** / **Assumption:** ...\n\nNever silently convert an assumption into\
+  \ a stated fact.\n\n---\n\n## Core principle\n\nThe whitepaper should answer one\
+  \ question above all others:\n\n> **Can a technically capable reader understand\
+  \ what this system does, how it works, why it was designed this way, what evidence\
+  \ supports it, and where it can fail?**\n\nIf yes, the whitepaper is doing its job."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,0 +1,233 @@
+slug: i18n-change-workflow
+title: i18n Change Workflow
+description: Imported from Prompts Chat
+prompt: "---\nname: i18n-change-workflow\ndescription: Reusable i18n workflow for\
+  \ coding agents. Verifies locale completeness, hardcoded text, placeholders, pluralization,\
+  \ fallback behavior, formatting, translation consistency, and localization-related\
+  \ UI regressions.\n---\n\n# i18n Change Workflow\n\nAct as the i18n/l10n specialist\
+  \ layer for the active task.\n\nThis skill adds localization-specific constraints\
+  \ and verification. It does not replace the repository's normal implementation,\
+  \ audit, Git, or approval workflow. Follow the active workflow's mutation boundary:\
+  \ during implementation or remediation, apply the required i18n changes; during\
+  \ a read-only audit or review, use these criteria without modifying repository state.\n\
+  \n## 1. Inspect the existing i18n system first\n\nBefore changing localized behavior:\n\
+  \n- read applicable `AGENTS.md` and project documentation;\n- identify the current\
+  \ i18n library or project-native mechanism;\n- identify supported locales, source/default\
+  \ locale, locale resource locations, fallback behavior, and locale-selection/persistence\
+  \ logic;\n- inspect nearby existing keys and call sites before choosing new key\
+  \ names or structures;\n- identify project-specific rules for translations, formatting,\
+  \ generated resources, or validation.\n\nPrefer the existing project architecture.\
+  \ Do not introduce a new i18n library, resource format, or parallel translation\
+  \ mechanism unless the task requires it and the repository has no suitable existing\
+  \ mechanism.\n\nDo not treat one framework convention as universal. Follow the repository's\
+  \ actual conventions.\n\n## 2. Classify text before localizing it\n\nDetermine whether\
+  \ each changed string is actually user-facing.\n\nTypical localization candidates\
+  \ include:\n\n- visible UI labels, buttons, headings, menus, dialogs, empty states,\
+  \ validation messages, and user-visible errors;\n- accessibility labels and descriptions;\n\
+  - notifications and user-facing system messages;\n- placeholders, helper text, onboarding\
+  \ copy, and tooltips;\n- user-visible content generated from application-owned templates.\n\
+  \nDo not automatically localize:\n\n- identifiers, translation keys, API names,\
+  \ URLs, paths, commands, SQL, regexes, or protocol values;\n- developer-only logs,\
+  \ diagnostics, stack traces, and test fixture text;\n- brand names, product names,\
+  \ codes, or terms that project rules intentionally preserve;\n- externally supplied\
+  \ runtime content unless the task explicitly covers it.\n\nWhen classification is\
+  \ ambiguous and affects product meaning, preserve the current behavior and surface\
+  \ the ambiguity rather than guessing.\n\n## 3. Preserve the project's key and resource\
+  \ model\n\nFor new or changed user-facing text:\n\n- use the project's translation\
+  \ mechanism instead of introducing hardcoded display text when localization is expected;\n\
+  - follow the existing key naming and namespacing convention;\n- prefer stable semantic\
+  \ keys over keys derived from full display sentences unless the project intentionally\
+  \ uses source-text keys;\n- update every supported locale required by project rules\
+  \ or the current task;\n- preserve unrelated locale entries and target-only data\
+  \ unless deletion is explicitly intended;\n- do not silently rename or delete existing\
+  \ keys merely for stylistic consistency.\n\nTreat the project's declared source/default\
+  \ locale as canonical only if the repository actually uses that model.\n\nMissing\
+  \ translations must follow the project's established fallback policy. Do not invent\
+  \ a new fallback policy silently.\n\n## 4. Preserve interpolation, pluralization,\
+  \ and message structure\n\nTranslation structure is part of the contract.\n\n- Preserve\
+  \ the same required placeholders/arguments across locale variants.\n- Do not translate\
+  \ placeholder names, format tokens, markup, or control syntax.\n- Use the project's\
+  \ plural/select/ICU mechanism when grammar depends on count, gender, case, or other\
+  \ locale-sensitive variation.\n- Avoid assembling sentences from separately translated\
+  \ fragments when word order or grammar can vary by language.\n- Avoid string concatenation\
+  \ that assumes English word order or spacing.\n- Preserve intentional markup, escaping,\
+  \ and line-break semantics.\n\nIf a source message changes its arguments or message\
+  \ structure, verify every affected locale rather than updating only the visible\
+  \ source text.\n\n## 5. Keep locale-sensitive values locale-aware\n\nWhen the changed\
+  \ UI contains locale-sensitive values, use the project's existing locale-aware formatting\
+  \ facilities for relevant:\n\n- dates and times;\n- numbers and percentages;\n-\
+  \ currencies;\n- units;\n- relative time;\n- list formatting;\n- plural categories.\n\
+  \nDo not hardcode separators, decimal conventions, date ordering, currency placement,\
+  \ or English-only plural assumptions when locale-aware behavior is expected.\n\n\
+  ## 6. Protect locale selection and fallback behavior\n\nWhen the task touches locale\
+  \ switching, initialization, persistence, or fallback:\n\n- preserve the project's\
+  \ supported-locale list and normalization rules;\n- verify default-locale behavior;\n\
+  - verify persistence if the project stores the user's language choice;\n- verify\
+  \ unsupported or missing locales degrade through the intended fallback path;\n-\
+  \ avoid mixed-language UI caused by missing keys or stale cached locale data;\n\
+  - ensure lazy-loaded locale resources are awaited or synchronized correctly when\
+  \ applicable.\n\nDo not change locale-detection precedence without an explicit requirement.\n\
+  \n## 7. Translation quality\n\nWhen generating or editing translations:\n\n- preserve\
+  \ meaning, intent, tone, and product terminology rather than translating mechanically\
+  \ word-for-word;\n- use surrounding UI context to resolve ambiguous short labels;\n\
+  - preserve approved product names, technical terms, and glossary decisions;\n- keep\
+  \ placeholders and markup intact;\n- avoid adding claims, meaning, politeness level,\
+  \ or functionality not present in the source;\n- flag uncertain, culturally sensitive,\
+  \ legal, safety-critical, or brand-sensitive wording for human confirmation instead\
+  \ of pretending certainty.\n\nIf the repository contains a glossary, terminology\
+  \ file, translation memory, or established translations, prefer that evidence over\
+  \ a newly generated alternative.\n\nRead `references/i18n-review-checklist.md` when\
+  \ doing a broad locale addition, translation review, or release-oriented localization\
+  \ change.\n\n## 8. Check UI and layout risk\n\nLocalized text can change layout\
+  \ even when the translation is correct.\n\nFor affected UI, consider when relevant:\n\
+  \n- longer labels and multi-line wrapping;\n- narrow mobile widths and responsive\
+  \ layouts;\n- CJK line breaking and glyph coverage;\n- text truncation and ellipsis;\n\
+  - buttons, tabs, badges, dialogs, tables, and fixed-width containers;\n- font fallback;\n\
+  - accessibility labels;\n- right-to-left direction, mirroring, and logical CSS/layout\
+  \ properties when an RTL locale is in scope.\n\nDo not add RTL-specific work when\
+  \ no RTL locale is supported or requested, but do not ignore it when an RTL locale\
+  \ is part of the task.\n\nUse visual or UI verification when the changed text can\
+  \ plausibly affect layout. A successful locale-file check alone does not prove the\
+  \ UI is correct.\n\n## 9. Verify with project-native checks\n\nUse the repository's\
+  \ existing i18n validators, tests, linters, builds, and UI checks first.\n\nVerify\
+  \ the relevant subset of:\n\n- locale-key completeness/parity;\n- missing or blank\
+  \ translations;\n- placeholder/argument parity;\n- plural/select structure;\n- fallback\
+  \ behavior;\n- locale switching and persistence;\n- locale-aware formatting;\n-\
+  \ absence of newly introduced hardcoded user-facing strings in the changed scope;\n\
+  - build/type/lint/test health;\n- layout behavior for affected screens.\n\nFor plain\
+  \ JSON locale catalogs, `scripts/check_json_locales.py` may be used as an additional\
+  \ deterministic check. It checks duplicate JSON keys, key parity, value types, blank\
+  \ strings, and common brace-style named placeholder/ICU argument parity. Placeholder\
+  \ detection is intentionally narrow and heuristic; confirm reported mismatches against\
+  \ the project's actual message syntax. It is not a semantic translation review and\
+  \ does not replace project-native tooling.\n\nDo not claim repository-wide i18n\
+  \ completeness from a narrow file or static check.\n\n## 10. Completion criteria\n\
+  \nAn i18n change is complete only when, for the requested scope:\n\n- the intended\
+  \ user-facing strings use the project's localization mechanism;\n- required locale\
+  \ resources are updated;\n- placeholders and message structure remain compatible;\n\
+  - relevant formatting/fallback/switching behavior is preserved;\n- project-native\
+  \ verification passes, or limitations are explicitly reported;\n- plausible layout\
+  \ regressions have been checked when the UI is affected;\n- unresolved translation\
+  \ or product-language ambiguity is reported rather than guessed.\n\nKeep the final\
+  \ report concise. State what locale behavior changed, which locales/resources were\
+  \ touched, what validation actually ran, and any remaining translation or UI limitations.\n\
+  \x1FFILE:references/i18n-review-checklist.md\x1E\n# i18n Review Checklist\n\nUse\
+  \ this reference for broad locale additions, translation review, or release-oriented\
+  \ localization work. Apply only items relevant to the project and requested scope.\n\
+  \n## Coverage\n\n- Inventory the user-visible surfaces in scope.\n- Confirm every\
+  \ intended translation candidate is represented by the project i18n mechanism.\n\
+  - Distinguish deliberate source-language preservation from accidental untranslated\
+  \ text.\n- Report dynamic/external/non-text surfaces that cannot be verified from\
+  \ repository resources.\n\n## Resource integrity\n\n- Required keys exist in the\
+  \ locales covered by the task.\n- No unrelated locale entries were deleted or rewritten.\n\
+  - Value types match where the resource format requires them to match.\n- Empty translations\
+  \ are intentional or reported.\n- Generated locale resources are regenerated only\
+  \ through the project-approved command.\n\n## Message contracts\n\n- Named placeholders\
+  \ and ICU/select arguments are preserved.\n- Markup, escapes, formatting tokens,\
+  \ and intentional line breaks remain valid.\n- Plural/select branches follow the\
+  \ project's library and locale rules.\n- Sentences are not built from fragments\
+  \ that assume source-language word order.\n\n## Language quality\n\n- Meaning and\
+  \ user intent match the source.\n- Terminology is consistent with existing product\
+  \ language and glossary decisions.\n- Short labels are interpreted using screen/action\
+  \ context, not in isolation.\n- Tone, formality, capitalization, and punctuation\
+  \ fit the target locale and existing product voice.\n- Brand/product names and deliberately\
+  \ preserved terms remain unchanged.\n- High-risk ambiguity is surfaced for human\
+  \ confirmation.\n\n## Locale behavior\n\nWhen applicable, verify:\n\n- default locale;\n\
+  - explicit locale switching;\n- persistence across reload/restart;\n- unsupported-locale\
+  \ fallback;\n- missing-key fallback;\n- lazy-loaded resource behavior;\n- date/time/number/currency/unit\
+  \ formatting;\n- locale normalization such as `en-US` vs `en` according to project\
+  \ rules.\n\n## UI and accessibility\n\nWhen affected, check:\n\n- narrow-screen\
+  \ overflow;\n- wrapping, truncation, and fixed-height containers;\n- buttons/tabs/badges\
+  \ with longer translations;\n- CJK line-breaking and font glyphs;\n- screen-reader/accessibility\
+  \ labels;\n- RTL direction and mirroring only when RTL locales are in scope.\n\n\
+  ## Evidence and limitations\n\nA passing resource check proves only what it actually\
+  \ checked. It does not by itself prove:\n\n- translation quality;\n- runtime locale\
+  \ switching;\n- visual correctness;\n- complete coverage of inline/dynamic/non-text\
+  \ content;\n- correct external/CMS content.\n\nState those limitations explicitly\
+  \ when they matter.\n\x1FFILE:scripts/check_json_locales.py\x1E\n#!/usr/bin/env\
+  \ python3\n\"\"\"Deterministic structural checks for JSON locale catalogs.\n\nChecks:\n\
+  - duplicate object keys while parsing\n- missing/extra leaf paths relative to a\
+  \ source locale\n- source/target leaf type mismatches\n- blank target strings\n\
+  - common named placeholder / ICU argument parity\n\nThis intentionally does not\
+  \ judge translation quality and is not a general\nhardcoded-string scanner.\n\"\"\
+  \"\n\nfrom __future__ import annotations\n\nimport argparse\nimport json\nimport\
+  \ re\nimport sys\nfrom pathlib import Path\nfrom typing import Any, TypeAlias\n\n\
+  ARG_RE = re.compile(r\"\\{\\s*([A-Za-z_][A-Za-z0-9_.-]*)\\s*(?:[,}])\")\nPathPart:\
+  \ TypeAlias = str | int\nJSONPath: TypeAlias = tuple[PathPart, ...]\n\n\nclass JSONObjectPairs(list):\n\
+  \    \"\"\"Marker type preserving JSON object pairs so duplicates remain detectable.\"\
+  \"\"\n\n\ndef _object_pairs_hook(pairs: list[tuple[str, Any]]) -> JSONObjectPairs:\n\
+  \    return JSONObjectPairs(pairs)\n\n\ndef path_label(path: JSONPath) -> str:\n\
+  \    \"\"\"Render an unambiguous JSON-style path without conflating dots in keys.\"\
+  \"\"\n    if not path:\n        return \"$\"\n    pieces: list${str} = []\n    for\
+  \ part in path:\n        if isinstance(part, int):\n            pieces.append(f\"\
+  [{part}]\")\n        else:\n            pieces.append(f\"[{json.dumps(part, ensure_ascii=False)}]\"\
+  )\n    return \"$\" + \"\".join(pieces)\n\n\ndef _normalize_json(value: Any, path:\
+  \ JSONPath = ()) -> Any:\n    if isinstance(value, JSONObjectPairs):\n        out:\
+  \ dict[str, Any] = {}\n        seen: set${str} = set()\n        for key, child in\
+  \ value:\n            if key in seen:\n                raise ValueError(f\"duplicate\
+  \ key at {path_label(path + (key,))}\")\n            seen.add(key)\n           \
+  \ out[key] = _normalize_json(child, path + (key,))\n        return out\n    if isinstance(value,\
+  \ list):\n        return [\n            _normalize_json(child, path + (index,))\n\
+  \            for index, child in enumerate(value)\n        ]\n    return value\n\
+  \n\ndef load_json(path: Path) -> Any:\n    try:\n        with path.open(\"r\", encoding=\"\
+  utf-8\") as f:\n            raw = json.load(f, object_pairs_hook=_object_pairs_hook)\n\
+  \        return _normalize_json(raw)\n    except (OSError, json.JSONDecodeError,\
+  \ ValueError) as exc:\n        raise ValueError(f\"{path}: {exc}\") from exc\n\n\
+  \ndef flatten(value: Any, path: tuple[str, ...] = ()) -> dict[tuple[str, ...], Any]:\n\
+  \    \"\"\"Flatten JSON objects using tuple paths so literal dots in keys stay distinct.\"\
+  \"\"\n    out: dict[tuple[str, ...], Any] = {}\n    if isinstance(value, dict):\n\
+  \        for key, child in value.items():\n            out.update(flatten(child,\
+  \ path + (key,)))\n    else:\n        out${path} = value\n    return out\n\n\ndef\
+  \ value_kind(value: Any) -> str:\n    if isinstance(value, bool):\n        return\
+  \ \"boolean\"\n    if value is None:\n        return \"null\"\n    if isinstance(value,\
+  \ str):\n        return \"string\"\n    if isinstance(value, (int, float)):\n  \
+  \      return \"number\"\n    if isinstance(value, list):\n        return \"array\"\
+  \n    return type(value).__name__\n\n\ndef arguments(value: Any) -> set${str}:\n\
+  \    if not isinstance(value, str):\n        return set()\n    return set(ARG_RE.findall(value))\n\
+  \n\ndef check_pair(source_path: Path, target_path: Path, allow_extra: bool) -> int:\n\
+  \    source = flatten(load_json(source_path))\n    target = flatten(load_json(target_path))\n\
+  \n    findings: list[tuple[str, str]] = []\n\n    source_keys = set(source)\n  \
+  \  target_keys = set(target)\n\n    for key in sorted(source_keys - target_keys):\n\
+  \        findings.append((\"ERROR\", f\"missing key: {path_label(key)}\"))\n\n \
+  \   if not allow_extra:\n        for key in sorted(target_keys - source_keys):\n\
+  \            findings.append((\"WARN\", f\"extra key: {path_label(key)}\"))\n\n\
+  \    for key in sorted(source_keys & target_keys):\n        src = source[key]\n\
+  \        dst = target[key]\n        label = path_label(key)\n        src_kind =\
+  \ value_kind(src)\n        dst_kind = value_kind(dst)\n\n        if src_kind !=\
+  \ dst_kind:\n            findings.append(\n                (\"ERROR\", f\"type mismatch\
+  \ at {label}: source={src_kind}, target={dst_kind}\")\n            )\n         \
+  \   continue\n\n        if isinstance(dst, str) and dst.strip() == \"\":\n     \
+  \       findings.append((\"WARN\", f\"blank target string: {label}\"))\n\n     \
+  \   src_args = arguments(src)\n        dst_args = arguments(dst)\n        if src_args\
+  \ != dst_args:\n            missing = sorted(src_args - dst_args)\n            extra\
+  \ = sorted(dst_args - src_args)\n            details: list${str} = []\n        \
+  \    if missing:\n                details.append(f\"missing={missing}\")\n     \
+  \       if extra:\n                details.append(f\"extra={extra}\")\n        \
+  \    findings.append((\"ERROR\", f\"argument mismatch at {label}: {', '.join(details)}\"\
+  ))\n\n    print(f\"SOURCE: {source_path}\")\n    print(f\"TARGET: {target_path}\"\
+  )\n    if not findings:\n        print(\"PASS: no structural findings\")\n     \
+  \   return 0\n\n    for severity, message in findings:\n        print(f\"{severity}:\
+  \ {message}\")\n\n    errors = sum(1 for severity, _ in findings if severity ==\
+  \ \"ERROR\")\n    warnings = sum(1 for severity, _ in findings if severity == \"\
+  WARN\")\n    print(f\"SUMMARY: {errors} error(s), {warnings} warning(s)\")\n   \
+  \ return 1 if errors else 0\n\n\ndef main() -> int:\n    parser = argparse.ArgumentParser(\n\
+  \        description=\"Check JSON locale catalogs for structural parity.\"\n   \
+  \ )\n    parser.add_argument(\"source\", type=Path, help=\"source/default locale\
+  \ JSON\")\n    parser.add_argument(\"targets\", nargs=\"+\", type=Path, help=\"\
+  target locale JSON file(s)\")\n    parser.add_argument(\n        \"--allow-extra\"\
+  ,\n        action=\"store_true\",\n        help=\"do not warn about target-only\
+  \ keys\",\n    )\n    args = parser.parse_args()\n\n    try:\n        statuses =\
+  \ [check_pair(args.source, target, args.allow_extra) for target in args.targets]\n\
+  \    except ValueError as exc:\n        print(f\"ERROR: {exc}\", file=sys.stderr)\n\
+  \        return 2\n\n    return 1 if any(status != 0 for status in statuses) else\
+  \ 0\n\n\nif __name__ == \"__main__\":\n    raise SystemExit(main())\n\x1FFILE:README.md\x1E\
+  \n# i18n-change-workflow\n\nRepository-local Agent Skill for safe i18n/l10n changes.\n\
+  \nSuggested location:\n\n`.agents/skills/i18n-change-workflow/`\n\nThe optional\
+  \ JSON checker is intentionally narrow and deterministic. It detects duplicate JSON\
+  \ keys and structural mismatches, plus heuristic common brace-style placeholder\
+  \ mismatches; it does not translate text or claim semantic/visual completeness."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
