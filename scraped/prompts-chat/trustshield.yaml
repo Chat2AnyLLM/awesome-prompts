@@ -1,0 +1,71 @@
+slug: trustshield
+title: TrustShield
+description: Imported from Prompts Chat
+prompt: "# Project Prompt: TrustShield — Hackathon-Ready Web Application\n\nAct as\
+  \ a senior full-stack developer, UI/UX designer, and cybersecurity engineer. Build\
+  \ a complete, professional, responsive web application for my hackathon project.\n\
+  \n## 1. Project Identity\n\n**Project Name:** TrustShield  \n**Tagline:** Securing\
+  \ Online Transactions with Multi-Layered Identity Verification Protocols  \n**Team\
+  \ Name:** SudoX  \n**Team Number:** T-0002  \n**Institution:** Rungta College of\
+  \ Engineering and Technology  \n**Event:** Cyber AI Hackathon 2026 — University\
+  \ of Derby, UK\n\nThe goal is to demonstrate a risk-adaptive transaction verification\
+  \ system that evaluates transaction signals, calculates a risk score, explains suspicious\
+  \ indicators, and recommends an appropriate verification action.\n\n## 2. Design\
+  \ Requirements\n\nCreate a premium fintech cybersecurity dashboard with:\n\n- Clean\
+  \ white background with restrained navy-blue, light-blue, and red accents.\n- Modern\
+  \ typography, rounded cards, subtle shadows, and consistent spacing.\n- Professional\
+  \ icons and simple visualizations.\n- Responsive layouts for desktop, laptop, tablet,\
+  \ and mobile.\n- Smooth but subtle transitions and clear loading, success, warning,\
+  \ and error states.\n- No excessive gradients, unnecessary animations, or overcrowded\
+  \ content.\n- A polished, realistic interface suitable for a university-level international\
+  \ hackathon presentation.\n\nThe UI must look like a functional cybersecurity product,\
+  \ not a generic marketing template.\n\n## 3. Required Pages and Features\n\n###\
+  \ A. Landing Page\n\nInclude:\n- TrustShield logo and project name.\n- A concise\
+  \ explanation of the problem and proposed solution.\n- A primary button: “Launch\
+  \ Security Dashboard”.\n- Feature cards for Multi-Layer Verification, Risk Analysis,\
+  \ Adaptive Authentication, and Offline-Resilient Assessment.\n- A short workflow\
+  \ visualization showing how a transaction is assessed.\n- Team name SudoX and hackathon\
+  \ information in the footer.\n\n### B. Security Dashboard\n\nCreate a dashboard\
+  \ with:\n- Total demo transactions analyzed.\n- Low-, medium-, and high-risk counts\
+  \ based only on actual demo interactions or clearly labelled seed data.\n- A risk\
+  \ distribution chart.\n- A recent transaction table.\n- A prominent “Analyze Transaction”\
+  \ action.\n- A clear indication that this is a hackathon prototype using simulated\
+  \ transactions.\n\nDo not invent real customers, real bank connections, production\
+  \ fraud statistics, or verified performance metrics.\n\n### C. Transaction Risk\
+  \ Analyzer\n\nBuild a fully interactive form containing:\n\n- Transaction amount\
+  \ in INR.\n- Beneficiary: known or new.\n- Device: recognized or new.\n- Transaction\
+  \ frequency: normal or unusually frequent.\n- Behavioral pattern: normal or unusual.\n\
+  - Optional location anomaly indicator.\n\nWhen the user clicks “Analyze Transaction”,\
+  \ calculate the score dynamically using a transparent, configurable rules-based\
+  \ risk engine.\n\nDisplay:\n- Risk score from 0–100.\n- Low, medium, or high risk\
+  \ classification.\n- A visual risk meter.\n- Individual risk factors and their contribution.\n\
+  - A plain-language explanation of why the score was assigned.\n- A recommended action.\n\
+  \nUse these initial demonstration thresholds:\n- 0–29: Low Risk.\n- 30–59: Medium\
+  \ Risk.\n- 60–100: High Risk.\n\nUse configurable example weights, cap the score\
+  \ at 100, and document the scoring logic. Do not assign a manually fixed score to\
+  \ a scenario.\n\n### D. Adaptive Decision Engine\n\nUse the computed risk score\
+  \ and detected signals to select a response:\n\n- Low risk: recommend the standard\
+  \ verification flow.\n- Medium risk: recommend additional verification.\n- High\
+  \ risk: recommend stronger verification or placing the transaction on hold.\n\n\
+  Do not claim that the prototype actually authorizes, blocks, or processes bank/UPI\
+  \ payments. The result is a recommendation in a simulated environment.\n\n### E.\
+  \ Explainability Panel\n\nFor every analysis, display:\n- Which signals increased\
+  \ the score.\n- The points contributed by each signal.\n- The final score calculation.\n\
+  - The reason behind the recommended action.\n\nInclude a short security note that\
+  \ unusual behavior does not automatically prove fraud.\n\n### F. Interactive Demo\
+  \ Scenarios\n\nAdd three buttons that populate the analyzer with reproducible example\
+  \ scenarios:\n\n1. **Low Risk:** recognized device, known beneficiary, normal amount\
+  \ and behavior.\n2. **Medium Risk:** new device and moderately unusual transaction.\n\
+  3. **High Risk:** new device, new beneficiary, high amount and unusual frequency\
+  \ or behavior.\n\nEach scenario must be processed by the same risk engine. The score\
+  \ must arise from the input signals rather than a hardcoded result.\n\n### G. Transaction\
+  \ History\n\nShow analyzed demo transactions with:\n- Demo transaction ID.\n- Timestamp.\n\
+  - Amount.\n- Risk score and classification.\n- Main contributing risk signals.\n\
+  - Recommended action.\n\nPersist the demo history locally using an appropriate storage\
+  \ mechanism. Clearly label all seeded records as sample data. Do not store real\
+  \ financial credentials or"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

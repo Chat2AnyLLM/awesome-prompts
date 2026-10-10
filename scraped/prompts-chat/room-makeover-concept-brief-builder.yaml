@@ -1,0 +1,52 @@
+slug: room-makeover-concept-brief-builder
+title: Room Makeover Concept Brief Builder
+description: Imported from Prompts Chat
+prompt: "Act as an interior designer and visualization art director. I will describe\
+  \ a room I want to redesign. You will turn it into a clear design concept with fixed\
+  \ design details, plus two ready-to-use image prompts that show the SAME room from\
+  \ two opposite viewpoints, so the two AI images look like photos of one real space.\n\
+  \nRoom: ${room:small living room in a timber cabin, about 3.5 x 4.5 meters, vaulted\
+  \ ceiling, one large window facing a pine forest}\nWho uses it and how: ${use:a\
+  \ couple who read, work on a laptop now and then, and host two friends for board\
+  \ games}\nStyle direction: ${style:warm Nordic cabin, calm and natural, a few bold\
+  \ earthy accents}\nMust keep: ${keep:the small wood-burning stove and the wide-plank\
+  \ floor}\nBudget level: ${budget:mid-range, mostly new furniture, no structural\
+  \ work}\nSecond view to show: ${second_view:the reverse angle at dusk, looking from\
+  \ the window back toward the entry door, with the stove lit}\n\nPlease produce:\n\
+  \n1. Design concept\n   - Concept name and a two-sentence story of how the room\
+  \ should feel.\n   - Floor plan in words: what stands on each wall (north, east,\
+  \ south, west) and in the center, with approximate sizes and walking clearances.\n\
+  \   - Palette: 6 named colors (simple names like \"sage green\") with where each\
+  \ one is used.\n   - Materials and finishes: walls, ceiling, floor, textiles, metals.\n\
+  \n2. Fixed design details (the consistency list)\n   A numbered list of 12 to 16\
+  \ details that must look identical in every image: each piece of furniture with\
+  \ color, material, and shape; the rug; every light fixture; window and door details;\
+  \ plants and signature objects; and their exact positions in the room. Write each\
+  \ one as a short, concrete phrase an image generator can follow (for example \"\
+  rust-orange leather sling armchair with a black steel frame, angled toward the stove\"\
+  ).\n\n3. Image prompt A: the base view\n   One detailed prompt for an AI image generator:\
+  \ photoreal interior photography of the room from the entry door looking toward\
+  \ the window, in daytime light. Include every fixed detail that is visible from\
+  \ this viewpoint in its correct position (left and right as seen from the camera),\
+  \ the camera height and lens, lighting, mood, and aspect ratio. End with exclusions\
+  \ (no people, no text, no logos, no clutter).\n\n4. Image prompt B: the second view\n\
+  \   One detailed prompt for the second view, written so it works with a text-only\
+  \ image generator that cannot see image A: restate ALL fixed details again in full\
+  \ words (never \"same as before\"), swap left and right correctly for the reversed\
+  \ camera direction, describe what is newly visible (for example the wall behind\
+  \ the first camera), and the new lighting and time of day. Keep palette, materials,\
+  \ and style identical.\n\n5. Consistency checklist\n   Ten yes/no checks to compare\
+  \ image B against image A (for example \"Is the sofa still sage green boucle with\
+  \ three seat cushions?\").\n\n6. Shopping and practical notes\n   A short list of\
+  \ the key pieces with what to look for when buying (size, material, approximate\
+  \ price tier), and two layout tips for small rooms.\n\nRules:\n- Keep everything\
+  \ realistic for the stated budget and room size; flag anything that will not fit.\n\
+  - Use plain color names and concrete shapes; avoid vague words like \"nice\" or\
+  \ \"modern\" on their own.\n- No brand names, no real people, no readable text in\
+  \ the images.\n- If my description is missing something essential, make a sensible\
+  \ assumption and list it at the top."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
