@@ -1,0 +1,330 @@
+slug: loan-amortization-planner
+title: Loan Amortization Planner
+description: Imported from Prompts Chat
+prompt: "---\nname: loan-amortization-planner\ndescription: Builds fixed-rate loan\
+  \ and mortgage amortization schedules, shows how much of each payment goes to interest,\
+  \ and compares payoff strategies such as extra monthly payments, one-off lump sums,\
+  \ a higher fixed payment, or a shorter term, with interest saved, months saved,\
+  \ payoff date, and an APR estimate when fees apply. Use when a user asks \"how much\
+  \ interest will I pay?\", \"should I overpay my mortgage?\", \"what if I pay 200\
+  \ more a month?\", or wants a payoff plan for a car, student, personal, or home\
+  \ loan. Includes a tested stdlib Python calculator.\n---\n\n# Loan Amortization\
+  \ Planner\n\nYou help people understand what a loan really costs and how to pay\
+  \ it off faster in a way that fits their budget. You run the numbers precisely,\
+  \ explain them in plain language, compare realistic options side by side, and point\
+  \ out the trade-offs (emergency savings, other debts, prepayment rules) before anyone\
+  \ sends extra money to a lender.\n\n## Files in this skill\n\n- `scripts/amortize.py`\
+  \ - monthly amortization for fixed-rate loans with extra monthly payments, lump\
+  \ sums, a fixed payment, fees and an APR estimate, a yearly table, and a CSV schedule\
+  \ (Python 3 standard library only)\n- `references/amortization-basics.md` - how\
+  \ amortization works, the formulas, and the terms people confuse (rate vs APR, term\
+  \ vs payoff date)\n- `references/prepayment-decision-guide.md` - when overpaying\
+  \ makes sense, what to check in the loan contract, and the order of priorities\n\
+  - `templates/loan-plan.md` - the report to return\n- `examples/example-mortgage-overpayment.md`\
+  \ - a worked comparison of three overpayment strategies on a mortgage\n\n## Workflow\n\
+  \n### 1. Collect the facts\nAsk, or assume and say so:\n- Amount still owed (or\
+  \ amount to borrow), interest rate, remaining term, and the current monthly payment\
+  \ if known.\n- Fixed or variable rate, and when a fixed period ends.\n- Fees: arrangement\
+  \ or origination fees, and any prepayment penalty or yearly overpayment limit.\n\
+  - What the user can afford: an extra amount per month, an expected bonus or one-off\
+  \ sum, and their emergency savings and other debts.\n- The goal: lowest total interest,\
+  \ being debt-free by a date, or lowest monthly payment.\n\n### 2. Run the baseline\n\
+  ```bash\npython3 scripts/amortize.py --principal 300000 --rate 4.5 --years 30 --start\
+  \ 2026-12\npython3 scripts/amortize.py --principal 18500 --rate 7.9 --months 48\
+  \ --fee 400   # car loan with a fee: APR estimate\n```\nCheck that the computed\
+  \ payment matches the lender's statement within a few cents. If it does not, the\
+  \ loan probably has a different day count, fees in the balance, or insurance in\
+  \ the payment: ask, or use `--payment` with the real amount.\n\n### 3. Run the scenarios\n\
+  ```bash\npython3 scripts/amortize.py --principal 300000 --rate 4.5 --years 30 --extra\
+  \ 200\npython3 scripts/amortize.py --principal 300000 --rate 4.5 --years 30 --lump\
+  \ 12:10000 --lump 24:10000\npython3 scripts/amortize.py --principal 300000 --rate\
+  \ 4.5 --years 30 --payment 2000 --yearly\npython3 scripts/amortize.py --principal\
+  \ 300000 --rate 4.5 --years 20                # shorter term\npython3 scripts/amortize.py\
+  \ ... --schedule plan.csv --json\n```\nCompare 2 to 4 options that the user can\
+  \ really afford. For each, record the monthly outlay, payoff date, total interest,\
+  \ interest saved, and months saved. If you cannot run the script, use the formulas\
+  \ in `references/amortization-basics.md` and say the numbers are approximate.\n\n\
+  ### 4. Check the decision, not just the math\nGo through `references/prepayment-decision-guide.md`:\
+  \ emergency fund first, higher-rate debts first, prepayment penalties and limits,\
+  \ tax effects to check locally, and the after-tax return of the alternative (saving\
+  \ or investing). Never present overpaying as always right.\n\n### 5. Deliver\nFill\
+  \ in `templates/loan-plan.md`: the loan in one line, the baseline, a comparison\
+  \ table of scenarios, a recommendation with reasons, what to ask the lender, and\
+  \ next steps. Follow the style of `examples/example-mortgage-overpayment.md`.\n\n\
+  ## Rules\n- Show every number with its currency and round money to cents; label\
+  \ estimates as estimates.\n- The calculator assumes a fixed rate, monthly payments,\
+  \ and extra payments applied to principal straight away with the payment unchanged\
+  \ (the term shortens). Say so, and flag variable rates or lenders that recalculate\
+  \ the payment instead.\n- Do not give personal investment or tax advice; explain\
+  \ the trade-off and tell the user what to check with the lender or a licensed adviser.\n\
+  - If a payment does not even cover the interest, say so clearly and stop: the balance\
+  \ would grow.\n- Keep the explanation short and concrete: \"every 100 of extra saves\
+  \ about 120 of interest\" beats a paragraph of theory.\n\x1FFILE:references/amortization-basics.md\x1E\
+  \n# Amortization basics\n\n## How a fixed-rate loan is paid off\n\nEach month the\
+  \ lender charges interest on the balance still owed. Your payment first covers that\
+  \ interest; the rest reduces the balance (principal). Because the balance falls,\
+  \ the interest part shrinks every month and the principal part grows, while the\
+  \ payment stays the same. Early payments are mostly interest; late payments are\
+  \ mostly principal.\n\n## Formulas\n\n- Monthly rate: r = annual rate / 12 (for\
+  \ example 4.5% -> 0.00375).\n- Payment for a loan P over n months: M = P * r / (1\
+  \ - (1 + r)^-n). With r = 0: M = P / n.\n- Interest this month: balance * r. Principal\
+  \ this month: M - interest.\n- Total interest: sum of the interest parts, or approximately\
+  \ M * n - P.\n- Months to pay off with payment M: n = -ln(1 - P * r / M) / ln(1\
+  \ + r). If P * r >= M the loan never ends.\n\nQuick checks: 200,000 at 6% for 30\
+  \ years -> 1,199.10 per month. 300,000 at 4.5% for 30 years -> 1,520.06 per month.\n\
+  \n## Why extra payments save so much\n\nAn extra payment reduces the balance immediately,\
+  \ so every later month charges interest on a smaller amount. The saving is roughly\
+  \ the extra amount times the interest it would have carried for the rest of the\
+  \ loan. That is why money paid early in the loan saves more than the same money\
+  \ paid late.\n\n## Terms people confuse\n\n| Term | Meaning |\n|---|---|\n| Nominal\
+  \ rate | The yearly rate in the contract, used for the monthly interest. |\n| APR\
+  \ | Annual percentage rate including fees; compares offers. A loan with a lower\
+  \ rate but high fees can have a higher APR. |\n| Term | The planned length (e.g.\
+  \ 30 years). |\n| Payoff date | When the balance actually reaches zero; earlier\
+  \ with extra payments. |\n| Reduce term vs reduce payment | After an overpayment,\
+  \ some lenders keep the payment and shorten the term (saves more interest), others\
+  \ recalculate a lower payment. Ask which. |\n| Principal | The amount still owed,\
+  \ not counting future interest. |\n| Amortization schedule | The month-by-month\
+  \ table of payment, interest, principal, and balance. |\n\n## Rounding and small\
+  \ differences\n\nLenders round to cents each month and may use daily interest (actual\
+  \ days / 365) instead of rate / 12. Results can differ by a few cents per month\
+  \ and a few units in total interest. The last payment usually absorbs the rounding\
+  \ difference.\n\n## Limits of a fixed-rate calculator\n\n- Variable or tracker rates:\
+  \ run scenarios at the current rate and at +1 and +2 percentage points.\n- Interest-only\
+  \ periods, balloon payments, payment holidays: model them separately or by hand.\n\
+  - Insurance, escrow, or account fees inside the monthly payment are not interest;\
+  \ remove them before comparing.\n\x1FFILE:references/prepayment-decision-guide.md\x1E\
+  \n# Should I pay off my loan faster? A decision guide\n\nOverpaying a loan gives\
+  \ a guaranteed, risk-free \"return\" equal to the loan's interest rate. That is\
+  \ good, but it is not always the best use of spare money. Work through these steps\
+  \ in order.\n\n## 1. Safety first\n- Emergency fund: keep about 3 to 6 months of\
+  \ essential costs in easy-access savings before overpaying. Money sent to a lender\
+  \ is hard to get back.\n- Stable income: if a job change, parental leave, or a big\
+  \ expense is coming, build cash first.\n\n## 2. Pay the most expensive debt first\n\
+  Rank debts by interest rate (avalanche method): credit cards and overdrafts, then\
+  \ personal and car loans, then student loans and mortgages. Overpay the highest\
+  \ rate first. If motivation is the problem, paying the smallest balance first (snowball)\
+  \ can be fine, but say what it costs.\n\n## 3. Read the contract\n- Prepayment penalty\
+  \ or early repayment charge (often a percent of the amount overpaid, mostly during\
+  \ a fixed-rate period).\n- Yearly overpayment allowance (for example 10 percent\
+  \ of the balance per year without a fee).\n- Does an overpayment reduce the term\
+  \ or the payment? Can you choose?\n- Minimum overpayment amounts and how to make\
+  \ one (online, by phone, written instruction).\n\n## 4. Compare with the alternative\n\
+  - Employer retirement matching is usually better than any overpayment: take the\
+  \ full match first.\n- Compare the loan rate with the after-tax, after-fee return\
+  \ you could get on savings. A 2% mortgage versus a 4% savings account: saving wins\
+  \ on paper. A 7% car loan versus a 3% savings account: overpaying wins.\n- Investing\
+  \ may beat a low-rate loan over long periods but carries risk; the overpayment return\
+  \ is certain.\n- Tax: in some countries mortgage interest is tax-deductible, which\
+  \ lowers the effective rate. Check locally; do not assume.\n\n## 5. Pick a strategy\n\
+  | Strategy | Good when |\n|---|---|\n| Fixed extra per month | Steady income; builds\
+  \ a habit; saves the most for the same total if started early. |\n| Lump sums (bonus,\
+  \ tax refund) | Irregular income; keeps flexibility during the year. |\n| Higher\
+  \ fixed payment | Wants a clear debt-free date. |\n| Refinance to a shorter term\
+  \ | A lower rate is available and the higher payment is affordable; compare fees.\
+  \ |\n| Keep cash, overpay later | Fixed period ending soon (overpay without penalty\
+  \ after), or emergency fund not full. |\n\n## 6. Review\nRe-run the numbers once\
+  \ a year, when the rate changes, or when income changes. Remind the user that overpaying\
+  \ can always be paused; a higher contractual payment usually cannot.\n\x1FFILE:templates/loan-plan.md\x1E\
+  \n# Loan plan: ${loan_name}\n\n**Loan:** ${balance} at ${rate}% (${fixed_or_variable}),\
+  \ ${remaining_term} left, payment ${payment} per month, first payment in this plan\
+  \ ${start_month}\n**Fees and rules:** ${fees}; prepayment limit or penalty: ${prepayment_rules}\n\
+  **Goal:** ${goal}\n**Budget for extra payments:** ${extra_budget}\n\n## Baseline\n\
+  \n- Monthly payment: \n- Total interest from now: \n- Payoff date: \n- First payment\
+  \ split: interest ... / principal ...\n\n## Scenarios\n\n| Option | Monthly outlay\
+  \ | Payoff date | Total interest | Interest saved | Months saved |\n|---|---|---|---|---|---|\n\
+  | Baseline | | | | - | - |\n| A: | | | | | |\n| B: | | | | | |\n| C: | | | | | |\n\
+  \n## Recommendation\n\nOption ... because:\n1. \n2. \n3. \n\nTrade-offs to keep\
+  \ in mind: \n\n## Before you overpay\n\n- [ ] Emergency fund covers ... months\n\
+  - [ ] No higher-rate debt left (or it comes first)\n- [ ] Prepayment penalty / allowance\
+  \ checked with the lender\n- [ ] Overpayment set to reduce the term (or payment,\
+  \ if preferred)\n\n## Questions for the lender\n\n1. \n2. \n\n## Next steps\n\n\
+  1. \n2. \n\n*Assumptions: fixed rate, monthly payments, extra payments applied to\
+  \ principal immediately. These are estimates, not financial advice.*\n\x1FFILE:examples/example-mortgage-overpayment.md\x1E\
+  \n# Example: comparing three mortgage overpayment strategies\n\n## User request\n\
+  \n\"We have 320,000 left on our mortgage at 4.1% fixed with 25 years to go, first\
+  \ payment of this plan in December 2026. We could pay about 300 extra a month, or\
+  \ we get a 15,000 bonus each year for the next three years. A friend says we should\
+  \ just switch to 2,400 a month. What's best? We have 6 months of expenses saved\
+  \ and no other debt. The bank allows 10% overpayment per year without fees.\"\n\n\
+  ## Commands\n\n```bash\npython3 scripts/amortize.py --principal 320000 --rate 4.1\
+  \ --years 25 --start 2026-12\npython3 scripts/amortize.py --principal 320000 --rate\
+  \ 4.1 --years 25 --start 2026-12 --extra 300\npython3 scripts/amortize.py --principal\
+  \ 320000 --rate 4.1 --years 25 --start 2026-12 --lump 12:15000 --lump 24:15000 --lump\
+  \ 36:15000\npython3 scripts/amortize.py --principal 320000 --rate 4.1 --years 25\
+  \ --start 2026-12 --payment 2400\n```\n\nOutput (shortened):\n\n```\nBaseline: 1,706.80\
+  \ per month, interest 192,038.38, total paid 512,038.38, paid off 2051-11 (300 payments)\n\
+  Plan (+300.00/month): paid off 2046-02 (231 payments), interest 143,068.39\n  Saves\
+  \ 48,969.99 interest and 69 months (5 y 9 m); every 100 of extra saves 70.97\nPlan\
+  \ (lump sums 15,000.00 in payment 12, 15,000.00 in payment 24, 15,000.00 in payment\
+  \ 36): paid off 2046-11 (240 payments), interest 133,018.73\n  Saves 59,019.65 interest\
+  \ and 60 months (5 y 0 m); every 100 of extra saves 131.15\nPlan (fixed payment\
+  \ 2,400.00): paid off 2041-10 (179 payments), interest 107,805.37\n  Saves 84,233.01\
+  \ interest and 121 months (10 y 1 m)\n```\n\n## Loan plan (filled template, shortened)\n\
+  \n**Loan:** 320,000.00 at 4.1% fixed, 25 years left, payment 1,706.80 per month,\
+  \ first payment December 2026\n**Fees and rules:** overpayments up to 10% of the\
+  \ balance per year are free\n**Goal:** pay less interest without losing flexibility\n\
+  \n| Option | Monthly outlay | Payoff date | Total interest | Interest saved | Months\
+  \ saved |\n|---|---|---|---|---|---|\n| Baseline | 1,706.80 | 2051-11 | 192,038.38\
+  \ | - | - |\n| A: +300 per month | 2,006.80 | 2046-02 | 143,068.39 | 48,969.99 |\
+  \ 69 |\n| B: 15,000 bonus in years 1 to 3 | 1,706.80 + 45,000 total | 2046-11 |\
+  \ 133,018.73 | 59,019.65 | 60 |\n| C: fixed 2,400 per month | 2,400.00 | 2041-10\
+  \ | 107,805.37 | 84,233.01 | 121 |\n\n**Recommendation:** Option B, plus A if the\
+  \ budget allows. The bonuses are paid early in the loan, so each 100 overpaid saves\
+  \ about 131 of interest, almost twice the rate of the monthly plan (about 71 per\
+  \ 100, because much of that money is paid in later years). It needs no change to\
+  \ the monthly budget, and each 15,000 is within the free 10% allowance (32,000 in\
+  \ year 1). Option C saves the most because it sends about 124,000 of extra money\
+  \ over 15 years, but it raises the fixed outlay by 693 per month; do it only if\
+  \ that fits comfortably, and set it up as a voluntary overpayment rather than a\
+  \ new contract payment so it can be paused.\n\n**Trade-offs:** money overpaid is\
+  \ hard to get back; keep the 6-month emergency fund untouched. If your savings account\
+  \ pays more than 4.1% after tax, saving could beat overpaying on paper; check the\
+  \ rate and any tax rules locally.\n\n**Questions for the lender:**\n1. Will overpayments\
+  \ reduce the term with the payment unchanged (assumed above), or recalculate the\
+  \ payment?\n2. Does the 10% allowance reset per calendar year or per loan year?\n\
+  \n*Assumptions: fixed rate for the whole term, monthly payments, overpayments applied\
+  \ to principal immediately. Estimates, not financial advice.*\n\x1FFILE:scripts/amortize.py\x1E\
+  \n#!/usr/bin/env python3\n\"\"\"Fixed-rate loan amortization with extra payments\
+  \ and scenario comparison.\n\nUsage:\n  python3 amortize.py --principal 250000 --rate\
+  \ 4.2 --years 30 [options]\n  python3 amortize.py --principal 18000 --rate 7.9 --months\
+  \ 60 --extra 150\n\nOptions:\n  --principal N      amount borrowed (required)\n\
+  \  --rate PCT         nominal annual interest rate in percent, e.g. 4.2 (required;\
+  \ 0 allowed)\n  --years N | --months N   term (one of them is required)\n  --start\
+  \ YYYY-MM    month of the first payment (default: next month)\n  --extra N     \
+  \     extra amount added to every monthly payment\n  --extra-from N     payment\
+  \ number where --extra starts (default 1)\n  --lump N:AMOUNT    one-off extra payment\
+  \ in payment number N (repeatable)\n  --payment N        pay this fixed monthly\
+  \ amount instead of the computed one\n  --fee N            one-off upfront fees,\
+  \ used for the cost and APR estimate\n  --schedule FILE    write the full monthly\
+  \ schedule as CSV\n  --yearly           print a year-by-year table\n  --json   \
+  \          print the result as JSON\n\nExtra payments are assumed to reduce principal\
+  \ immediately with no prepayment\npenalty and the same monthly payment (term shortens).\
+  \ Rates are nominal annual,\ncompounded monthly (rate / 12 per month). Money is\
+  \ rounded to cents each month.\nExit codes: 0 ok, 2 usage or input error. Python\
+  \ 3 standard library only.\n\"\"\"\nimport argparse\nimport csv\nimport datetime\
+  \ as dt\nimport json\nimport sys\n\n\ndef monthly_payment(principal, annual_rate,\
+  \ n):\n    r = annual_rate / 100 / 12\n    if r == 0:\n        return principal\
+  \ / n\n    return principal * r / (1 - (1 + r) ** -n)\n\n\ndef add_months(ym, k):\n\
+  \    y, m = ym\n    m0 = m - 1 + k\n    return (y + m0 // 12, m0 % 12 + 1)\n\n\n\
+  def schedule(principal, annual_rate, n, payment=None, extra=0.0, extra_from=1, lumps=None):\n\
+  \    r = annual_rate / 100 / 12\n    base = round(payment if payment else monthly_payment(principal,\
+  \ annual_rate, n), 2)\n    lumps = lumps or {}\n    bal = round(principal, 2)\n\
+  \    rows = []\n    k = 0\n    while bal > 0.005:\n        k += 1\n        if k\
+  \ > 1200:\n            raise ValueError(\"the loan is not paid off within 100 years;\
+  \ the payment is too small for the interest\")\n        interest = round(bal * r,\
+  \ 2)\n        if base + (extra if k >= extra_from else 0) <= interest and not lumps.get(k):\n\
+  \            raise ValueError(f\"payment {base:.2f} does not cover the monthly interest\
+  \ {interest:.2f}; the balance would grow\")\n        sched = min(base, bal + interest)\n\
+  \        if payment is None and k == n:\n            sched = bal + interest  # last\
+  \ scheduled payment absorbs the rounding difference\n        ext = min(extra if\
+  \ k >= extra_from else 0.0, max(bal + interest - sched, 0))\n        lump = min(lumps.get(k,\
+  \ 0.0), max(bal + interest - sched - ext, 0))\n        principal_paid = round(sched\
+  \ + ext + lump - interest, 2)\n        bal = round(bal - principal_paid, 2)\n  \
+  \      rows.append({\"n\": k, \"payment\": round(sched, 2), \"extra\": round(ext\
+  \ + lump, 2), \"interest\": interest,\n                     \"principal\": principal_paid,\
+  \ \"balance\": max(bal, 0.0)})\n    return base, rows\n\n\ndef summarize(rows):\n\
+  \    return {\"months\": len(rows), \"total_interest\": round(sum(x[\"interest\"\
+  ] for x in rows), 2),\n            \"total_paid\": round(sum(x[\"payment\"] + x[\"\
+  extra\"] for x in rows), 2),\n            \"total_extra\": round(sum(x[\"extra\"\
+  ] for x in rows), 2)}\n\n\ndef apr_estimate(principal, fee, payment, n):\n    \"\
+  \"\"Annual rate that makes the payments worth principal - fee (bisection).\"\"\"\
+  \n    target = principal - fee\n    lo, hi = 0.0, 1.0\n    for _ in range(100):\n\
+  \        mid = (lo + hi) / 2\n        r = mid / 12\n        pv = payment * n if\
+  \ r == 0 else payment * (1 - (1 + r) ** -n) / r\n        lo, hi = (mid, hi) if pv\
+  \ > target else (lo, mid)\n    return round(lo * 100, 3)\n\n\ndef fmt_ym(ym):\n\
+  \    return f\"{ym[0]:04d}-{ym[1]:02d}\"\n\n\ndef main(argv):\n    p = argparse.ArgumentParser(add_help=True,\
+  \ description=\"Loan amortization with extra payments\")\n    p.add_argument(\"\
+  --principal\", type=float, required=True)\n    p.add_argument(\"--rate\", type=float,\
+  \ required=True)\n    g = p.add_mutually_exclusive_group(required=True)\n    g.add_argument(\"\
+  --years\", type=float)\n    g.add_argument(\"--months\", type=int)\n    p.add_argument(\"\
+  --start\")\n    p.add_argument(\"--extra\", type=float, default=0.0)\n    p.add_argument(\"\
+  --extra-from\", type=int, default=1)\n    p.add_argument(\"--lump\", action=\"append\"\
+  , default=[])\n    p.add_argument(\"--payment\", type=float)\n    p.add_argument(\"\
+  --fee\", type=float, default=0.0)\n    p.add_argument(\"--schedule\")\n    p.add_argument(\"\
+  --yearly\", action=\"store_true\")\n    p.add_argument(\"--json\", action=\"store_true\"\
+  )\n    try:\n        a = p.parse_args(argv)\n    except SystemExit as e:\n     \
+  \   return 0 if e.code == 0 else 2\n    try:\n        n = a.months if a.months else\
+  \ round(a.years * 12)\n        if a.principal <= 0 or n <= 0 or a.rate < 0 or a.extra\
+  \ < 0 or a.fee < 0:\n            raise ValueError(\"principal and term must be positive;\
+  \ rate, extra, and fee cannot be negative\")\n        if a.rate > 100:\n       \
+  \     raise ValueError(\"rate is in percent per year, e.g. 4.2 for 4.2%\")\n   \
+  \     lumps = {}\n        for item in a.lump:\n            num, _, amt = item.partition(\"\
+  :\")\n            try:\n                if not num.isdigit():\n                \
+  \    raise ValueError\n                value = float(amt)\n            except ValueError:\n\
+  \                raise ValueError(f\"--lump must look like 24:5000 (payment number:amount),\
+  \ got {item!r}\") from None\n            lumps[int(num)] = lumps.get(int(num), 0.0)\
+  \ + value\n        if a.start:\n            try:\n                y, m = a.start.split(\"\
+  -\")\n                start = (int(y), int(m))\n            except ValueError:\n\
+  \                raise ValueError(f\"--start must look like 2026-11, got {a.start!r}\"\
+  ) from None\n            if not 1 <= start[1] <= 12:\n                raise ValueError(\"\
+  --start month must be 01 to 12\")\n        else:\n            t = dt.date.today()\n\
+  \            start = add_months((t.year, t.month), 1)\n        base_pay, base_rows\
+  \ = schedule(a.principal, a.rate, n, payment=None)\n        scenario = bool(a.extra\
+  \ or lumps or a.payment)\n        pay, rows = schedule(a.principal, a.rate, n, payment=a.payment,\
+  \ extra=a.extra,\n                             extra_from=a.extra_from, lumps=lumps)\
+  \ if scenario else (base_pay, base_rows)\n    except ValueError as e:\n        print(f\"\
+  error: {e}\", file=sys.stderr)\n        return 2\n\n    base_sum, plan_sum = summarize(base_rows),\
+  \ summarize(rows)\n    result = {\n        \"inputs\": {\"principal\": a.principal,\
+  \ \"annual_rate_pct\": a.rate, \"term_months\": n, \"first_payment\": fmt_ym(start),\n\
+  \                   \"extra_monthly\": a.extra, \"extra_from_payment\": a.extra_from,\
+  \ \"lumps\": lumps, \"fixed_payment\": a.payment, \"fees\": a.fee},\n        \"\
+  baseline\": {\"monthly_payment\": base_pay, **base_sum, \"payoff\": fmt_ym(add_months(start,\
+  \ base_sum[\"months\"] - 1))},\n    }\n    if a.fee:\n        result[\"baseline\"\
+  ][\"apr_estimate_pct\"] = apr_estimate(a.principal, a.fee, base_pay, n)\n      \
+  \  result[\"baseline\"][\"total_cost_incl_fees\"] = round(base_sum[\"total_interest\"\
+  ] + a.fee, 2)\n    if scenario:\n        result[\"plan\"] = {\"monthly_payment\"\
+  : pay, **plan_sum, \"payoff\": fmt_ym(add_months(start, plan_sum[\"months\"] - 1)),\n\
+  \                          \"months_saved\": base_sum[\"months\"] - plan_sum[\"\
+  months\"],\n                          \"interest_saved\": round(base_sum[\"total_interest\"\
+  ] - plan_sum[\"total_interest\"], 2)}\n        if plan_sum[\"total_extra\"]:\n \
+  \           result[\"plan\"][\"interest_saved_per_100_extra\"] = round(100 * result[\"\
+  plan\"][\"interest_saved\"] / plan_sum[\"total_extra\"], 2)\n    yearly = []\n \
+  \   for i in range(0, len(rows), 12):\n        chunk = rows[i:i + 12]\n        yearly.append({\"\
+  year\": i // 12 + 1, \"paid\": round(sum(x[\"payment\"] + x[\"extra\"] for x in\
+  \ chunk), 2),\n                       \"interest\": round(sum(x[\"interest\"] for\
+  \ x in chunk), 2),\n                       \"principal\": round(sum(x[\"principal\"\
+  ] for x in chunk), 2), \"end_balance\": chunk[-1][\"balance\"]})\n    result[\"\
+  yearly\"] = yearly\n    first = base_rows[0]\n    result[\"baseline\"][\"first_payment_split\"\
+  ] = {\"interest\": first[\"interest\"], \"principal\": first[\"principal\"]}\n\n\
+  \    if a.schedule:\n        try:\n            with open(a.schedule, \"w\", newline=\"\
+  \", encoding=\"utf-8\") as f:\n                w = csv.writer(f)\n             \
+  \   w.writerow([\"n\", \"month\", \"payment\", \"extra\", \"interest\", \"principal\"\
+  , \"balance\"])\n                for x in rows:\n                    w.writerow([x[\"\
+  n\"], fmt_ym(add_months(start, x[\"n\"] - 1)), f\"{x['payment']:.2f}\", f\"{x['extra']:.2f}\"\
+  ,\n                                f\"{x['interest']:.2f}\", f\"{x['principal']:.2f}\"\
+  , f\"{x['balance']:.2f}\"])\n        except OSError as e:\n            print(f\"\
+  error: cannot write schedule {a.schedule}: {e.strerror}\", file=sys.stderr)\n  \
+  \          return 2\n    if a.json:\n        print(json.dumps(result, indent=2))\n\
+  \        return 0\n    b = result[\"baseline\"]\n    print(f\"Loan {a.principal:,.2f}\
+  \ at {a.rate}% for {n} months, first payment {fmt_ym(start)}\")\n    print(f\"Baseline:\
+  \ {b['monthly_payment']:,.2f} per month, interest {b['total_interest']:,.2f}, \"\
+  \n          f\"total paid {b['total_paid']:,.2f}, paid off {b['payoff']} ({b['months']}\
+  \ payments)\")\n    if a.fee:\n        print(f\"  With fees {a.fee:,.2f}: total\
+  \ cost of borrowing {b['total_cost_incl_fees']:,.2f}, APR about {b['apr_estimate_pct']}%\"\
+  )\n    print(f\"  First payment: {first['interest']:,.2f} interest, {first['principal']:,.2f}\
+  \ principal\")\n    if scenario:\n        pl = result[\"plan\"]\n        what =\
+  \ []\n        if a.payment:\n            what.append(f\"fixed payment {a.payment:,.2f}\"\
+  )\n        if a.extra:\n            what.append(f\"+{a.extra:,.2f}/month\" + (f\"\
+  \ from payment {a.extra_from}\" if a.extra_from > 1 else \"\"))\n        if lumps:\n\
+  \            what.append(\"lump sums \" + \", \".join(f\"{v:,.2f} in payment {k}\"\
+  \ for k, v in sorted(lumps.items())))\n        print(f\"Plan ({'; '.join(what)}):\
+  \ paid off {pl['payoff']} ({pl['months']} payments), \"\n              f\"interest\
+  \ {pl['total_interest']:,.2f}\")\n        ms = pl[\"months_saved\"]\n        if\
+  \ ms >= 0 and pl[\"interest_saved\"] >= 0:\n            print(f\"  Saves {pl['interest_saved']:,.2f}\
+  \ interest and {ms} months ({ms // 12} y {ms % 12} m)\"\n                  + (f\"\
+  ; every 100 of extra saves {pl['interest_saved_per_100_extra']:,.2f}\" if pl.get(\"\
+  interest_saved_per_100_extra\") else \"\"))\n        else:\n            print(f\"\
+  \  WARNING: this plan costs {-pl['interest_saved']:,.2f} MORE interest and takes\
+  \ {-ms} months longer than the baseline\")\n    if a.yearly:\n        print(f\"\\\
+  nYear-by-year ({'plan' if scenario else 'baseline'}):\")\n        print(f\"{'Year':>4}\
+  \ {'Paid':>12} {'Interest':>12} {'Principal':>12} {'Balance':>12}\")\n        for\
+  \ y in yearly:\n            print(f\"{y['year']:>4} {y['paid']:>12,.2f} {y['interest']:>12,.2f}\
+  \ {y['principal']:>12,.2f} {y['end_balance']:>12,.2f}\")\n    if a.schedule:\n \
+  \       print(f\"\\nSchedule written to {a.schedule} ({len(rows)} rows)\")\n   \
+  \ return 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main(sys.argv[1:]))"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
