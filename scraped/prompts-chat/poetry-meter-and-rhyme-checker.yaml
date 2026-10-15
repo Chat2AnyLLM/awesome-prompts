@@ -1,0 +1,152 @@
+slug: poetry-meter-and-rhyme-checker
+title: Poetry Meter and Rhyme Checker
+description: Imported from Prompts Chat
+prompt: "---\nname: poetry-meter-and-rhyme-checker\ndescription: Counts syllables\
+  \ per line with a transparent heuristic, checks common forms (haiku, limerick, iambic\
+  \ pentameter targets), maps end-rhyme schemes (AABB, ABAB, ABCB), and flags near-misses\
+  \ with suggested edits. Use when a user asks \"does this scan?\", \"is this a haiku?\"\
+  , or \"what is my rhyme scheme?\". Includes a tested stdlib Python checker.\n---\n\
+  \n# Poetry Meter and Rhyme Checker\n\nYou help writers see how a draft scans: syllables\
+  \ per line, a plausible stress sketch for English meter targets, and the end-rhyme\
+  \ scheme. You are honest that English syllable counting is heuristic, you show your\
+  \ work, and you suggest small edits instead of rewriting the poem unless asked.\n\
+  \n## Files in this skill\n\n- `scripts/poetry_check.py` - syllable estimates, form\
+  \ checks, rhyme-scheme detection (Python 3 standard library only)\n- `references/forms-and-targets.md`\
+  \ - syllable and rhyme targets for common short forms\n- `references/syllable-heuristic.md`\
+  \ - how the counter works and where it fails (names, -ed, diphthongs)\n- `templates/poetry-report.md`\
+  \ - the report shape to return\n- `examples/example-haiku-and-quatrain.md` - worked\
+  \ examples\n\n## Workflow\n\n### 1. Collect the facts\n- The poem text (keep the\
+  \ user's line breaks).\n- Target form if any: haiku, tanka, limerick, sonnet couplet,\
+  \ free verse with a rhyme check only, or custom syllable pattern.\n- Dialect notes\
+  \ (US/UK spelling) when relevant to endings like `-our` / `-or`.\n\n### 2. Run the\
+  \ checker\n```bash\npython3 scripts/poetry_check.py poem.txt\npython3 scripts/poetry_check.py\
+  \ poem.txt --form haiku\npython3 scripts/poetry_check.py poem.txt --form limerick\
+  \ --rhyme\npython3 scripts/poetry_check.py - --json < poem.txt\n```\n\n### 3. Advise\n\
+  1. Show a per-line syllable table and the detected rhyme scheme.\n2. Say whether\
+  \ the form target passed, and which lines miss by how many syllables.\n3. Offer\
+  \ minimal edits (swap a synonym, split a compound, drop a filler word) rather than\
+  \ a full rewrite.\n4. Deliver with `templates/poetry-report.md`.\n\n## Rules\n-\
+  \ Always label syllable counts as estimates.\n- Do not mock the writer's voice;\
+  \ keep suggestions optional.\n- For free verse, still report syllables and rhyme\
+  \ if useful, without forcing a form.\n\x1FFILE:references/forms-and-targets.md\x1E\
+  \n# Forms and targets\n\n| Form | Syllable target (lines) | Typical rhyme |\n|---|---|---|\n\
+  | Haiku (English teaching form) | 5 / 7 / 5 | usually unrhymed |\n| Tanka | 5 /\
+  \ 7 / 5 / 7 / 7 | usually unrhymed |\n| Limerick | ~8–9 / 8–9 / 5–6 / 5–6 / 8–9\
+  \ | AABBA |\n| Quatrain (ballad) | often 8 / 6 / 8 / 6 | ABCB or ABAB |\n| Heroic\
+  \ couplet | ~10 / 10 (iambic pentameter feel) | AA |\n\nExact classical Japanese\
+  \ mora counts differ from English syllable teaching forms; this skill uses the common\
+  \ English classroom targets unless the user asks for mora-aware analysis.\n\x1F\
+  FILE:references/syllable-heuristic.md\x1E\n# Syllable heuristic (honest limits)\n\
+  \nThe script estimates English syllables by:\n1. Lowercasing and stripping punctuation.\n\
+  2. Counting vowel groups (`a e i o u y`) with common silent-`e` and `-ed` / `-es`\
+  \ adjustments.\n3. Treating hyphenated compounds as the sum of parts.\n\n## Known\
+  \ failure modes\n- Proper names (`Olivia`, `Michael`) and loanwords.\n- Words where\
+  \ `y` is consonantal (`beyond`) vs vocalic (`rhythm` is still hard).\n- `-ism`,\
+  \ `-tion`, and compressed pronunciations (`family` as 2 or 3).\n\nWhen a count looks\
+  \ wrong, say so and offer a manual override in the report.\n\x1FFILE:templates/poetry-report.md\x1E\
+  \n# Poetry meter and rhyme report\n\n## Target form\n- …\n\n## Per-line table\n\
+  | # | Line | Syllables (est.) | End word | Rhyme letter |\n|---|---|---|---|---|\n\
+  \n## Form check\n- Pass / fail: …\n- Misses: …\n\n## Rhyme scheme\n- …\n\n## Minimal\
+  \ edit ideas\n- …\n\n## Notes on uncertain counts\n- …\n\x1FFILE:examples/example-haiku-and-quatrain.md\x1E\
+  \n# Examples\n\n## Haiku (should pass 5-7-5)\n```\nAn old silent pond\nA frog jumps\
+  \ into the pond—\nSplash! Silence again.\n```\nEstimated syllables often land near\
+  \ 5 / 7 / 5 depending on `silent` and `silence`.\n\n## Quatrain rhyme ABCB\n```\n\
+  The woods are lovely, dark and deep,\nBut I have promises to keep,\nAnd miles to\
+  \ go before I sleep,\nAnd miles to go before I sleep.\n```\nEnd words deep/keep/sleep/sleep\
+  \ → AAAA if all rhyme together; a true ABCB sample should use different B and C\
+  \ words.\n\x1FFILE:scripts/poetry_check.py\x1E\n#!/usr/bin/env python3\n\"\"\"Estimate\
+  \ syllables, check simple forms, and map end-rhyme schemes.\n\nUsage:\n  python3\
+  \ poetry_check.py poem.txt\n  python3 poetry_check.py poem.txt --form haiku\n  python3\
+  \ poetry_check.py poem.txt --form limerick --rhyme\n  python3 poetry_check.py -\
+  \ --json < poem.txt\n\"\"\"\nfrom __future__ import annotations\n\nimport argparse\n\
+  import json\nimport re\nimport sys\nfrom pathlib import Path\n\nFORMS = {\n    \"\
+  haiku\": [5, 7, 5],\n    \"tanka\": [5, 7, 5, 7, 7],\n    \"limerick\": None,  #\
+  \ soft ranges handled separately\n}\n\nVOWELS = set(\"aeiouy\")\n\n\ndef strip_word(w:\
+  \ str) -> str:\n    return re.sub(r\"[^a-zA-Z']\", \"\", w).lower()\n\n\ndef syllables_word(word:\
+  \ str) -> int:\n    w = strip_word(word)\n    if not w:\n        return 0\n    #\
+  \ common overrides\n    overrides = {\n        \"poem\": 2, \"poems\": 2, \"fire\"\
+  : 1, \"hour\": 1, \"our\": 1, \"//\": 0,\n        \"family\": 3, \"every\": 3, \"\
+  different\": 3, \"interesting\": 4,\n        \"rhythm\": 2, \"business\": 2, \"\
+  wednesday\": 2, \"beautiful\": 3,\n    }\n    if w in overrides:\n        return\
+  \ overrides[w]\n    if \"-\" in word:\n        return sum(syllables_word(p) for\
+  \ p in word.split(\"-\"))\n    # remove trailing silent e\n    base = w\n    if\
+  \ base.endswith(\"e\") and not base.endswith((\"le\", \"ue\", \"oe\")) and len(base)\
+  \ > 2:\n        base = base[:-1]\n    # -ed endings: walked=1 extra often silent\n\
+  \    if re.search(r\"[^aeiou]ed$\", w) and not w.endswith((\"ted\", \"ded\")):\n\
+  \        base = re.sub(r\"ed$\", \"\", w)\n        if base.endswith(\"e\"):\n  \
+  \          base = base[:-1]\n    groups = re.findall(r\"[aeiouy]+\", base)\n   \
+  \ count = len(groups) if groups else 1\n    # adjust ion/ial\n    if w.endswith((\"\
+  tion\", \"sion\", \"cial\", \"tial\")):\n        count = max(count, 2)\n    return\
+  \ max(1, count)\n\n\ndef end_word(line: str) -> str:\n    words = [w for w in re.findall(r\"\
+  [A-Za-z']+\", line)]\n    return words[-1].lower() if words else \"\"\n\n\ndef rhyme_key(word:\
+  \ str) -> str:\n    w = strip_word(word)\n    if not w:\n        return \"\"\n \
+  \   aliases = {\n        \"you\": \"oo\", \"blue\": \"oo\", \"too\": \"oo\", \"\
+  two\": \"oo\", \"to\": \"oo\", \"through\": \"oo\",\n        \"threw\": \"oo\",\
+  \ \"shoe\": \"oo\", \"who\": \"oo\", \"new\": \"oo\", \"knew\": \"oo\", \"true\"\
+  : \"oo\",\n        \"lee\": \"ee\", \"tea\": \"ee\", \"glee\": \"ee\", \"sea\":\
+  \ \"ee\", \"me\": \"ee\", \"we\": \"ee\", \"be\": \"ee\",\n        \"green\": \"\
+  een\", \"keen\": \"een\", \"seen\": \"een\", \"mean\": \"een\",\n    }\n    if w\
+  \ in aliases:\n        return aliases[w]\n    matches = list(re.finditer(r\"[aeiouy]+\"\
+  , w))\n    if not matches:\n        return w\n    start = matches[-1].start()\n\
+  \    if len(matches) >= 2 and len(w) - start < 2:\n        start = matches[-2].start()\n\
+  \    tail = w[start:]\n    # light normalization for common English end-rhymes\n\
+  \    for a, b in (\n        (\"igh\", \"i\"), (\"ea\", \"ee\"), (\"ee\", \"ee\"\
+  ), (\"ey\", \"ee\"), (\"ie\", \"ee\"),\n        (\"ay\", \"ei\"), (\"ai\", \"ei\"\
+  ), (\"ou\", \"ow\"), (\"oo\", \"u\"), (\"ue\", \"u\"),\n    ):\n        if a in\
+  \ tail:\n            tail = tail.replace(a, b)\n    return tail\n\n\ndef rhyme_scheme(end_words:\
+  \ list[str]) -> str:\n    mapping = {}\n    letters = []\n    next_ord = 0\n   \
+  \ for w in end_words:\n        key = rhyme_key(w)\n        if not key:\n       \
+  \     letters.append(\"-\")\n            continue\n        # near-rhyme: same key\n\
+  \        if key not in mapping:\n            # also merge if share last 2 chars\
+  \ and vowel\n            found = None\n            for k, let in mapping.items():\n\
+  \                if k == key or (len(k) >= 2 and len(key) >= 2 and k[-2:] == key[-2:]):\n\
+  \                    found = let\n                    mapping[key] = let\n     \
+  \               break\n            if found is None:\n                let = chr(ord(\"\
+  A\") + next_ord)\n                next_ord += 1\n                mapping[key] =\
+  \ let\n        letters.append(mapping[key])\n    return \"\".join(letters)\n\n\n\
+  def limerick_ok(counts: list[int]) -> tuple[bool, str]:\n    if len(counts) != 5:\n\
+  \        return False, f\"expected 5 lines, got {len(counts)}\"\n    ranges = [(7,\
+  \ 10), (7, 10), (4, 7), (4, 7), (7, 10)]\n    misses = []\n    for i, (c, (lo, hi))\
+  \ in enumerate(zip(counts, ranges), 1):\n        if not (lo <= c <= hi):\n     \
+  \       misses.append(f\"line {i}: {c} not in {lo}-{hi}\")\n    return (not misses),\
+  \ (\"; \".join(misses) if misses else \"ok\")\n\n\ndef analyze(text: str, form:\
+  \ str | None) -> dict:\n    lines = [ln.rstrip() for ln in text.splitlines() if\
+  \ ln.strip()]\n    rows = []\n    counts = []\n    ends = []\n    for i, ln in enumerate(lines,\
+  \ 1):\n        words = re.findall(r\"[A-Za-z']+(?:-[A-Za-z']+)*\", ln)\n       \
+  \ sc = sum(syllables_word(w) for w in words)\n        ew = end_word(ln)\n      \
+  \  counts.append(sc)\n        ends.append(ew)\n        rows.append({\"n\": i, \"\
+  line\": ln, \"syllables\": sc, \"end\": ew})\n    scheme = rhyme_scheme(ends)\n\
+  \    form_result = None\n    if form == \"limerick\":\n        ok, detail = limerick_ok(counts)\n\
+  \        rhyme_ok = scheme == \"AABBA\"\n        form_result = {\"form\": form,\
+  \ \"pass\": ok and rhyme_ok, \"detail\": detail,\n                       \"rhyme_expected\"\
+  : \"AABBA\", \"rhyme_got\": scheme}\n    elif form in FORMS and FORMS[form]:\n \
+  \       target = FORMS[form]\n        if len(counts) != len(target):\n         \
+  \   form_result = {\"form\": form, \"pass\": False,\n                          \
+  \ \"detail\": f\"expected {len(target)} lines, got {len(counts)}\",\n          \
+  \                 \"target\": target, \"got\": counts}\n        else:\n        \
+  \    misses = [f\"line {i}: got {g}, want {t}\" for i, (g, t) in enumerate(zip(counts,\
+  \ target), 1) if g != t]\n            form_result = {\"form\": form, \"pass\": not\
+  \ misses, \"detail\": \"; \".join(misses) or \"ok\",\n                         \
+  \  \"target\": target, \"got\": counts}\n    return {\"lines\": rows, \"rhyme_scheme\"\
+  : scheme, \"form_check\": form_result}\n\n\ndef main(argv: list[str]) -> int:\n\
+  \    ap = argparse.ArgumentParser(description=__doc__)\n    ap.add_argument(\"path\"\
+  , help=\"Poem file, or - for stdin\")\n    ap.add_argument(\"--form\", choices=[\"\
+  haiku\", \"tanka\", \"limerick\"], help=\"Form to validate\")\n    ap.add_argument(\"\
+  --rhyme\", action=\"store_true\", help=\"Always print rhyme scheme (default on)\"\
+  )\n    ap.add_argument(\"--json\", action=\"store_true\")\n    args = ap.parse_args(argv)\n\
+  \    text = sys.stdin.read() if args.path == \"-\" else Path(args.path).read_text(encoding=\"\
+  utf-8\")\n    result = analyze(text, args.form)\n    if args.json:\n        json.dump(result,\
+  \ sys.stdout, indent=2)\n        sys.stdout.write(\"\\n\")\n    else:\n        print(\"\
+  n | syl | end | line\")\n        for r in result[\"lines\"]:\n            print(f\"\
+  {r['n']:<2}| {r['syllables']:<3}| {r['end']:<12}| {r['line']}\")\n        print(f\"\
+  rhyme scheme: {result['rhyme_scheme']}\")\n        fc = result[\"form_check\"]\n\
+  \        if fc:\n            print(f\"form {fc['form']}: {'PASS' if fc['pass'] else\
+  \ 'FAIL'} ({fc['detail']})\")\n            if \"rhyme_expected\" in fc:\n      \
+  \          print(f\"  rhyme expected {fc['rhyme_expected']}, got {fc['rhyme_got']}\"\
+  )\n    if result[\"form_check\"] and not result[\"form_check\"][\"pass\"]:\n   \
+  \     return 1\n    return 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main(sys.argv[1:]))"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
