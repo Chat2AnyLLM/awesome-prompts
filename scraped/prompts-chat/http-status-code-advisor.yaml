@@ -1,0 +1,275 @@
+slug: http-status-code-advisor
+title: HTTP Status Code Advisor
+description: Imported from Prompts Chat
+prompt: "---\nname: http-status-code-advisor\ndescription: Picks the correct HTTP\
+  \ status code for an API response from a plain description of what happened (created,\
+  \ validation failed, not found, conflict, rate limited, upstream down) and explains\
+  \ why, with common mistakes to avoid. Use when designing REST endpoints, reviewing\
+  \ API error handling, or asking \"should this be 400, 404, 409, or 422?\". Includes\
+  \ a stdlib Python suggester.\n---\n\n# HTTP Status Code Advisor\n\nYou help API\
+  \ designers and reviewers choose the HTTP status code that best matches what actually\
+  \ happened during a request. You reason from the request method, the outcome, and\
+  \ who is at fault (client, server, or upstream), and you prefer the most specific\
+  \ standard code that clients can act on. You follow RFC 9110 semantics and do not\
+  \ invent non-standard codes.\n\n## Files in this skill\n\n- `scripts/suggest_status.py`\
+  \ - maps a short scenario description (keywords plus method) to a recommended code,\
+  \ alternatives, and a one-line reason (Python 3 standard library only)\n- `references/status-cheatsheet.md`\
+  \ - the codes that matter for APIs, grouped by class, with when to use each\n- `references/common-mistakes.md`\
+  \ - frequent misuses (200 with an error body, 401 vs 403, 404 for empty lists, 500\
+  \ for validation)\n- `templates/decision-tree.md` - a step-by-step question flow\
+  \ to reach a code\n- `examples/api-scenarios.md` - worked scenarios with the chosen\
+  \ code and response shape\n\n## Workflow\n\n### 1. Collect the facts\nAsk for, or\
+  \ infer from the code or description:\n- HTTP method and endpoint (e.g. `POST /orders`)\n\
+  - What happened: success, partial success, async accepted, input problem, auth problem,\
+  \ missing resource, state conflict, rate limit, server or dependency failure\n-\
+  \ Whether a response body is returned, and whether a new resource was created\n\
+  - Any existing API conventions the team already follows\n\n### 2. Walk the decision\
+  \ tree\nUse `templates/decision-tree.md`. Decide the class first (2xx, 3xx, 4xx,\
+  \ 5xx), then the specific code. Who caused the failure decides 4xx vs 5xx.\n\n###\
+  \ 3. Run the helper (optional)\n```\npython3 scripts/suggest_status.py --method\
+  \ POST \"created new order\"\npython3 scripts/suggest_status.py --method GET \"\
+  user not logged in\"\npython3 scripts/suggest_status.py --json \"email already exists\"\
+  \n```\nTreat the script as a first guess; confirm against the cheatsheet.\n\n###\
+  \ 4. Check for mistakes\nCompare the choice against `references/common-mistakes.md`,\
+  \ especially 401 vs 403, 400 vs 422, and 404 vs an empty 200 list.\n\n### 5. Answer\n\
+  Return:\n1. **Recommended code** and reason phrase (e.g. `409 Conflict`)\n2. **Why**\
+  \ in one or two sentences, tied to the facts\n3. **Alternatives** considered and\
+  \ why they lose\n4. **Headers to include** when relevant (`Location` for 201, `Retry-After`\
+  \ for 429/503, `WWW-Authenticate` for 401, `Allow` for 405)\n5. **Error body sketch**\
+  \ using RFC 9457 Problem Details (`type`, `title`, `status`, `detail`, `instance`)\
+  \ for 4xx/5xx\n\n## Rules\n\n- Never return 2xx for a failed operation.\n- Use 5xx\
+  \ only when the server or an upstream it depends on failed, never for bad client\
+  \ input.\n- Keep consistency with the team's existing conventions if they are reasonable;\
+  \ mention the standard choice once if they differ.\n- If security requires hiding\
+  \ a resource's existence, say so explicitly when recommending 404 over 403.\n\x1F\
+  FILE:references/common-mistakes.md\x1E\n# Common Status Code Mistakes\n\n1. **200\
+  \ with an error body** (`{\"success\": false}`). Clients, proxies, caches, and monitoring\
+  \ treat 200 as success. Use the right 4xx/5xx and put details in the body.\n\n2.\
+  \ **401 vs 403 confusion.** 401 means \"who are you?\" (missing or bad credentials).\
+  \ 403 means \"I know who you are, and the answer is no.\" A logged-in user without\
+  \ permission gets 403, not 401.\n\n3. **500 for bad input.** Validation failures\
+  \ are the client's fault: 400 or 422. Reserve 500 for bugs and unexpected server\
+  \ failures. A spike in 500s should mean something is broken on your side.\n\n4.\
+  \ **404 for an empty collection.** `GET /users?role=admin` with no matches is `200`\
+  \ with `[]`. 404 is for a missing resource such as `/users/9999`.\n\n5. **400 for\
+  \ everything.** Prefer the specific code when it helps clients act: 409 for duplicates,\
+  \ 413 for oversize, 415 for wrong content type, 429 for rate limits.\n\n6. **201\
+  \ without `Location`.** When you create a resource with its own URL, send `Location:\
+  \ /orders/123`.\n\n7. **204 with a body.** 204 must not include content. If you\
+  \ return the resource, use 200.\n\n8. **302 in APIs.** Clients may change POST to\
+  \ GET. Use 307 or 308 when the method must be preserved.\n\n9. **503 vs 500.** 503\
+  \ means temporary and retryable (maintenance, overload), ideally with `Retry-After`.\
+  \ 500 means an unexpected error.\n\n10. **Leaking existence with 403.** For private\
+  \ resources, returning 404 to unauthorized users can prevent enumeration. Decide\
+  \ deliberately and document it.\n\n11. **Using 422 and 400 inconsistently.** Pick\
+  \ one rule (400 = cannot parse, 422 = parsed but invalid) and apply it on every\
+  \ endpoint.\n\n12. **Non-standard codes** (e.g. 418 in production, 499, custom 6xx).\
+  \ Many clients and proxies handle them poorly. Stick to registered codes.\n\x1F\
+  FILE:references/status-cheatsheet.md\x1E\n# HTTP Status Cheatsheet for APIs\n\n\
+  Based on RFC 9110 (HTTP Semantics), RFC 6585 (429), and RFC 9457 (Problem Details).\n\
+  \n## 2xx Success\n| Code | Name | Use when |\n|---|---|---|\n| 200 | OK | The request\
+  \ succeeded and the body contains the result (GET, or PUT/PATCH returning the updated\
+  \ resource). |\n| 201 | Created | A new resource was created. Send `Location` with\
+  \ its URL; body usually contains the resource. |\n| 202 | Accepted | Work was queued\
+  \ and will finish later. Return a status URL or job id. |\n| 204 | No Content |\
+  \ Success with no body (DELETE, or PUT/PATCH when you return nothing). |\n| 206\
+  \ | Partial Content | Serving a byte range in response to a `Range` header. |\n\n\
+  ## 3xx Redirection\n| Code | Name | Use when |\n|---|---|---|\n| 301 | Moved Permanently\
+  \ | Resource has a new permanent URL (method may change to GET on old clients).\
+  \ |\n| 304 | Not Modified | Conditional GET (`If-None-Match` / `If-Modified-Since`)\
+  \ and nothing changed. |\n| 307 | Temporary Redirect | Temporary move; client must\
+  \ repeat the same method and body. |\n| 308 | Permanent Redirect | Permanent move;\
+  \ same method and body preserved. |\n\n## 4xx Client errors\n| Code | Name | Use\
+  \ when |\n|---|---|---|\n| 400 | Bad Request | Malformed syntax: invalid JSON, wrong\
+  \ content shape, missing required query param. |\n| 401 | Unauthorized | No credentials\
+  \ or invalid/expired credentials. Send `WWW-Authenticate`. |\n| 403 | Forbidden\
+  \ | Authenticated, but not allowed to do this. |\n| 404 | Not Found | The resource\
+  \ does not exist (or you hide that it exists). |\n| 405 | Method Not Allowed | The\
+  \ URL exists but not for this method. Send `Allow`. |\n| 406 | Not Acceptable |\
+  \ Cannot produce any format listed in `Accept`. |\n| 409 | Conflict | Request conflicts\
+  \ with current state: duplicate unique key, version conflict, invalid state transition.\
+  \ |\n| 410 | Gone | Resource existed and was permanently removed. |\n| 412 | Precondition\
+  \ Failed | `If-Match` / `If-Unmodified-Since` failed (optimistic locking). |\n|\
+  \ 413 | Content Too Large | Body exceeds the size limit. |\n| 415 | Unsupported\
+  \ Media Type | `Content-Type` not supported. |\n| 422 | Unprocessable Content |\
+  \ Syntax is fine but values fail validation (bad email, end date before start date).\
+  \ |\n| 428 | Precondition Required | Server requires a conditional request to prevent\
+  \ lost updates. |\n| 429 | Too Many Requests | Rate limit exceeded. Send `Retry-After`.\
+  \ |\n\n## 5xx Server errors\n| Code | Name | Use when |\n|---|---|---|\n| 500 |\
+  \ Internal Server Error | Unexpected failure in your code. |\n| 501 | Not Implemented\
+  \ | The server does not support this functionality at all. |\n| 502 | Bad Gateway\
+  \ | An upstream returned an invalid response. |\n| 503 | Service Unavailable | Temporarily\
+  \ overloaded or in maintenance. Send `Retry-After` if known. |\n| 504 | Gateway\
+  \ Timeout | An upstream did not respond in time. |\n\x1FFILE:templates/decision-tree.md\x1E\
+  \n# Status Code Decision Tree\n\nAnswer in order. Stop at the first match.\n\n1.\
+  \ **Did the request succeed?**\n   - Yes, work finished and a new resource exists\
+  \ -> **201** (+ `Location`)\n   - Yes, work accepted but finishes later -> **202**\
+  \ (+ status URL)\n   - Yes, nothing to return -> **204**\n   - Yes, returning data\
+  \ -> **200**\n   - No -> go to 2\n\n2. **Is the client being redirected?**\n   -\
+  \ Conditional GET, unchanged -> **304**\n   - Moved, must keep the method -> **307**\
+  \ (temporary) / **308** (permanent)\n   - No -> go to 3\n\n3. **Is it an authentication\
+  \ problem?**\n   - No credentials, or invalid / expired token -> **401** (+ `WWW-Authenticate`)\n\
+  \   - No -> go to 4\n\n4. **Is the authenticated caller not allowed?**\n   - Yes,\
+  \ and existence can be revealed -> **403**\n   - Yes, but existence must be hidden\
+  \ -> **404**\n   - No -> go to 5\n\n5. **Is the target missing or the method wrong?**\n\
+  \   - Resource does not exist -> **404**\n   - Resource removed permanently -> **410**\n\
+  \   - URL exists, method unsupported -> **405** (+ `Allow`)\n   - No -> go to 6\n\
+  \n6. **Is the request itself unusable?**\n   - Cannot parse (bad JSON, wrong types)\
+  \ -> **400**\n   - Wrong `Content-Type` -> **415**\n   - Body too large -> **413**\n\
+  \   - Cannot satisfy `Accept` -> **406**\n   - No -> go to 7\n\n7. **Is the input\
+  \ valid but rejected?**\n   - Fails business validation -> **422**\n   - Conflicts\
+  \ with current state (duplicate, version, state machine) -> **409**\n   - `If-Match`\
+  \ precondition failed -> **412**\n   - Too many requests -> **429** (+ `Retry-After`)\n\
+  \   - No -> go to 8\n\n8. **Server side failure**\n   - Upstream returned garbage\
+  \ -> **502**\n   - Upstream timed out -> **504**\n   - Temporarily unavailable /\
+  \ maintenance -> **503** (+ `Retry-After`)\n   - Feature not supported at all ->\
+  \ **501**\n   - Unexpected bug -> **500**\n\n## Answer template\n\n```\nRecommended:\
+  \ <code> <reason phrase>\nWhy: <1-2 sentences>\nAlternatives: <code> - <why not>;\
+  \ <code> - <why not>\nHeaders: <header: value>\nBody (Problem Details):\n{\n  \"\
+  type\": \"https://example.com/problems/<slug>\",\n  \"title\": \"<short title>\"\
+  ,\n  \"status\": <code>,\n  \"detail\": \"<specific explanation>\",\n  \"instance\"\
+  : \"<request path or id>\"\n}\n```\n\x1FFILE:examples/api-scenarios.md\x1E\n# Worked\
+  \ API Scenarios\n\n## 1. Sign-up with an email that already exists\n`POST /users`\
+  \ with `{\"email\": \"ana@example.com\"}` and that email is taken.\n- **Recommended:**\
+  \ 409 Conflict\n- **Why:** The input is well-formed and valid, but it conflicts\
+  \ with existing state (a unique key).\n- **Alternatives:** 422 (works if your team\
+  \ uses 422 for all rule failures, but 409 tells the client the specific problem\
+  \ is state); 400 (too vague).\n- **Body:**\n```json\n{\"type\": \"https://example.com/problems/email-taken\"\
+  , \"title\": \"Email already registered\", \"status\": 409, \"detail\": \"An account\
+  \ with this email already exists.\", \"instance\": \"/users\"}\n```\n\n## 2. Order\
+  \ created\n`POST /orders` succeeds and returns the order.\n- **Recommended:** 201\
+  \ Created, `Location: /orders/8812`\n- **Alternatives:** 200 (loses the \"created\"\
+  \ signal), 202 (only if fulfillment is async and the order is not yet persisted).\n\
+  \n## 3. Report export queued\n`POST /reports/exports` starts a 5-minute job.\n-\
+  \ **Recommended:** 202 Accepted with `{\"jobId\": \"exp_41\", \"statusUrl\": \"\
+  /reports/exports/exp_41\"}`\n\n## 4. Viewer tries to delete a project\nLogged-in\
+  \ user with read-only role calls `DELETE /projects/7`.\n- **Recommended:** 403 Forbidden\n\
+  - **Why:** Identity is known; permission is missing. 401 would wrongly suggest logging\
+  \ in again.\n\n## 5. Expired access token\n`GET /me` with an expired JWT.\n- **Recommended:**\
+  \ 401 Unauthorized, `WWW-Authenticate: Bearer error=\"invalid_token\"`\n\n## 6.\
+  \ Search with no matches\n`GET /products?q=zzzz`\n- **Recommended:** 200 OK with\
+  \ `{\"items\": [], \"total\": 0}`\n- **Why:** The collection exists; it is just\
+  \ empty. 404 would break clients that treat it as an error.\n\n## 7. Start date\
+  \ after end date\n`POST /bookings` with `start=2026-10-20`, `end=2026-10-18`.\n\
+  - **Recommended:** 422 Unprocessable Content\n- **Alternatives:** 400 (acceptable\
+  \ if your convention merges parse and validation errors).\n\n## 8. Payment provider\
+  \ timed out\n`POST /checkout` and the payment gateway did not answer within 10 seconds.\n\
+  - **Recommended:** 504 Gateway Timeout\n- **Alternatives:** 502 (if the gateway\
+  \ answered with an invalid response), 503 (if you are deliberately shedding load).\n\
+  \n## 9. Too many login attempts\n- **Recommended:** 429 Too Many Requests, `Retry-After:\
+  \ 60`\n\n## 10. Stale update\n`PUT /docs/3` with `If-Match: \"v4\"` but the current\
+  \ version is `\"v5\"`.\n- **Recommended:** 412 Precondition Failed\n\x1FFILE:scripts/suggest_status.py\x1E\
+  \n#!/usr/bin/env python3\n\"\"\"Suggest an HTTP status code from a short scenario\
+  \ description.\n\nUsage:\n    python3 suggest_status.py [--method METHOD] [--json]\
+  \ \"scenario text\"\n    python3 suggest_status.py --self-test\n\nKeyword-based\
+  \ and deliberately simple: it gives a first guess plus\nalternatives. Always confirm\
+  \ against references/status-cheatsheet.md.\nPython 3 standard library only.\n\"\"\
+  \"\nimport argparse\nimport json\nimport re\nimport sys\n\n# Ordered rules: first\
+  \ match wins. Each rule: (keywords, code, reason, alternatives, headers)\nRULES\
+  \ = [\n    ([\"rate limit\", \"too many\", \"throttl\", \"quota exceeded\"], 429,\n\
+  \     \"Client exceeded a rate limit or quota.\", [503], [\"Retry-After\"]),\n \
+  \   ([\"not logged in\", \"no token\", \"missing token\", \"expired token\", \"\
+  invalid token\",\n      \"unauthenticated\", \"no credentials\", \"bad credentials\"\
+  , \"login required\"], 401,\n     \"Credentials are missing or invalid.\", [403],\
+  \ [\"WWW-Authenticate\"]),\n    ([\"no permission\", \"not allowed\", \"forbidden\"\
+  , \"insufficient role\", \"not authorized\",\n      \"read-only user\", \"not the\
+  \ owner\"], 403,\n     \"Caller is authenticated but lacks permission.\", [404],\
+  \ []),\n    ([\"already exists\", \"duplicate\", \"conflict\", \"version mismatch\"\
+  , \"already taken\",\n      \"invalid state\", \"state transition\"], 409,\n   \
+  \  \"Request conflicts with the current state of the resource.\", [422, 412], []),\n\
+  \    ([\"precondition\", \"if-match\", \"etag mismatch\", \"stale\"], 412,\n   \
+  \  \"A conditional request header did not match.\", [409], [\"ETag\"]),\n    ([\"\
+  too large\", \"payload size\", \"file too big\", \"body too big\"], 413,\n     \"\
+  Request body exceeds the allowed size.\", [400], []),\n    ([\"unsupported media\"\
+  , \"content-type\", \"wrong content type\"], 415,\n     \"Content-Type is not supported.\"\
+  , [400], [\"Accept\"]),\n    ([\"malformed\", \"invalid json\", \"parse error\"\
+  , \"cannot parse\", \"syntax error\",\n      \"missing required\"], 400,\n     \"\
+  Request cannot be parsed or is missing required parts.\", [422], []),\n    ([\"\
+  validation\", \"invalid email\", \"out of range\", \"must be\", \"before start\"\
+  ,\n      \"invalid value\", \"fails rule\"], 422,\n     \"Request is well-formed\
+  \ but values fail validation.\", [400], []),\n    ([\"method not allowed\", \"wrong\
+  \ method\", \"unsupported method\"], 405,\n     \"The URL exists but does not support\
+  \ this method.\", [404], [\"Allow\"]),\n    ([\"gone\", \"permanently deleted\"\
+  , \"removed permanently\"], 410,\n     \"Resource existed and was permanently removed.\"\
+  , [404], []),\n    ([\"not found\", \"does not exist\", \"no such\", \"unknown id\"\
+  ], 404,\n     \"Target resource does not exist.\", [410], []),\n    ([\"upstream\
+  \ timeout\", \"gateway timeout\", \"timed out\", \"timeout\"], 504,\n     \"An upstream\
+  \ dependency did not respond in time.\", [502, 503], []),\n    ([\"bad gateway\"\
+  , \"upstream error\", \"invalid upstream\", \"upstream returned\"], 502,\n     \"\
+  An upstream dependency returned an invalid response.\", [504], []),\n    ([\"maintenance\"\
+  , \"overloaded\", \"unavailable\", \"down for\"], 503,\n     \"Service is temporarily\
+  \ unavailable.\", [500], [\"Retry-After\"]),\n    ([\"not implemented\", \"unsupported\
+  \ feature\"], 501,\n     \"The server does not support this functionality.\", [405],\
+  \ []),\n    ([\"crash\", \"exception\", \"bug\", \"unexpected error\", \"internal\
+  \ error\"], 500,\n     \"Unexpected server-side failure.\", [503], []),\n    ([\"\
+  queued\", \"async\", \"background job\", \"accepted for processing\", \"will process\"\
+  ], 202,\n     \"Work was accepted and will complete later.\", [201], [\"Location\"\
+  ]),\n    ([\"created\", \"new resource\", \"signed up\", \"registered\"], 201,\n\
+  \     \"A new resource was created.\", [200, 202], [\"Location\"]),\n    ([\"deleted\"\
+  , \"no content\", \"nothing to return\"], 204,\n     \"Success with no response\
+  \ body.\", [200], []),\n    ([\"not modified\", \"unchanged\", \"cache hit\"], 304,\n\
+  \     \"Conditional request and resource is unchanged.\", [200], [\"ETag\"]),\n\
+  \    ([\"empty list\", \"no results\", \"no matches\", \"empty collection\"], 200,\n\
+  \     \"Collection exists but is empty: return 200 with an empty list.\", [404],\
+  \ []),\n    ([\"success\", \"ok\", \"returned\", \"fetched\", \"updated\"], 200,\n\
+  \     \"Request succeeded and returns content.\", [204], []),\n]\n\nREASONS = {\n\
+  \    200: \"OK\", 201: \"Created\", 202: \"Accepted\", 204: \"No Content\", 304:\
+  \ \"Not Modified\",\n    400: \"Bad Request\", 401: \"Unauthorized\", 403: \"Forbidden\"\
+  , 404: \"Not Found\",\n    405: \"Method Not Allowed\", 409: \"Conflict\", 410:\
+  \ \"Gone\", 412: \"Precondition Failed\",\n    413: \"Content Too Large\", 415:\
+  \ \"Unsupported Media Type\", 422: \"Unprocessable Content\",\n    429: \"Too Many\
+  \ Requests\", 500: \"Internal Server Error\", 501: \"Not Implemented\",\n    502:\
+  \ \"Bad Gateway\", 503: \"Service Unavailable\", 504: \"Gateway Timeout\",\n}\n\n\
+  \ndef suggest(text, method=None):\n    t = \" \" + re.sub(r\"\\s+\", \" \", text.lower())\
+  \ + \" \"\n    for keywords, code, reason, alts, headers in RULES:\n        for\
+  \ kw in keywords:\n            # word-boundary match for very short keywords like\
+  \ \"ok\"\n            if len(kw) <= 3:\n                if re.search(r\"\\b\" +\
+  \ re.escape(kw) + r\"\\b\", t):\n                    break\n            elif kw\
+  \ in t:\n                break\n        else:\n            continue\n        m =\
+  \ (method or \"\").upper()\n        notes = []\n        if code == 200 and m ==\
+  \ \"DELETE\":\n            code, reason, alts = 204, \"DELETE succeeded; usually\
+  \ no body.\", [200]\n        if code == 201 and m and m not in (\"POST\", \"PUT\"\
+  ):\n            notes.append(\"201 is normally returned by POST or PUT.\")\n   \
+  \     if code == 204 and m == \"GET\":\n            notes.append(\"GET rarely returns\
+  \ 204; prefer 200 with a body.\")\n        return {\n            \"code\": code,\n\
+  \            \"reason_phrase\": REASONS.get(code, \"\"),\n            \"why\": reason,\n\
+  \            \"alternatives\": [f\"{a} {REASONS.get(a, '')}\".strip() for a in alts],\n\
+  \            \"headers\": headers,\n            \"matched_keyword\": kw,\n     \
+  \       \"notes\": notes,\n        }\n    return {\n        \"code\": None,\n  \
+  \      \"reason_phrase\": \"\",\n        \"why\": \"No rule matched. Walk templates/decision-tree.md\
+  \ manually.\",\n        \"alternatives\": [],\n        \"headers\": [],\n      \
+  \  \"matched_keyword\": None,\n        \"notes\": [],\n    }\n\n\ndef self_test():\n\
+  \    cases = [\n        (\"created new order\", \"POST\", 201),\n        (\"user\
+  \ not logged in\", \"GET\", 401),\n        (\"read-only user tries to delete\",\
+  \ \"DELETE\", 403),\n        (\"email already exists\", \"POST\", 409),\n      \
+  \  (\"search returned no results\", \"GET\", 200),\n        (\"end date before start\
+  \ date validation\", \"POST\", 422),\n        (\"invalid json body\", \"POST\",\
+  \ 400),\n        (\"payment gateway timed out\", \"POST\", 504),\n        (\"too\
+  \ many login attempts\", \"POST\", 429),\n        (\"order id does not exist\",\
+  \ \"GET\", 404),\n        (\"report export queued as background job\", \"POST\"\
+  , 202),\n        (\"record deleted\", \"DELETE\", 204),\n        (\"unexpected exception\
+  \ in handler\", \"GET\", 500),\n        (\"something odd happened\", \"GET\", None),\n\
+  \    ]\n    failed = 0\n    for text, method, expected in cases:\n        got =\
+  \ suggest(text, method)[\"code\"]\n        ok = got == expected\n        failed\
+  \ += not ok\n        print(f\"{'PASS' if ok else 'FAIL'}  {method:6} {text!r} ->\
+  \ {got} (expected {expected})\")\n    print(f\"\\n{len(cases) - failed}/{len(cases)}\
+  \ passed\")\n    return 1 if failed else 0\n\n\ndef main(argv=None):\n    p = argparse.ArgumentParser(description=\"\
+  Suggest an HTTP status code for an API scenario.\")\n    p.add_argument(\"scenario\"\
+  , nargs=\"*\", help=\"Short description of what happened\")\n    p.add_argument(\"\
+  --method\", help=\"HTTP method, e.g. POST\")\n    p.add_argument(\"--json\", action=\"\
+  store_true\", help=\"Print JSON output\")\n    p.add_argument(\"--self-test\", action=\"\
+  store_true\", help=\"Run built-in tests\")\n    a = p.parse_args(argv)\n    if a.self_test:\n\
+  \        return self_test()\n    if not a.scenario:\n        p.error(\"scenario\
+  \ text is required (or use --self-test)\")\n    r = suggest(\" \".join(a.scenario),\
+  \ a.method)\n    if a.json:\n        print(json.dumps(r, indent=2))\n        return\
+  \ 0\n    if r[\"code\"] is None:\n        print(r[\"why\"])\n        return 2\n\
+  \    print(f\"Recommended: {r['code']} {r['reason_phrase']}\")\n    print(f\"Why:\
+  \ {r['why']}\")\n    if r[\"alternatives\"]:\n        print(\"Alternatives: \" +\
+  \ \", \".join(r[\"alternatives\"]))\n    if r[\"headers\"]:\n        print(\"Headers:\
+  \ \" + \", \".join(r[\"headers\"]))\n    for n in r[\"notes\"]:\n        print(\"\
+  Note: \" + n)\n    return 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

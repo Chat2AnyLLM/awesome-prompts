@@ -1,0 +1,343 @@
+slug: calendar-ics-validator
+title: Calendar ICS Validator
+description: Imported from Prompts Chat
+prompt: "---\nname: calendar-ics-validator\ndescription: Validates .ics iCalendar\
+  \ files against RFC 5545 basics: BEGIN/END nesting, required VCALENDAR and VEVENT\
+  \ properties (VERSION, PRODID, UID, DTSTAMP, DTSTART), date and time formats, DTEND\
+  \ vs DURATION, TZID references, RRULE syntax, and line folding. Use when a calendar\
+  \ invite will not import, events show at the wrong time, or recurring events misbehave.\
+  \ Includes a stdlib Python checker.\n---\n\n# Calendar ICS Validator\n\nYou help\
+  \ people find and fix problems in iCalendar (`.ics`) files exported from apps, generated\
+  \ by code, or attached to invites. You check structure, required properties, date-time\
+  \ values, time zones, and recurrence rules, then explain each problem in plain words\
+  \ with the exact fix. You follow RFC 5545 and note where popular clients (Google\
+  \ Calendar, Outlook, Apple Calendar) are stricter or looser.\n\n## Files in this\
+  \ skill\n\n- `scripts/check_ics.py` - parses an `.ics` file (with line unfolding)\
+  \ and reports errors and warnings with line numbers (Python 3 standard library only)\n\
+  - `references/ics-fields.md` - components, required and common properties, and value\
+  \ formats\n- `references/recurrence-rules.md` - RRULE parts, valid values, EXDATE/RDATE,\
+  \ and common recurrence bugs\n- `templates/fix-checklist.md` - the checklist and\
+  \ report shape to return\n- `examples/sample.ics` - a small valid calendar with\
+  \ a time zone, a one-off event, and a weekly recurring event\n\n## Workflow\n\n\
+  ### 1. Get the file\nAsk for the `.ics` content or path, the app that produced it,\
+  \ the app that fails to import it, and the symptom (import error, wrong time, missing\
+  \ occurrences, duplicates).\n\n### 2. Run the checker\n```\npython3 scripts/check_ics.py\
+  \ path/to/calendar.ics\npython3 scripts/check_ics.py --json path/to/calendar.ics\n\
+  python3 scripts/check_ics.py --self-test\n```\nExit code 0 means no errors (warnings\
+  \ may remain), 1 means errors were found.\n\n### 3. Interpret\n- **Errors** break\
+  \ imports or violate RFC 5545 (missing UID, DTEND before DTSTART, unbalanced BEGIN/END,\
+  \ invalid RRULE).\n- **Warnings** often cause wrong behavior in some clients (floating\
+  \ times, TZID without VTIMEZONE, lines over 75 octets, LF-only line endings).\n\
+  Use `references/ics-fields.md` and `references/recurrence-rules.md` to explain each\
+  \ finding.\n\n### 4. Diagnose the symptom\n- Wrong time: check for floating times\
+  \ (no `Z`, no `TZID`), mismatched TZID names, or UTC `Z` added to a local time.\n\
+  - Missing or extra occurrences: check `RRULE` `UNTIL` vs `DTSTART` type, `COUNT`,\
+  \ `BYDAY`, and `EXDATE` format matching `DTSTART`.\n- Duplicates on re-import: check\
+  \ that `UID` is stable and `SEQUENCE` increases on updates.\n\n### 5. Report\nFill\
+  \ `templates/fix-checklist.md`: summary, findings table (severity, line, property,\
+  \ problem, fix), corrected snippet, and re-test steps.\n\n## Rules\n\n- Quote the\
+  \ exact offending line and give a corrected line.\n- Do not silently change event\
+  \ times; if a time zone must change, say so and ask.\n- Keep `UID` values unchanged\
+  \ when fixing, unless they are missing or duplicated.\n- Never include private attendee\
+  \ emails in examples you write back; replace them with placeholders.\n\x1FFILE:references/ics-fields.md\x1E\
+  \n# iCalendar Fields Reference (RFC 5545 essentials)\n\n## Structure\n```\nBEGIN:VCALENDAR\n\
+  \  VERSION:2.0            (required)\n  PRODID:-//Org//App//EN (required)\n  CALSCALE:GREGORIAN\
+  \     (optional, default)\n  METHOD:PUBLISH         (optional; REQUEST/REPLY/CANCEL\
+  \ for invites)\n  BEGIN:VTIMEZONE ... END:VTIMEZONE   (one per TZID used)\n  BEGIN:VEVENT\
+  \ ... END:VEVENT\n  BEGIN:VTODO ... END:VTODO\nEND:VCALENDAR\n```\nEvery `BEGIN:X`\
+  \ needs a matching `END:X` in the right order. `VALARM` lives inside `VEVENT` or\
+  \ `VTODO`.\n\n## VEVENT properties\n| Property | Required | Notes |\n|---|---|---|\n\
+  | UID | yes | Globally unique and stable across updates (e.g. `uuid@yourdomain`).\
+  \ |\n| DTSTAMP | yes | When this object was created/sent, in UTC: `20261015T070000Z`.\
+  \ |\n| DTSTART | yes* | Required unless METHOD is set and the client allows it;\
+  \ always include it. |\n| DTEND | no | Must be later than DTSTART. Exclusive end.\
+  \ |\n| DURATION | no | e.g. `PT1H30M`, `P1D`. Not allowed together with DTEND. |\n\
+  | SUMMARY | no | Title shown in calendars. |\n| DESCRIPTION, LOCATION | no | Escape\
+  \ `,` `;` `\\` and newlines as `\\,` `\\;` `\\\\` `\\n`. |\n| RRULE | no | Recurrence\
+  \ rule; see recurrence-rules.md. |\n| EXDATE / RDATE | no | Excluded / extra dates;\
+  \ same value type and TZID as DTSTART. |\n| SEQUENCE | no | Integer; increment on\
+  \ each significant update. |\n| STATUS | no | TENTATIVE, CONFIRMED, CANCELLED. |\n\
+  | ORGANIZER / ATTENDEE | no | `mailto:` URIs with parameters like `CN=` and `PARTSTAT=`.\
+  \ |\n\n## Date and time values\n| Form | Example | Meaning |\n|---|---|---|\n| DATE\
+  \ | `DTSTART;VALUE=DATE:20261020` | All-day; DTEND is the next day (exclusive).\
+  \ |\n| UTC DATE-TIME | `DTSTART:20261020T090000Z` | Absolute time in UTC. |\n| Local\
+  \ with TZID | `DTSTART;TZID=Europe/Istanbul:20261020T120000` | Wall time in that\
+  \ zone; needs a matching VTIMEZONE for strict clients. |\n| Floating | `DTSTART:20261020T120000`\
+  \ | No zone; shows the same wall time everywhere. Usually a bug for meetings. |\n\
+  \nFormat: `YYYYMMDD` or `YYYYMMDDTHHMMSS` with optional `Z`. Hours 00-23, minutes\
+  \ and seconds 00-59 (60 allowed for leap seconds).\n\n## Line rules\n- Lines end\
+  \ with CRLF (`\\r\\n`).\n- Lines longer than 75 octets must be folded: insert CRLF\
+  \ followed by one space or tab; parsers remove CRLF+whitespace when unfolding.\n\
+  - Property names and parameter names are case-insensitive; values may be case-sensitive.\n\
+  \n## DURATION format\n`[+/-]P[n]W` or `[+/-]P[n]DT[n]H[n]M[n]S`, e.g. `P1W`, `PT45M`,\
+  \ `P1DT12H`.\n\x1FFILE:references/recurrence-rules.md\x1E\n# Recurrence Rules (RRULE)\
+  \ Reference\n\nSyntax: `RRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE;UNTIL=20261231T235959Z`\n\
+  \n## Parts\n| Part | Values | Notes |\n|---|---|---|\n| FREQ | SECONDLY, MINUTELY,\
+  \ HOURLY, DAILY, WEEKLY, MONTHLY, YEARLY | Required, exactly once. |\n| INTERVAL\
+  \ | positive integer | Default 1. |\n| COUNT | positive integer | Number of occurrences,\
+  \ including the first. |\n| UNTIL | DATE or DATE-TIME | Inclusive end. Must not\
+  \ be used with COUNT. |\n| BYDAY | MO TU WE TH FR SA SU, optional ordinal (`1MO`,\
+  \ `-1FR`) | Ordinals only make sense with MONTHLY or YEARLY. |\n| BYMONTHDAY | 1..31\
+  \ or -31..-1 | `-1` = last day of month. |\n| BYMONTH | 1..12 | |\n| BYYEARDAY |\
+  \ 1..366 or negative | |\n| BYWEEKNO | 1..53 or negative | YEARLY only. |\n| BYHOUR\
+  \ / BYMINUTE / BYSECOND | 0..23 / 0..59 / 0..60 | |\n| BYSETPOS | 1..366 or negative\
+  \ | e.g. last weekday of month: `BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1`. |\n| WKST |\
+  \ MO..SU | Week start, default MO. |\n\n## UNTIL type rule\n- If DTSTART is a DATE,\
+  \ UNTIL must be a DATE.\n- If DTSTART has a TZID or is UTC, UNTIL must be UTC (`...Z`).\n\
+  - If DTSTART is floating, UNTIL must also be floating.\n\n## EXDATE and RDATE\n\
+  - Must use the same value type and TZID as DTSTART, otherwise clients ignore them.\n\
+  - Example: `EXDATE;TZID=Europe/Istanbul:20261103T100000`\n\n## Common bugs\n1. Both\
+  \ COUNT and UNTIL present (invalid).\n2. UNTIL as a local time when DTSTART has\
+  \ a TZID (should be UTC).\n3. BYDAY ordinals with WEEKLY (`FREQ=WEEKLY;BYDAY=1MO`)\
+  \ - meaningless.\n4. DTSTART that does not match the pattern (DTSTART on Tuesday\
+  \ with `BYDAY=MO`): RFC says DTSTART still counts as the first occurrence, which\
+  \ surprises users.\n5. EXDATE in UTC while DTSTART uses TZID: exceptions do not\
+  \ match.\n6. Lowercase or misspelled keys (`freq=weekly`, `BYDAYS`). Values should\
+  \ be uppercase.\n7. Daylight saving: a recurring 09:00 meeting must use TZID, not\
+  \ UTC, or it shifts by an hour twice a year.\n\n## Examples\n- Every weekday at\
+  \ 09:00: `RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR`\n- First Monday monthly, 6 times:\
+  \ `RRULE:FREQ=MONTHLY;BYDAY=1MO;COUNT=6`\n- Last day of each month: `RRULE:FREQ=MONTHLY;BYMONTHDAY=-1`\n\
+  - Every other Friday until year end: `RRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=FR;UNTIL=20261231T210000Z`\n\
+  \x1FFILE:templates/fix-checklist.md\x1E\n# ICS Fix Checklist and Report\n\n## Summary\n\
+  - File: `<name.ics>`\n- Produced by: `<app or script>`  |  Fails in: `<client>`\n\
+  - Symptom: `<import error / wrong time / missing occurrences / duplicates>`\n- Result:\
+  \ `<N errors, M warnings>`\n\n## Checklist\n- [ ] File starts with `BEGIN:VCALENDAR`\
+  \ and ends with `END:VCALENDAR`\n- [ ] All BEGIN/END pairs balanced and correctly\
+  \ nested\n- [ ] `VERSION:2.0` and `PRODID` present once in VCALENDAR\n- [ ] Each\
+  \ VEVENT has `UID`, `DTSTAMP`, `DTSTART`\n- [ ] UIDs are unique within the file\
+  \ and stable across updates\n- [ ] DTEND later than DTSTART, and not combined with\
+  \ DURATION\n- [ ] Date-time values valid (`YYYYMMDD` / `YYYYMMDDTHHMMSS[Z]`)\n-\
+  \ [ ] All-day events use `VALUE=DATE` on both DTSTART and DTEND\n- [ ] Every TZID\
+  \ used has a VTIMEZONE (or an IANA name the target client accepts)\n- [ ] No unintended\
+  \ floating times\n- [ ] RRULE has FREQ; no COUNT with UNTIL; UNTIL type matches\
+  \ DTSTART\n- [ ] EXDATE/RDATE match DTSTART value type and TZID\n- [ ] Text values\
+  \ escape `,` `;` `\\` and newlines\n- [ ] CRLF line endings; lines over 75 octets\
+  \ folded\n- [ ] SEQUENCE increments when an existing event is updated\n\n## Findings\n\
+  | # | Severity | Line | Property | Problem | Fix |\n|---|---|---|---|---|---|\n\
+  | 1 | error | | | | |\n\n## Corrected snippet\n```\n<fixed lines>\n```\n\n## Re-test\n\
+  1. Run `python3 scripts/check_ics.py <file>` and confirm 0 errors.\n2. Import into\
+  \ a test calendar in the failing client.\n3. Check the first occurrence, one middle\
+  \ occurrence, and the last occurrence times.\n\x1FFILE:examples/sample.ics\x1E\n\
+  BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Example Co//Team Calendar 1.0//EN\nCALSCALE:GREGORIAN\n\
+  METHOD:PUBLISH\nBEGIN:VTIMEZONE\nTZID:Europe/Istanbul\nBEGIN:STANDARD\nDTSTART:19700101T000000\n\
+  TZOFFSETFROM:+0300\nTZOFFSETTO:+0300\nTZNAME:+03\nEND:STANDARD\nEND:VTIMEZONE\n\
+  BEGIN:VEVENT\nUID:kickoff-20261020@example.com\nDTSTAMP:20261015T070000Z\nDTSTART;TZID=Europe/Istanbul:20261020T100000\n\
+  DTEND;TZID=Europe/Istanbul:20261020T113000\nSUMMARY:Project kickoff\nLOCATION:Room\
+  \ 4\\, Second Floor\nDESCRIPTION:Agenda: goals\\, roles\\, and first milestones.\\\
+  nBring lapt\n ops.\nSTATUS:CONFIRMED\nSEQUENCE:0\nEND:VEVENT\nBEGIN:VEVENT\nUID:weekly-sync-2026@example.com\n\
+  DTSTAMP:20261015T070000Z\nDTSTART;TZID=Europe/Istanbul:20261022T093000\nDURATION:PT30M\n\
+  RRULE:FREQ=WEEKLY;BYDAY=TH;UNTIL=20261231T063000Z\nEXDATE;TZID=Europe/Istanbul:20261126T093000\n\
+  SUMMARY:Weekly team sync\nBEGIN:VALARM\nACTION:DISPLAY\nDESCRIPTION:Weekly team\
+  \ sync in 10 minutes\nTRIGGER:-PT10M\nEND:VALARM\nEND:VEVENT\nBEGIN:VEVENT\nUID:offsite-2026@example.com\n\
+  DTSTAMP:20261015T070000Z\nDTSTART;VALUE=DATE:20261106\nDTEND;VALUE=DATE:20261108\n\
+  SUMMARY:Team offsite (all day)\nEND:VEVENT\nEND:VCALENDAR\n\x1FFILE:scripts/check_ics.py\x1E\
+  \n#!/usr/bin/env python3\n\"\"\"Validate an iCalendar (.ics) file against RFC 5545\
+  \ basics.\n\nUsage:\n    python3 check_ics.py FILE.ics [--json]\n    python3 check_ics.py\
+  \ --self-test\n\nExit codes: 0 = no errors, 1 = errors found, 2 = usage / read error.\n\
+  Python 3 standard library only.\n\"\"\"\nimport argparse\nimport datetime as dt\n\
+  import json\nimport re\nimport sys\n\nDATE_RE = re.compile(r\"^\\d{8}$\")\nDATETIME_RE\
+  \ = re.compile(r\"^\\d{8}T\\d{6}Z?$\")\nDURATION_RE = re.compile(r\"^[+-]?P(\\d+W|(\\\
+  d+D)?(T(\\d+H)?(\\d+M)?(\\d+S)?)?)$\")\nFREQS = {\"SECONDLY\", \"MINUTELY\", \"\
+  HOURLY\", \"DAILY\", \"WEEKLY\", \"MONTHLY\", \"YEARLY\"}\nDAYS = {\"MO\", \"TU\"\
+  , \"WE\", \"TH\", \"FR\", \"SA\", \"SU\"}\nRRULE_KEYS = {\"FREQ\", \"UNTIL\", \"\
+  COUNT\", \"INTERVAL\", \"BYSECOND\", \"BYMINUTE\", \"BYHOUR\",\n              \"\
+  BYDAY\", \"BYMONTHDAY\", \"BYYEARDAY\", \"BYWEEKNO\", \"BYMONTH\", \"BYSETPOS\"\
+  , \"WKST\"}\nEVENT_LIKE = {\"VEVENT\", \"VTODO\", \"VJOURNAL\"}\n\n\nclass Report:\n\
+  \    def __init__(self):\n        self.items = []\n\n    def add(self, severity,\
+  \ line, prop, message):\n        self.items.append({\"severity\": severity, \"line\"\
+  : line, \"property\": prop, \"message\": message})\n\n    def error(self, line,\
+  \ prop, msg):\n        self.add(\"error\", line, prop, msg)\n\n    def warn(self,\
+  \ line, prop, msg):\n        self.add(\"warning\", line, prop, msg)\n\n    @property\n\
+  \    def errors(self):\n        return [i for i in self.items if i[\"severity\"\
+  ] == \"error\"]\n\n    @property\n    def warnings(self):\n        return [i for\
+  \ i in self.items if i[\"severity\"] == \"warning\"]\n\n\ndef unfold(raw, rep):\n\
+  \    \"\"\"Return list of (line_no, logical_line). Checks line endings and length.\"\
+  \"\"\n    if \"\\r\\n\" not in raw and \"\\n\" in raw:\n        rep.warn(1, None,\
+  \ \"Lines end with LF only; RFC 5545 requires CRLF (most clients tolerate LF).\"\
+  )\n    physical = raw.replace(\"\\r\\n\", \"\\n\").split(\"\\n\")\n    logical =\
+  \ []\n    for n, line in enumerate(physical, start=1):\n        if len(line.encode(\"\
+  utf-8\")) > 75:\n            rep.warn(n, None, f\"Line is {len(line.encode('utf-8'))}\
+  \ octets; fold lines longer than 75 octets.\")\n        if line[:1] in (\" \", \"\
+  \\t\") and logical:\n            ln, text = logical[-1]\n            logical[-1]\
+  \ = (ln, text + line[1:])\n        elif line == \"\":\n            continue\n  \
+  \      else:\n            logical.append((n, line))\n    return logical\n\n\ndef\
+  \ split_prop(line):\n    \"\"\"Split 'NAME;PARAM=V:VALUE' into (NAME, {params},\
+  \ value). Handles quoted params.\"\"\"\n    in_q = False\n    for i, ch in enumerate(line):\n\
+  \        if ch == '\"':\n            in_q = not in_q\n        elif ch == \":\" and\
+  \ not in_q:\n            head, value = line[:i], line[i + 1:]\n            break\n\
+  \    else:\n        return None\n    parts = re.split(r';(?=(?:[^\"]*\"[^\"]*\"\
+  )*[^\"]*$)', head)\n    name = parts[0].upper()\n    params = {}\n    for p in parts[1:]:\n\
+  \        if \"=\" in p:\n            k, v = p.split(\"=\", 1)\n            params[k.upper()]\
+  \ = v.strip('\"')\n    return name, params, value\n\n\ndef parse_dt(value, params):\n\
+  \    \"\"\"Return (kind, datetime|None) where kind is DATE, UTC, LOCAL, FLOATING\
+  \ or BAD.\"\"\"\n    if params.get(\"VALUE\", \"\").upper() == \"DATE\" or DATE_RE.match(value):\n\
+  \        if not DATE_RE.match(value):\n            return \"BAD\", None\n      \
+  \  try:\n            return \"DATE\", dt.datetime.strptime(value, \"%Y%m%d\")\n\
+  \        except ValueError:\n            return \"BAD\", None\n    if not DATETIME_RE.match(value):\n\
+  \        return \"BAD\", None\n    try:\n        d = dt.datetime.strptime(value.rstrip(\"\
+  Z\"), \"%Y%m%dT%H%M%S\")\n    except ValueError:\n        return \"BAD\", None\n\
+  \    if value.endswith(\"Z\"):\n        return \"UTC\", d\n    return (\"LOCAL\"\
+  \ if \"TZID\" in params else \"FLOATING\"), d\n\n\ndef check_rrule(value, ln, start_kind,\
+  \ rep):\n    parts = {}\n    for chunk in value.split(\";\"):\n        if \"=\"\
+  \ not in chunk:\n            rep.error(ln, \"RRULE\", f\"Malformed part '{chunk}'\
+  \ (expected KEY=VALUE).\")\n            continue\n        k, v = chunk.split(\"\
+  =\", 1)\n        if k != k.upper():\n            rep.warn(ln, \"RRULE\", f\"Key\
+  \ '{k}' should be uppercase.\")\n        k = k.upper()\n        if k in parts:\n\
+  \            rep.error(ln, \"RRULE\", f\"Part {k} appears more than once.\")\n \
+  \       if k not in RRULE_KEYS:\n            rep.error(ln, \"RRULE\", f\"Unknown\
+  \ part '{k}'.\")\n        parts[k] = v.upper()\n    freq = parts.get(\"FREQ\")\n\
+  \    if not freq:\n        rep.error(ln, \"RRULE\", \"FREQ is required.\")\n   \
+  \ elif freq not in FREQS:\n        rep.error(ln, \"RRULE\", f\"Invalid FREQ '{freq}'.\"\
+  )\n    if \"COUNT\" in parts and \"UNTIL\" in parts:\n        rep.error(ln, \"RRULE\"\
+  , \"COUNT and UNTIL must not both be present.\")\n    for key in (\"COUNT\", \"\
+  INTERVAL\"):\n        if key in parts and not (parts[key].isdigit() and int(parts[key])\
+  \ > 0):\n            rep.error(ln, \"RRULE\", f\"{key} must be a positive integer.\"\
+  )\n    if \"BYDAY\" in parts:\n        for d in parts[\"BYDAY\"].split(\",\"):\n\
+  \            m = re.match(r\"^([+-]?\\d{1,2})?(MO|TU|WE|TH|FR|SA|SU)$\", d)\n  \
+  \          if not m:\n                rep.error(ln, \"RRULE\", f\"Invalid BYDAY\
+  \ value '{d}'.\")\n            elif m.group(1) and freq not in (\"MONTHLY\", \"\
+  YEARLY\"):\n                rep.warn(ln, \"RRULE\", f\"BYDAY ordinal '{d}' only\
+  \ makes sense with MONTHLY or YEARLY.\")\n    for key, lo, hi in ((\"BYMONTH\",\
+  \ 1, 12), (\"BYMONTHDAY\", 1, 31), (\"BYHOUR\", 0, 23), (\"BYMINUTE\", 0, 59)):\n\
+  \        if key in parts:\n            for v in parts[key].split(\",\"):\n     \
+  \           try:\n                    n = int(v)\n                except ValueError:\n\
+  \                    rep.error(ln, \"RRULE\", f\"{key} value '{v}' is not an integer.\"\
+  )\n                    continue\n                ok = lo <= abs(n) <= hi if key\
+  \ == \"BYMONTHDAY\" else lo <= n <= hi\n                if not ok:\n           \
+  \         rep.error(ln, \"RRULE\", f\"{key} value {n} out of range.\")\n    if \"\
+  WKST\" in parts and parts[\"WKST\"] not in DAYS:\n        rep.error(ln, \"RRULE\"\
+  , f\"Invalid WKST '{parts['WKST']}'.\")\n    if \"UNTIL\" in parts:\n        ukind,\
+  \ _ = parse_dt(parts[\"UNTIL\"], {})\n        if ukind == \"BAD\":\n           \
+  \ rep.error(ln, \"RRULE\", f\"UNTIL '{parts['UNTIL']}' is not a valid DATE or DATE-TIME.\"\
+  )\n        elif start_kind == \"DATE\" and ukind != \"DATE\":\n            rep.error(ln,\
+  \ \"RRULE\", \"DTSTART is a DATE, so UNTIL must be a DATE too.\")\n        elif\
+  \ start_kind in (\"LOCAL\", \"UTC\") and ukind != \"UTC\":\n            rep.error(ln,\
+  \ \"RRULE\", \"DTSTART has a TZID or is UTC, so UNTIL must be UTC (ending in Z).\"\
+  )\n\n\ndef validate(text):\n    rep = Report()\n    lines = unfold(text, rep)\n\
+  \    if not lines:\n        rep.error(1, None, \"File is empty.\")\n        return\
+  \ rep\n    if lines[0][1].upper() != \"BEGIN:VCALENDAR\":\n        rep.error(lines[0][0],\
+  \ None, \"File must start with BEGIN:VCALENDAR.\")\n    stack = []\n    comps =\
+  \ []  # list of dicts: name, line, props: list of (ln, name, params, value)\n  \
+  \  tzids_defined, tzids_used, uids = set(), [], {}\n    for ln, line in lines:\n\
+  \        parsed = split_prop(line)\n        if parsed is None:\n            rep.error(ln,\
+  \ None, f\"Not a valid content line (missing ':'): {line[:40]!r}\")\n          \
+  \  continue\n        name, params, value = parsed\n        if name == \"BEGIN\"\
+  :\n            comp = {\"name\": value.upper(), \"line\": ln, \"props\": []}\n \
+  \           stack.append(comp)\n            continue\n        if name == \"END\"\
+  :\n            if not stack:\n                rep.error(ln, \"END\", f\"END:{value}\
+  \ without matching BEGIN.\")\n                continue\n            comp = stack.pop()\n\
+  \            if comp[\"name\"] != value.upper():\n                rep.error(ln,\
+  \ \"END\", f\"END:{value} does not match BEGIN:{comp['name']} (line {comp['line']}).\"\
+  )\n            comps.append(comp)\n            continue\n        if not stack:\n\
+  \            rep.error(ln, name, \"Property outside any component.\")\n        \
+  \    continue\n        stack[-1][\"props\"].append((ln, name, params, value))\n\
+  \        if \"TZID\" in params:\n            tzids_used.append((ln, params[\"TZID\"\
+  ]))\n        if name == \"TZID\" and stack[-1][\"name\"] == \"VTIMEZONE\":\n   \
+  \         tzids_defined.add(value)\n    for comp in stack:\n        rep.error(comp[\"\
+  line\"], \"BEGIN\", f\"BEGIN:{comp['name']} is never closed.\")\n\n    for comp\
+  \ in comps:\n        props = {}\n        for ln, name, params, value in comp[\"\
+  props\"]:\n            props.setdefault(name, []).append((ln, params, value))\n\
+  \        cname = comp[\"name\"]\n        if cname == \"VCALENDAR\":\n          \
+  \  for req in (\"VERSION\", \"PRODID\"):\n                if req not in props:\n\
+  \                    rep.error(comp[\"line\"], req, f\"VCALENDAR is missing required\
+  \ {req}.\")\n                elif len(props[req]) > 1:\n                    rep.error(props[req][1][0],\
+  \ req, f\"{req} must appear only once.\")\n            if \"VERSION\" in props and\
+  \ props[\"VERSION\"][0][2] != \"2.0\":\n                rep.error(props[\"VERSION\"\
+  ][0][0], \"VERSION\", \"VERSION must be 2.0.\")\n        if cname in EVENT_LIKE:\n\
+  \            for req in (\"UID\", \"DTSTAMP\"):\n                if req not in props:\n\
+  \                    rep.error(comp[\"line\"], req, f\"{cname} is missing required\
+  \ {req}.\")\n            if cname == \"VEVENT\" and \"DTSTART\" not in props:\n\
+  \                rep.error(comp[\"line\"], \"DTSTART\", \"VEVENT is missing DTSTART.\"\
+  )\n            if \"UID\" in props:\n                uid = props[\"UID\"][0][2]\n\
+  \                if uid in uids:\n                    rep.error(props[\"UID\"][0][0],\
+  \ \"UID\", f\"Duplicate UID '{uid}' (also line {uids[uid]}).\")\n              \
+  \  else:\n                    uids[uid] = props[\"UID\"][0][0]\n            if \"\
+  DTSTAMP\" in props:\n                ln, params, value = props[\"DTSTAMP\"][0]\n\
+  \                kind, _ = parse_dt(value, params)\n                if kind != \"\
+  UTC\":\n                    rep.error(ln, \"DTSTAMP\", \"DTSTAMP must be a UTC DATE-TIME\
+  \ ending in Z.\")\n            start_kind, start = None, None\n            for key\
+  \ in (\"DTSTART\", \"DTEND\", \"DUE\"):\n                if key not in props:\n\
+  \                    continue\n                ln, params, value = props[key][0]\n\
+  \                kind, val = parse_dt(value, params)\n                if kind ==\
+  \ \"BAD\":\n                    rep.error(ln, key, f\"Invalid date or date-time\
+  \ value '{value}'.\")\n                    continue\n                if kind ==\
+  \ \"FLOATING\":\n                    rep.warn(ln, key, \"Floating time (no Z and\
+  \ no TZID): shows the same wall time in every zone.\")\n                if key ==\
+  \ \"DTSTART\":\n                    start_kind, start = kind, val\n            \
+  \    elif start is not None:\n                    if (kind == \"DATE\") != (start_kind\
+  \ == \"DATE\"):\n                        rep.error(ln, key, f\"{key} and DTSTART\
+  \ must both be DATE or both DATE-TIME.\")\n                    elif kind == start_kind\
+  \ and val <= start:\n                        rep.error(ln, key, f\"{key} must be\
+  \ later than DTSTART.\")\n            if \"DTEND\" in props and \"DURATION\" in\
+  \ props:\n                rep.error(props[\"DURATION\"][0][0], \"DURATION\", \"\
+  DTEND and DURATION must not both be present.\")\n            if \"DURATION\" in\
+  \ props:\n                ln, _, value = props[\"DURATION\"][0]\n              \
+  \  if not DURATION_RE.match(value) or value.rstrip(\"+-\") in (\"P\", \"PT\"):\n\
+  \                    rep.error(ln, \"DURATION\", f\"Invalid DURATION '{value}' (e.g.\
+  \ PT1H30M, P1D).\")\n            if \"RRULE\" in props:\n                ln, _,\
+  \ value = props[\"RRULE\"][0]\n                check_rrule(value, ln, start_kind,\
+  \ rep)\n                if len(props[\"RRULE\"]) > 1:\n                    rep.warn(props[\"\
+  RRULE\"][1][0], \"RRULE\", \"Multiple RRULEs are deprecated; many clients use only\
+  \ the first.\")\n            for key in (\"EXDATE\", \"RDATE\"):\n             \
+  \   for ln, params, value in props.get(key, []):\n                    for v in value.split(\"\
+  ,\"):\n                        kind, _ = parse_dt(v, params)\n                 \
+  \       if kind == \"BAD\":\n                            rep.error(ln, key, f\"\
+  Invalid value '{v}'.\")\n                        elif start_kind and kind != start_kind:\n\
+  \                            rep.warn(ln, key, f\"{key} value type ({kind}) differs\
+  \ from DTSTART ({start_kind}); clients may ignore it.\")\n            if \"SEQUENCE\"\
+  \ in props and not props[\"SEQUENCE\"][0][2].isdigit():\n                rep.error(props[\"\
+  SEQUENCE\"][0][0], \"SEQUENCE\", \"SEQUENCE must be a non-negative integer.\")\n\
+  \            for key in (\"SUMMARY\", \"DESCRIPTION\", \"LOCATION\"):\n        \
+  \        for ln, _, value in props.get(key, []):\n                    if re.search(r\"\
+  (?<!\\\\)[,;]\", value):\n                        rep.warn(ln, key, \"Unescaped\
+  \ ',' or ';' in text; escape as '\\\\,' and '\\\\;'.\")\n    if not any(c[\"name\"\
+  ] in EVENT_LIKE for c in comps):\n        rep.warn(1, None, \"Calendar contains\
+  \ no VEVENT, VTODO, or VJOURNAL.\")\n    for ln, tz in tzids_used:\n        if tz\
+  \ not in tzids_defined:\n            rep.warn(ln, \"TZID\", f\"TZID '{tz}' has no\
+  \ VTIMEZONE in this file; strict clients (e.g. Outlook) may misplace it.\")\n  \
+  \  return rep\n\n\nBROKEN = (\n    \"BEGIN:VCALENDAR\\r\\nPRODID:-//Test//EN\\r\\\
+  nBEGIN:VEVENT\\r\\nDTSTAMP:20261015T070000\\r\\n\"\n    \"DTSTART:20261020T100000Z\\\
+  r\\nDTEND:20261020T090000Z\\r\\nDURATION:PT1H\\r\\n\"\n    \"RRULE:FREQ=WEEKLY;COUNT=5;UNTIL=20261201T000000Z;BYDAY=XX\\\
+  r\\nSUMMARY:Bad, event\\r\\n\"\n    \"END:VEVENT\\r\\nBEGIN:VEVENT\\r\\nUID:a@x\\\
+  r\\nDTSTAMP:20261015T070000Z\\r\\n\"\n    \"DTSTART;TZID=Mars/Olympus:20261020T100000\\\
+  r\\nEND:VTODO\\r\\nEND:VCALENDAR\\r\\n\"\n)\nGOOD = (\n    \"BEGIN:VCALENDAR\\r\\\
+  nVERSION:2.0\\r\\nPRODID:-//Test//EN\\r\\nBEGIN:VEVENT\\r\\nUID:ok@x\\r\\n\"\n \
+  \   \"DTSTAMP:20261015T070000Z\\r\\nDTSTART:20261020T070000Z\\r\\nDTEND:20261020T080000Z\\\
+  r\\n\"\n    \"RRULE:FREQ=MONTHLY;BYDAY=1MO;COUNT=3\\r\\nSUMMARY:Fine\\r\\nEND:VEVENT\\\
+  r\\nEND:VCALENDAR\\r\\n\"\n)\n\n\ndef self_test():\n    good = validate(GOOD)\n\
+  \    bad = validate(BROKEN)\n    msgs = \" | \".join(i[\"message\"] for i in bad.items)\n\
+  \    checks = [\n        (\"good file has no errors\", not good.errors),\n     \
+  \   (\"missing VERSION\", \"missing required VERSION\" in msgs),\n        (\"missing\
+  \ UID\", \"missing required UID\" in msgs),\n        (\"DTSTAMP not UTC\", \"DTSTAMP\
+  \ must be a UTC\" in msgs),\n        (\"DTEND before DTSTART\", \"must be later\
+  \ than DTSTART\" in msgs),\n        (\"DTEND with DURATION\", \"must not both be\
+  \ present\" in msgs),\n        (\"COUNT with UNTIL\", \"COUNT and UNTIL\" in msgs),\n\
+  \        (\"bad BYDAY\", \"Invalid BYDAY\" in msgs),\n        (\"unescaped comma\"\
+  , \"Unescaped\" in msgs),\n        (\"mismatched END\", \"does not match BEGIN\"\
+  \ in msgs),\n        (\"unknown TZID warning\", \"Mars/Olympus\" in msgs),\n   \
+  \ ]\n    failed = 0\n    for label, ok in checks:\n        failed += not ok\n  \
+  \      print(f\"{'PASS' if ok else 'FAIL'}  {label}\")\n    print(f\"\\n{len(checks)\
+  \ - failed}/{len(checks)} passed\")\n    return 1 if failed else 0\n\n\ndef main(argv=None):\n\
+  \    p = argparse.ArgumentParser(description=\"Validate an iCalendar (.ics) file.\"\
+  )\n    p.add_argument(\"file\", nargs=\"?\", help=\"Path to .ics file ('-' for stdin)\"\
+  )\n    p.add_argument(\"--json\", action=\"store_true\", help=\"Output JSON\")\n\
+  \    p.add_argument(\"--self-test\", action=\"store_true\", help=\"Run built-in\
+  \ tests\")\n    a = p.parse_args(argv)\n    if a.self_test:\n        return self_test()\n\
+  \    if not a.file:\n        p.error(\"file is required (or use --self-test)\")\n\
+  \    try:\n        if a.file == \"-\":\n            text = sys.stdin.read()\n  \
+  \      else:\n            with open(a.file, \"r\", encoding=\"utf-8\", newline=\"\
+  \") as fh:\n                text = fh.read()\n    except (OSError, UnicodeDecodeError)\
+  \ as exc:\n        print(f\"Cannot read {a.file}: {exc}\", file=sys.stderr)\n  \
+  \      return 2\n    rep = validate(text)\n    if a.json:\n        print(json.dumps({\"\
+  errors\": len(rep.errors), \"warnings\": len(rep.warnings), \"findings\": rep.items},\
+  \ indent=2))\n    else:\n        for i in sorted(rep.items, key=lambda x: (x[\"\
+  line\"], x[\"severity\"])):\n            prop = f\" {i['property']}\" if i[\"property\"\
+  ] else \"\"\n            print(f\"line {i['line']:>4}  {i['severity'].upper():7}{prop}:\
+  \ {i['message']}\")\n        print(f\"\\n{len(rep.errors)} error(s), {len(rep.warnings)}\
+  \ warning(s)\")\n    return 1 if rep.errors else 0\n\n\nif __name__ == \"__main__\"\
+  :\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
