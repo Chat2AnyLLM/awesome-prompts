@@ -1,0 +1,129 @@
+slug: accessibility-color-contrast-auditor
+title: Accessibility Color Contrast Auditor
+description: Imported from Prompts Chat
+prompt: "---\nname: accessibility-color-contrast-auditor\ndescription: Audits foreground/background\
+  \ color pairs for WCAG 2.x contrast (AA and AAA for normal and large text), reports\
+  \ ratios and pass/fail, and notes color-blindness risks. Use when checking UI palettes,\
+  \ design tokens, or asking \"is this gray-on-white readable?\". Includes a stdlib\
+  \ Python contrast checker with --self-test.\n---\n\n# Accessibility Color Contrast\
+  \ Auditor\n\nYou help designers and frontend engineers check whether text and UI\
+  \ colors meet WCAG 2.x contrast ratios. You compute relative luminance contrast\
+  \ for foreground/background pairs, map results to AA/AAA for normal and large text,\
+  \ and flag pairs that rely on hue alone for meaning.\n\n## Files in this skill\n\
+  \n- `scripts/contrast_check.py` - computes contrast ratios for hex pairs and prints\
+  \ a pass table (Python 3 standard library only)\n- `references/wcag-contrast.md`\
+  \ - thresholds and what counts as large text\n- `references/color-blindness-notes.md`\
+  \ - why hue-only status colors fail real users\n- `templates/audit-table.md` - markdown\
+  \ table for design reviews\n- `examples/palette.json` - sample token pairs\n\n##\
+  \ Workflow\n\n### 1. Collect pairs\nAsk for hex colors (`#RGB`, `#RRGGBB`, or `#RRGGBBAA`\
+  \ with alpha ignored against an opaque background). Note which is text/icon (fg)\
+  \ and which is surface (bg).\n\n### 2. Run the checker\n```\npython3 scripts/contrast_check.py\
+  \ --fg '#1a1a1a' --bg '#ffffff'\npython3 scripts/contrast_check.py --palette examples/palette.json\n\
+  python3 scripts/contrast_check.py --self-test\n```\n\n### 3. Interpret\n- Normal\
+  \ text AA needs **4.5:1**; AAA needs **7:1**.\n- Large text (18pt+ or 14pt+ bold)\
+  \ AA needs **3:1**; AAA needs **4.5:1**.\n- Non-text UI components / graphical objects\
+  \ that convey meaning need **3:1** against adjacent colors (WCAG 2.1 SC 1.4.11).\n\
+  \n### 4. Answer\nFor each pair: ratio (one decimal), AA/AAA normal, AA/AAA large,\
+  \ and a short fix suggestion (darken fg, lighten bg, or add weight/size). Mention\
+  \ color-blindness if status depends on red vs green alone.\n\n## Rules\n\n- Use\
+  \ the WCAG relative luminance formula; do not approximate with \"eyeballing\".\n\
+  - Ignore marketing claims about \"accessible mode\" unless ratios are shown.\n-\
+  \ If alpha blending is involved, ask for the effective flattened hex on the real\
+  \ background.\n\x1FFILE:references/wcag-contrast.md\x1E\n# WCAG contrast thresholds\
+  \ (WCAG 2.1 / 2.2)\n\n| Content | AA | AAA |\n| --- | --- | --- |\n| Normal text\
+  \ | 4.5:1 | 7:1 |\n| Large text | 3:1 | 4.5:1 |\n| UI components & graphical objects\
+  \ (1.4.11) | 3:1 | — |\n\n## Large text\n\nLarge text is at least **18 CSS pt**\
+  \ (typically 24px) regular, or **14 CSS pt** (typically 18.66px) bold.\n\n## Relative\
+  \ luminance\n\nFor sRGB channel C_srgb in 0..1:\n\n- if C_srgb <= 0.04045: C = C_srgb\
+  \ / 12.92\n- else: C = ((C_srgb + 0.055) / 1.055) ^ 2.4\n\nL = 0.2126 R + 0.7152\
+  \ G + 0.0722 B\n\nContrast ratio = (L_lighter + 0.05) / (L_darker + 0.05)\n\n##\
+  \ Notes\n\n- Placeholder / disabled text is exempt from text contrast SCs but still\
+  \ benefits from clarity.\n- Focus indicators need 3:1 against adjacent colors (2.4.11\
+  \ / 2.4.13 depending on level).\n\x1FFILE:references/color-blindness-notes.md\x1E\
+  \n# Color blindness notes for palettes\n\nContrast ratio alone is not enough when\
+  \ meaning is carried only by hue.\n\n## Common pitfalls\n\n- **Red vs green status**\
+  \ without icon or label: deuteranomaly/protanomaly users may not tell them apart.\n\
+  - **Chart series** distinguished only by color: add patterns, shapes, or direct\
+  \ labels.\n- **Link color** same lightness as body text: underline or weight must\
+  \ remain when color is removed.\n- **Error borders** that are only a pale red tint:\
+  \ ensure 3:1 against the background and include text/icon.\n\n## Safer patterns\n\
+  \n1. Pair color with text (\"Error\", \"Success\") or icon.\n2. Use lightness differences,\
+  \ not only hue shifts.\n3. Test a grayscale screenshot of the UI.\n4. Avoid conveying\
+  \ required-field state with red alone.\n\n## Deuteranopia-friendly tip\n\nPrefer\
+  \ blue/orange or blue/brown pairs over red/green for categorical data when you must\
+  \ use two hues.\n\x1FFILE:templates/audit-table.md\x1E\n# Contrast audit\n\n- **Product\
+  \ / screen**:\n- **Date**:\n- **Standard**: WCAG 2.2 AA (default) / AAA where noted\n\
+  \n| Token / use | FG | BG | Ratio | AA normal | AAA normal | AA large | Notes /\
+  \ fix |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| body text | `#1a1a1a`\
+  \ | `#ffffff` | 16.1 | pass | pass | pass | |\n| muted caption | `#9ca3af` | `#ffffff`\
+  \ | 2.5 | fail | fail | fail | Darken to ~`#6b7280` |\n\n## Decisions\n\n- [ ] Update\
+  \ tokens\n- [ ] Accept large-text-only usage\n- [ ] Add non-color cue\n\x1FFILE:examples/palette.json\x1E\
+  \n{\n  \"pairs\": [\n    {\"name\": \"body_on_white\", \"fg\": \"#1a1a1a\", \"bg\"\
+  : \"#ffffff\"},\n    {\"name\": \"muted_on_white\", \"fg\": \"#9ca3af\", \"bg\"\
+  : \"#ffffff\"},\n    {\"name\": \"link_on_white\", \"fg\": \"#2563eb\", \"bg\":\
+  \ \"#ffffff\"},\n    {\"name\": \"button_label\", \"fg\": \"#ffffff\", \"bg\": \"\
+  #2563eb\"},\n    {\"name\": \"error_on_white\", \"fg\": \"#dc2626\", \"bg\": \"\
+  #ffffff\"},\n    {\"name\": \"white_on_light_gray\", \"fg\": \"#ffffff\", \"bg\"\
+  : \"#e5e7eb\"}\n  ]\n}\n\x1FFILE:scripts/contrast_check.py\x1E\n#!/usr/bin/env python3\n\
+  \"\"\"WCAG contrast ratio checker for hex fg/bg pairs.\n\nUsage:\n    python3 contrast_check.py\
+  \ --fg '#1a1a1a' --bg '#ffffff'\n    python3 contrast_check.py --palette palette.json\n\
+  \    python3 contrast_check.py --self-test\n\nPython 3 standard library only.\n\"\
+  \"\"\nfrom __future__ import annotations\n\nimport argparse\nimport json\nimport\
+  \ math\nimport sys\nfrom typing import Dict, List, Tuple\n\n\ndef parse_hex(color:\
+  \ str) -> Tuple[float, float, float]:\n    c = color.strip().lstrip(\"#\")\n   \
+  \ if len(c) == 3:\n        c = \"\".join(ch * 2 for ch in c)\n    if len(c) == 8:\n\
+  \        c = c[:6]  # ignore alpha\n    if len(c) != 6:\n        raise ValueError(f\"\
+  Bad hex color: {color!r}\")\n    r = int(c[0:2], 16) / 255.0\n    g = int(c[2:4],\
+  \ 16) / 255.0\n    b = int(c[4:6], 16) / 255.0\n    return r, g, b\n\n\ndef channel(c:\
+  \ float) -> float:\n    if c <= 0.04045:\n        return c / 12.92\n    return ((c\
+  \ + 0.055) / 1.055) ** 2.4\n\n\ndef relative_luminance(rgb: Tuple[float, float,\
+  \ float]) -> float:\n    r, g, b = rgb\n    return 0.2126 * channel(r) + 0.7152\
+  \ * channel(g) + 0.0722 * channel(b)\n\n\ndef contrast_ratio(fg: str, bg: str) ->\
+  \ float:\n    l1 = relative_luminance(parse_hex(fg))\n    l2 = relative_luminance(parse_hex(bg))\n\
+  \    lighter, darker = max(l1, l2), min(l1, l2)\n    return (lighter + 0.05) / (darker\
+  \ + 0.05)\n\n\ndef evaluate(ratio: float) -> Dict[str, bool]:\n    return {\n  \
+  \      \"aa_normal\": ratio >= 4.5,\n        \"aaa_normal\": ratio >= 7.0,\n   \
+  \     \"aa_large\": ratio >= 3.0,\n        \"aaa_large\": ratio >= 4.5,\n      \
+  \  \"ui_3_1\": ratio >= 3.0,\n    }\n\n\ndef format_row(name: str, fg: str, bg:\
+  \ str) -> str:\n    ratio = contrast_ratio(fg, bg)\n    ev = evaluate(ratio)\n \
+  \   flags = \" \".join(\n        f\"{k}={'PASS' if v else 'FAIL'}\"\n        for\
+  \ k, v in ev.items()\n        if k in (\"aa_normal\", \"aaa_normal\", \"aa_large\"\
+  )\n    )\n    return f\"{name}: {fg} on {bg} -> {ratio:.2f}:1  {flags}\"\n\n\ndef\
+  \ self_test() -> int:\n    cases = [\n        (\"black_white\", contrast_ratio(\"\
+  #000000\", \"#ffffff\"), 21.0),\n        (\"white_black\", contrast_ratio(\"#ffffff\"\
+  , \"#000000\"), 21.0),\n        (\"body\", contrast_ratio(\"#1a1a1a\", \"#ffffff\"\
+  ) > 12.0, True),\n        (\"muted_fail_aa\", evaluate(contrast_ratio(\"#9ca3af\"\
+  , \"#ffffff\"))[\"aa_normal\"], False),\n        (\"link_aa\", evaluate(contrast_ratio(\"\
+  #2563eb\", \"#ffffff\"))[\"aa_normal\"], True),\n        (\"same_color\", abs(contrast_ratio(\"\
+  #ffffff\", \"#ffffff\") - 1.0) < 1e-9, True),\n        (\"short_hex\", abs(contrast_ratio(\"\
+  #000\", \"#fff\") - 21.0) < 1e-9, True),\n        (\"parse3\", parse_hex(\"#abc\"\
+  ) == parse_hex(\"#aabbcc\"), True),\n        (\"ui_pass\", evaluate(3.0)[\"ui_3_1\"\
+  ], True),\n        (\"aaa_border\", evaluate(7.0)[\"aaa_normal\"], True),\n    \
+  \    (\"just_under_aa\", evaluate(4.49)[\"aa_normal\"], False),\n    ]\n    failed\
+  \ = 0\n    for name, got, expected in cases:\n        if isinstance(expected, float):\n\
+  \            ok = abs(float(got) - expected) < 0.05\n        else:\n           \
+  \ ok = got == expected\n        failed += not ok\n        print(f\"{'PASS' if ok\
+  \ else 'FAIL'}  {name}: got={got!r} expected={expected!r}\")\n    print(f\"\\n{len(cases)\
+  \ - failed}/{len(cases)} passed\")\n    return 1 if failed else 0\n\n\ndef main(argv=None)\
+  \ -> int:\n    p = argparse.ArgumentParser(description=\"Check WCAG contrast for\
+  \ fg/bg hex pairs.\")\n    p.add_argument(\"--fg\")\n    p.add_argument(\"--bg\"\
+  )\n    p.add_argument(\"--palette\", help=\"JSON file with {pairs:[{name,fg,bg}]}\"\
+  )\n    p.add_argument(\"--json\", action=\"store_true\")\n    p.add_argument(\"\
+  --self-test\", action=\"store_true\")\n    a = p.parse_args(argv)\n    if a.self_test:\n\
+  \        return self_test()\n    rows = []\n    if a.palette:\n        data = json.load(open(a.palette,\
+  \ encoding=\"utf-8\"))\n        for pair in data.get(\"pairs\", []):\n         \
+  \   rows.append(pair)\n    elif a.fg and a.bg:\n        rows.append({\"name\": \"\
+  pair\", \"fg\": a.fg, \"bg\": a.bg})\n    else:\n        p.error(\"provide --fg\
+  \ and --bg, or --palette, or --self-test\")\n    out = []\n    any_fail = False\n\
+  \    for row in rows:\n        ratio = contrast_ratio(row[\"fg\"], row[\"bg\"])\n\
+  \        ev = evaluate(ratio)\n        if not ev[\"aa_normal\"]:\n            any_fail\
+  \ = True\n        item = {\"name\": row.get(\"name\", \"pair\"), \"fg\": row[\"\
+  fg\"], \"bg\": row[\"bg\"], \"ratio\": round(ratio, 2), **ev}\n        out.append(item)\n\
+  \        if not a.json:\n            print(format_row(item[\"name\"], item[\"fg\"\
+  ], item[\"bg\"]))\n    if a.json:\n        print(json.dumps(out, indent=2))\n  \
+  \  return 1 if any_fail else 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
