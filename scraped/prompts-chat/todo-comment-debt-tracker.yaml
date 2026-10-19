@@ -1,0 +1,212 @@
+slug: todo-comment-debt-tracker
+title: TODO Comment Debt Tracker
+description: Imported from Prompts Chat
+prompt: "---\nname: todo-comment-debt-tracker\ndescription: Scans a codebase for TODO,\
+  \ FIXME, HACK, and XXX comments, extracts owner, ticket, and due date, and flags\
+  \ unowned, untracked, overdue, or vague items with a priority score. Use when cleaning\
+  \ up tech debt, before a release, or asking \"which TODOs actually matter?\". Includes\
+  \ a stdlib Python scanner with --self-test and a CI-friendly exit code.\n---\n\n\
+  # TODO Comment Debt Tracker\n\nYou help teams turn scattered TODO, FIXME, HACK,\
+  \ and XXX comments into a short, owned, prioritized debt list. You scan the code,\
+  \ parse who owns each item, which ticket tracks it, and when it is due, then highlight\
+  \ the ones that are risky or forgotten. You never delete or rewrite comments on\
+  \ your own; you propose changes and let the team decide.\n\n## Files in this skill\n\
+  \n- `scripts/todo_debt.py` - scans files or directories, parses owner/ticket/due\
+  \ date, scores each item, and prints a markdown table or JSON (Python 3 standard\
+  \ library only)\n- `references/comment-conventions.md` - a recommended TODO format\
+  \ and how to adopt it without churn\n- `references/triage-rules.md` - how to decide\
+  \ fix now, ticket, or delete\n- `templates/debt-report.md` - report for a sprint\
+  \ review, release checklist, or PR comment\n- `examples/sample_service.py` - a small\
+  \ file with typical good and bad TODOs for demos\n\n## Workflow\n\n### 1. Scope\
+  \ the scan\nAsk which directories matter and what to skip (generated code, vendored\
+  \ libraries, fixtures). The script already skips `.git`, `node_modules`, `vendor`,\
+  \ `dist`, `build`, virtualenvs, and `target`.\n\n### 2. Run the scanner\n```\npython3\
+  \ scripts/todo_debt.py src/ --today 2026-10-18\npython3 scripts/todo_debt.py src/\
+  \ tests/ --ext .py,.ts --json > todo-debt.json\npython3 scripts/todo_debt.py examples/sample_service.py\
+  \ --strict\npython3 scripts/todo_debt.py --self-test\n```\nExit code 1 when an item\
+  \ is overdue or a FIXME/HACK/XXX has no ticket (`--strict`: any problem). Use it\
+  \ as a soft CI gate or a weekly report job.\n\n### 3. Read the problems\n- **overdue**:\
+  \ due date passed. Highest priority.\n- **no_ticket**: nothing tracks the work;\
+  \ it will be forgotten.\n- **stale_hack**: a HACK or XXX with no ticket, often a\
+  \ workaround that outlived its reason.\n- **no_owner**: nobody is responsible.\n\
+  - **vague**: fewer than three words, such as \"TODO: fix\".\n\nScores: FIXME/HACK/XXX\
+  \ start at 3, TODO at 1; +2 if overdue, +1 if no ticket.\n\n### 4. Triage with the\
+  \ team\nApply `references/triage-rules.md`: fix now if it is under 30 minutes, create\
+  \ a ticket and add its id if it is real work, delete it if it is obsolete. Use `git\
+  \ blame` on the line to find a likely owner when none is written.\n\n### 5. Report\n\
+  Fill `templates/debt-report.md` with the top items, totals by marker and owner,\
+  \ and agreed actions. Suggest the convention in `references/comment-conventions.md`\
+  \ for new comments.\n\n## Rules\n\n- Do not count markers inside string literals\
+  \ or plain prose; only comments.\n- Never invent ticket numbers or owners; mark\
+  \ them unknown and suggest how to find them.\n- Do not remove comments in bulk without\
+  \ review; propose a patch instead.\n- Respect generated and vendored code: report\
+  \ it separately or skip it.\n\x1FFILE:references/comment-conventions.md\x1E\n# Recommended\
+  \ TODO convention\n\n```\n# TODO(owner, TICKET-123, 2026-12-01): what needs to happen\
+  \ and why\n```\n\n- **owner**: a username or team handle (`alice`, `@payments-team`).\
+  \ One name, the person who will make the call.\n- **ticket**: `#123`, `PROJ-123`,\
+  \ or a full issue URL. Required for FIXME, HACK, and XXX.\n- **due date**: ISO `YYYY-MM-DD`,\
+  \ optional for TODO, recommended for HACK workarounds.\n- **text**: an action plus\
+  \ the reason, at least a short sentence. \"TODO: fix\" is not useful.\n\n## Which\
+  \ marker to use\n| Marker | Meaning | Ticket required? |\n|---|---|---|\n| TODO\
+  \ | Planned improvement, not wrong today | Recommended |\n| FIXME | Known bug or\
+  \ incorrect behavior | Yes |\n| HACK | Deliberate workaround that should be removed\
+  \ | Yes, plus a due date |\n| XXX | Danger, surprising code, review needed | Yes\
+  \ |\n\n## Adopting without churn\n1. Run the scanner and publish the report; do\
+  \ not mass-edit.\n2. Apply the convention to new comments via code review or a lint\
+  \ rule.\n3. Fix old comments when you touch that code anyway.\n4. Revisit the totals\
+  \ monthly; aim for \"no overdue, no untracked FIXME\".\n\x1FFILE:references/triage-rules.md\x1E\
+  \n# Triage rules\n\nFor each item, ask in order:\n\n1. **Is it still true?** Read\
+  \ the surrounding code and `git log -L` for the lines. If the issue is gone, delete\
+  \ the comment.\n2. **Is it under 30 minutes?** Fix it now in a small PR that removes\
+  \ the comment.\n3. **Is it a bug or a risk?** (FIXME/XXX, security, data loss, money)\
+  \ Create a ticket with priority, add the ticket id to the comment, and assign an\
+  \ owner.\n4. **Is it a workaround?** (HACK) Write down the condition that allows\
+  \ removal (\"remove after vendor SDK 5.x\") and a due date.\n5. **Is it a wish?**\
+  \ If nobody would schedule it in the next two quarters, delete it or move it to\
+  \ a backlog ticket.\n\n## Priority hints\n- Overdue items first, then FIXME/HACK/XXX\
+  \ without tickets, then unowned items in hot files (high churn).\n- Items in auth,\
+  \ payments, data migrations, or concurrency code deserve a closer look regardless\
+  \ of score.\n\n## Finding an owner\n- `git blame -L <line>,<line> <file>` shows\
+  \ who added it; that person or their team is the default owner.\n- CODEOWNERS files\
+  \ map paths to teams.\n- If the author has left, assign to the current maintainer\
+  \ of the module.\n\x1FFILE:templates/debt-report.md\x1E\n# TODO Debt Report\n\n\
+  **Repository:** <name>  **Scanned:** <paths>  **Date:** <YYYY-MM-DD>\n\n## Totals\n\
+  | Marker | Count | Overdue | No ticket | No owner |\n|---|---|---|---|---|\n| TODO\
+  \ | | | | |\n| FIXME | | | | |\n| HACK | | | | |\n| XXX | | | | |\n\n## Top 10 by\
+  \ score\n| Score | Location | Marker | Owner | Ticket | Due | Problems | Proposed\
+  \ action |\n|---|---|---|---|---|---|---|---|\n| | | | | | | | |\n\n## By owner\n\
+  | Owner | Items | Overdue |\n|---|---|---|\n\n## Agreed actions\n- [ ] Fix now:\n\
+  - [ ] Ticket created:\n- [ ] Delete (obsolete):\n\n## Convention reminder\n`# TODO(owner,\
+  \ TICKET-123, YYYY-MM-DD): action and reason`\n\x1FFILE:examples/sample_service.py\x1E\
+  \n\"\"\"Sample order service with typical TODO comments for demos of todo_debt.py.\"\
+  \"\"\nimport json\n\nTAX_RATE = 0.2  # XXX(PAY-311): confirm tax rate per region\
+  \ with finance\n\n\ndef load_orders(path):\n    # TODO(maria, 2026-03-01): switch\
+  \ to streaming parser once files exceed 50 MB (#88)\n    with open(path, encoding=\"\
+  utf-8\") as fh:\n        return json.load(fh)\n\n\ndef total(order):\n    # FIXME:\
+  \ returns wrong total when a discount exceeds the subtotal\n    subtotal = sum(item[\"\
+  price\"] * item[\"qty\"] for item in order[\"items\"])\n    discount = order.get(\"\
+  discount\", 0)\n    return round((subtotal - discount) * (1 + TAX_RATE), 2)\n\n\n\
+  def notify(order):\n    # HACK [2026-11-30] skip emails for test accounts until\
+  \ the staging mail stub is fixed\n    if order.get(\"email\", \"\").endswith(\"\
+  @test.local\"):\n        return False\n    # TODO: retry\n    return True\n\n\n\
+  def label(order):\n    note = \"TODO: this string is not a comment and should be\
+  \ ignored\"\n    # TODO(@ken, OPS-19): move label printing to the warehouse service\n\
+  \    return f\"{order['id']} {note[:0]}\"\n\x1FFILE:scripts/todo_debt.py\x1E\n#!/usr/bin/env\
+  \ python3\n\"\"\"Scan source files for TODO/FIXME/HACK/XXX comments and grade them\
+  \ (Python 3 standard library only).\n\nRecognized forms (marker must follow a comment\
+  \ token: #  //  /*  *  --  ;  <!--):\n  # TODO: plain note\n  // TODO(alice): owner\n\
+  \  # FIXME(#123): issue number      # TODO(PROJ-42) ticket key      # TODO(https://...)\
+  \ link\n  # TODO(bob, 2026-12-01): owner + due date   # HACK [2026-11-15] due date\
+  \ in brackets\nProblems flagged per item:\n  no_owner, no_ticket, overdue (due date\
+  \ before --today), stale_hack (HACK/XXX without ticket),\n  vague (fewer than 3\
+  \ words of text)\nExit code: 1 if any item is overdue or a FIXME/HACK/XXX has no\
+  \ ticket (with --strict: any problem).\n\"\"\"\nimport argparse\nimport datetime\
+  \ as dt\nimport json\nimport os\nimport re\nimport sys\n\nMARKERS = (\"TODO\", \"\
+  FIXME\", \"HACK\", \"XXX\")\nSEVERITY = {\"FIXME\": 3, \"HACK\": 3, \"XXX\": 3,\
+  \ \"TODO\": 1}\nCOMMENT_RE = re.compile(\n    r\"(?:#|//|/\\*|(?:^|\\s)\\*|--|;|<!--)\\\
+  s*(?P<marker>TODO|FIXME|HACK|XXX)\\b\"\n    r\"(?:\\s*\\((?P<paren>[^)]*)\\))?(?:\\\
+  s*\\[(?P<bracket>[^\\]]*)\\])?\\s*:?\\s*(?P<text>.*)$\")\nDATE_RE = re.compile(r\"\
+  \\b(\\d{4}-\\d{2}-\\d{2})\\b\")\nTICKET_RE = re.compile(r\"(#\\d+\\b|\\b[A-Z][A-Z0-9]+-\\\
+  d+\\b|https?://\\S+)\")\nOWNER_RE = re.compile(r\"^@?([A-Za-z][\\w.-]*)$\")\nDEFAULT_EXT\
+  \ = {\".py\", \".js\", \".ts\", \".tsx\", \".jsx\", \".go\", \".rs\", \".java\"\
+  , \".kt\", \".c\", \".h\", \".cpp\",\n               \".cs\", \".rb\", \".php\"\
+  , \".swift\", \".sh\", \".sql\", \".yaml\", \".yml\", \".toml\", \".css\", \".scss\"\
+  ,\n               \".html\", \".vue\", \".lua\"}\nSKIP_DIRS = {\".git\", \"node_modules\"\
+  , \"vendor\", \"dist\", \"build\", \".venv\", \"venv\", \"__pycache__\", \"target\"\
+  }\n\n\ndef parse_line(line, path=\"<text>\", lineno=0, today=None):\n    m = COMMENT_RE.search(line)\n\
+  \    if not m:\n        return None\n    marker = m.group(\"marker\")\n    meta\
+  \ = \",\".join(x for x in (m.group(\"paren\"), m.group(\"bracket\")) if x)\n   \
+  \ text = (m.group(\"text\") or \"\").strip().rstrip(\"*/\").rstrip(\"-->\").strip()\n\
+  \    owner = None\n    ticket = None\n    due = None\n    for part in [p.strip()\
+  \ for p in meta.split(\",\") if p.strip()]:\n        if DATE_RE.fullmatch(part.replace(\"\
+  by \", \"\").replace(\"until \", \"\").strip()):\n            due = DATE_RE.search(part).group(1)\n\
+  \        elif TICKET_RE.fullmatch(part):\n            ticket = part\n        elif\
+  \ OWNER_RE.fullmatch(part) and owner is None:\n            owner = OWNER_RE.fullmatch(part).group(1)\n\
+  \    if ticket is None:\n        t = TICKET_RE.search(text)\n        if t:\n   \
+  \         ticket = t.group(1)\n    if due is None:\n        d = re.search(r\"\\\
+  b(?:by|until|before|due)\\s+(\\d{4}-\\d{2}-\\d{2})\\b\", text)\n        if d:\n\
+  \            due = d.group(1)\n    problems = []\n    if not owner:\n        problems.append(\"\
+  no_owner\")\n    if not ticket:\n        problems.append(\"no_ticket\")\n      \
+  \  if marker in (\"HACK\", \"XXX\"):\n            problems.append(\"stale_hack\"\
+  )\n    if due and today:\n        try:\n            if dt.date.fromisoformat(due)\
+  \ < today:\n                problems.append(\"overdue\")\n        except ValueError:\n\
+  \            problems.append(\"bad_date\")\n    if len(re.findall(r\"[A-Za-z]{2,}\"\
+  , text)) < 3:\n        problems.append(\"vague\")\n    return {\"file\": path, \"\
+  line\": lineno, \"marker\": marker, \"owner\": owner, \"ticket\": ticket,\n    \
+  \        \"due\": due, \"text\": text, \"problems\": problems,\n            \"score\"\
+  : SEVERITY[marker] + 2 * (\"overdue\" in problems) + (\"no_ticket\" in problems)}\n\
+  \n\ndef scan_text(text, path=\"<text>\", today=None):\n    items = []\n    for i,\
+  \ line in enumerate(text.splitlines(), 1):\n        it = parse_line(line, path,\
+  \ i, today)\n        if it:\n            items.append(it)\n    return items\n\n\n\
+  def iter_files(root, exts):\n    if os.path.isfile(root):\n        yield root\n\
+  \        return\n    for dirpath, dirnames, filenames in os.walk(root):\n      \
+  \  dirnames[:] = sorted(d for d in dirnames if d not in SKIP_DIRS)\n        for\
+  \ fn in sorted(filenames):\n            if os.path.splitext(fn)[1].lower() in exts:\n\
+  \                yield os.path.join(dirpath, fn)\n\n\ndef is_blocking(item, strict=False):\n\
+  \    if strict:\n        return bool(item[\"problems\"])\n    return \"overdue\"\
+  \ in item[\"problems\"] or (item[\"marker\"] != \"TODO\" and \"no_ticket\" in item[\"\
+  problems\"])\n\n\ndef summarize(items):\n    s = {\"total\": len(items), \"by_marker\"\
+  : {}, \"by_owner\": {}, \"problems\": {}}\n    for it in items:\n        s[\"by_marker\"\
+  ][it[\"marker\"]] = s[\"by_marker\"].get(it[\"marker\"], 0) + 1\n        o = it[\"\
+  owner\"] or \"(unowned)\"\n        s[\"by_owner\"][o] = s[\"by_owner\"].get(o, 0)\
+  \ + 1\n        for p in it[\"problems\"]:\n            s[\"problems\"][p] = s[\"\
+  problems\"].get(p, 0) + 1\n    return s\n\n\ndef render(items):\n    out = [\"|\
+  \ Score | Marker | Location | Owner | Ticket | Due | Problems | Text |\", \"|---|---|---|---|---|---|---|---|\"\
+  ]\n    for it in sorted(items, key=lambda x: (-x[\"score\"], x[\"file\"], x[\"line\"\
+  ])):\n        out.append(f\"| {it['score']} | {it['marker']} | {it['file']}:{it['line']}\
+  \ | {it['owner'] or '-'} | \"\n                   f\"{it['ticket'] or '-'} | {it['due']\
+  \ or '-'} | {', '.join(it['problems']) or 'ok'} | {it['text'][:60]} |\")\n    return\
+  \ \"\\n\".join(out)\n\n\nSAMPLE = '''import os\n# TODO(alice, 2026-01-15): remove\
+  \ legacy CSV export after #412 ships\ndef f():\n    pass  # FIXME: crashes when\
+  \ list is empty\n// HACK [2026-12-31] skip auth in local dev\n/* XXX(PROJ-77): double-check\
+  \ rounding with finance */\n-- TODO(@bob): add index\nx = \"TODO: this is a string,\
+  \ not a comment\"\n<!-- TODO(carol): https://example.com/issues/9 replace hero image\
+  \ -->\n * TODO update docs by 2025-05-01\n# todo lowercase is ignored\n'''\n\n\n\
+  def self_test():\n    today = dt.date(2026, 10, 18)\n    items = scan_text(SAMPLE,\
+  \ \"sample\", today)\n    by_line = {it[\"line\"]: it for it in items}\n    cases\
+  \ = [\n        (\"count\", len(items), 7),\n        (\"owner_parsed\", by_line[2][\"\
+  owner\"], \"alice\"),\n        (\"due_parsed\", by_line[2][\"due\"], \"2026-01-15\"\
+  ),\n        (\"overdue_flag\", \"overdue\" in by_line[2][\"problems\"], True),\n\
+  \        (\"ticket_from_text\", by_line[2][\"ticket\"], \"#412\"),\n        (\"\
+  fixme_no_ticket\", by_line[4][\"problems\"][:2], [\"no_owner\", \"no_ticket\"]),\n\
+  \        (\"fixme_blocking\", is_blocking(by_line[4]), True),\n        (\"hack_bracket_due_future\"\
+  , \"overdue\" in by_line[5][\"problems\"], False),\n        (\"hack_stale\", \"\
+  stale_hack\" in by_line[5][\"problems\"], True),\n        (\"xxx_ticket_key\", by_line[6][\"\
+  ticket\"], \"PROJ-77\"),\n        (\"at_owner\", by_line[7][\"owner\"], \"bob\"\
+  ),\n        (\"vague_short\", \"vague\" in by_line[7][\"problems\"], True),\n  \
+  \      (\"string_not_comment\", 8 in by_line, False),\n        (\"html_comment_link\"\
+  , by_line[9][\"ticket\"], \"https://example.com/issues/9\"),\n        (\"star_comment_due_text\"\
+  , by_line[10][\"due\"], \"2025-05-01\"),\n        (\"lowercase_ignored\", 11 in\
+  \ by_line, False),\n        (\"todo_not_blocking_default\", is_blocking(by_line[7]),\
+  \ False),\n        (\"todo_blocking_strict\", is_blocking(by_line[7], strict=True),\
+  \ True),\n        (\"summary_markers\", summarize(items)[\"by_marker\"], {\"TODO\"\
+  : 4, \"FIXME\": 1, \"HACK\": 1, \"XXX\": 1}),\n        (\"score_overdue_todo\",\
+  \ by_line[2][\"score\"], 3),\n    ]\n    failed = 0\n    for name, got, expected\
+  \ in cases:\n        ok = got == expected\n        failed += not ok\n        print(f\"\
+  {'PASS' if ok else 'FAIL'}  {name}: got={got!r} expected={expected!r}\")\n    print(f\"\
+  \\n{len(cases) - failed}/{len(cases)} passed\")\n    return 1 if failed else 0\n\
+  \n\ndef main(argv=None):\n    p = argparse.ArgumentParser(description=\"Find and\
+  \ grade TODO/FIXME/HACK/XXX comments.\")\n    p.add_argument(\"paths\", nargs=\"\
+  *\", default=[], help=\"files or directories to scan\")\n    p.add_argument(\"--today\"\
+  , help=\"YYYY-MM-DD for overdue checks (default: today)\")\n    p.add_argument(\"\
+  --ext\", help=\"comma-separated extensions to include, e.g. .py,.ts\")\n    p.add_argument(\"\
+  --json\", action=\"store_true\")\n    p.add_argument(\"--strict\", action=\"store_true\"\
+  , help=\"exit 1 on any problem\")\n    p.add_argument(\"--self-test\", action=\"\
+  store_true\")\n    a = p.parse_args(argv)\n    if a.self_test:\n        return self_test()\n\
+  \    if not a.paths:\n        p.error(\"give files/directories to scan, or --self-test\"\
+  )\n    today = dt.date.fromisoformat(a.today) if a.today else dt.date.today()\n\
+  \    exts = {e if e.startswith(\".\") else \".\" + e for e in a.ext.split(\",\"\
+  )} if a.ext else DEFAULT_EXT\n    items = []\n    for root in a.paths:\n       \
+  \ for path in iter_files(root, exts):\n            try:\n                with open(path,\
+  \ encoding=\"utf-8\", errors=\"replace\") as fh:\n                    items += scan_text(fh.read(),\
+  \ path, today)\n            except OSError as e:\n                print(f\"warn:\
+  \ {path}: {e}\", file=sys.stderr)\n    if a.json:\n        print(json.dumps({\"\
+  summary\": summarize(items), \"items\": items}, indent=2))\n    else:\n        print(render(items))\n\
+  \        s = summarize(items)\n        print(f\"\\nTotal {s['total']}; markers {s['by_marker']};\
+  \ problems {s['problems']}\")\n    return 1 if any(is_blocking(it, a.strict) for\
+  \ it in items) else 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
