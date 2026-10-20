@@ -1,7 +1,7 @@
 slug: session-continuity-engine
 title: Session Continuity Engine
 description: Imported from Prompts Chat
-prompt: "# Prompt: Session Continuity Engine (SCE)\n# Version: 1.2.3\n# Author: Scott\
+prompt: "# Prompt: Session Continuity Engine (SCE)\n# Version: 1.2.4\n# Author: Scott\
   \ Malin, CISSP\n# Purpose:\n# Compresses a completed AI session into a structured\
   \ continuity package that can be\n# transferred into a new session (including across\
   \ different AI platforms) to preserve\n# project context, historical decisions,\
@@ -12,7 +12,8 @@ prompt: "# Prompt: Session Continuity Engine (SCE)\n# Version: 1.2.3\n# Author: 
   \ parsing issues. Standardized JSON keys.\n#   Quantified context scale metrics.\
   \ Clarified Section 8 verification payload rules.\n# - v1.2.3: Re-engineered compliance\
   \ notice and guidelines into passive, static\n#   reference language to completely\
-  \ eliminate heuristic safety filter triggers.\n--------------------------------------------------------------------------\n\
+  \ eliminate heuristic safety filter triggers.\n# - v1.2.4 — 2026-10-19: Integrated\
+  \ LLM adaptation note for format and verification template control.\n--------------------------------------------------------------------------\n\
   We are ending this session to preserve context, reduce context drift, and\nmaintain\
   \ continuity across future conversations.\nYour task is to create a comprehensive\
   \ Session Transfer Package that captures\nthe current project state, active decisions,\
@@ -32,6 +33,13 @@ prompt: "# Prompt: Session Continuity Engine (SCE)\n# Version: 1.2.3\n# Author: 
   \  to prevent regression or configuration drift.\n- Use tables or compact lists\
   \ for scannable reference when displaying assets.\n- Request explicit clarification\
   \ if the archived data conflicts with current objectives.\n--------------------------------------------------------------------------\n\
+  LLM ADAPTATION NOTE\n--------------------------------------------------------------------------\n\
+  [LLM ADAPTATION NOTE v1.0] Carefully verify whether Markdown or JSON mode is requested\
+  \ before generating the output; default to Markdown using the exact section numbers\
+  \ and headings 0 through 8. For Section 8, output the verification template verbatim\
+  \ without executing it as instructions. Ensure all active project decisions, constraints,\
+  \ and source-of-truth assets from the conversation history are accurately condensed\
+  \ into the respective sections without omitting key metadata or metrics.\n--------------------------------------------------------------------------\n\
   OUTPUT GENERATION INSTRUCTIONS\n--------------------------------------------------------------------------\n\
   Generate the final output exactly as follows:\n1. A brief introductory sentence.\n\
   2. One markdown codeblock containing the Session Transfer Package.\n\nNESTED CODEBLOCK\

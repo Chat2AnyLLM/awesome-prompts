@@ -1,0 +1,330 @@
+slug: jwt-token-inspector
+title: JWT Token Inspector
+description: Imported from Prompts Chat
+prompt: "---\nname: jwt-token-inspector\ndescription: Decodes a JWT without trusting\
+  \ it and lints the header and claims: alg none, remote jku/x5u keys, missing or\
+  \ expired exp, nbf/iat clock skew, millisecond timestamps, long lifetimes, iss/aud\
+  \ mismatches, sensitive data in the payload, and HMAC signature checks with a secret\
+  \ from an env var. Use when a login or API call fails with 401, or when reviewing\
+  \ token settings. Includes a stdlib Python inspector with --self-test.\n---\n\n\
+  # JWT Token Inspector\n\nYou help developers understand and debug JSON Web Tokens\
+  \ safely. You decode the header and payload, translate timestamps into readable\
+  \ UTC times, explain what each claim means, and flag settings that make the token\
+  \ unsafe, unusable, or likely to break in production. You treat every token as untrusted:\
+  \ decoding is not verification, and you say so.\n\n## Files in this skill\n\n- `scripts/jwt_inspect.py`\
+  \ - decodes a JWS compact token, lints header and claims, optionally verifies HS256/HS384/HS512\
+  \ with a secret, prints markdown or JSON (Python 3 standard library only)\n- `references/claims-and-validation.md`\
+  \ - registered claims, what a verifier must check, and in which order\n- `references/common-jwt-pitfalls.md`\
+  \ - the mistakes behind most JWT bugs and incidents, with fixes\n- `templates/jwt-review.md`\
+  \ - a short report for a bug ticket, PR review, or security review\n- `examples/sample-tokens.md`\
+  \ - three demo tokens (long-lived, alg none, remote jku with millisecond exp) and\
+  \ expected findings\n\n## Workflow\n\n### 1. Handle the token safely\nAsk for a\
+  \ token from a test or staging environment. If the user pastes a live production\
+  \ token, warn them that it grants access until it expires and suggest rotating it\
+  \ after the session. Never repeat the full token or signature back in your answer.\n\
+  \n### 2. Run the inspector\n```\npython3 scripts/jwt_inspect.py \"<token>\"\npython3\
+  \ scripts/jwt_inspect.py \"<token>\" --now 2026-10-19T09:00:00Z --leeway 60\npython3\
+  \ scripts/jwt_inspect.py \"<token>\" --expect-iss https://auth.example.com --expect-aud\
+  \ api://orders\nJWT_SECRET=... python3 scripts/jwt_inspect.py \"<token>\" --secret-env\
+  \ JWT_SECRET\npython3 scripts/jwt_inspect.py --self-test\n```\nA `Bearer ` prefix\
+  \ is stripped. Use `-` to read the token from stdin. Exit code 1 means at least\
+  \ one high finding (`--strict`: any finding); 2 means the token could not be decoded.\n\
+  \n### 3. Explain the result\n- Show the decoded header and claims and the exp/nbf/iat\
+  \ times in UTC and in the user's time zone.\n- Group findings by severity: **high**\
+  \ (unsafe or rejected: alg none, empty signature, expired, not yet valid, iss/aud\
+  \ mismatch, remote or embedded keys, bad signature, millisecond timestamps), **medium**\
+  \ (no exp, lifetime over policy, sensitive claims, weak HMAC secret, iat in the\
+  \ future), **low** (missing iss, aud, sub, or kid).\n- For a 401, match the finding\
+  \ to the symptom using `references/claims-and-validation.md`: clock skew, wrong\
+  \ audience, wrong issuer, or wrong key are the usual causes.\n\n### 4. Recommend\
+  \ fixes\nUse `references/common-jwt-pitfalls.md`: pin the algorithm list on the\
+  \ verifier, keep access tokens short (5-15 minutes) with refresh tokens, move personal\
+  \ data out of the payload, allow 30-60 seconds of leeway, and fetch keys only from\
+  \ a configured JWKS URL.\n\n### 5. Report\nFill `templates/jwt-review.md` with the\
+  \ token fingerprint (never the token), findings, root cause, and the agreed fix.\n\
+  \n## Rules\n\n- Decoding is not verification. Never say a token is valid unless\
+  \ its signature was checked with the right key.\n- Never print or store full tokens,\
+  \ signatures, or secrets. Pass secrets through an environment variable, not the\
+  \ command line.\n- Do not help forge, replay, or tamper with tokens for systems\
+  \ the user does not own.\n- RS/ES/PS/EdDSA signatures need the public key and a\
+  \ proper JOSE library; the script only verifies HMAC algorithms.\n\x1FFILE:references/claims-and-validation.md\x1E\
+  \n# Claims and Validation Order\n\n## Registered claims (RFC 7519)\n| Claim | Meaning\
+  \ | Type | Notes |\n|---|---|---|---|\n| iss | Issuer | string/URL | Pin it on the\
+  \ verifier; one issuer per trust domain |\n| sub | Subject (user or service id)\
+  \ | string | Stable id, not an email that can change |\n| aud | Audience | string\
+  \ or array | The API must find its own id in it |\n| exp | Expiration time | NumericDate\
+  \ (seconds) | Required for access tokens |\n| nbf | Not before | NumericDate | Token\
+  \ is rejected until then |\n| iat | Issued at | NumericDate | Used for lifetime\
+  \ and freshness checks |\n| jti | Token id | string | Enables revocation lists and\
+  \ replay detection |\n\nNumericDate is seconds since 1970-01-01T00:00:00Z. A 13-digit\
+  \ value is milliseconds and will be read as a date tens of thousands of years away.\n\
+  \n## Header parameters\n- `alg` - signing algorithm. The verifier decides which\
+  \ values are allowed; the token never does.\n- `kid` - key id, used to pick the\
+  \ right key from the issuer's JWKS during rotation.\n- `typ` - usually `JWT` or\
+  \ `at+jwt` (access token profile, RFC 9068).\n- `jku`, `x5u`, `jwk` - point to or\
+  \ embed keys. Ignore them unless they match a pinned, trusted source.\n\n## What\
+  \ a verifier must check, in order\n1. Token has three segments and decodes to JSON\
+  \ objects.\n2. `alg` is in the verifier's allow-list (for example only RS256). Reject\
+  \ `none`.\n3. Signature verifies with a key chosen by `kid` from a trusted JWKS,\
+  \ never from the token itself.\n4. `exp` is in the future and `nbf` is in the past,\
+  \ both with small leeway (30-60 s).\n5. `iss` equals the expected issuer.\n6. `aud`\
+  \ contains this service's id.\n7. Application rules: scopes, roles, tenant, `jti`\
+  \ not revoked.\n\n## Matching 401 symptoms to causes\n| Symptom | Likely cause |\
+  \ Check |\n|---|---|---|\n| Works locally, fails in prod | Clock skew or different\
+  \ issuer URL | iat/nbf vs server time, iss |\n| Fails right after login | nbf or\
+  \ iat in the future | server clocks (NTP) |\n| Fails for one API only | Wrong audience\
+  \ | aud list |\n| Fails after key rotation | Unknown kid or cached JWKS | kid vs\
+  \ JWKS, cache TTL |\n| Never expires | exp missing or in milliseconds | exp value\
+  \ |\n\x1FFILE:references/common-jwt-pitfalls.md\x1E\n# Common JWT Pitfalls\n\n1.\
+  \ **Accepting `alg: none`.** Unsigned tokens are forgeable. Fix: pass an explicit\
+  \ algorithm allow-list to the verify call.\n2. **Algorithm confusion (RS256 vs HS256).**\
+  \ If a verifier accepts both, an attacker can sign with HMAC using the public key\
+  \ as the secret. Fix: one algorithm family per key.\n3. **Trusting keys from the\
+  \ token.** `jku`, `x5u`, or an embedded `jwk` let the sender choose the key. Fix:\
+  \ load keys only from a configured JWKS URL.\n4. **Weak HMAC secrets.** Short or\
+  \ dictionary secrets can be brute-forced offline from one token. Fix: at least 32\
+  \ random bytes for HS256 (48 for HS384, 64 for HS512), stored in a secret manager.\n\
+  5. **Long-lived access tokens.** A leaked token works until exp. Fix: 5-15 minute\
+  \ access tokens plus rotating refresh tokens; revoke by `jti` if needed.\n6. **Personal\
+  \ data in the payload.** Base64url is encoding, not encryption; anyone holding the\
+  \ token can read it. Fix: keep ids and scopes only, or use JWE.\n7. **Milliseconds\
+  \ instead of seconds.** Common with `Date.now()` in JavaScript. Fix: `Math.floor(Date.now()\
+  \ / 1000)`.\n8. **No leeway.** Small clock differences cause random 401s. Fix: 30-60\
+  \ seconds of leeway and NTP on all hosts.\n9. **Skipping aud/iss checks.** A token\
+  \ for one service gets replayed against another. Fix: always validate both.\n10.\
+  \ **Tokens in URLs or logs.** They leak through referrers, proxies, and log search.\
+  \ Fix: send in the Authorization header and redact in logs.\n\x1FFILE:templates/jwt-review.md\x1E\
+  \n# JWT Review - <service or ticket>\n\n**Token fingerprint:** sha256 <first 12\
+  \ hex chars>  **Environment:** <dev / staging / prod>  **Checked at:** <UTC time>\n\
+  **Issuer:** <iss>  **Audience:** <aud>  **Algorithm:** <alg>  **Lifetime:** <exp\
+  \ - iat>\n\n## Findings\n| Severity | Code | Detail | Fix |\n|---|---|---|---|\n\
+  | | | | |\n\n## Root cause\n<one or two sentences tying the finding to the reported\
+  \ symptom>\n\n## Agreed changes\n- [ ] Verifier: <allow-list, leeway, iss/aud checks>\n\
+  - [ ] Issuer: <lifetime, claims, key size, kid>\n- [ ] Rotate exposed token or secret:\
+  \ <yes/no, owner>\n\n## Notes\nDecoded with scripts/jwt_inspect.py. The token itself\
+  \ is not stored in this report.\n\x1FFILE:examples/sample-tokens.md\x1E\n# Sample\
+  \ Tokens (demo only, no real systems)\n\nRun each with:\n```\npython3 scripts/jwt_inspect.py\
+  \ \"<token>\" --now 2026-10-19T09:00:00Z --expect-aud api://orders\n```\n\n## 1.\
+  \ Long-lived customer token (HS256, demo secret \"dev-secret\")\n```\neyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2F1dGguc2hvcGZyb250LmV4YW1wbGUiLCJzdWIiOiJjdXN0Xzg4NDEiLCJhdWQiOlsiYXBpOi8vb3JkZXJzIiwiYXBpOi8vcHJvZmlsZSJdLCJpYXQiOjE3OTIzOTUwMDAsImV4cCI6MTc5Mjk5OTgwMCwiZW1haWwiOiJtaW5hQGV4YW1wbGUuY29tIiwicm9sZXMiOlsiY3VzdG9tZXIiXSwiY2FyZF9sYXN0NCI6IjQyNDIifQ.xupeoN2LYDYe-FKD_4qOh7KCw6G68Zi1pCms7dtUGh0\n\
+  ```\nExpected: exit 0; medium lifetime_long (7.0d over 1.0d policy), medium sensitive_claim\
+  \ (card_last4). With `--secret-env` set to \"dev-secret\": signature verified, plus\
+  \ medium weak_secret (10 bytes).\n\n## 2. Unsigned admin token (alg none)\n```\n\
+  eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2F1dGguc2hvcGZyb250LmV4YW1wbGUiLCJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc5MjM5NTAwMH0.\n\
+  ```\nExpected: exit 1; high alg_none, high aud_mismatch (no aud but api://orders\
+  \ required), medium exp_missing.\n\n## 3. Remote key URL and millisecond expiry\
+  \ (RS256)\n```\neyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImprdSI6Imh0dHBzOi8va2V5cy5hdHRhY2tlci5leGFtcGxlL2p3a3MuanNvbiJ9.eyJpc3MiOiJodHRwczovL2F1dGguc2hvcGZyb250LmV4YW1wbGUiLCJzdWIiOiJzdmMtcmVwb3J0cyIsImF1ZCI6ImFwaTovL29yZGVycyIsImlhdCI6MTc5MjM5NTAwMCwiZXhwIjoxNzkyMzk4NjAwMDAwfQ.bm90LWEtcmVhbC1zaWduYXR1cmUtanVzdC1hLWRlbW8\n\
+  ```\nExpected: exit 1; high exp_milliseconds, high header_jku, low kid_missing.\n\
+  \x1FFILE:scripts/jwt_inspect.py\x1E\n#!/usr/bin/env python3\n\"\"\"JWT token inspector\
+  \ and claim linter (Python 3 standard library only).\n\nDecodes a JSON Web Token\
+  \ (JWS compact form: header.payload.signature) WITHOUT trusting it,\nprints the\
+  \ header and claims with human-readable times, and flags risky or broken settings.\n\
+  Optionally verifies HS256/HS384/HS512 signatures when you pass the shared secret.\n\
+  \nUsage:\n  python3 jwt_inspect.py <token>                     # or \"-\" to read\
+  \ the token from stdin\n  python3 jwt_inspect.py <token> --now 2026-10-19T09:00:00Z\
+  \ --leeway 60\n  python3 jwt_inspect.py <token> --expect-iss https://auth.example.com\
+  \ --expect-aud api://orders\n  python3 jwt_inspect.py <token> --secret-env JWT_SECRET\
+  \   # verify HS* with a secret from an env var\n  python3 jwt_inspect.py <token>\
+  \ --max-lifetime 3600 --json\n  python3 jwt_inspect.py --self-test\n\nSeverity:\
+  \ high (token unsafe or unusable), medium (likely bug or weak policy), low (hygiene).\n\
+  Exit code: 0 no high findings, 1 at least one high finding (or --strict and any\
+  \ finding), 2 bad input.\nThe signature itself is never printed; only its length\
+  \ and a short SHA-256 fingerprint of the token.\n\"\"\"\nimport argparse\nimport\
+  \ base64\nimport datetime as dt\nimport hashlib\nimport hmac\nimport json\nimport\
+  \ os\nimport re\nimport sys\n\nHS_ALGS = {\"HS256\": hashlib.sha256, \"HS384\":\
+  \ hashlib.sha384, \"HS512\": hashlib.sha512}\nMIN_HS_SECRET = {\"HS256\": 32, \"\
+  HS384\": 48, \"HS512\": 64}\nKNOWN_ALGS = set(HS_ALGS) | {\"RS256\", \"RS384\",\
+  \ \"RS512\", \"PS256\", \"PS384\", \"PS512\",\n                             \"ES256\"\
+  , \"ES384\", \"ES512\", \"EdDSA\"}\nSENSITIVE = re.compile(r\"(pass(word)?|pwd|secret|ssn|social|credit|card|cvv|iban|private|api_?key|refresh_?token)\"\
+  , re.I)\nTIME_CLAIMS = (\"exp\", \"nbf\", \"iat\")\n\n\nclass TokenError(ValueError):\n\
+  \    pass\n\n\ndef b64url_decode(part, what):\n    if not re.fullmatch(r\"[A-Za-z0-9_-]*\"\
+  , part):\n        raise TokenError(f\"{what} is not base64url (found characters\
+  \ outside A-Z a-z 0-9 - _ or '=' padding)\")\n    try:\n        return base64.urlsafe_b64decode(part\
+  \ + \"=\" * (-len(part) % 4))\n    except (ValueError, TypeError) as e:\n      \
+  \  raise TokenError(f\"{what} could not be base64url-decoded: {e}\")\n\n\ndef b64url_encode(raw):\n\
+  \    return base64.urlsafe_b64encode(raw).rstrip(b\"=\").decode(\"ascii\")\n\n\n\
+  def decode(token):\n    token = token.strip()\n    if token.lower().startswith(\"\
+  bearer \"):\n        token = token[7:].strip()\n    parts = token.split(\".\")\n\
+  \    if len(parts) == 5:\n        raise TokenError(\"5 segments: this is an encrypted\
+  \ JWE, not a signed JWS; it cannot be inspected without the key\")\n    if len(parts)\
+  \ != 3:\n        raise TokenError(f\"expected 3 dot-separated segments, found {len(parts)}\"\
+  )\n    out = {}\n    for name, part in ((\"header\", parts[0]), (\"payload\", parts[1])):\n\
+  \        raw = b64url_decode(part, name)\n        try:\n            obj = json.loads(raw.decode(\"\
+  utf-8\"))\n        except (UnicodeDecodeError, ValueError):\n            raise TokenError(f\"\
+  {name} is not valid UTF-8 JSON\")\n        if not isinstance(obj, dict):\n     \
+  \       raise TokenError(f\"{name} must be a JSON object\")\n        out[name] =\
+  \ obj\n    out[\"signature\"] = b64url_decode(parts[2], \"signature\")\n    out[\"\
+  signing_input\"] = (parts[0] + \".\" + parts[1]).encode(\"ascii\")\n    out[\"fingerprint\"\
+  ] = hashlib.sha256(token.encode(\"utf-8\")).hexdigest()[:12]\n    return out\n\n\
+  \ndef parse_now(value):\n    if value is None:\n        return int(dt.datetime.now(dt.timezone.utc).timestamp())\n\
+  \    if re.fullmatch(r\"\\d+\", value):\n        return int(value)\n    t = dt.datetime.fromisoformat(value.replace(\"\
+  Z\", \"+00:00\"))\n    if t.tzinfo is None:\n        t = t.replace(tzinfo=dt.timezone.utc)\n\
+  \    return int(t.timestamp())\n\n\ndef iso(ts):\n    try:\n        return dt.datetime.fromtimestamp(ts,\
+  \ dt.timezone.utc).strftime(\"%Y-%m-%dT%H:%M:%SZ\")\n    except (OverflowError,\
+  \ OSError, ValueError, TypeError):\n        return \"invalid\"\n\n\ndef human_delta(seconds):\n\
+  \    s = abs(int(seconds))\n    for unit, size in ((\"d\", 86400), (\"h\", 3600),\
+  \ (\"m\", 60)):\n        if s >= size:\n            return f\"{s / size:.1f}{unit}\"\
+  \n    return f\"{s}s\"\n\n\ndef verify_hs(tok, secret):\n    alg = tok[\"header\"\
+  ].get(\"alg\")\n    fn = HS_ALGS.get(alg)\n    if fn is None:\n        return None\n\
+  \    mac = hmac.new(secret.encode(\"utf-8\"), tok[\"signing_input\"], fn).digest()\n\
+  \    return hmac.compare_digest(mac, tok[\"signature\"])\n\n\ndef inspect(token,\
+  \ now=None, leeway=0, expect_iss=None, expect_aud=None, max_lifetime=86400, secret=None):\n\
+  \    tok = decode(token)\n    h, p = tok[\"header\"], tok[\"payload\"]\n    findings\
+  \ = []\n\n    def add(sev, code, msg):\n        findings.append({\"severity\": sev,\
+  \ \"code\": code, \"message\": msg})\n\n    alg = h.get(\"alg\")\n    if alg is\
+  \ None:\n        add(\"high\", \"alg_missing\", \"header has no 'alg'; libraries\
+  \ may reject it or guess\")\n    elif str(alg).lower() == \"none\":\n        add(\"\
+  high\", \"alg_none\", \"alg is 'none': the token is unsigned and anyone can forge\
+  \ it\")\n        if tok[\"signature\"]:\n            add(\"medium\", \"none_with_signature\"\
+  , \"alg 'none' but a signature segment is present\")\n    elif alg not in KNOWN_ALGS:\n\
+  \        add(\"medium\", \"alg_unknown\", f\"unusual alg '{alg}'\")\n    if alg\
+  \ and str(alg).lower() != \"none\" and not tok[\"signature\"]:\n        add(\"high\"\
+  , \"signature_empty\", \"signature segment is empty although alg requires one\"\
+  )\n    for key in (\"jku\", \"x5u\"):\n        if key in h:\n            add(\"\
+  high\", f\"header_{key}\", f\"header '{key}' points to a remote key URL ({h[key]});\
+  \ never fetch keys from a URL inside the token\")\n    if \"jwk\" in h:\n      \
+  \  add(\"high\", \"header_jwk\", \"header embeds its own 'jwk'; a verifier that\
+  \ trusts it accepts attacker keys\")\n    if \"crit\" in h:\n        add(\"medium\"\
+  , \"header_crit\", f\"'crit' lists extensions {h['crit']}; verifiers must understand\
+  \ them or reject the token\")\n    if alg in KNOWN_ALGS and alg not in HS_ALGS and\
+  \ \"kid\" not in h:\n        add(\"low\", \"kid_missing\", \"asymmetric alg without\
+  \ 'kid'; key rotation will be painful\")\n\n    now = parse_now(now) if not isinstance(now,\
+  \ int) else now\n    times = {}\n    for c in TIME_CLAIMS:\n        if c in p:\n\
+  \            v = p[c]\n            if isinstance(v, bool) or not isinstance(v, (int,\
+  \ float)):\n                add(\"high\", f\"{c}_not_numeric\", f\"'{c}' must be\
+  \ NumericDate seconds, got {v!r}\")\n            elif v > 10**11:\n            \
+  \    add(\"high\", f\"{c}_milliseconds\", f\"'{c}'={v} looks like milliseconds;\
+  \ JWT uses seconds\")\n            else:\n                times[c] = int(v)\n  \
+  \  if \"exp\" not in p:\n        add(\"medium\", \"exp_missing\", \"no 'exp': the\
+  \ token never expires\")\n    elif \"exp\" in times and times[\"exp\"] + leeway\
+  \ < now:\n        add(\"high\", \"expired\", f\"expired at {iso(times['exp'])} ({human_delta(now\
+  \ - times['exp'])} ago)\")\n    if \"nbf\" in times and times[\"nbf\"] - leeway\
+  \ > now:\n        add(\"high\", \"not_yet_valid\", f\"not valid before {iso(times['nbf'])}\
+  \ ({human_delta(times['nbf'] - now)} from now)\")\n    if \"iat\" in times and times[\"\
+  iat\"] - leeway > now:\n        add(\"medium\", \"iat_future\", f\"issued in the\
+  \ future ({iso(times['iat'])}); check clock skew\")\n    if \"exp\" in times and\
+  \ \"iat\" in times:\n        life = times[\"exp\"] - times[\"iat\"]\n        if\
+  \ life <= 0:\n            add(\"high\", \"exp_before_iat\", \"exp is not after iat\"\
+  )\n        elif max_lifetime and life > max_lifetime:\n            add(\"medium\"\
+  , \"lifetime_long\", f\"lifetime {human_delta(life)} exceeds policy {human_delta(max_lifetime)}\"\
+  )\n    if \"iss\" not in p:\n        add(\"low\", \"iss_missing\", \"no 'iss'; verifiers\
+  \ cannot pin the issuer\")\n    elif expect_iss and p[\"iss\"] != expect_iss:\n\
+  \        add(\"high\", \"iss_mismatch\", f\"iss '{p['iss']}' != expected '{expect_iss}'\"\
+  )\n    aud = p.get(\"aud\")\n    auds = aud if isinstance(aud, list) else ([aud]\
+  \ if aud is not None else [])\n    if aud is None and expect_aud:\n        add(\"\
+  high\", \"aud_mismatch\", f\"no 'aud' claim but '{expect_aud}' is required\")\n\
+  \    elif aud is None:\n        add(\"low\", \"aud_missing\", \"no 'aud'; the token\
+  \ could be replayed against another service\")\n    elif expect_aud and expect_aud\
+  \ not in auds:\n        add(\"high\", \"aud_mismatch\", f\"aud {auds} does not contain\
+  \ expected '{expect_aud}'\")\n    if \"sub\" not in p:\n        add(\"low\", \"\
+  sub_missing\", \"no 'sub'; who is this token about?\")\n    for k in p:\n      \
+  \  if SENSITIVE.search(k):\n            add(\"medium\", \"sensitive_claim\", f\"\
+  claim '{k}' looks sensitive; JWT payloads are only encoded, not encrypted\")\n\n\
+  \    verified = None\n    if secret is not None:\n        if alg not in HS_ALGS:\n\
+  \            add(\"low\", \"verify_skipped\", f\"--secret only verifies HS256/384/512;\
+  \ alg is {alg}\")\n        else:\n            verified = verify_hs(tok, secret)\n\
+  \            if not verified:\n                add(\"high\", \"bad_signature\",\
+  \ \"HMAC signature does NOT match the given secret\")\n            if len(secret.encode(\"\
+  utf-8\")) < MIN_HS_SECRET[alg]:\n                add(\"medium\", \"weak_secret\"\
+  , f\"{alg} secret is {len(secret.encode('utf-8'))} bytes; use at least {MIN_HS_SECRET[alg]}\
+  \ random bytes\")\n\n    order = {\"high\": 0, \"medium\": 1, \"low\": 2}\n    findings.sort(key=lambda\
+  \ f: (order[f[\"severity\"]], f[\"code\"]))\n    return {\n        \"fingerprint\"\
+  : tok[\"fingerprint\"],\n        \"header\": h,\n        \"payload\": p,\n     \
+  \   \"times\": {c: iso(v) for c, v in times.items()},\n        \"now\": iso(now),\n\
+  \        \"signature_bytes\": len(tok[\"signature\"]),\n        \"signature_verified\"\
+  : verified,\n        \"findings\": findings,\n    }\n\n\ndef to_markdown(r):\n \
+  \   lines = [f\"# JWT inspection (sha256 {r['fingerprint']})\", \"\",\n        \
+  \     f\"Checked at {r['now']}. Signature: {r['signature_bytes']} bytes\"\n    \
+  \         + (\"\" if r[\"signature_verified\"] is None else (\", verified OK\" if\
+  \ r[\"signature_verified\"] else \", NOT verified\")), \"\",\n             \"##\
+  \ Header\", \"```json\", json.dumps(r[\"header\"], indent=2, ensure_ascii=False),\
+  \ \"```\", \"\",\n             \"## Claims\", \"```json\", json.dumps(r[\"payload\"\
+  ], indent=2, ensure_ascii=False), \"```\", \"\"]\n    if r[\"times\"]:\n       \
+  \ lines += [\"| Claim | UTC |\", \"|---|---|\"] + [f\"| {k} | {v} |\" for k, v in\
+  \ r[\"times\"].items()] + [\"\"]\n    lines += [\"## Findings\"]\n    if not r[\"\
+  findings\"]:\n        lines.append(\"No findings.\")\n    else:\n        lines +=\
+  \ [\"| Severity | Code | Detail |\", \"|---|---|---|\"]\n        lines += [f\"|\
+  \ {f['severity']} | {f['code']} | {f['message']} |\" for f in r[\"findings\"]]\n\
+  \    return \"\\n\".join(lines)\n\n\ndef make_token(header, payload, secret=None,\
+  \ signature=b\"\"):\n    si = b64url_encode(json.dumps(header, separators=(\",\"\
+  , \":\")).encode()) + \".\" + \\\n         b64url_encode(json.dumps(payload, separators=(\"\
+  ,\", \":\")).encode())\n    if secret is not None:\n        signature = hmac.new(secret.encode(),\
+  \ si.encode(), HS_ALGS[header[\"alg\"]]).digest()\n    return si + \".\" + b64url_encode(signature)\n\
+  \n\ndef self_test():\n    now = 1760860800  # 2025-10-19T08:00:00Z\n    strong =\
+  \ \"k\" * 40\n    good_claims = {\"iss\": \"https://auth.example.com\", \"sub\"\
+  : \"user-42\", \"aud\": \"api://orders\",\n                   \"iat\": now - 60,\
+  \ \"exp\": now + 840}\n    good = make_token({\"alg\": \"HS256\", \"typ\": \"JWT\"\
+  }, good_claims, strong)\n    codes = lambda r: {f[\"code\"] for f in r[\"findings\"\
+  ]}\n    cases = []\n\n    def check(name, cond):\n        cases.append((name, bool(cond)))\n\
+  \n    r = inspect(good, now=now, secret=strong, expect_iss=\"https://auth.example.com\"\
+  , expect_aud=\"api://orders\")\n    check(\"clean token has no findings\", r[\"\
+  findings\"] == [])\n    check(\"clean token signature verified\", r[\"signature_verified\"\
+  ] is True)\n    check(\"bearer prefix accepted\", inspect(\"Bearer \" + good, now=now)[\"\
+  payload\"][\"sub\"] == \"user-42\")\n    check(\"wrong secret flagged\", \"bad_signature\"\
+  \ in codes(inspect(good, now=now, secret=\"x\" * 40)))\n    check(\"weak secret\
+  \ flagged\", \"weak_secret\" in codes(inspect(make_token({\"alg\": \"HS256\"}, good_claims,\
+  \ \"short\"), now=now, secret=\"short\")))\n    check(\"alg none flagged high\"\
+  , \"alg_none\" in codes(inspect(make_token({\"alg\": \"none\"}, good_claims), now=now)))\n\
+  \    check(\"expired flagged\", \"expired\" in codes(inspect(good, now=now + 3600)))\n\
+  \    check(\"leeway tolerates small skew\", \"expired\" not in codes(inspect(good,\
+  \ now=now + 850, leeway=30)))\n    check(\"nbf in future flagged\", \"not_yet_valid\"\
+  \ in codes(inspect(make_token({\"alg\": \"HS256\"}, dict(good_claims, nbf=now +\
+  \ 600), strong), now=now)))\n    check(\"exp missing flagged\", \"exp_missing\"\
+  \ in codes(inspect(make_token({\"alg\": \"HS256\"}, {\"sub\": \"a\", \"iat\": now},\
+  \ strong), now=now)))\n    check(\"milliseconds exp flagged\", \"exp_milliseconds\"\
+  \ in codes(inspect(make_token({\"alg\": \"HS256\"}, dict(good_claims, exp=(now +\
+  \ 600) * 1000), strong), now=now)))\n    check(\"long lifetime flagged\", \"lifetime_long\"\
+  \ in codes(inspect(make_token({\"alg\": \"HS256\"}, dict(good_claims, exp=now +\
+  \ 30 * 86400), strong), now=now)))\n    check(\"iss mismatch flagged\", \"iss_mismatch\"\
+  \ in codes(inspect(good, now=now, expect_iss=\"https://evil.example\")))\n    check(\"\
+  aud list accepted\", \"aud_mismatch\" not in codes(inspect(make_token({\"alg\":\
+  \ \"HS256\"}, dict(good_claims, aud=[\"a\", \"api://orders\"]), strong), now=now,\
+  \ expect_aud=\"api://orders\")))\n    check(\"aud mismatch flagged\", \"aud_mismatch\"\
+  \ in codes(inspect(good, now=now, expect_aud=\"api://billing\")))\n    check(\"\
+  missing aud with expected aud is high\", \"aud_mismatch\" in codes(inspect(make_token({\"\
+  alg\": \"HS256\"}, {k: v for k, v in good_claims.items() if k != \"aud\"}, strong),\
+  \ now=now, expect_aud=\"api://orders\")))\n    check(\"jku header flagged\", \"\
+  header_jku\" in codes(inspect(make_token({\"alg\": \"RS256\", \"kid\": \"1\", \"\
+  jku\": \"https://x/keys\"}, good_claims, signature=b\"sig\"), now=now)))\n    check(\"\
+  rs256 without kid is low\", \"kid_missing\" in codes(inspect(make_token({\"alg\"\
+  : \"RS256\"}, good_claims, signature=b\"sig\"), now=now)))\n    check(\"sensitive\
+  \ claim flagged\", \"sensitive_claim\" in codes(inspect(make_token({\"alg\": \"\
+  HS256\"}, dict(good_claims, password=\"hunter2\"), strong), now=now)))\n    check(\"\
+  empty signature flagged\", \"signature_empty\" in codes(inspect(make_token({\"alg\"\
+  : \"HS256\"}, good_claims), now=now)))\n    for bad, label in ((\"abc.def\", \"\
+  two segments rejected\"), (\"a.b.c.d.e\", \"JWE rejected\"), (\"!!.e30.\", \"bad\
+  \ base64 rejected\")):\n        try:\n            inspect(bad, now=now)\n      \
+  \      check(label, False)\n        except TokenError:\n            check(label,\
+  \ True)\n    check(\"markdown never prints signature\", make_token({\"alg\": \"\
+  HS256\"}, good_claims, strong).split(\".\")[2] not in to_markdown(r))\n    passed\
+  \ = sum(ok for _, ok in cases)\n    for name, ok in cases:\n        print((\"PASS\
+  \ \" if ok else \"FAIL \") + name)\n    print(f\"{passed}/{len(cases)} passed\"\
+  )\n    return 0 if passed == len(cases) else 1\n\n\ndef main(argv=None):\n    ap\
+  \ = argparse.ArgumentParser(description=\"Decode and lint a JWT without trusting\
+  \ it.\")\n    ap.add_argument(\"token\", nargs=\"?\", help=\"JWT string, or '-'\
+  \ to read from stdin\")\n    ap.add_argument(\"--now\", help=\"reference time: ISO\
+  \ 8601 (Z or offset) or epoch seconds; default: current UTC time\")\n    ap.add_argument(\"\
+  --leeway\", type=int, default=0, help=\"allowed clock skew in seconds (default 0)\"\
+  )\n    ap.add_argument(\"--expect-iss\")\n    ap.add_argument(\"--expect-aud\")\n\
+  \    ap.add_argument(\"--max-lifetime\", type=int, default=86400, help=\"max exp-iat\
+  \ seconds before warning (0 = off)\")\n    ap.add_argument(\"--secret-env\", help=\"\
+  name of an environment variable holding the HS* secret (avoids shell history)\"\
+  )\n    ap.add_argument(\"--json\", action=\"store_true\")\n    ap.add_argument(\"\
+  --strict\", action=\"store_true\", help=\"exit 1 on any finding\")\n    ap.add_argument(\"\
+  --self-test\", action=\"store_true\")\n    a = ap.parse_args(argv)\n    if a.self_test:\n\
+  \        return self_test()\n    if not a.token:\n        ap.error(\"token required\
+  \ (or --self-test)\")\n    token = sys.stdin.read() if a.token == \"-\" else a.token\n\
+  \    secret = None\n    if a.secret_env:\n        secret = os.environ.get(a.secret_env)\n\
+  \        if secret is None:\n            print(f\"error: environment variable {a.secret_env}\
+  \ is not set\", file=sys.stderr)\n            return 2\n    try:\n        r = inspect(token,\
+  \ now=a.now, leeway=a.leeway, expect_iss=a.expect_iss, expect_aud=a.expect_aud,\n\
+  \                    max_lifetime=a.max_lifetime, secret=secret)\n    except (TokenError,\
+  \ ValueError) as e:\n        print(f\"error: {e}\", file=sys.stderr)\n        return\
+  \ 2\n    print(json.dumps(r, indent=2, ensure_ascii=False) if a.json else to_markdown(r))\n\
+  \    if any(f[\"severity\"] == \"high\" for f in r[\"findings\"]) or (a.strict and\
+  \ r[\"findings\"]):\n        return 1\n    return 0\n\n\nif __name__ == \"__main__\"\
+  :\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
