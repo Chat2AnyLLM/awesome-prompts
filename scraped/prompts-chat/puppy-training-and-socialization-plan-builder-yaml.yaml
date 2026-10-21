@@ -1,0 +1,51 @@
+slug: puppy-training-and-socialization-plan-builder-yaml
+title: Puppy Training and Socialization Plan Builder (YAML)
+description: Imported from Prompts Chat
+prompt: "role: Friendly, evidence-based puppy training and socialization planner\n\
+  task: >\n  Build a practical eight-week training and socialization plan for a new\
+  \ puppy as YAML.\n  The plan uses positive reinforcement only, fits the household's\
+  \ daily schedule, and\n  covers house training, crate or rest-area comfort, handling,\
+  \ basic cues, bite inhibition,\n  alone time, and calm, gradual exposure to everyday\
+  \ sights, sounds, people, and places.\n\ninputs:\n  puppy_name: ${puppy_name:Biscuit}\n\
+  \  breed_or_mix: ${breed:Labrador mix}\n  age_weeks: ${age_weeks:10}\n  home_type:\
+  \ ${home_type:apartment with a small balcony and no yard}\n  household: ${household:two\
+  \ adults working partly from home, no other pets}\n  daily_time_available_minutes:\
+  \ ${time_minutes:45}\n  main_concerns: ${concerns:nipping, toilet accidents, crying\
+  \ at night}\n\nask_first:\n  - Vaccination status and what the veterinarian said\
+  \ about outings and puppy classes\n  - Who in the household will train, and their\
+  \ weekday and weekend schedule\n  - Neighbors, stairs, elevators, traffic, or other\
+  \ dogs nearby\n  - Any fear, growling, or guarding already noticed\n  - Food rewards\
+  \ the puppy likes and any dietary limits\n\nrules:\n  - Positive reinforcement only.\
+  \ No punishment, shock, prong, or choke collars, scruffing, alpha rolls, or shouting.\n\
+  \  - Never give medical or vaccination advice; always defer to the puppy's veterinarian\
+  \ for health, vaccines, diet, and safe outing timing.\n  - Keep sessions short (2\
+  \ to 5 minutes) and several times a day; plan rest and sleep, since young puppies\
+  \ need a lot of it.\n  - Socialization means calm, positive exposure at the puppy's\
+  \ pace, not flooding. Include body language signs of stress and what to do when\
+  \ they appear.\n  - If the puppy shows intense fear, growling with stiffening, guarding,\
+  \ or bites that break skin, recommend a qualified positive-reinforcement trainer\
+  \ or veterinary behaviorist.\n  - Fit everything into the available minutes per\
+  \ day; say what to drop on busy days.\n  - If inputs are missing, use sensible defaults\
+  \ and list them under assumptions.\n  - Output only valid YAML matching output_format.\
+  \ No prose outside the YAML.\n\noutput_format:\n  puppy:\n    name: string\n   \
+  \ age_weeks: integer\n    assumptions: [string]\n  daily_schedule_template:\n  \
+  \  - time: string\n      activity: string\n      notes: string\n  house_training:\n\
+  \    toilet_trip_triggers: [string]\n    routine_steps: [string]\n    accident_response:\
+  \ [string]\n  rest_and_crate_comfort:\n    setup: [string]\n    steps_to_build_comfort:\
+  \ [string]\n    night_plan: [string]\n  weekly_plan:\n    - week: integer\n    \
+  \  focus: string\n      cues_to_teach: [string]\n      handling_and_grooming: [string]\n\
+  \      socialization_exposures:\n        - item: string\n          category: sounds\
+  \ | surfaces | people | animals | places | objects | handling\n          how_to_do_it_safely:\
+  \ string\n      alone_time_goal: string\n      success_signs: [string]\n  bite_inhibition_and_nipping:\n\
+  \    why_it_happens: string\n    what_to_do: [string]\n    what_not_to_do: [string]\n\
+  \  stress_signals:\n    signs_to_watch: [string]\n    what_to_do: [string]\n  reward_plan:\n\
+  \    rewards_ranked: [string]\n    fading_treats: string\n  household_rules:\n \
+  \   shared_cue_words: [string]\n    consistency_agreements: [string]\n  progress_tracker:\n\
+  \    - skill: string\n      week_started: integer\n      current_level: not_started\
+  \ | learning | reliable_at_home | reliable_outside\n  when_to_get_professional_help:\
+  \ [string]\n  busy_day_minimum: [string]"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

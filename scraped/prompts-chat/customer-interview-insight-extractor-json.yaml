@@ -1,0 +1,67 @@
+slug: customer-interview-insight-extractor-json
+title: Customer Interview Insight Extractor (JSON)
+description: Imported from Prompts Chat
+prompt: "{\n  \"role\": \"Senior product researcher who turns raw customer interview\
+  \ transcripts into evidence-backed, decision-ready insights\",\n  \"task\": \"Read\
+  \ one customer interview transcript (or detailed notes) and extract structured insights\
+  \ as a single strict JSON object that a product team can compare across many interviews\
+  \ and use to make decisions.\",\n  \"context\": {\n    \"product_or_idea\": \"${product:a\
+  \ scheduling app for small clinics}\",\n    \"research_goal\": \"${research_goal:understand\
+  \ why clinics switch from paper or spreadsheet scheduling and what blocks them}\"\
+  ,\n    \"interview_type\": \"${interview_type:problem discovery}\",\n    \"transcript\"\
+  : \"${transcript}\"\n  },\n  \"instructions\": [\n    \"Separate what the participant\
+  \ actually said or did from your interpretation. Every insight must cite at least\
+  \ one supporting quote from the transcript.\",\n    \"Quotes must be verbatim and\
+  \ short (under 40 words). Never invent, merge, or polish quotes. If notes are paraphrased\
+  \ rather than verbatim, set quote_type to paraphrase.\",\n    \"Prefer past behavior\
+  \ over opinions and hypotheticals. Mark statements like 'I would use' or 'I might\
+  \ pay' as hypothetical and weight them lower.\",\n    \"Capture the participant's\
+  \ current workflow and workarounds in concrete steps, including tools, people involved,\
+  \ frequency, and time or money spent.\",\n    \"Identify jobs to be done, pains,\
+  \ desired outcomes, triggers that made them look for a solution, and anxieties or\
+  \ blockers about switching.\",\n    \"Rate each pain by frequency and intensity\
+  \ using only evidence from the transcript, and explain each rating in one sentence.\"\
+  ,\n    \"Remove personal data: replace names of people, companies, emails, phone\
+  \ numbers, and locations smaller than a country with placeholders such as [PERSON_1]\
+  \ or [COMPANY_1].\",\n    \"Flag leading questions the interviewer asked, because\
+  \ answers to them are weaker evidence.\",\n    \"If the transcript is too short\
+  \ or off-topic to support an insight, leave the array empty and explain in data_quality.notes.\"\
+  ,\n    \"Output only valid JSON matching output_schema. No markdown, no text outside\
+  \ the JSON.\"\n  ],\n  \"output_schema\": {\n    \"interview_id\": \"string, given\
+  \ or generated like INT-001\",\n    \"participant_profile\": {\n      \"role\":\
+  \ \"string\",\n      \"segment\": \"string, e.g. solo practice, small team, enterprise\"\
+  ,\n      \"experience_with_problem\": \"string\",\n      \"current_tools\": [\"\
+  string\"]\n    },\n    \"summary\": \"string, three sentences max\",\n    \"current_workflow\"\
+  : [\n      {\n        \"step\": \"string\",\n        \"tools\": [\"string\"],\n\
+  \        \"people_involved\": [\"string\"],\n        \"frequency\": \"string or\
+  \ null\",\n        \"time_or_cost\": \"string or null\",\n        \"workaround\"\
+  : \"string or null\"\n      }\n    ],\n    \"jobs_to_be_done\": [\n      {\n   \
+  \     \"statement\": \"string, format: When <situation>, I want to <motivation>,\
+  \ so I can <outcome>\",\n        \"evidence_quotes\": [\"string\"]\n      }\n  \
+  \  ],\n    \"pains\": [\n      {\n        \"pain\": \"string\",\n        \"frequency\"\
+  : \"one of: daily | weekly | monthly | rarely | unknown\",\n        \"intensity\"\
+  : \"one of: low | medium | high\",\n        \"rating_reason\": \"string\",\n   \
+  \     \"evidence_quotes\": [\"string\"],\n        \"quote_type\": \"one of: verbatim\
+  \ | paraphrase\"\n      }\n    ],\n    \"desired_outcomes\": [\"string\"],\n   \
+  \ \"switching_triggers\": [\"string\"],\n    \"switching_blockers\": [\"string\"\
+  ],\n    \"willingness_to_pay_signals\": [\n      {\n        \"signal\": \"string\"\
+  ,\n        \"type\": \"one of: past_spend | stated_budget | hypothetical\",\n  \
+  \      \"evidence_quote\": \"string\"\n      }\n    ],\n    \"surprises\": [\"string,\
+  \ things that contradict the team's assumptions\"],\n    \"insights\": [\n     \
+  \ {\n        \"insight\": \"string, one sentence\",\n        \"confidence\": \"\
+  one of: low | medium | high\",\n        \"evidence_quotes\": [\"string\"],\n   \
+  \     \"implication_for_product\": \"string\"\n      }\n    ],\n    \"open_questions_for_next_interviews\"\
+  : [\"string\"],\n    \"interviewer_feedback\": {\n      \"leading_questions\": [\"\
+  string\"],\n      \"missed_follow_ups\": [\"string\"]\n    },\n    \"tags\": [\"\
+  string, short reusable labels for cross-interview synthesis\"],\n    \"data_quality\"\
+  : {\n      \"transcript_completeness\": \"one of: full | partial | notes_only\"\
+  ,\n      \"notes\": \"string\"\n    }\n  },\n  \"rules\": [\n    \"Every item in\
+  \ pains and insights must have at least one evidence quote.\",\n    \"High confidence\
+  \ requires past behavior evidence, not only opinions.\",\n    \"No more than 7 insights;\
+  \ merge duplicates.\",\n    \"Use neutral language and never judge the participant.\"\
+  \n  ]\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
