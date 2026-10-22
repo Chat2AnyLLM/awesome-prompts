@@ -1,0 +1,367 @@
+slug: retry-and-backoff-policy-calculator
+title: Retry and Backoff Policy Calculator
+description: Imported from Prompts Chat
+prompt: "---\nname: retry-backoff-policy-calculator\ndescription: Checks retry, backoff\
+  \ and timeout settings across a call chain to prevent retry storms. Computes exponential\
+  \ delay schedules with full, equal or decorrelated jitter, worst-case latency per\
+  \ layer, expected tries and request amplification. Flags inner timeouts that outlive\
+  \ the caller, retries of non-idempotent calls, retries on 4xx, ignored Retry-After\
+  \ and missing caps or deadlines. Includes a stdlib Python calculator with --self-test.\n\
+  ---\n\n# Retry and Backoff Policy Calculator\n\nYou help engineers set retry, backoff\
+  \ and timeout policies that make services more reliable instead of turning a small\
+  \ outage into a big one. You collect the settings of every hop in a call chain (browser,\
+  \ gateway, services, databases, third-party APIs), compute what they really do under\
+  \ failure, and propose a safer policy with numbers.\n\n## Files in this skill\n\n\
+  - `scripts/retry_policy.py` - reads a call-chain JSON and prints delay schedules,\
+  \ worst-case latency, expected tries, amplification and flags (Python 3 standard\
+  \ library only)\n- `references/backoff-math.md` - formulas for backoff, jitter,\
+  \ worst-case time, expected tries, amplification and timeout nesting\n- `references/retry-safety-guide.md`\
+  \ - what is safe to retry, idempotency keys, circuit breakers, retry budgets, common\
+  \ library settings\n- `templates/retry-policy-review.md` - review report with current\
+  \ chain, findings and proposed policy\n- `examples/checkout-chain.json` - a three-layer\
+  \ checkout chain with typical mistakes\n\n## Workflow\n\n### 1. Map the chain\n\
+  Ask for each hop, outermost first: attempts (total tries), base delay, multiplier,\
+  \ max delay, jitter type, per-try timeout, overall deadline, what it retries on\
+  \ (status codes, \"timeout\", \"network\"), whether the call is idempotent, whether\
+  \ an idempotency key is sent, and whether Retry-After is honored. Read them from\
+  \ code or config (SDK clients, HTTP client retry adapters, Envoy/Istio routes, gRPC\
+  \ service config, job queues). Unknown values: use the library default and mark\
+  \ them as assumed.\n\n### 2. Run the calculator\n```\npython3 scripts/retry_policy.py\
+  \ examples/checkout-chain.json\npython3 scripts/retry_policy.py chain.json --failure-rate\
+  \ 0.5 --max-amplification 8\npython3 scripts/retry_policy.py chain.json --json >\
+  \ retry-report.json\npython3 scripts/retry_policy.py --self-test\n```\nExit code\
+  \ 1 means high-severity findings, 2 means bad input.\n\n### 3. Explain the findings\n\
+  Order: RETRY_UNSAFE and AMPLIFICATION first (they cause duplicate side effects and\
+  \ outages), then INNER_OUTLIVES_CALLER, HOT_LOOP, NO_PER_TRY_TIMEOUT, then medium\
+  \ and low. Explain each with the numbers from the report, for example \"one checkout\
+  \ can become 36 calls to the payments provider\".\n\n### 4. Propose a fixed policy\n\
+  Use `references/backoff-math.md` and `references/retry-safety-guide.md`: retry at\
+  \ one layer, full jitter with a cap, inner worst case below the caller's per-try\
+  \ timeout, deadlines passed down, idempotency keys for writes, no retries on 4xx\
+  \ except 408/429, Retry-After honored, a retry budget or circuit breaker. Re-run\
+  \ the script on the proposed JSON and show before and after.\n\n### 5. Write it\
+  \ up\nFill `templates/retry-policy-review.md` and give config snippets for the user's\
+  \ library.\n\n## Example result\nFor `examples/checkout-chain.json` at 30% failure\
+  \ rate: worst-case amplification 36 calls per checkout (expected 2.74); the gateway\
+  \ layer's 9.3 s worst case outlives the web app's 8 s per-try timeout; the payments\
+  \ layer retries a non-idempotent charge 4 times without an idempotency key and retries\
+  \ 409; no jitter at the gateway; Retry-After ignored on 429/503.\n\n## Rules\n\n\
+  - Never recommend retrying a non-idempotent call without an idempotency key.\n-\
+  \ Keep numbers honest: label library defaults and guesses as assumptions.\n- Prefer\
+  \ fewer retries with good timeouts over many retries.\n- Recommend load tests or\
+  \ fault injection to confirm the policy, not just the math.\n\x1FFILE:references/backoff-math.md\x1E\
+  \n# Backoff and Timeout Math\n\n## Terms\n- **attempts**: total tries including\
+  \ the first. attempts 3 = 1 try + 2 retries.\n- **base**: first retry delay. **multiplier**:\
+  \ growth factor (usually 2). **cap**: max single delay.\n- **per-try timeout**:\
+  \ how long one try may take before it is abandoned.\n- **deadline**: total time\
+  \ budget for the call including all tries and delays.\n\n## Delay before retry k\
+  \ (k = 1 .. attempts-1)\nd(k) = min(cap, base x multiplier^(k-1))\n\n| Jitter |\
+  \ Delay | Range | Mean |\n|---|---|---|---|\n| none | d | d | d |\n| full | random(0,\
+  \ d) | 0 .. d | d/2 |\n| equal | d/2 + random(0, d/2) | d/2 .. d | 0.75 d |\n| decorrelated\
+  \ | min(cap, random(base, 3 x previous)) | base .. min(cap, base x 3^k) | simulated\
+  \ |\n\nFull jitter spreads load best and is the default recommendation. Equal jitter\
+  \ keeps a minimum wait. Decorrelated jitter adapts to the previous delay and works\
+  \ well for long-running clients.\n\n## Worst-case duration of one call\nworst =\
+  \ attempts x per_try_timeout + sum of max delays, then cut at the deadline if one\
+  \ is set.\nExample: 3 tries x 1 s + 100 ms + 200 ms = 3.3 s.\n\n## Expected tries\n\
+  With an independent failure probability p per try and n attempts:\nE[tries] = 1\
+  \ + p + p^2 + ... + p^(n-1)\np = 0.3, n = 3 -> 1.39. During a full outage p = 1\
+  \ and E = n.\n\n## Amplification across layers\nIf layer A retries 3 times and calls\
+  \ B, which retries 3 times and calls C, which retries 4 times, one user request\
+  \ can become 3 x 3 x 4 = 36 calls to C during an outage. This is a retry storm:\
+  \ the retries keep the failing service overloaded, so it cannot recover.\n\nRules\
+  \ of thumb:\n- Retry at one layer only, usually the one closest to the user or the\
+  \ one that owns the idempotency key.\n- Inner layers: attempts 1 or 2 with a short\
+  \ deadline.\n- Keep worst-case amplification at or below about 10.\n- Add a **retry\
+  \ budget**: retries may be at most 10-20% of requests over a sliding window; past\
+  \ that, fail fast.\n\n## Timeout nesting\nEach layer's worst case must fit inside\
+  \ its caller's per-try timeout, minus a margin for network and work:\ninner_worst\
+  \ <= outer_per_try_timeout - margin\nOtherwise the caller abandons the try and retries\
+  \ while the inner layer is still working, which doubles load. Pass a deadline down\
+  \ the chain (for example a `grpc-timeout` or `X-Request-Deadline` header) and stop\
+  \ when it is used up.\n\n## Retry-After\nFor 429 and 503, servers may send `Retry-After:\
+  \ <seconds>` or an HTTP date. Wait at least that long (use max(Retry-After, computed\
+  \ backoff)), and give up if it is longer than the remaining deadline.\n\x1FFILE:references/retry-safety-guide.md\x1E\
+  \n# Retry Safety Guide\n\n## What to retry\n| Outcome | Retry? | Notes |\n|---|---|---|\n\
+  | Connection refused / reset before the request was sent | Yes | Safe for any method\
+  \ |\n| Timeout after the request was sent | Only if idempotent or with an idempotency\
+  \ key | The server may have done the work |\n| 408 Request Timeout | Yes, with backoff\
+  \ | |\n| 429 Too Many Requests | Yes, after Retry-After | Never faster than the\
+  \ server asks |\n| 500 Internal Server Error | Sometimes | Only if the error is\
+  \ known to be transient |\n| 502 / 503 / 504 | Yes, with backoff and jitter | Honor\
+  \ Retry-After on 503 |\n| 400 / 401 / 403 / 404 / 405 / 410 / 422 | No | Same request\
+  \ fails the same way; fix the request, refresh auth once at most |\n| 409 Conflict\
+  \ | Usually no | Exception: an idempotency key that is still in progress, retry\
+  \ after a short wait |\n\n## Idempotency\n- GET, HEAD, OPTIONS, PUT and DELETE are\
+  \ idempotent by HTTP semantics, if the server implements them correctly.\n- POST\
+  \ and PATCH are not. To retry them, send an **idempotency key** (a UUID per logical\
+  \ operation, e.g. `Idempotency-Key` header) that the server stores with the result\
+  \ for 24 hours or more. Generate the key once, before the first try, and reuse it\
+  \ for every retry.\n- Payments, emails, SMS, order creation and stock reservation\
+  \ must never be retried without a key.\n\n## Client checklist\n1. Per-try timeout\
+  \ set and shorter than the caller's.\n2. Overall deadline set and passed down the\
+  \ chain.\n3. Exponential backoff with a cap and full jitter.\n4. attempts <= 3 at\
+  \ the edge, 1-2 inside.\n5. Retry only on the table's \"Yes\" rows.\n6. Idempotency\
+  \ key on every retried non-idempotent call.\n7. Retry budget or circuit breaker\
+  \ so retries stop during an outage.\n8. Metrics: tries per request, retry rate,\
+  \ give-up count, by dependency.\n9. Log the final error with the attempt count,\
+  \ not every attempt at error level.\n\n## Circuit breaker basics\n- Closed: calls\
+  \ flow; count failures in a rolling window.\n- Open: after for example 50% failures\
+  \ over at least 20 calls, fail fast for 30 s.\n- Half-open: let a few trial calls\
+  \ through; close if they succeed.\nA breaker and a retry budget together stop retry\
+  \ storms from deepening an outage.\n\n## Common library settings\n- AWS SDKs: standard\
+  \ mode = 3 attempts, full jitter, base 1 s for throttling; adaptive mode adds client-side\
+  \ rate limiting.\n- gRPC retry policy: maxAttempts, initialBackoff, maxBackoff,\
+  \ backoffMultiplier, retryableStatusCodes (UNAVAILABLE is the usual one); retries\
+  \ need hedging/transparent retry rules for non-idempotent methods.\n- Envoy / Istio:\
+  \ retry_on: 5xx,reset,connect-failure; num_retries; per_try_timeout; set route timeout\
+  \ >= per_try_timeout x (num_retries + 1).\n- Python `urllib3.Retry(total=3, backoff_factor=0.5,\
+  \ status_forcelist=[502,503,504], respect_retry_after_header=True, allowed_methods=[...])`.\n\
+  Check the library docs for the version you use; defaults change.\n\x1FFILE:templates/retry-policy-review.md\x1E\
+  \n# Retry Policy Review - <service / call chain> - <date>\n\n**Reviewer:** <name>\
+  \  **Input:** <chain JSON / config files>  **Failure rate assumed:** <30%>\n\n##\
+  \ Chain\n| # | Caller -> callee | Attempts | Backoff (base / x / cap) | Jitter |\
+  \ Per-try timeout | Deadline | Worst case |\n|---|---|---|---|---|---|---|---|\n\
+  | 1 | | | | | | | |\n\n**Worst-case amplification:** <36> calls per request (target\
+  \ <= 10)\n**Expected amplification at <p>:** <2.7>\n\n## Findings\n| Severity |\
+  \ Layer | Code | Problem | Fix |\n|---|---|---|---|---|\n| high | | | | |\n\n##\
+  \ Proposed policy\n| # | Caller -> callee | Attempts | Backoff | Jitter | Per-try\
+  \ timeout | Deadline | Retry on |\n|---|---|---|---|---|---|---|---|\n| 1 | | |\
+  \ | full | | | |\n\n**New worst-case amplification:** <n>  **New worst-case latency:**\
+  \ <s>\n\n## Follow-ups\n- [ ] Idempotency keys for: <calls>\n- [ ] Retry budget\
+  \ / circuit breaker for: <dependency>\n- [ ] Dashboards: tries per request, retry\
+  \ rate, give-ups\n\x1FFILE:examples/checkout-chain.json\x1E\n{\n  \"name\": \"checkout:\
+  \ browser -> api gateway -> orders service -> payments provider\",\n  \"failure_rate\"\
+  : 0.3,\n  \"max_amplification\": 10,\n  \"layers\": [\n    {\n      \"name\": \"\
+  web app -> api gateway\",\n      \"attempts\": 3,\n      \"base_delay_ms\": 200,\n\
+  \      \"multiplier\": 2,\n      \"max_delay_ms\": 2000,\n      \"jitter\": \"full\"\
+  ,\n      \"per_try_timeout_ms\": 8000,\n      \"deadline_ms\": 20000,\n      \"\
+  retry_on\": [\"network\", 502, 503, 504],\n      \"idempotent\": true,\n      \"\
+  respect_retry_after\": true\n    },\n    {\n      \"name\": \"api gateway -> orders\
+  \ service\",\n      \"attempts\": 3,\n      \"base_delay_ms\": 100,\n      \"multiplier\"\
+  : 2,\n      \"max_delay_ms\": 1000,\n      \"jitter\": \"none\",\n      \"per_try_timeout_ms\"\
+  : 3000,\n      \"retry_on\": [500, 502, 503, 504, \"timeout\"],\n      \"idempotent\"\
+  : true\n    },\n    {\n      \"name\": \"orders service -> payments provider (create\
+  \ charge)\",\n      \"attempts\": 4,\n      \"base_delay_ms\": 250,\n      \"multiplier\"\
+  : 2,\n      \"jitter\": \"equal\",\n      \"per_try_timeout_ms\": 2500,\n      \"\
+  deadline_ms\": 9000,\n      \"retry_on\": [409, 429, 500, 503, \"timeout\"],\n \
+  \     \"idempotent\": false,\n      \"idempotency_key\": false,\n      \"respect_retry_after\"\
+  : false\n    }\n  ]\n}\n\x1FFILE:scripts/retry_policy.py\x1E\n#!/usr/bin/env python3\n\
+  \"\"\"Retry and backoff policy calculator (Python 3 standard library only).\n\n\
+  Input: a JSON file describing a call chain, outermost caller first:\n  {\"name\"\
+  : \"checkout\", \"failure_rate\": 0.3, \"max_amplification\": 10,\n   \"layers\"\
+  : [\n     {\"name\": \"web -> api\", \"attempts\": 3, \"base_delay_ms\": 100, \"\
+  multiplier\": 2,\n      \"max_delay_ms\": 2000, \"jitter\": \"full\", \"per_try_timeout_ms\"\
+  : 5000,\n      \"deadline_ms\": 12000, \"retry_on\": [502, 503, 504, \"timeout\"\
+  ],\n      \"idempotent\": true, \"respect_retry_after\": true}, ...]}\nattempts\
+  \ = total tries including the first one (attempts 1 = no retries).\njitter: none\
+  \ | full | equal | decorrelated.  Delay before retry k (k = 1..attempts-1):\n  none\
+  \  d = min(cap, base * multiplier^(k-1))\n  full  U(0, d)              equal  d/2\
+  \ + U(0, d/2)\n  decorrelated  min(cap, U(base, 3 * previous))  (AWS style; expected\
+  \ value simulated, seed 7)\n\nReports per layer: delay schedule (min / expected\
+  \ / max), worst-case time for one call\n(attempts x per-try timeout + max delays,\
+  \ cut at deadline), expected tries at the given\nfailure rate, and for the chain:\
+  \ worst-case and expected request amplification at the\ninnermost dependency. Flags:\n\
+  \  NO_JITTER, NO_CAP, HOT_LOOP (base 0), TOO_MANY_ATTEMPTS (> 5), NO_PER_TRY_TIMEOUT,\n\
+  \  NO_DEADLINE, DEADLINE_TOO_SHORT (deadline < one per-try timeout), INNER_OUTLIVES_CALLER\n\
+  \  (worst case > the outer layer's per-try timeout), RETRY_UNSAFE (non-idempotent\
+  \ with\n  retries and no idempotency key), RETRY_ON_4XX (retrying 400/401/403/404/409/422),\n\
+  \  IGNORES_RETRY_AFTER (retries 429/503 without honoring Retry-After), AMPLIFICATION.\n\
+  Usage:\n  python3 retry_policy.py chain.json\n  python3 retry_policy.py chain.json\
+  \ --failure-rate 0.5 --json\n  python3 retry_policy.py --self-test\nExit code: 0\
+  \ OK, 1 high-severity flags found, 2 bad input.\n\"\"\"\nimport argparse\nimport\
+  \ json\nimport random\nimport sys\n\nJITTERS = (\"none\", \"full\", \"equal\", \"\
+  decorrelated\")\nBAD_4XX = {400, 401, 403, 404, 405, 409, 410, 422}\nSEVERITY =\
+  \ {\"INNER_OUTLIVES_CALLER\": \"high\", \"RETRY_UNSAFE\": \"high\", \"AMPLIFICATION\"\
+  : \"high\",\n            \"HOT_LOOP\": \"high\", \"NO_PER_TRY_TIMEOUT\": \"high\"\
+  , \"RETRY_ON_4XX\": \"medium\",\n            \"NO_JITTER\": \"medium\", \"NO_CAP\"\
+  : \"medium\", \"IGNORES_RETRY_AFTER\": \"medium\",\n            \"NO_DEADLINE\"\
+  : \"medium\", \"DEADLINE_TOO_SHORT\": \"medium\", \"TOO_MANY_ATTEMPTS\": \"low\"\
+  }\n\n\nclass PolicyError(ValueError):\n    pass\n\n\ndef num(layer, key, default=None,\
+  \ minimum=0):\n    v = layer.get(key, default)\n    if v is None:\n        return\
+  \ None\n    if isinstance(v, bool) or not isinstance(v, (int, float)):\n       \
+  \ raise PolicyError(f\"layer {layer.get('name', '?')!r}: {key} must be a number\"\
+  )\n    if v < minimum:\n        raise PolicyError(f\"layer {layer.get('name', '?')!r}:\
+  \ {key} must be >= {minimum}\")\n    return v\n\n\ndef delays(layer):\n    \"\"\"\
+  Return [(min, expected, max)] in ms for each retry.\"\"\"\n    n = int(layer[\"\
+  attempts\"])\n    base, mult, cap = layer[\"base_delay_ms\"], layer[\"multiplier\"\
+  ], layer[\"max_delay_ms\"]\n    capf = (lambda x: x) if cap is None else (lambda\
+  \ x: min(cap, x))\n    j = layer[\"jitter\"]\n    out = []\n    if j == \"decorrelated\"\
+  :\n        rng = random.Random(7)\n        runs = 20000\n        sums = [0.0] *\
+  \ (n - 1)\n        for _ in range(runs):\n            prev = base\n            for\
+  \ k in range(n - 1):\n                prev = capf(rng.uniform(base, prev * 3)) if\
+  \ base > 0 else 0.0\n                sums[k] += prev\n        hi = base\n      \
+  \  for k in range(n - 1):\n            hi = capf(hi * 3)\n            out.append((capf(base),\
+  \ sums[k] / runs, hi))\n        return out\n    for k in range(n - 1):\n       \
+  \ d = capf(base * mult ** k)\n        if j == \"none\":\n            out.append((d,\
+  \ d, d))\n        elif j == \"full\":\n            out.append((0.0, d / 2, d))\n\
+  \        else:\n            out.append((d / 2, d * 0.75, d))\n    return out\n\n\
+  \ndef normalize(raw):\n    layers = raw.get(\"layers\") if isinstance(raw, dict)\
+  \ else None\n    if not layers or not isinstance(layers, list):\n        raise PolicyError(\"\
+  JSON must have a non-empty 'layers' list (outermost caller first)\")\n    out =\
+  \ []\n    for i, l in enumerate(layers):\n        if not isinstance(l, dict):\n\
+  \            raise PolicyError(f\"layer {i} must be an object\")\n        l = dict(l)\n\
+  \        l.setdefault(\"name\", f\"layer {i + 1}\")\n        a = num(l, \"attempts\"\
+  , 1, 1)\n        if int(a) != a:\n            raise PolicyError(f\"layer {l['name']!r}:\
+  \ attempts must be a whole number\")\n        l[\"attempts\"] = int(a)\n       \
+  \ l[\"base_delay_ms\"] = num(l, \"base_delay_ms\", 0)\n        l[\"multiplier\"\
+  ] = num(l, \"multiplier\", 2, 1)\n        l[\"max_delay_ms\"] = num(l, \"max_delay_ms\"\
+  , None)\n        l[\"per_try_timeout_ms\"] = num(l, \"per_try_timeout_ms\", None,\
+  \ 1)\n        l[\"deadline_ms\"] = num(l, \"deadline_ms\", None, 1)\n        j =\
+  \ str(l.get(\"jitter\", \"none\")).lower()\n        if j not in JITTERS:\n     \
+  \       raise PolicyError(f\"layer {l['name']!r}: jitter must be one of {', '.join(JITTERS)}\"\
+  )\n        l[\"jitter\"] = j\n        l[\"retry_on\"] = list(l.get(\"retry_on\"\
+  , []))\n        l[\"idempotent\"] = bool(l.get(\"idempotent\", True))\n        l[\"\
+  idempotency_key\"] = bool(l.get(\"idempotency_key\", False))\n        l[\"respect_retry_after\"\
+  ] = bool(l.get(\"respect_retry_after\", False))\n        out.append(l)\n    return\
+  \ out\n\n\ndef expected_tries(n, p):\n    if p >= 1:\n        return float(n)\n\
+  \    return sum(p ** k for k in range(n))\n\n\ndef analyze(raw, failure_rate=None,\
+  \ max_amp=None):\n    layers = normalize(raw)\n    p = failure_rate if failure_rate\
+  \ is not None else raw.get(\"failure_rate\", 0.2)\n    if not 0 <= p <= 1:\n   \
+  \     raise PolicyError(\"failure rate must be between 0 and 1\")\n    max_amp =\
+  \ max_amp if max_amp is not None else raw.get(\"max_amplification\", 10)\n    res\
+  \ = {\"name\": raw.get(\"name\", \"retry policy\"), \"failure_rate\": p, \"max_amplification\"\
+  : max_amp, \"layers\": []}\n    worst_amp, exp_amp = 1, 1.0\n    for i, l in enumerate(layers):\n\
+  \        n = l[\"attempts\"]\n        ds = delays(l)\n        flags = []\n     \
+  \   retries = n > 1\n        if retries and l[\"jitter\"] == \"none\":\n       \
+  \     flags.append((\"NO_JITTER\", \"all clients retry at the same moments; use\
+  \ full or decorrelated jitter\"))\n        if retries and l[\"max_delay_ms\"] is\
+  \ None and n > 3:\n            flags.append((\"NO_CAP\", \"no max_delay_ms; exponential\
+  \ delays grow without bound\"))\n        if retries and l[\"base_delay_ms\"] ==\
+  \ 0:\n            flags.append((\"HOT_LOOP\", \"base_delay_ms is 0; retries fire\
+  \ immediately and hammer the dependency\"))\n        if n > 5:\n            flags.append((\"\
+  TOO_MANY_ATTEMPTS\", f\"{n} attempts; 3 (2 retries) is usually enough\"))\n    \
+  \    if l[\"per_try_timeout_ms\"] is None:\n            flags.append((\"NO_PER_TRY_TIMEOUT\"\
+  , \"no per-try timeout; one hung call can block every retry\"))\n        if l[\"\
+  deadline_ms\"] is None and retries:\n            flags.append((\"NO_DEADLINE\",\
+  \ \"no overall deadline across attempts\"))\n        if l[\"deadline_ms\"] is not\
+  \ None and l[\"per_try_timeout_ms\"] and l[\"deadline_ms\"] < l[\"per_try_timeout_ms\"\
+  ]:\n            flags.append((\"DEADLINE_TOO_SHORT\", \"deadline is shorter than\
+  \ a single try\"))\n        if retries and not l[\"idempotent\"] and not l[\"idempotency_key\"\
+  ]:\n            flags.append((\"RETRY_UNSAFE\", \"retries a non-idempotent call\
+  \ without an idempotency key (double charge / duplicate write risk)\"))\n      \
+  \  bad = sorted(c for c in l[\"retry_on\"] if isinstance(c, int) and c in BAD_4XX)\n\
+  \        if retries and bad:\n            flags.append((\"RETRY_ON_4XX\", f\"retries\
+  \ client errors {bad}; they will fail the same way again\"))\n        if retries\
+  \ and any(c in (429, 503) for c in l[\"retry_on\"]) and not l[\"respect_retry_after\"\
+  ]:\n            flags.append((\"IGNORES_RETRY_AFTER\", \"retries 429/503 but ignores\
+  \ the Retry-After header\"))\n        max_delay_total = sum(d[2] for d in ds)\n\
+  \        exp_delay_total = sum(d[1] for d in ds)\n        worst = None\n       \
+  \ if l[\"per_try_timeout_ms\"] is not None:\n            worst = n * l[\"per_try_timeout_ms\"\
+  ] + max_delay_total\n            if l[\"deadline_ms\"] is not None:\n          \
+  \      worst = min(worst, l[\"deadline_ms\"])\n        elif l[\"deadline_ms\"] is\
+  \ not None:\n            worst = l[\"deadline_ms\"]\n        if i > 0:\n       \
+  \     parent = layers[i - 1]\n            pt = parent[\"per_try_timeout_ms\"]\n\
+  \            if pt is not None and (worst is None or worst > pt):\n            \
+  \    flags.append((\"INNER_OUTLIVES_CALLER\", f\"worst case {fmt_ms(worst)} > caller\
+  \ per-try timeout {fmt_ms(pt)}; the caller gives up and retries while this layer\
+  \ is still working\"))\n        et = expected_tries(n, p)\n        worst_amp *=\
+  \ n\n        exp_amp *= et\n        res[\"layers\"].append({\n            \"name\"\
+  : l[\"name\"], \"attempts\": n, \"jitter\": l[\"jitter\"],\n            \"delays_ms\"\
+  : [[round(a, 1), round(b, 1), round(c, 1)] for a, b, c in ds],\n            \"max_delay_total_ms\"\
+  : round(max_delay_total, 1), \"expected_delay_total_ms\": round(exp_delay_total,\
+  \ 1),\n            \"per_try_timeout_ms\": l[\"per_try_timeout_ms\"], \"deadline_ms\"\
+  : l[\"deadline_ms\"],\n            \"worst_case_ms\": None if worst is None else\
+  \ round(worst, 1),\n            \"expected_tries\": round(et, 3), \"cumulative_worst_amplification\"\
+  : worst_amp,\n            \"cumulative_expected_amplification\": round(exp_amp,\
+  \ 3),\n            \"flags\": [{\"code\": c, \"severity\": SEVERITY[c], \"detail\"\
+  : d} for c, d in flags]})\n    if worst_amp > max_amp:\n        res[\"layers\"][-1][\"\
+  flags\"].append({\"code\": \"AMPLIFICATION\", \"severity\": \"high\",\n        \
+  \    \"detail\": f\"one top-level request can become {worst_amp} calls to the innermost\
+  \ dependency during an outage (limit {max_amp}); retry at one layer only or add\
+  \ a retry budget\"})\n    res[\"worst_amplification\"] = worst_amp\n    res[\"expected_amplification\"\
+  ] = round(exp_amp, 3)\n    res[\"high_flags\"] = sum(1 for l in res[\"layers\"]\
+  \ for f in l[\"flags\"] if f[\"severity\"] == \"high\")\n    return res\n\n\ndef\
+  \ fmt_ms(v):\n    if v is None:\n        return \"unbounded\"\n    if v >= 1000:\n\
+  \        s = f\"{v / 1000:.2f}\".rstrip(\"0\").rstrip(\".\")\n        return s +\
+  \ \" s\"\n    return f\"{v:g} ms\"\n\n\ndef to_markdown(r):\n    out = [f\"# Retry\
+  \ policy report: {r['name']}\", \"\",\n           f\"Failure rate used for expected\
+  \ values: {r['failure_rate']:.0%}\", \"\",\n           \"| Layer | Attempts | Jitter\
+  \ | Max total delay | Per-try timeout | Deadline | Worst case | Expected tries |\"\
+  ,\n           \"|---|---|---|---|---|---|---|---|\"]\n    for l in r[\"layers\"\
+  ]:\n        out.append(f\"| {l['name']} | {l['attempts']} | {l['jitter']} | {fmt_ms(l['max_delay_total_ms'])}\
+  \ | \"\n                   f\"{fmt_ms(l['per_try_timeout_ms'])} | {fmt_ms(l['deadline_ms'])}\
+  \ | {fmt_ms(l['worst_case_ms'])} | {l['expected_tries']:g} |\")\n    out += [\"\"\
+  , \"## Delay schedule (min / expected / max)\"]\n    for l in r[\"layers\"]:\n \
+  \       if not l[\"delays_ms\"]:\n            out.append(f\"- {l['name']}: no retries\"\
+  )\n            continue\n        parts = [f\"retry {k + 1}: {fmt_ms(a)} / {fmt_ms(b)}\
+  \ / {fmt_ms(c)}\" for k, (a, b, c) in enumerate(l[\"delays_ms\"])]\n        out.append(f\"\
+  - {l['name']}: \" + \"; \".join(parts))\n    out += [\"\", \"## Amplification at\
+  \ the innermost dependency\",\n            f\"- Worst case (every try fails): {r['worst_amplification']}\
+  \ calls per top-level request\",\n            f\"- Expected at {r['failure_rate']:.0%}\
+  \ failure rate: {r['expected_amplification']:g} calls per top-level request\", \"\
+  \",\n            \"## Findings\"]\n    n = 0\n    for sev in (\"high\", \"medium\"\
+  , \"low\"):\n        for l in r[\"layers\"]:\n            for f in l[\"flags\"]:\n\
+  \                if f[\"severity\"] == sev:\n                    n += 1\n      \
+  \              out.append(f\"- **{sev.upper()} {f['code']}** ({l['name']}): {f['detail']}\"\
+  )\n    if not n:\n        out.append(\"- No findings.\")\n    return \"\\n\".join(out)\n\
+  \n\ndef self_test():\n    cases = []\n\n    def ok(name, cond):\n        cases.append((name,\
+  \ bool(cond)))\n\n    def one(**kw):\n        base = {\"name\": \"x\", \"attempts\"\
+  : 3, \"base_delay_ms\": 100, \"multiplier\": 2, \"max_delay_ms\": 1000,\n      \
+  \          \"jitter\": \"full\", \"per_try_timeout_ms\": 1000, \"deadline_ms\":\
+  \ 5000, \"retry_on\": [503],\n                \"respect_retry_after\": True}\n \
+  \       base.update(kw)\n        return base\n\n    def codes(r, i=0):\n       \
+  \ return {f[\"code\"] for f in r[\"layers\"][i][\"flags\"]}\n\n    d = delays(normalize({\"\
+  layers\": [one(jitter=\"none\", attempts=5)]})[0])\n    ok(\"exponential no jitter\
+  \ 100,200,400,800\", [x[2] for x in d] == [100, 200, 400, 800])\n    d = delays(normalize({\"\
+  layers\": [one(jitter=\"none\", attempts=6)]})[0])\n    ok(\"cap applied at 1000\"\
+  , d[-1][2] == 1000 and d[-2][2] == 800)\n    d = delays(normalize({\"layers\": [one(jitter=\"\
+  full\")]})[0])\n    ok(\"full jitter mean half\", d[0] == (0.0, 50.0, 100))\n  \
+  \  d = delays(normalize({\"layers\": [one(jitter=\"equal\")]})[0])\n    ok(\"equal\
+  \ jitter 50..100 mean 75\", d[0] == (50.0, 75.0, 100))\n    d = delays(normalize({\"\
+  layers\": [one(jitter=\"decorrelated\", attempts=4)]})[0])\n    ok(\"decorrelated\
+  \ within bounds\", all(a <= b <= c for a, b, c in d) and d[0][2] == 300 and d[2][2]\
+  \ == 1000)\n    r = analyze({\"layers\": [one()]})\n    ok(\"clean policy has no\
+  \ flags\", not codes(r))\n    ok(\"worst case = 3x1000 + 100 + 200\", r[\"layers\"\
+  ][0][\"worst_case_ms\"] == 3300)\n    r = analyze({\"layers\": [one(deadline_ms=2000)]})\n\
+  \    ok(\"deadline caps worst case\", r[\"layers\"][0][\"worst_case_ms\"] == 2000)\n\
+  \    ok(\"expected tries p=0.5 n=3 is 1.75\", expected_tries(3, 0.5) == 1.75 and\
+  \ expected_tries(3, 1) == 3)\n    ok(\"no jitter flagged\", \"NO_JITTER\" in codes(analyze({\"\
+  layers\": [one(jitter=\"none\")]})))\n    ok(\"hot loop flagged\", \"HOT_LOOP\"\
+  \ in codes(analyze({\"layers\": [one(base_delay_ms=0)]})))\n    ok(\"no cap flagged\
+  \ with 4+ attempts\", \"NO_CAP\" in codes(analyze({\"layers\": [one(max_delay_ms=None,\
+  \ attempts=4)]})))\n    ok(\"unsafe retry flagged\", \"RETRY_UNSAFE\" in codes(analyze({\"\
+  layers\": [one(idempotent=False)]})))\n    ok(\"idempotency key makes it safe\"\
+  , \"RETRY_UNSAFE\" not in codes(analyze({\"layers\": [one(idempotent=False, idempotency_key=True)]})))\n\
+  \    ok(\"4xx retry flagged\", \"RETRY_ON_4XX\" in codes(analyze({\"layers\": [one(retry_on=[400,\
+  \ 503])]})))\n    ok(\"Retry-After ignored flagged\", \"IGNORES_RETRY_AFTER\" in\
+  \ codes(analyze({\"layers\": [one(retry_on=[429], respect_retry_after=False)]})))\n\
+  \    ok(\"single attempt is not a retry policy\", not codes(analyze({\"layers\"\
+  : [one(attempts=1, jitter=\"none\", deadline_ms=None)]})))\n    r = analyze({\"\
+  layers\": [one(per_try_timeout_ms=2000, deadline_ms=None), one(per_try_timeout_ms=1000,\
+  \ deadline_ms=None)]})\n    ok(\"inner outlives caller flagged\", \"INNER_OUTLIVES_CALLER\"\
+  \ in codes(r, 1))\n    r = analyze({\"layers\": [one(per_try_timeout_ms=4000), one(per_try_timeout_ms=1000,\
+  \ deadline_ms=3500)]})\n    ok(\"inner within caller timeout ok\", \"INNER_OUTLIVES_CALLER\"\
+  \ not in codes(r, 1))\n    r = analyze({\"layers\": [one(), one(), one()], \"max_amplification\"\
+  : 10})\n    ok(\"3x3x3 amplification 27 flagged\", r[\"worst_amplification\"] ==\
+  \ 27 and \"AMPLIFICATION\" in codes(r, 2))\n    r = analyze({\"layers\": [one(),\
+  \ one()]}, failure_rate=0.5)\n    ok(\"expected amplification 1.75^2\", r[\"expected_amplification\"\
+  ] == 3.062)\n    for bad, label in ((({\"layers\": []}), \"empty layers rejected\"\
+  ), (({\"layers\": [one(jitter=\"random\")]}), \"bad jitter rejected\"),\n      \
+  \                 (({\"layers\": [one(attempts=0)]}), \"zero attempts rejected\"\
+  ), (({\"layers\": [one(attempts=2.5)]}), \"fractional attempts rejected\")):\n \
+  \       try:\n            analyze(bad)\n            ok(label, False)\n        except\
+  \ PolicyError:\n            ok(label, True)\n    ok(\"fmt_ms\", fmt_ms(1500) ==\
+  \ \"1.5 s\" and fmt_ms(250) == \"250 ms\" and fmt_ms(None) == \"unbounded\")\n \
+  \   passed = sum(c for _, c in cases)\n    for name, c in cases:\n        print((\"\
+  PASS \" if c else \"FAIL \") + name)\n    print(f\"{passed}/{len(cases)} passed\"\
+  )\n    return 0 if passed == len(cases) else 1\n\n\ndef main(argv=None):\n    ap\
+  \ = argparse.ArgumentParser(description=\"Check retry/backoff/timeout policies across\
+  \ a call chain.\")\n    ap.add_argument(\"file\", nargs=\"?\", help=\"chain JSON\
+  \ ('-' for stdin)\")\n    ap.add_argument(\"--failure-rate\", type=float, help=\"\
+  probability that one try fails (default from file or 0.2)\")\n    ap.add_argument(\"\
+  --max-amplification\", type=float, help=\"flag chains above this worst-case amplification\
+  \ (default 10)\")\n    ap.add_argument(\"--json\", action=\"store_true\")\n    ap.add_argument(\"\
+  --self-test\", action=\"store_true\")\n    a = ap.parse_args(argv)\n    if a.self_test:\n\
+  \        return self_test()\n    if not a.file:\n        ap.error(\"chain JSON required\
+  \ (or --self-test)\")\n    try:\n        raw = json.load(sys.stdin if a.file ==\
+  \ \"-\" else open(a.file, encoding=\"utf-8\"))\n        r = analyze(raw, a.failure_rate,\
+  \ a.max_amplification)\n    except (OSError, PolicyError, ValueError) as e:\n  \
+  \      print(f\"error: {e}\", file=sys.stderr)\n        return 2\n    print(json.dumps(r,\
+  \ indent=2) if a.json else to_markdown(r))\n    return 1 if r[\"high_flags\"] else\
+  \ 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

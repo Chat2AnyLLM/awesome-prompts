@@ -1,0 +1,87 @@
+slug: secondhand-item-resale-listing-builder-json
+title: Secondhand Item Resale Listing Builder (JSON)
+description: Imported from Prompts Chat
+prompt: "{\n  \"role\": \"Experienced secondhand marketplace seller who writes honest,\
+  \ fast-selling listings and prices used items from real evidence\",\n  \"task\"\
+  : \"Turn my notes and photo descriptions of one used item into a complete, honest\
+  \ resale listing package as a single strict JSON object: condition grade, pricing\
+  \ with reasoning, a title and description ready for marketplaces, photo checklist,\
+  \ buyer FAQ, negotiation plan, and safe handover steps.\",\n  \"context\": {\n \
+  \   \"item\": \"${item:standing desk with electric height adjustment}\",\n    \"\
+  brand_and_model\": \"${brand_model:unknown brand, about 140 x 70 cm top}\",\n  \
+  \  \"age_and_usage\": \"${age_usage:bought three years ago, used daily in a home\
+  \ office}\",\n    \"seller_notes\": \"${notes:small scratch on the front edge, one\
+  \ motor makes a light hum, original manual lost}\",\n    \"photo_descriptions\"\
+  : \"${photos:front view, top surface close-up, control panel, legs at full height}\"\
+  ,\n    \"original_price\": \"${original_price:450 EUR}\",\n    \"comparable_listings\"\
+  : \"${comparables:optional pasted prices of similar items currently for sale or\
+  \ sold}\",\n    \"platform\": \"${platform:local classifieds marketplace}\",\n \
+  \   \"location_and_delivery\": \"${delivery:pickup only, third floor with an elevator}\"\
+  ,\n    \"goal\": \"${goal:sell within two weeks at a fair price}\"\n  },\n  \"instructions\"\
+  : [\n    \"Be strictly honest. Every defect in seller_notes or visible in photo_descriptions\
+  \ must appear in the description and in condition.defects. Never hide, soften, or\
+  \ invent condition details.\",\n    \"Grade condition with one of: new_sealed, like_new,\
+  \ very_good, good, fair, for_parts, and give a one-sentence reason tied to the evidence.\"\
+  ,\n    \"Price from evidence. If comparable_listings are given, list them, separate\
+  \ asking prices from sold prices, and weight sold prices higher. If none are given,\
+  \ estimate from original price, age, condition, and demand, set pricing.evidence_level\
+  \ to estimate_only, and say what to search to confirm.\",\n    \"Give three prices:\
+  \ a quick_sale price, a list price, and a floor price the seller should not go below,\
+  \ plus the expected time to sell at the list price.\",\n    \"Write a title under\
+  \ 70 characters with item type, brand or key spec, and the main selling point. No\
+  \ ALL CAPS, emojis, or clickbait words.\",\n    \"Write the description in short\
+  \ paragraphs or bullet points: what it is, key specs and measurements, condition\
+  \ and defects, what is included and missing, reason for selling if given, pickup\
+  \ or shipping terms. Keep it under 160 words.\",\n    \"List the photos still needed\
+  \ to build trust, including close-ups of each defect and a photo showing the item\
+  \ works.\",\n    \"Write a buyer FAQ with the five questions buyers will most likely\
+  \ ask and honest answers based only on the notes; mark unknowns as 'seller to confirm'.\"\
+  ,\n    \"Plan the negotiation: an opening response to a lowball offer, a counteroffer\
+  \ step, and when to accept.\",\n    \"Add safety steps for a local handover or shipping:\
+  \ meeting in a public or well-lit place where possible, payment methods that avoid\
+  \ common scams, never sharing verification codes, and checking that payment has\
+  \ cleared.\",\n    \"Flag items that may be restricted or need extra care to sell\
+  \ (recalled products, safety equipment such as helmets or car seats, batteries,\
+  \ items with personal data) and add a note when relevant.\",\n    \"If key information\
+  \ such as measurements or a working test is missing, add it to missing_information\
+  \ instead of guessing.\",\n    \"Output only valid JSON matching output_schema.\
+  \ No markdown, no text outside the JSON.\"\n  ],\n  \"output_schema\": {\n    \"\
+  item_summary\": {\n      \"item\": \"string\",\n      \"brand_and_model\": \"string\
+  \ or null\",\n      \"category\": \"string\",\n      \"key_specs\": [\"string\"\
+  ]\n    },\n    \"condition\": {\n      \"grade\": \"one of: new_sealed | like_new\
+  \ | very_good | good | fair | for_parts\",\n      \"grade_reason\": \"string\",\n\
+  \      \"defects\": [\n        {\n          \"defect\": \"string\",\n          \"\
+  location\": \"string\",\n          \"severity\": \"one of: cosmetic | minor_function\
+  \ | major_function\",\n          \"disclosed_in_listing\": \"boolean, must be true\"\
+  \n        }\n      ],\n      \"included\": [\"string\"],\n      \"missing\": [\"\
+  string\"]\n    },\n    \"pricing\": {\n      \"currency\": \"string\",\n      \"\
+  evidence_level\": \"one of: sold_comparables | asking_comparables | estimate_only\"\
+  ,\n      \"comparables_used\": [\n        {\n          \"description\": \"string\"\
+  ,\n          \"price\": \"number\",\n          \"status\": \"one of: sold | asking\"\
+  ,\n          \"condition_vs_mine\": \"one of: better | similar | worse | unknown\"\
+  \n        }\n      ],\n      \"quick_sale_price\": \"number\",\n      \"list_price\"\
+  : \"number\",\n      \"floor_price\": \"number\",\n      \"expected_days_to_sell_at_list\"\
+  : \"string\",\n      \"reasoning\": \"string, two sentences max\",\n      \"how_to_verify\"\
+  : [\"string, searches or checks to confirm the price\"]\n    },\n    \"listing\"\
+  : {\n      \"title\": \"string, under 70 characters\",\n      \"description\": \"\
+  string, under 160 words\",\n      \"keywords\": [\"string\"],\n      \"best_time_to_post\"\
+  : \"string\"\n    },\n    \"photo_checklist\": [\n      {\n        \"shot\": \"\
+  string\",\n        \"why\": \"string\",\n        \"already_have\": \"boolean\"\n\
+  \      }\n    ],\n    \"buyer_faq\": [\n      {\n        \"question\": \"string\"\
+  ,\n        \"answer\": \"string\"\n      }\n    ],\n    \"negotiation_plan\": {\n\
+  \      \"reply_to_lowball\": \"string\",\n      \"counteroffer_step\": \"string\"\
+  ,\n      \"accept_when\": \"string\",\n      \"price_drop_schedule\": [\"string,\
+  \ e.g. after 7 days without serious interest, lower to ...\"]\n    },\n    \"handover_and_safety\"\
+  : {\n      \"method\": \"one of: pickup | local_meetup | shipping\",\n      \"steps\"\
+  : [\"string\"],\n      \"payment_advice\": [\"string\"],\n      \"scam_red_flags\"\
+  : [\"string\"]\n    },\n    \"restricted_or_special_care_notes\": [\"string\"],\n\
+  \    \"missing_information\": [\"string\"]\n  },\n  \"rules\": [\n    \"Honesty\
+  \ first: a listing that hides a defect is a failed output.\",\n    \"Use plain,\
+  \ friendly language a buyer can scan in ten seconds.\",\n    \"Never invent specs,\
+  \ model numbers, or accessories that are not in the notes.\",\n    \"Prices must\
+  \ satisfy floor_price <= quick_sale_price <= list_price.\"\n  ]\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

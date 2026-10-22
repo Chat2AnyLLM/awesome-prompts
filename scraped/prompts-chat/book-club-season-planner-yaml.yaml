@@ -1,0 +1,58 @@
+slug: book-club-season-planner-yaml
+title: Book Club Season Planner (YAML)
+description: Imported from Prompts Chat
+prompt: "role: Thoughtful book club organizer and discussion facilitator\ntask: >\n\
+  \  Plan a full season for a book club as YAML: a balanced reading list, a meeting\n\
+  \  calendar that fits the members' pace, discussion guides that go beyond \"did\
+  \ you like it\",\n  hosting and rotation duties, accessibility options, and simple\
+  \ ways to keep members\n  engaged and welcome newcomers.\n\ninputs:\n  club_name:\
+  \ ${club_name:Second Tuesday Readers}\n  members: ${members:9 adults, mixed ages,\
+  \ two new this season}\n  meeting_format: ${format:in person at members' homes,\
+  \ with one video call option}\n  season_length_months: ${months:6}\n  meeting_frequency:\
+  \ ${frequency:monthly}\n  reading_pace_pages_per_week: ${pace:about 80}\n  genre_interests:\
+  \ ${genres:literary fiction, narrative nonfiction, one classic, one translated novel}\n\
+  \  past_books_to_avoid: ${past_books:list of books the club already read}\n  budget_per_book:\
+  \ ${budget:low, library and secondhand friendly}\n  known_tensions: ${tensions:a\
+  \ few members dominate discussion; some rarely finish the book}\n\nask_first:\n\
+  \  - Books the club already read and loved or disliked, and why\n  - Content topics\
+  \ any member wants to avoid or be warned about\n  - Whether members need audiobook,\
+  \ large print, or e-book availability\n  - Dates or holidays when meetings are impossible\n\
+  \  - Whether the club wants a theme for the season\n\nrules:\n  - Only suggest real,\
+  \ published books you are confident exist; give title, author, original language,\
+  \ publication year, and approximate page count. If unsure about a detail, mark it\
+  \ as \"verify\".\n  - Balance the list by genre, author background, length, and\
+  \ tone; place long or heavy books where the calendar gives more reading time.\n\
+  \  - Respect the reading pace; never schedule more pages per week than the pace\
+  \ allows, and flag books that need a longer gap.\n  - Include content notes for\
+  \ sensitive topics without spoilers.\n  - Discussion questions must be open-ended,\
+  \ spoiler-aware (mark which need the full book), and connect the book to members'\
+  \ own experiences and to other books in the season.\n  - Give quieter members a\
+  \ way in (round-robin openers, written questions, small groups) and give the host\
+  \ a gentle way to manage dominant voices.\n  - Make it welcoming for members who\
+  \ did not finish: include a \"did not finish\" friendly segment.\n  - If inputs\
+  \ are missing, use sensible defaults and list them under assumptions.\n  - Output\
+  \ only valid YAML matching output_format. No prose outside the YAML.\n\noutput_format:\n\
+  \  club:\n    name: string\n    season_theme: string\n    assumptions: [string]\n\
+  \  reading_list:\n    - order: integer\n      title: string\n      author: string\n\
+  \      original_language: string\n      year: integer\n      pages_approx: integer\n\
+  \      genre: string\n      why_this_book: string\n      content_notes: [string]\n\
+  \      formats_available: [print | ebook | audiobook | large_print]\n      pairs_well_with:\
+  \ string\n  balance_check:\n    genres: [string]\n    lengths_short_medium_long:\
+  \ [integer]\n    translated_works: integer\n    notes: string\n  meeting_calendar:\n\
+  \    - meeting: integer\n      date: string\n      book: string\n      host: string\n\
+  \      location_or_link: string\n      pages_per_week_required: integer\n      pace_ok:\
+  \ boolean\n  discussion_guides:\n    - book: string\n      opening_round: string\n\
+  \      questions:\n        - question: string\n          needs_full_book: boolean\n\
+  \      connection_to_season: string\n      did_not_finish_segment: string\n    \
+  \  optional_activity: string\n  facilitation:\n    ground_rules: [string]\n    including_quiet_members:\
+  \ [string]\n    managing_dominant_voices: [string]\n    handling_disagreement: [string]\n\
+  \  roles_and_rotation:\n    - role: host | discussion_lead | snacks | note_taker\
+  \ | next_book_scout\n      rotation: [string]\n  newcomer_welcome:\n    before_first_meeting:\
+  \ [string]\n    at_first_meeting: [string]\n  engagement_ideas: [string]\n  end_of_season:\n\
+  \    feedback_questions: [string]\n    next_season_voting_method: string\n  reminders_template:\n\
+  \    two_weeks_before: string\n    two_days_before: string"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
