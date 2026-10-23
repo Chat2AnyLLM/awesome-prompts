@@ -1,0 +1,43 @@
+slug: basecamp-cheatsheet
+title: Basecamp cheatsheet
+description: Imported from Prompts Chat
+prompt: "Generate a single-page, print-optimized cheat sheet + pocket reference card\
+  \ for Basecamp + the official Basecamp CLI (basecamp).\n\nDesign constraints (non-negotiable):\n\
+  - One US Letter page (8.5×11\"), portrait, 0.4\" margins maximum.\n- High-density\
+  \ but instantly scannable. Zero fluff. Every line earns its space.\n- Visual hierarchy:\
+  \ bold section headers, monospace for every command, subtle visual separators.\n\
+  - Two logical zones on the page:\n  1. Left 60% → Core CLI reference (commands +\
+  \ patterns)\n  2. Right 40% → Agent invariants, profiles, config, mental models,\
+  \ troubleshooting\n- Bottom strip (full width) → One-line “Daily Agent Loop” and\
+  \ the single most important rule.\n- Use pure Markdown + minimal CSS that prints\
+  \ cleanly (or generate a polished PDF/DOCX if the tool supports it). No decorative\
+  \ graphics that waste ink or space.\n- Must be usable both as a desk reference (printed\
+  \ once, laminated preferred) and as a quick “always look at” card.\n\nContent requirements\
+  \ (drawn from Basecamp CLI Mastery principles):\n\n1. Installation & Auth (ultra-compact)\n\
+  2. Profiles (multi-agent identities) — create / set-default / per-command usage\n\
+  3. Project-local config (.basecamp/config.json) — exact recommended structure +\
+  \ how agents must use it\n4. Agent Invariants (the 6 non-negotiable rules) — numbered,\
+  \ bold, impossible to miss\n5. Output modes table: --json / --agent / --jq / --md\
+  \ / --ids-only + when to use each\n6. Core command patterns (the real workhorses\
+  \ only):\n   - Discovery & navigation\n   - Todos (create, list, complete, assign,\
+  \ sweep, due dates)\n   - Cards / Kanban (create, move, done)\n   - Messages / Chat\
+  \ / Comments (including deterministic mentions)\n   - Files & attachments\n   -\
+  \ Reports, gauges, schedule\n7. Breadcrumb chaining & --agent --help introspection\
+  \ habit\n8. Mentions pattern: [@Name](mention:SGID) preferred form\n9. Daily agent\
+  \ loop pattern (one tight example)\n10. Troubleshooting one-liners (doctor, auth,\
+  \ noninteractive, config check)\n\nTone & style of the sheet itself:\n- Extremely\
+  \ high signal. Ruthless prioritization.\n- Commands shown with the most common useful\
+  \ flags already attached.\n- Prefer real, copy-pasteable examples over abstract\
+  \ descriptions.\n- Assume the reader is an AI agent or power user who will run these\
+  \ in a terminal.\n\nOutput format preference:\n- First deliver a clean, print-ready\
+  \ Markdown version that can be pasted into a browser or Markdown-to-PDF tool.\n\
+  - If the environment supports it, also produce a polished single-page PDF optimized\
+  \ for printing (high contrast, no color backgrounds that waste ink).\n\nFinally,\
+  \ add a tiny footer line: “Basecamp CLI Mastery — Agent-First Reference | Follow\
+  \ the breadcrumbs.”\n\nMake the sheet so good that someone would actually print\
+  \ it, laminate it, and keep it next to their keyboard forever."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,0 +1,336 @@
+slug: vpc-subnet-cidr-planner
+title: VPC Subnet CIDR Planner
+description: Imported from Prompts Chat
+prompt: "---\nname: vpc-subnet-cidr-planner\ndescription: Plans and checks IPv4 subnet\
+  \ layouts for AWS, Azure, GCP or on-prem networks. Sizes each subnet from host counts\
+  \ plus growth and the provider's reserved addresses, allocates aligned CIDR blocks\
+  \ largest-first, and flags overlapping subnets, VPC ranges that clash with peered\
+  \ VPCs, VPNs or the docker0 bridge, public ranges, size limits, low headroom and\
+  \ single-zone layouts. Includes a stdlib Python planner with --self-test.\n---\n\
+  \n# VPC Subnet CIDR Planner\n\nYou help engineers carve a network into subnets that\
+  \ fit today, leave room to grow, and never collide with anything they will need\
+  \ to route to later. You turn \"we need public, app and data subnets in two zones\"\
+  \ into exact CIDR blocks, explain the numbers, and catch the overlaps that are painful\
+  \ to fix once workloads are running.\n\n## Files in this skill\n\n- `scripts/cidr_plan.py`\
+  \ - sizes and allocates subnets, lists usable host ranges and free blocks, and reports\
+  \ findings (Python 3 standard library only, uses `ipaddress`)\n- `references/cidr-math-and-provider-rules.md`\
+  \ - prefix sizes table, alignment, reserved addresses and limits per provider, private\
+  \ ranges\n- `references/subnet-layout-playbook.md` - tiered layouts, zone strategy,\
+  \ sizing Kubernetes pod subnets, avoiding overlaps with VPNs and peers, renumbering\
+  \ options\n- `templates/subnet-plan.md` - a plan document for review or a pull request\n\
+  - `examples/shop-platform-vpc.json` - an AWS /18 with legacy subnets, a peered analytics\
+  \ VPC and six new subnets in two zones\n\n## Workflow\n\n### 1. Gather the network\
+  \ facts\nAsk for the provider, the VPC / VNet CIDR (or the range they may use),\
+  \ existing subnets, every network it must talk to (peered VPCs, VPNs, on-prem offices,\
+  \ partner links, other clouds), and the subnets they need: purpose, zone, hosts\
+  \ now, and expected growth. For Kubernetes, ask whether pods get VPC addresses (AWS\
+  \ VPC CNI, Azure CNI) because then pod count, not node count, sizes the subnet.\n\
+  \n### 2. Run the planner\n```\npython3 scripts/cidr_plan.py examples/shop-platform-vpc.json\n\
+  python3 scripts/cidr_plan.py plan.json --json\npython3 scripts/cidr_plan.py --self-test\n\
+  ```\nExit code 1 means HIGH findings (overlaps, no space), 2 means bad input (host\
+  \ bits set, IPv6, overlapping VPC ranges).\n\n### 3. Review the result\nFix HIGH\
+  \ findings first: an overlap with a peer or VPN cannot be routed and usually means\
+  \ picking a new VPC range now, while it is cheap. Use `references/subnet-layout-playbook.md`\
+  \ to adjust the layout (equal-sized subnets per zone, a spare block per tier, room\
+  \ for a third zone) and `references/cidr-math-and-provider-rules.md` to explain\
+  \ sizes. Re-run after each change.\n\n### 4. Deliver\nFill `templates/subnet-plan.md`\
+  \ with the table, free blocks, findings and decisions. Offer Terraform or CLI snippets\
+  \ for the final blocks if asked.\n\n## Example result\nFor `examples/shop-platform-vpc.json`\
+  \ (AWS 10.20.0.0/18): app subnets of 2,500 pods +60% growth get /20s (4,091 usable\
+  \ each) at 10.20.16.0/20 and 10.20.32.0/20; load balancer and data subnets get /25s\
+  \ (123 usable). Findings: HIGH legacy rds-b 10.20.1.128/25 overlaps rds-a 10.20.1.0/24;\
+  \ HIGH the peered analytics VPC 10.20.48.0/20 sits inside this VPC, so routing to\
+  \ it breaks; LOW only 20% of the space is left free.\n\n## Rules\n\n- Never propose\
+  \ a range that overlaps a known peer, VPN or on-prem network; ask for the full list\
+  \ if unsure.\n- Plan for growth and a future zone; resizing a subnet in place is\
+  \ usually impossible.\n- Keep IPv4 math exact; show usable counts after the provider's\
+  \ reserved addresses.\n- Do not change live networks yourself; give a plan and the\
+  \ order of changes for the user to apply.\n\x1FFILE:references/cidr-math-and-provider-rules.md\x1E\
+  \n# CIDR Math and Provider Rules\n\n## Prefix sizes (IPv4)\n| Prefix | Addresses\
+  \ | AWS / Azure usable (-5) | GCP usable (-4) | Classic usable (-2) |\n|---|---|---|---|---|\n\
+  | /16 | 65,536 | 65,531 | 65,532 | 65,534 |\n| /18 | 16,384 | 16,379 | 16,380 |\
+  \ 16,382 |\n| /19 | 8,192 | 8,187 | 8,188 | 8,190 |\n| /20 | 4,096 | 4,091 | 4,092\
+  \ | 4,094 |\n| /21 | 2,048 | 2,043 | 2,044 | 2,046 |\n| /22 | 1,024 | 1,019 | 1,020\
+  \ | 1,022 |\n| /23 | 512 | 507 | 508 | 510 |\n| /24 | 256 | 251 | 252 | 254 |\n\
+  | /25 | 128 | 123 | 124 | 126 |\n| /26 | 64 | 59 | 60 | 62 |\n| /27 | 32 | 27 |\
+  \ 28 | 30 |\n| /28 | 16 | 11 | 12 | 14 |\nEach step of one in the prefix halves\
+  \ or doubles the block. Addresses = 2^(32 - prefix).\n\n## Alignment\nA block must\
+  \ start on a multiple of its own size: a /20 starts at x.x.0.0, x.x.16.0, x.x.32.0,\
+  \ ...; 10.20.8.0/20 is invalid (host bits set). Allocating largest blocks first\
+  \ keeps the space unfragmented; small subnets placed first can block every aligned\
+  \ slot for a big one.\n\n## Reserved addresses per subnet\n- **AWS:** first four\
+  \ (network, VPC router, DNS, reserved) and the last (broadcast) -> 5. VPC CIDR /16\
+  \ to /28, subnets /16 to /28. Up to 5 CIDR blocks per VPC by default (secondary\
+  \ CIDRs can add space later).\n- **Azure:** first four (network, gateway, 2 x DNS)\
+  \ and the last -> 5. Subnets up to /29. Some services need dedicated subnets (GatewaySubnet\
+  \ /27 or larger, AzureFirewallSubnet /26, AzureBastionSubnet /26).\n- **GCP:** network,\
+  \ gateway, second-to-last and broadcast -> 4. Subnets are regional (not zonal),\
+  \ /29 smallest; secondary ranges for GKE pods and services.\n- **Classic / on-prem:**\
+  \ network and broadcast -> 2 (/31 point-to-point links are a special case).\n\n\
+  ## Private and special ranges\n- RFC 1918: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16.\n\
+  - Carrier-grade NAT shared space 100.64.0.0/10 (RFC 6598): usable inside clouds,\
+  \ but check the ISP / VPN does not use it.\n- Avoid: 172.17.0.0/16 (default docker0\
+  \ bridge), 169.254.0.0/16 (link-local, cloud metadata), 192.168.0.0/24 and 192.168.1.0/24\
+  \ (home routers, so VPN users clash), 10.0.0.0/16 (default VPC in many tools, so\
+  \ peers often clash).\n- Public ranges inside a VPC make those internet addresses\
+  \ unreachable from it.\n\n## Quick formulas\n- Smallest prefix for N usable hosts\
+  \ with R reserved: 32 - ceil(log2(N + R)).\n- Hosts with growth: ceil(hosts x (1\
+  \ + growth)).\n- Free space after a plan = VPC addresses - (existing + new + blocked\
+  \ peer ranges inside the VPC).\n\x1FFILE:references/subnet-layout-playbook.md\x1E\
+  \n# Subnet Layout Playbook\n\n## Tiered layout per zone\n| Tier | Holds | Typical\
+  \ size | Route |\n|---|---|---|---|\n| Public | load balancers, NAT gateways, bastion\
+  \ | /24 to /26 | internet gateway |\n| Private app | VMs, containers, Kubernetes\
+  \ nodes and pods | largest, /20 to /22 | NAT gateway |\n| Data | databases, caches,\
+  \ queues | /24 to /26 | no internet route |\n| Spare | future tier or a third zone\
+  \ | keep one aligned block | - |\nUse the same size per tier in every zone so a\
+  \ failover zone can carry the full load.\n\n## Zone strategy\n- At least two zones\
+  \ for anything production; three if the region and budget allow.\n- Reserve the\
+  \ third zone's blocks now even if unused; it keeps the layout symmetrical.\n- GCP\
+  \ subnets are regional, so plan per region instead of per zone.\n\n## Sizing Kubernetes\n\
+  - With AWS VPC CNI or Azure CNI every pod takes a VPC address: size app subnets\
+  \ by peak pods (nodes x max pods per node), plus surge during rolling updates (often\
+  \ +25%) and node replacement.\n- Prefix delegation (AWS) or overlay networking (Calico,\
+  \ Cilium, kubenet, Azure CNI Overlay) moves pods to a separate range; then size\
+  \ by nodes and keep the pod CIDR clear of every peer.\n- Keep the service CIDR (for\
+  \ example 172.20.0.0/16) clear of the VPC and peers too.\n\n## Avoiding overlaps\n\
+  - Collect every network you will ever route to: other VPCs and accounts, VPN clients,\
+  \ offices, partners, other clouds, and ranges used by acquired companies.\n- Keep\
+  \ a central IP plan (spreadsheet or IPAM) and give each environment its own block,\
+  \ for example 10.20.0.0/16 prod, 10.21.0.0/16 staging, 10.22.0.0/16 dev.\n- Do not\
+  \ pick 10.0.0.0/16, 172.17.0.0/16 or 192.168.0.0/24 to 192.168.1.0/24 for anything\
+  \ that VPN users reach.\n\n## When something already overlaps\n1. Prefer renumbering\
+  \ the smaller or newer side now (new VPC or a secondary CIDR, migrate, delete old).\n\
+  2. If renumbering is impossible, use NAT (private NAT gateway, NAT on the VPN device)\
+  \ and route only translated ranges.\n3. Overlapping subnets inside one VPC cannot\
+  \ be created on AWS / Azure / GCP; in documents they are usually typos, so verify\
+  \ the real values.\n\n## Review checklist\n- [ ] VPC range private and unique across\
+  \ all peers and VPNs\n- [ ] every subnet aligned, inside the VPC and non-overlapping\n\
+  - [ ] sizes include reserved addresses and growth\n- [ ] same tier sizes in each\
+  \ zone; spare block kept\n- [ ] at least 25% of the VPC left free\n\x1FFILE:templates/subnet-plan.md\x1E\
+  \n# Subnet Plan - <network name>\n\n**Provider / region:** <aws eu-west-1>  **VPC\
+  \ CIDR:** <10.x.0.0/16>  **Owner:** <team>  **Date:** <date>\n**Peers / VPNs checked:**\
+  \ <list of ranges>\n\n## Subnets\n| Subnet | Tier | Zone | Hosts now | Growth |\
+  \ CIDR | Usable | Route table |\n|---|---|---|---|---|---|---|---|\n| | | | | |\
+  \ | | |\n\n## Existing subnets kept\n| Name | CIDR | Notes |\n|---|---|---|\n| |\
+  \ | |\n\n## Free space\n- Used or blocked: <n> of <total> (<x>% free)\n- Spare blocks\
+  \ reserved for: <third zone / future tier>\n\n## Findings and decisions\n| Severity\
+  \ | Finding | Decision |\n|---|---|---|\n| | | |\n\n## Rollout order\n1. <create\
+  \ secondary CIDR / new VPC>\n2. <create subnets and route tables>\n3. <migrate workloads,\
+  \ remove old subnets>\n\x1FFILE:examples/shop-platform-vpc.json\x1E\n{\n  \"name\"\
+  : \"shop platform, eu-west-1 production VPC\",\n  \"provider\": \"aws\",\n  \"vpc_cidrs\"\
+  : [\"10.20.0.0/18\"],\n  \"existing\": [\n    {\"name\": \"legacy bastion\", \"\
+  cidr\": \"10.20.0.0/26\"},\n    {\"name\": \"legacy rds-a\", \"cidr\": \"10.20.1.0/24\"\
+  },\n    {\"name\": \"legacy rds-b\", \"cidr\": \"10.20.1.128/25\"}\n  ],\n  \"peers\"\
+  : [\n    {\"name\": \"office VPN (Istanbul)\", \"cidr\": \"192.168.10.0/24\"},\n\
+  \    {\"name\": \"analytics VPC (peered)\", \"cidr\": \"10.20.48.0/20\"}\n  ],\n\
+  \  \"requests\": [\n    {\"name\": \"public-a (load balancers)\", \"hosts\": 40,\
+  \ \"zone\": \"eu-west-1a\", \"growth\": 0.5},\n    {\"name\": \"public-b (load balancers)\"\
+  , \"hosts\": 40, \"zone\": \"eu-west-1b\", \"growth\": 0.5},\n    {\"name\": \"\
+  app-a (EKS pods)\", \"hosts\": 2500, \"zone\": \"eu-west-1a\", \"growth\": 0.6},\n\
+  \    {\"name\": \"app-b (EKS pods)\", \"hosts\": 2500, \"zone\": \"eu-west-1b\"\
+  , \"growth\": 0.6},\n    {\"name\": \"data-a (databases, cache)\", \"hosts\": 60,\
+  \ \"zone\": \"eu-west-1a\"},\n    {\"name\": \"data-b (databases, cache)\", \"hosts\"\
+  : 60, \"zone\": \"eu-west-1b\"}\n  ]\n}\n\x1FFILE:scripts/cidr_plan.py\x1E\n#!/usr/bin/env\
+  \ python3\n\"\"\"VPC subnet CIDR planner and checker (Python 3 standard library\
+  \ only).\n\nInput: a network plan JSON file:\n  {\"name\": \"prod-eu\", \"provider\"\
+  : \"aws\", \"vpc_cidrs\": [\"10.40.0.0/16\"],\n   \"existing\": [{\"name\": \"legacy-db\"\
+  , \"cidr\": \"10.40.8.0/24\"}],\n   \"peers\": [{\"name\": \"office vpn\", \"cidr\"\
+  : \"192.168.0.0/22\"}],\n   \"requests\": [{\"name\": \"app-a\", \"hosts\": 900,\
+  \ \"zone\": \"eu-west-1a\", \"growth\": 0.5}]}\n  provider: aws | azure | gcp |\
+  \ generic. Reserved addresses per subnet: aws 5, azure 5,\n  gcp 4, generic 2 (network\
+  \ + broadcast). Subnet size limits: aws /16../28,\n  azure /8../29, gcp /8../29,\
+  \ generic /8../30.\n  requests: hosts needed now; growth = extra fraction to reserve\
+  \ (default 0.3);\n  optional \"prefix\" forces a size. Allocation is largest-first,\
+  \ aligned, lowest free address,\n  never overlapping existing subnets or peer networks\
+  \ that sit inside the VPC.\n\nChecks (severity):\n  HIGH   OVERLAP_EXISTING   two\
+  \ existing subnets overlap\n  HIGH   OUTSIDE_VPC        existing subnet not inside\
+  \ any VPC CIDR\n  HIGH   PEER_OVERLAP       VPC CIDR overlaps a peered / VPN / on-prem\
+  \ network (routing breaks)\n  HIGH   NO_SPACE           a request does not fit in\
+  \ the remaining space\n  MEDIUM DOCKER_DEFAULT     VPC overlaps 172.17.0.0/16 (default\
+  \ docker0 bridge)\n  MEDIUM PUBLIC_RANGE       VPC CIDR is not private (RFC 1918\
+  \ / 100.64.0.0/10)\n  MEDIUM PREFIX_LIMIT       requested or VPC prefix outside\
+  \ the provider limits\n  LOW    LOW_HEADROOM       less than 25% of the VPC left\
+  \ free after the plan\n  LOW    SINGLE_ZONE        all requests in one zone (no\
+  \ zone redundancy)\nUsage:\n  python3 cidr_plan.py plan.json\n  python3 cidr_plan.py\
+  \ plan.json --json\n  python3 cidr_plan.py --self-test\nExit code: 0 no HIGH findings,\
+  \ 1 HIGH findings, 2 bad input.\n\"\"\"\nimport argparse\nimport ipaddress as ip\n\
+  import json\nimport math\nimport sys\n\nRESERVED = {\"aws\": 5, \"azure\": 5, \"\
+  gcp\": 4, \"generic\": 2}\nHEAD_RESERVED = {\"aws\": 4, \"azure\": 4, \"gcp\": 2,\
+  \ \"generic\": 1}  # rest are at the end of the block\nLIMITS = {\"aws\": (16, 28),\
+  \ \"azure\": (8, 29), \"gcp\": (8, 29), \"generic\": (8, 30)}\nPRIVATE = [ip.ip_network(c)\
+  \ for c in (\"10.0.0.0/8\", \"172.16.0.0/12\", \"192.168.0.0/16\", \"100.64.0.0/10\"\
+  )]\nDOCKER = ip.ip_network(\"172.17.0.0/16\")\n\n\nclass PlanError(ValueError):\n\
+  \    pass\n\n\ndef net(cidr, what=\"cidr\"):\n    try:\n        n = ip.ip_network(str(cidr).strip(),\
+  \ strict=True)\n    except ValueError as e:\n        raise PlanError(f\"bad {what}\
+  \ {cidr!r}: {e}\")\n    if n.version != 4:\n        raise PlanError(f\"only IPv4\
+  \ is supported: {cidr!r}\")\n    return n\n\n\ndef usable(prefix, provider):\n \
+  \   return max(0, 2 ** (32 - prefix) - RESERVED[provider])\n\n\ndef prefix_for(hosts,\
+  \ provider, growth):\n    need = math.ceil(hosts * (1 + growth))\n    lo, hi = LIMITS[provider]\n\
+  \    for p in range(hi, lo - 1, -1):\n        if usable(p, provider) >= need:\n\
+  \            return p\n    return None\n\n\ndef find_slot(vpcs, taken, prefix):\n\
+  \    for v in vpcs:\n        if prefix < v.prefixlen:\n            continue\n  \
+  \      for cand in v.subnets(new_prefix=prefix):\n            if not any(cand.overlaps(t)\
+  \ for t in taken):\n                return cand\n    return None\n\n\ndef plan(cfg):\n\
+  \    provider = str(cfg.get(\"provider\", \"generic\")).lower()\n    if provider\
+  \ not in RESERVED:\n        raise PlanError(f\"unknown provider {provider!r} (aws,\
+  \ azure, gcp, generic)\")\n    vpcs = [net(c, \"vpc_cidr\") for c in cfg.get(\"\
+  vpc_cidrs\") or []]\n    if not vpcs:\n        raise PlanError(\"vpc_cidrs is empty\"\
+  )\n    lo, hi = LIMITS[provider]\n    findings = []\n\n    def f(sev, code, where,\
+  \ msg):\n        findings.append({\"severity\": sev, \"code\": code, \"where\":\
+  \ where, \"message\": msg})\n\n    for v in vpcs:\n        if not any(v.subnet_of(p)\
+  \ for p in PRIVATE):\n            f(\"MEDIUM\", \"PUBLIC_RANGE\", str(v), \"not\
+  \ an RFC 1918 or 100.64.0.0/10 range; it may clash with real internet addresses\"\
+  )\n        if v.overlaps(DOCKER):\n            f(\"MEDIUM\", \"DOCKER_DEFAULT\"\
+  , str(v), \"overlaps 172.17.0.0/16, the default docker0 bridge; containers on hosts\
+  \ in this VPC may lose routes\")\n        if provider == \"aws\" and not (16 <=\
+  \ v.prefixlen <= 28):\n            f(\"MEDIUM\", \"PREFIX_LIMIT\", str(v), \"AWS\
+  \ VPC CIDR blocks must be /16 to /28\")\n    for i, a in enumerate(vpcs):\n    \
+  \    for b in vpcs[i + 1:]:\n            if a.overlaps(b):\n                raise\
+  \ PlanError(f\"vpc_cidrs overlap each other: {a} and {b}\")\n\n    existing = []\n\
+  \    for e in cfg.get(\"existing\") or []:\n        n = net(e.get(\"cidr\"), \"\
+  existing cidr\")\n        name = e.get(\"name\") or str(n)\n        if not any(n.subnet_of(v)\
+  \ for v in vpcs):\n            f(\"HIGH\", \"OUTSIDE_VPC\", name, f\"{n} is not\
+  \ inside {', '.join(map(str, vpcs))}\")\n        for other_name, o in existing:\n\
+  \            if n.overlaps(o):\n                f(\"HIGH\", \"OVERLAP_EXISTING\"\
+  , name, f\"{n} overlaps {other_name} {o}\")\n        existing.append((name, n))\n\
+  \n    taken = [n for _, n in existing]\n    for p in cfg.get(\"peers\") or []:\n\
+  \        n = net(p.get(\"cidr\"), \"peer cidr\")\n        name = p.get(\"name\"\
+  ) or str(n)\n        for v in vpcs:\n            if v.overlaps(n):\n           \
+  \     f(\"HIGH\", \"PEER_OVERLAP\", name, f\"{n} overlaps VPC {v}; traffic to the\
+  \ overlapping range cannot be routed both ways (renumber one side or use NAT)\"\
+  )\n                taken.append(n)\n\n    reqs = []\n    for r in cfg.get(\"requests\"\
+  ) or []:\n        name = r.get(\"name\") or \"subnet\"\n        hosts = r.get(\"\
+  hosts\", 0)\n        if not isinstance(hosts, int) or isinstance(hosts, bool) or\
+  \ hosts < 1:\n            raise PlanError(f\"request {name!r}: hosts must be a positive\
+  \ integer\")\n        growth = r.get(\"growth\", 0.3)\n        if not isinstance(growth,\
+  \ (int, float)) or growth < 0:\n            raise PlanError(f\"request {name!r}:\
+  \ growth must be >= 0\")\n        if \"prefix\" in r:\n            pfx = r[\"prefix\"\
+  ]\n            if not isinstance(pfx, int) or not 8 <= pfx <= 30:\n            \
+  \    raise PlanError(f\"request {name!r}: prefix must be an integer 8..30\")\n \
+  \           if not lo <= pfx <= hi:\n                f(\"MEDIUM\", \"PREFIX_LIMIT\"\
+  , name, f\"/{pfx} is outside {provider} subnet limits /{lo}../{hi}\")\n        else:\n\
+  \            pfx = prefix_for(hosts, provider, growth)\n        reqs.append({\"\
+  name\": name, \"hosts\": hosts, \"growth\": growth, \"zone\": r.get(\"zone\", \"\
+  \"), \"prefix\": pfx})\n\n    allocs = []\n    order = sorted(range(len(reqs)),\
+  \ key=lambda i: (reqs[i][\"prefix\"] if reqs[i][\"prefix\"] is not None else -1,\
+  \ i))\n    for i in order:\n        r = reqs[i]\n        slot = find_slot(vpcs,\
+  \ taken, r[\"prefix\"]) if r[\"prefix\"] is not None else None\n        if slot\
+  \ is None:\n            f(\"HIGH\", \"NO_SPACE\", r[\"name\"], f\"needs {r['hosts']}\
+  \ hosts (+{round(r['growth'] * 100)}% growth) and no free aligned block is left\"\
+  )\n            allocs.append(dict(r, cidr=None, usable=0))\n            continue\n\
+  \        taken.append(slot)\n        u = usable(slot.prefixlen, provider)\n    \
+  \    tail = RESERVED[provider] - HEAD_RESERVED[provider]\n        allocs.append(dict(r,\
+  \ cidr=str(slot), usable=u,\n                           first=str(slot[HEAD_RESERVED[provider]])\
+  \ if u else \"-\",\n                           last=str(slot[-1 - tail]) if u else\
+  \ \"-\"))\n        if u < r[\"hosts\"]:\n            f(\"HIGH\", \"NO_SPACE\", r[\"\
+  name\"], f\"/{slot.prefixlen} gives only {u} usable addresses for {r['hosts']} hosts\"\
+  )\n    allocs.sort(key=lambda a: (a[\"cidr\"] is None, ip.ip_network(a[\"cidr\"\
+  ]) if a[\"cidr\"] else 0))\n\n    total = sum(v.num_addresses for v in vpcs)\n \
+  \   used = 0\n    inside = [t for t in taken if any(t.subnet_of(v) for v in vpcs)]\n\
+  \    for t in ip.collapse_addresses(inside):\n        used += t.num_addresses\n\
+  \    free = total - used\n    free_blocks = []\n    for v in vpcs:\n        rest\
+  \ = [v]\n        for t in ip.collapse_addresses([x for x in inside if x.subnet_of(v)]):\n\
+  \            nxt = []\n            for b in rest:\n                if t.subnet_of(b):\n\
+  \                    nxt.extend(b.address_exclude(t))\n                elif not\
+  \ b.subnet_of(t):\n                    nxt.append(b)\n            rest = nxt\n \
+  \       free_blocks.extend(sorted(rest))\n    if total and free / total < 0.25:\n\
+  \        f(\"LOW\", \"LOW_HEADROOM\", \"plan\", f\"only {free / total:.0%} of the\
+  \ VPC address space is left free\")\n    zones = {r[\"zone\"] for r in reqs if r[\"\
+  zone\"]}\n    if len(reqs) > 1 and len(zones) == 1:\n        f(\"LOW\", \"SINGLE_ZONE\"\
+  , \"plan\", f\"all requests are in {zones.pop()}; spread subnets over at least two\
+  \ zones\")\n    rank = {\"HIGH\": 0, \"MEDIUM\": 1, \"LOW\": 2}\n    findings.sort(key=lambda\
+  \ x: rank[x[\"severity\"]])\n    return {\"name\": cfg.get(\"name\", \"network plan\"\
+  ), \"provider\": provider, \"vpcs\": [str(v) for v in vpcs],\n            \"existing\"\
+  : [{\"name\": n, \"cidr\": str(c)} for n, c in existing],\n            \"allocations\"\
+  : allocs, \"total\": total, \"used\": used, \"free\": free,\n            \"free_blocks\"\
+  : [str(b) for b in free_blocks], \"findings\": findings}\n\n\ndef report(res):\n\
+  \    out = [f\"# Subnet plan: {res['name']}\", \"\",\n           f\"Provider: {res['provider']}\
+  \ (reserves {RESERVED[res['provider']]} addresses per subnet)  VPC: {', '.join(res['vpcs'])}\"\
+  , \"\",\n           \"| Subnet | Zone | Hosts now | Growth | CIDR | Usable | First\
+  \ host | Last host |\", \"|---|---|---|---|---|---|---|---|\"]\n    for a in res[\"\
+  allocations\"]:\n        out.append(f\"| {a['name']} | {a['zone'] or '-'} | {a['hosts']}\
+  \ | {round(a['growth'] * 100)}% | {a['cidr'] or 'NOT PLACED'} | \"\n           \
+  \        f\"{a['usable']} | {a.get('first', '-')} | {a.get('last', '-')} |\")\n\
+  \    if res[\"existing\"]:\n        out += [\"\", \"Existing subnets kept: \" +\
+  \ \", \".join(f\"{e['name']} {e['cidr']}\" for e in res[\"existing\"])]\n    pct\
+  \ = res[\"free\"] / res[\"total\"] if res[\"total\"] else 0\n    out += [\"\", f\"\
+  Address space: {res['used']} of {res['total']} used or blocked, {res['free']} free\
+  \ ({pct:.0%})\",\n            \"Largest free blocks: \" + (\", \".join(sorted(res[\"\
+  free_blocks\"], key=lambda c: ip.ip_network(c).prefixlen)[:6]) or \"none\"),\n \
+  \           \"\", \"## Findings\"]\n    if not res[\"findings\"]:\n        out.append(\"\
+  - none\")\n    for x in res[\"findings\"]:\n        out.append(f\"- **{x['severity']}\
+  \ {x['code']}** ({x['where']}): {x['message']}\")\n    return \"\\n\".join(out)\
+  \ + \"\\n\"\n\n\ndef self_test():\n    cases = []\n\n    def ok(name, cond):\n \
+  \       cases.append(bool(cond))\n        print((\"PASS \" if cond else \"FAIL \"\
+  ) + name)\n\n    ok(\"aws /24 usable 251\", usable(24, \"aws\") == 251)\n    ok(\"\
+  generic /24 usable 254\", usable(24, \"generic\") == 254)\n    ok(\"gcp /29 usable\
+  \ 4\", usable(29, \"gcp\") == 4)\n    ok(\"900 hosts +50% on aws -> /21\", prefix_for(900,\
+  \ \"aws\", 0.5) == 21)\n    ok(\"250 hosts no growth aws -> /24\", prefix_for(250,\
+  \ \"aws\", 0) == 24)\n    ok(\"252 hosts no growth aws -> /23\", prefix_for(252,\
+  \ \"aws\", 0) == 23)\n    ok(\"too big for aws -> None\", prefix_for(70000, \"aws\"\
+  , 0) is None)\n    base = {\"provider\": \"aws\", \"vpc_cidrs\": [\"10.0.0.0/16\"\
+  ]}\n    r = plan(dict(base, requests=[{\"name\": \"a\", \"hosts\": 200, \"zone\"\
+  : \"z1\"}, {\"name\": \"b\", \"hosts\": 1000, \"zone\": \"z2\"}]))\n    cid = {a[\"\
+  name\"]: a[\"cidr\"] for a in r[\"allocations\"]}\n    ok(\"largest first gets lowest\
+  \ block\", cid == {\"b\": \"10.0.0.0/21\", \"a\": \"10.0.8.0/23\"})\n    ok(\"clean\
+  \ plan has no findings\", r[\"findings\"] == [])\n    aa = [a for a in r[\"allocations\"\
+  ] if a[\"name\"] == \"a\"][0]\n    ok(\"first/last host skip aws reserved\", (aa[\"\
+  first\"], aa[\"last\"]) == (\"10.0.8.4\", \"10.0.9.254\"))\n    g = plan({\"provider\"\
+  : \"gcp\", \"vpc_cidrs\": [\"10.0.0.0/16\"], \"requests\": [{\"name\": \"a\", \"\
+  hosts\": 100, \"growth\": 0}]})[\"allocations\"][0]\n    ok(\"gcp reserves 2 head\
+  \ + 2 tail\", (g[\"cidr\"], g[\"first\"], g[\"last\"]) == (\"10.0.0.0/25\", \"10.0.0.2\"\
+  , \"10.0.0.125\"))\n    r = plan(dict(base, existing=[{\"name\": \"old\", \"cidr\"\
+  : \"10.0.0.0/22\"}], requests=[{\"name\": \"a\", \"hosts\": 1000}]))\n    ok(\"\
+  allocation avoids existing\", r[\"allocations\"][0][\"cidr\"] == \"10.0.8.0/21\"\
+  )\n    r = plan(dict(base, existing=[{\"name\": \"x\", \"cidr\": \"10.0.0.0/24\"\
+  }, {\"name\": \"y\", \"cidr\": \"10.0.0.128/25\"}]))\n    ok(\"overlap existing\
+  \ flagged\", any(x[\"code\"] == \"OVERLAP_EXISTING\" for x in r[\"findings\"]))\n\
+  \    r = plan(dict(base, existing=[{\"name\": \"x\", \"cidr\": \"10.1.0.0/24\"}]))\n\
+  \    ok(\"outside vpc flagged\", any(x[\"code\"] == \"OUTSIDE_VPC\" for x in r[\"\
+  findings\"]))\n    r = plan(dict(base, peers=[{\"name\": \"vpn\", \"cidr\": \"10.0.4.0/22\"\
+  }], requests=[{\"name\": \"a\", \"hosts\": 900, \"growth\": 0}]))\n    ok(\"peer\
+  \ overlap flagged\", any(x[\"code\"] == \"PEER_OVERLAP\" for x in r[\"findings\"\
+  ]))\n    ok(\"allocation avoids peer range\", r[\"allocations\"][0][\"cidr\"] ==\
+  \ \"10.0.0.0/22\")\n    r = plan({\"provider\": \"aws\", \"vpc_cidrs\": [\"10.0.0.0/24\"\
+  ], \"requests\": [{\"name\": \"a\", \"hosts\": 200}]})\n    ok(\"no space flagged\"\
+  , any(x[\"code\"] == \"NO_SPACE\" for x in r[\"findings\"]))\n    r = plan({\"provider\"\
+  : \"generic\", \"vpc_cidrs\": [\"172.16.0.0/12\"]})\n    ok(\"docker default flagged\"\
+  , any(x[\"code\"] == \"DOCKER_DEFAULT\" for x in r[\"findings\"]))\n    r = plan({\"\
+  provider\": \"generic\", \"vpc_cidrs\": [\"8.8.0.0/16\"]})\n    ok(\"public range\
+  \ flagged\", any(x[\"code\"] == \"PUBLIC_RANGE\" for x in r[\"findings\"]))\n  \
+  \  r = plan({\"provider\": \"aws\", \"vpc_cidrs\": [\"10.0.0.0/8\"]})\n    ok(\"\
+  aws vpc /8 flagged\", any(x[\"code\"] == \"PREFIX_LIMIT\" for x in r[\"findings\"\
+  ]))\n    r = plan({\"provider\": \"aws\", \"vpc_cidrs\": [\"10.0.0.0/22\"], \"requests\"\
+  : [{\"name\": \"a\", \"hosts\": 400, \"zone\": \"z1\"}, {\"name\": \"b\", \"hosts\"\
+  : 300, \"zone\": \"z1\"}]})\n    ok(\"low headroom flagged\", any(x[\"code\"] ==\
+  \ \"LOW_HEADROOM\" for x in r[\"findings\"]))\n    ok(\"single zone flagged\", any(x[\"\
+  code\"] == \"SINGLE_ZONE\" for x in r[\"findings\"]))\n    r = plan(dict(base, requests=[{\"\
+  name\": \"a\", \"hosts\": 10, \"prefix\": 30}]))\n    ok(\"forced /30 on aws flagged\"\
+  , any(x[\"code\"] == \"PREFIX_LIMIT\" for x in r[\"findings\"]))\n    r = plan(dict(base,\
+  \ requests=[{\"name\": \"a\", \"hosts\": 1000}]))\n    ok(\"free blocks cover rest\"\
+  , sum(ip.ip_network(b).num_addresses for b in r[\"free_blocks\"]) == 65536 - 2048)\n\
+  \    for bad, label in ((dict(base, vpc_cidrs=[]), \"empty vpc\"), (dict(base, vpc_cidrs=[\"\
+  10.0.0.1/16\"]), \"host bits set\"),\n                       (dict(base, provider=\"\
+  oracle\"), \"unknown provider\"), (dict(base, requests=[{\"hosts\": 0}]), \"zero\
+  \ hosts\"),\n                       (dict(base, vpc_cidrs=[\"10.0.0.0/16\", \"10.0.128.0/17\"\
+  ]), \"overlapping vpcs\"),\n                       (dict(base, vpc_cidrs=[\"fd00::/48\"\
+  ]), \"ipv6\")):\n        try:\n            plan(bad)\n            ok(label + \"\
+  \ rejected\", False)\n        except PlanError:\n            ok(label + \" rejected\"\
+  , True)\n    print(f\"{sum(cases)}/{len(cases)} passed\")\n    return 0 if all(cases)\
+  \ else 1\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser(description=\"\
+  Plan and check VPC subnet CIDR blocks.\")\n    ap.add_argument(\"file\", nargs=\"\
+  ?\", help=\"network plan JSON\")\n    ap.add_argument(\"--json\", action=\"store_true\"\
+  , help=\"print machine-readable JSON\")\n    ap.add_argument(\"--self-test\", action=\"\
+  store_true\")\n    a = ap.parse_args(argv)\n    if a.self_test:\n        return\
+  \ self_test()\n    if not a.file:\n        ap.error(\"give a plan JSON file or --self-test\"\
+  )\n    try:\n        cfg = json.load(open(a.file, encoding=\"utf-8\"))\n       \
+  \ res = plan(cfg)\n    except (OSError, json.JSONDecodeError, PlanError) as e:\n\
+  \        print(f\"error: {e}\", file=sys.stderr)\n        return 2\n    print(json.dumps(res,\
+  \ indent=2) if a.json else report(res), end=\"\" if not a.json else \"\\n\")\n \
+  \   return 1 if any(x[\"severity\"] == \"HIGH\" for x in res[\"findings\"]) else\
+  \ 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

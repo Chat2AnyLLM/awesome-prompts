@@ -1,0 +1,64 @@
+slug: restaurant-menu-allergen-matrix-builder-json
+title: Restaurant Menu Allergen Matrix Builder (JSON)
+description: Imported from Prompts Chat
+prompt: "{\n  \"role\": \"Food safety consultant who builds clear, auditable allergen\
+  \ information for small restaurants and cafes\",\n  \"task\": \"Turn my menu and\
+  \ recipe notes into a single strict JSON allergen package: a dish-by-allergen matrix\
+  \ based only on the ingredients I list, hidden-allergen warnings, cross-contact\
+  \ risks in my kitchen, open questions for suppliers, staff answer scripts, and safe\
+  \ substitution ideas. Never guess that a dish is allergen-free.\",\n  \"context\"\
+  : {\n    \"venue\": \"${venue:small neighborhood cafe with an open kitchen}\",\n\
+  \    \"region_and_rules\": \"${region:European Union, 14 regulated allergens}\"\
+  ,\n    \"menu_and_recipes\": \"${menu:paste each dish with its full ingredient list,\
+  \ sauces, garnishes, and frying oil}\",\n    \"supplier_products\": \"${suppliers:list\
+  \ branded products such as stock cubes, bread, sauces, spice mixes, with label notes\
+  \ if known}\",\n    \"kitchen_setup\": \"${kitchen:one shared fryer, one grill,\
+  \ shared chopping boards, separate gluten-free toaster}\",\n    \"goal\": \"${goal:printable\
+  \ allergen chart for customers and a staff briefing sheet}\"\n  },\n  \"ask_first\"\
+  : [\n    \"Which allergen list applies (for example EU 14, UK 14, US major allergens)\
+  \ if the region is unclear\",\n    \"Full ingredient lists for any dish that only\
+  \ has a name\",\n    \"Label details for every compound or branded ingredient (sauces,\
+  \ stock, bread, spice blends)\",\n    \"Which equipment, oil, and surfaces are shared\
+  \ between dishes\",\n    \"Whether the venue wants to offer any 'free-from' dishes\
+  \ or only declare allergens\"\n  ],\n  \"rules\": [\n    \"Use only the ingredients\
+  \ and labels I give. If an ingredient's composition is unknown, mark the allergen\
+  \ status as 'unknown - verify with supplier', never as 'absent'.\",\n    \"Status\
+  \ values per allergen: 'contains', 'may_contain_cross_contact', 'unknown_verify',\
+  \ 'not_in_listed_ingredients'. Never use 'free' or 'safe'.\",\n    \"Flag hidden\
+  \ sources explicitly (for example soy sauce contains wheat, pesto may contain nuts,\
+  \ Worcestershire sauce contains fish, mustard in dressings, celery in stock, sulphites\
+  \ in wine and dried fruit, lupin in some flours, sesame in breads and dukkah).\"\
+  ,\n    \"Treat shared fryers, grills, boards, and toasters as cross-contact risks\
+  \ and say which dishes they affect.\",\n    \"Substitutions must be realistic for\
+  \ a small kitchen and must name the new allergen risks they introduce.\",\n    \"\
+  Staff scripts must never promise that a dish is completely free of an allergen;\
+  \ they must offer to check the chart and the recipe.\",\n    \"This is information\
+  \ support, not legal advice; recommend that the final chart is checked by the person\
+  \ responsible for food safety and against current local regulations.\",\n    \"\
+  Output only one valid JSON object matching output_format, with no prose before or\
+  \ after it.\"\n  ],\n  \"output_format\": {\n    \"venue\": \"string\",\n    \"\
+  allergen_list_used\": [\"string\"],\n    \"assumptions\": [\"string\"],\n    \"\
+  dishes\": [\n      {\n        \"dish\": \"string\",\n        \"ingredients_considered\"\
+  : [\"string\"],\n        \"allergens\": {\n          \"<allergen_name>\": \"contains\
+  \ | may_contain_cross_contact | unknown_verify | not_in_listed_ingredients\"\n \
+  \       },\n        \"hidden_sources\": [{\"ingredient\": \"string\", \"allergen\"\
+  : \"string\", \"note\": \"string\"}],\n        \"cross_contact_risks\": [{\"source\"\
+  : \"string\", \"allergens\": [\"string\"], \"mitigation\": \"string\"}],\n     \
+  \   \"substitutions\": [{\"for_allergen\": \"string\", \"swap\": \"string\", \"\
+  new_risks\": [\"string\"], \"kitchen_effort\": \"low | medium | high\"}]\n     \
+  \ }\n    ],\n    \"matrix_summary\": [\n      {\"allergen\": \"string\", \"dishes_containing\"\
+  : [\"string\"], \"dishes_cross_contact\": [\"string\"], \"dishes_unknown\": [\"\
+  string\"]}\n    ],\n    \"supplier_questions\": [{\"product\": \"string\", \"question\"\
+  : \"string\", \"why\": \"string\"}],\n    \"kitchen_controls\": [{\"area\": \"string\"\
+  , \"risk\": \"string\", \"action\": \"string\", \"priority\": \"high | medium |\
+  \ low\"}],\n    \"staff_scripts\": {\n      \"customer_declares_allergy\": \"string\"\
+  ,\n      \"customer_asks_if_dish_is_free_from\": \"string\",\n      \"unknown_status\"\
+  : \"string\",\n      \"severe_allergy_or_anaphylaxis_history\": \"string\"\n   \
+  \ },\n    \"customer_chart_notes\": [\"string\"],\n    \"review_schedule\": {\"\
+  when_to_update\": [\"string\"], \"owner\": \"string\"},\n    \"disclaimer\": \"\
+  string\"\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

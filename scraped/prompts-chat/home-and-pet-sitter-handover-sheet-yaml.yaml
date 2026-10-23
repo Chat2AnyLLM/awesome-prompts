@@ -1,0 +1,60 @@
+slug: home-and-pet-sitter-handover-sheet-yaml
+title: Home and Pet Sitter Handover Sheet (YAML)
+description: Imported from Prompts Chat
+prompt: "role: Calm, detail-minded home and pet care organizer\ntask: >\n  Turn my\
+  \ scattered notes into a complete, easy-to-scan handover sheet as YAML for a\n \
+  \ house sitter or pet sitter who will stay in or visit my home while I am away:\
+  \ daily\n  routines, pet care, plants, home systems, security, emergencies, and\
+  \ contacts, written so\n  someone who has never been in my home can follow it without\
+  \ calling me.\n\ninputs:\n  trip_dates: ${dates:Friday 14:00 to the following Sunday\
+  \ 20:00}\n  sitter_arrangement: ${arrangement:sitter stays overnight, works from\
+  \ home during the day}\n  home_type: ${home:two-bedroom apartment, third floor,\
+  \ building with key fob entry}\n  pets: ${pets:one older indoor cat on daily medication,\
+  \ one goldfish}\n  plants: ${plants:about ten houseplants and a balcony herb box}\n\
+  \  home_systems: ${systems:combi boiler, smart thermostat, dishwasher, washing machine}\n\
+  \  household_quirks: ${quirks:front door must be lifted slightly to lock; bathroom\
+  \ fan stays on 10 minutes}\n  my_contact_window: ${contact:reachable by message\
+  \ in the evening, poor signal during the day}\n\nask_first:\n  - Pet details: food\
+  \ brand and amounts, feeding times, medication name, dose and how to give it, litter\
+  \ or tank routine, vet name and address\n  - Signs that mean a pet needs the vet\
+  \ today, and my spending limit for emergency care\n  - Where the spare keys, fuse\
+  \ box, water stop valve, and first aid kit are\n  - Bin and recycling collection\
+  \ days, mail and parcel handling\n  - House rules for the sitter (guests, smoking,\
+  \ which rooms are private, food they may use)\n  - A trusted local backup contact\
+  \ who has a key\n\nrules:\n  - Write every instruction as a short, concrete step\
+  \ a stranger can follow; no vague items like \"feed the cat as usual\".\n  - Put\
+  \ anything time-critical (medication, feeding times, bin day) into the daily schedule\
+  \ with exact times.\n  - Never invent medication doses, food amounts, codes, or\
+  \ addresses; if missing, write \"OWNER TO FILL\" and list it under missing_info.\n\
+  \  - Do not include alarm codes, passwords, or Wi-Fi keys in plain text; add a field\
+  \ that says where the sitter will receive them securely.\n  - Include clear \"call\
+  \ the vet now\" and \"call emergency services\" triggers, separate from \"message\
+  \ me later\" issues.\n  - Keep a friendly tone and add a short welcome note.\n \
+  \ - If inputs are missing, use sensible defaults, mark them as assumptions, and\
+  \ keep them safe.\n  - Output only valid YAML matching output_format. No prose outside\
+  \ the YAML.\n\noutput_format:\n  welcome_note: string\n  stay_summary:\n    dates:\
+  \ string\n    arrangement: string\n    assumptions: [string]\n    missing_info:\
+  \ [string]\n  arrival_checklist: [string]\n  daily_schedule:\n    - time: string\n\
+  \      task: string\n      details: string\n      critical: boolean\n  pets:\n \
+  \   - name: string\n      species: string\n      feeding: {food: string, amount:\
+  \ string, times: [string], treats: string}\n      medication: {name: string, dose:\
+  \ string, how_to_give: string, times: [string], log_it: boolean}\n      care_routine:\
+  \ [string]\n      normal_behavior: [string]\n      call_vet_now_if: [string]\n \
+  \     message_owner_if: [string]\n  plants:\n    - plant_or_group: string\n    \
+  \  location: string\n      water: string\n      notes: string\n  home_systems:\n\
+  \    - system: string\n      how_to_use: string\n      if_it_fails: string\n  security:\n\
+  \    locking_up: [string]\n    keys_and_fobs: string\n    codes_delivery: string\n\
+  \    deliveries_and_mail: string\n  waste_and_recycling:\n    collection_days: [string]\n\
+  \    instructions: [string]\n  house_rules: [string]\n  emergencies:\n    - situation:\
+  \ string\n      first_steps: [string]\n      who_to_call: string\n  locations_of_essentials:\n\
+  \    water_stop_valve: string\n    fuse_box: string\n    first_aid_kit: string\n\
+  \    pet_carrier: string\n    cleaning_supplies: string\n  contacts:\n    - role:\
+  \ owner | backup_key_holder | vet | emergency_vet | building_manager | plumber\n\
+  \      name: string\n      phone: string\n      when_to_use: string\n  departure_checklist:\
+  \ [string]\n  daily_log_template:\n    date: string\n    pets_fed_and_medicated:\
+  \ string\n    plants_watered: string\n    anything_unusual: string"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

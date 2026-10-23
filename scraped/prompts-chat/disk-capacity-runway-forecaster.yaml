@@ -1,0 +1,352 @@
+slug: disk-capacity-runway-forecaster
+title: Disk Capacity Runway Forecaster
+description: Imported from Prompts Chat
+prompt: "---\nname: disk-capacity-runway-forecaster\ndescription: Forecasts when disks\
+  \ and volumes will fill up from usage samples (CSV of timestamp, volume, used and\
+  \ size). Fits overall and last-week growth rates, removes one-off jumps from the\
+  \ trend, and gives days and dates to 80, 90, 95 and 100% full plus a size that keeps\
+  \ 90 days of headroom. Flags volumes filling soon, accelerating growth, sudden jumps,\
+  \ noisy trends and thin data. Includes a stdlib Python forecaster with --self-test.\n\
+  ---\n\n# Disk Capacity Runway Forecaster\n\nYou help on-call engineers and sysadmins\
+  \ answer \"when will this disk fill up, and what should we do before then?\" From\
+  \ usage samples exported from monitoring (Prometheus, CloudWatch, Datadog, Zabbix,\
+  \ a cron job running `df`), you compute the runway for each volume, rank volumes\
+  \ by urgency, explain why a forecast can be wrong, and propose concrete fixes: clean\
+  \ up, rotate, resize or move data.\n\n## Files in this skill\n\n- `scripts/disk_runway.py`\
+  \ - reads a CSV of samples, fits growth rates, and prints a ranked runway table\
+  \ with findings and suggested sizes (Python 3 standard library only)\n- `references/forecasting-method.md`\
+  \ - how the trend, recent rate, one-off jumps, runway and suggested size are computed,\
+  \ and the limits of a linear forecast\n- `references/disk-full-runbook.md` - finding\
+  \ what grows, safe cleanups, log and backup retention, resizing on Linux and in\
+  \ the cloud, alert thresholds\n- `templates/capacity-review.md` - a capacity review\
+  \ to share with the team or attach to a ticket\n- `examples/fleet-disk-usage.csv`\
+  \ - three weeks of daily samples for four volumes: a steady database, a log volume\
+  \ with rotation, a CI runner speeding up and a backup NAS with a one-off jump\n\n\
+  ## Workflow\n\n### 1. Collect samples\nAsk for at least a week (better 3-4 weeks)\
+  \ of samples per volume: timestamp, volume (host:mount), used GB and size GB. Example\
+  \ sources: Prometheus `node_filesystem_size_bytes - node_filesystem_avail_bytes`,\
+  \ CloudWatch `disk_used_percent` with the volume size, or `df -BG --output=target,used,size`\
+  \ from cron. Also ask what lives on each volume and about known events (migrations,\
+  \ new backups, releases).\n\n### 2. Run the forecaster\n```\npython3 scripts/disk_runway.py\
+  \ examples/fleet-disk-usage.csv\npython3 scripts/disk_runway.py usage.csv --horizon\
+  \ 180 --json\npython3 scripts/disk_runway.py --self-test\n```\nExit code 1 means\
+  \ a CRITICAL or HIGH volume, 2 means bad input.\n\n### 3. Explain and act\nStart\
+  \ with CRITICAL and HIGH volumes. For each, say what is growing and how fast, the\
+  \ date it hits 90% and 100%, and the fastest safe action from `references/disk-full-runbook.md`.\
+  \ Treat NOISY_TREND and FEW_SAMPLES results as rough. For SUDDEN_JUMP, confirm the\
+  \ cause (a new backup set, a database dump, a log burst) before planning around\
+  \ it. Use `references/forecasting-method.md` to explain why the recent rate may\
+  \ win over the long-term trend.\n\n### 4. Deliver\nFill `templates/capacity-review.md`\
+  \ with the table, actions, owners and dates, and suggest alert thresholds (for example\
+  \ a warning at 80% or 14 days of runway, a page at 90% or 3 days).\n\n## Example\
+  \ result\nFor `examples/fleet-disk-usage.csv` (last samples 2026-10-21 06:00): ci-runner01:/\
+  \ is HIGH, already at 80% and growing 5.6 GB/day in the last week vs 2.1 overall,\
+  \ 90% in 3.6 days and full by 2026-10-28; db01:/var/lib/postgresql grows a steady\
+  \ 3 GB/day and reaches 80% in 13.3 days (MEDIUM, suggested 790 GB); backup-nas had\
+  \ a one-off +405.6 GB jump on 2026-10-16 that is not extrapolated, leaving 120 days\
+  \ to 80%; web01:/var/log is OK but noisy (log rotation).\n\n## Rules\n\n- Never\
+  \ suggest deleting data without saying exactly what, how to check it is safe, and\
+  \ how to recover; prefer rotation, compression, retention policies and resizing.\n\
+  - Say which rate a date is based on and that linear forecasts miss sudden events.\n\
+  - Times in the report follow the timestamps in the data; say which time zone they\
+  \ are in.\n- Do not run cleanup or resize commands on live systems yourself; give\
+  \ the commands for the user to review.\n\x1FFILE:references/forecasting-method.md\x1E\
+  \n# Forecasting Method\n\n## Inputs\nOne row per sample: `timestamp,volume,used_gb,size_gb`.\
+  \ Rows may be unsorted and mixed across volumes. The latest `size_gb` is used, so\
+  \ a resize during the window is handled.\n\n## Growth rates\n- **Overall rate:**\
+  \ least-squares slope of used GB over time (GB/day) across all samples. R^2 (0 to\
+  \ 1) says how well a straight line fits: about 1.0 for steady growth, under 0.5\
+  \ for sawtooth patterns such as log rotation or temp files.\n- **Recent rate:**\
+  \ the same slope over the last 7 days (or the last third of the data when there\
+  \ are less than 14 days). It catches growth that has just sped up.\n- **Runway rate:**\
+  \ the worse (higher) of the two. When the recent rate is more than 1.5 times the\
+  \ overall rate, the volume is flagged ACCELERATING.\n\n## One-off jumps\nA step\
+  \ between two samples larger than 5% of the volume size is treated as a one-off\
+  \ event (a new backup set, a restored dump, a large upload). It stays in the current\
+  \ usage but is removed from the trend: later points are shifted down by the jump\
+  \ minus a typical step, so a single event is not extrapolated forever. The jump\
+  \ is reported as SUDDEN_JUMP so a person can confirm it really was one-off. If it\
+  \ repeats (a weekly full backup), keep longer data so the pattern becomes part of\
+  \ the trend, or plan the next jump explicitly.\n\n## Runway\nFor each threshold\
+  \ T in 80, 90, 95 and 100%:\n`days = (T x size - used now) / runway rate`, counted\
+  \ from the last sample. Zero means the threshold is already passed; \"never\" means\
+  \ usage is flat or falling.\nDates are the last sample time plus the days, in the\
+  \ same time zone as the data.\n\n## Suggested size\nThe smallest multiple of 10\
+  \ GB that keeps usage under 80% for the horizon (default 90 days):\n`size >= (used\
+  \ now + runway rate x horizon) / 0.8`, and never smaller than the current size.\n\
+  Example: 128 GB used, 2 GB/day, 180 days -> (128 + 360) / 0.8 = 610 GB.\n\n## Status\
+  \ levels\n| Status | Rule |\n|---|---|\n| CRITICAL | 95% or more used, or full within\
+  \ 7 days |\n| HIGH | 90% within 14 days |\n| MEDIUM | 80% within 30 days, or accelerating,\
+  \ or a sudden jump |\n| OK | none of the above |\n\n## Limits\n- A straight line\
+  \ cannot see future events: a migration, a new customer, a log level left on DEBUG.\n\
+  - Filesystems often misbehave before 100%: ext4 reserves about 5% for root, databases\
+  \ need free space for vacuum, compaction or index builds, and some write paths fail\
+  \ at 90-95%.\n- Inode exhaustion (`df -i`) can fill a disk with plenty of free GB;\
+  \ forecast inodes the same way if many small files are written.\n- Thin-provisioned\
+  \ and shared storage (LVM thin pools, SAN, Ceph) can fill underneath a volume that\
+  \ looks fine.\n\x1FFILE:references/disk-full-runbook.md\x1E\n# Disk Full Runbook\n\
+  \n## 1. Find what grows\n```\ndf -h /mount; df -i /mount                       #\
+  \ space and inodes\nsudo du -xh --max-depth=2 /mount | sort -h | tail -20\nsudo\
+  \ find /mount -xdev -type f -size +1G -mtime -7 -exec ls -lh {} +\nsudo lsof +L1\
+  \                                    # deleted files still held open\njournalctl\
+  \ --disk-usage\ndocker system df                                 # images, containers,\
+  \ volumes, build cache\n```\nDeleted-but-open files keep their space until the process\
+  \ restarts or reopens the log.\n\n## 2. Safe quick wins (check before deleting)\n\
+  | Source | Action |\n|---|---|\n| Application logs | logrotate with `compress`,\
+  \ `maxsize`, `rotate N`; ship logs to central storage |\n| systemd journal | `journalctl\
+  \ --vacuum-size=1G`, set `SystemMaxUse=` |\n| Docker / CI runners | `docker image\
+  \ prune -a --filter until=168h`, `docker builder prune`; clear runner work dirs\
+  \ |\n| Package caches | `apt-get clean`, `dnf clean all`, old kernels |\n| Database\
+  \ | archive or drop old partitions, `VACUUM` / table repack, check WAL or binlog\
+  \ retention and stuck replication slots |\n| Backups | apply the retention policy;\
+  \ move old sets to object storage or cold tier |\n| Core dumps, heap dumps, tmp\
+  \ | remove after the incident owner confirms |\nNever `rm` a file a database is\
+  \ using; never clear WAL or binlogs by hand.\n\n## 3. Resize\n- **AWS EBS:** modify\
+  \ the volume size, wait for the optimizing state, then `sudo growpart /dev/nvme0n1\
+  \ 1` and `sudo resize2fs /dev/nvme0n1p1` (ext4) or `sudo xfs_growfs /mount` (xfs).\
+  \ One size increase per 6 hours per volume.\n- **Azure managed disk / GCP persistent\
+  \ disk:** increase the size (Azure may need the VM deallocated for some disks),\
+  \ then grow the partition and filesystem the same way.\n- **LVM:** `lvextend -r\
+  \ -L +100G vg/lv` grows the filesystem too.\n- **Kubernetes PVC:** edit `spec.resources.requests.storage`\
+  \ when the StorageClass has `allowVolumeExpansion: true`.\nVolumes can grow but\
+  \ rarely shrink, so size to the forecast, not far beyond it.\n\n## 4. Alerts that\
+  \ give time to act\n- Warn at 80% used or 14 days of runway; page at 90% or 3 days\
+  \ of runway (Prometheus: `predict_linear(node_filesystem_avail_bytes[6h], 4*3600)\
+  \ < 0` style rules).\n- Alert on inode use above 85%.\n- Review capacity monthly\
+  \ with this skill's report; add growth from planned launches by hand.\n\x1FFILE:templates/capacity-review.md\x1E\
+  \n# Capacity Review - <service / fleet> - <date>\n\n**Data:** <source>, <first sample>\
+  \ to <last sample> (<time zone>)  **Horizon:** <90> days  **Reviewer:** <name>\n\
+  \n## Runway\n| Volume | Status | Used | Size | Growth GB/day (overall / recent)\
+  \ | 90% on | Full on | Suggested size |\n|---|---|---|---|---|---|---|---|\n| |\
+  \ | | | | | | |\n\n## What is growing\n| Volume | Main consumer | Evidence | One-off\
+  \ or ongoing |\n|---|---|---|---|\n| | | | |\n\n## Actions\n| Volume | Action |\
+  \ Owner | Due | Gain |\n|---|---|---|---|---|\n| | | | | |\n\n## Alerts\n- Warning:\
+  \ <80% or 14 days runway>  - Page: <90% or 3 days runway>  - Inodes: <85%>\n\n##\
+  \ Next review\n<date>; re-run the forecaster with fresh samples\n\x1FFILE:examples/fleet-disk-usage.csv\x1E\
+  \ntimestamp,volume,used_gb,size_gb\n2026-10-01T06:00,db01:/var/lib/postgresql,300.0,500\n\
+  2026-10-01T06:00,web01:/var/log,21.0,100\n2026-10-01T06:00,ci-runner01:/,110.0,200\n\
+  2026-10-01T06:00,backup-nas:/srv/backups,2100.0,4000\n2026-10-02T06:00,db01:/var/lib/postgresql,303.4,500\n\
+  2026-10-02T06:00,web01:/var/log,24.4,100\n2026-10-02T06:00,ci-runner01:/,111.4,200\n\
+  2026-10-02T06:00,backup-nas:/srv/backups,2105.4,4000\n2026-10-03T06:00,db01:/var/lib/postgresql,305.7,500\n\
+  2026-10-03T06:00,web01:/var/log,26.7,100\n2026-10-03T06:00,ci-runner01:/,111.7,200\n\
+  2026-10-03T06:00,backup-nas:/srv/backups,2109.7,4000\n2026-10-04T06:00,db01:/var/lib/postgresql,309.2,500\n\
+  2026-10-04T06:00,web01:/var/log,30.2,100\n2026-10-04T06:00,ci-runner01:/,113.2,200\n\
+  2026-10-04T06:00,backup-nas:/srv/backups,2115.2,4000\n2026-10-05T06:00,db01:/var/lib/postgresql,311.9,500\n\
+  2026-10-05T06:00,web01:/var/log,32.9,100\n2026-10-05T06:00,ci-runner01:/,113.9,200\n\
+  2026-10-05T06:00,backup-nas:/srv/backups,2119.9,4000\n2026-10-06T06:00,db01:/var/lib/postgresql,315.5,500\n\
+  2026-10-06T06:00,web01:/var/log,22.5,100\n2026-10-06T06:00,ci-runner01:/,115.5,200\n\
+  2026-10-06T06:00,backup-nas:/srv/backups,2125.5,4000\n2026-10-07T06:00,db01:/var/lib/postgresql,317.6,500\n\
+  2026-10-07T06:00,web01:/var/log,24.6,100\n2026-10-07T06:00,ci-runner01:/,115.6,200\n\
+  2026-10-07T06:00,backup-nas:/srv/backups,2129.6,4000\n2026-10-08T06:00,db01:/var/lib/postgresql,321.1,500\n\
+  2026-10-08T06:00,web01:/var/log,28.1,100\n2026-10-08T06:00,ci-runner01:/,117.1,200\n\
+  2026-10-08T06:00,backup-nas:/srv/backups,2135.1,4000\n2026-10-09T06:00,db01:/var/lib/postgresql,324.3,500\n\
+  2026-10-09T06:00,web01:/var/log,31.3,100\n2026-10-09T06:00,ci-runner01:/,118.3,200\n\
+  2026-10-09T06:00,backup-nas:/srv/backups,2140.3,4000\n2026-10-10T06:00,db01:/var/lib/postgresql,326.8,500\n\
+  2026-10-10T06:00,web01:/var/log,33.8,100\n2026-10-10T06:00,ci-runner01:/,118.8,200\n\
+  2026-10-10T06:00,backup-nas:/srv/backups,2144.8,4000\n2026-10-11T06:00,db01:/var/lib/postgresql,330.0,500\n\
+  2026-10-11T06:00,web01:/var/log,23.0,100\n2026-10-11T06:00,ci-runner01:/,120.0,200\n\
+  2026-10-11T06:00,backup-nas:/srv/backups,2150.0,4000\n2026-10-12T06:00,db01:/var/lib/postgresql,333.4,500\n\
+  2026-10-12T06:00,web01:/var/log,26.4,100\n2026-10-12T06:00,ci-runner01:/,121.4,200\n\
+  2026-10-12T06:00,backup-nas:/srv/backups,2155.4,4000\n2026-10-13T06:00,db01:/var/lib/postgresql,335.7,500\n\
+  2026-10-13T06:00,web01:/var/log,28.7,100\n2026-10-13T06:00,ci-runner01:/,121.7,200\n\
+  2026-10-13T06:00,backup-nas:/srv/backups,2159.7,4000\n2026-10-14T06:00,db01:/var/lib/postgresql,339.2,500\n\
+  2026-10-14T06:00,web01:/var/log,32.2,100\n2026-10-14T06:00,ci-runner01:/,123.2,200\n\
+  2026-10-14T06:00,backup-nas:/srv/backups,2165.2,4000\n2026-10-15T06:00,db01:/var/lib/postgresql,341.9,500\n\
+  2026-10-15T06:00,web01:/var/log,34.9,100\n2026-10-15T06:00,ci-runner01:/,123.9,200\n\
+  2026-10-15T06:00,backup-nas:/srv/backups,2169.9,4000\n2026-10-16T06:00,db01:/var/lib/postgresql,345.5,500\n\
+  2026-10-16T06:00,web01:/var/log,24.5,100\n2026-10-16T06:00,ci-runner01:/,130.5,200\n\
+  2026-10-16T06:00,backup-nas:/srv/backups,2575.5,4000\n2026-10-17T06:00,db01:/var/lib/postgresql,347.6,500\n\
+  2026-10-17T06:00,web01:/var/log,26.6,100\n2026-10-17T06:00,ci-runner01:/,135.6,200\n\
+  2026-10-17T06:00,backup-nas:/srv/backups,2579.6,4000\n2026-10-18T06:00,db01:/var/lib/postgresql,351.1,500\n\
+  2026-10-18T06:00,web01:/var/log,30.1,100\n2026-10-18T06:00,ci-runner01:/,142.1,200\n\
+  2026-10-18T06:00,backup-nas:/srv/backups,2585.1,4000\n2026-10-19T06:00,db01:/var/lib/postgresql,354.3,500\n\
+  2026-10-19T06:00,web01:/var/log,33.3,100\n2026-10-19T06:00,ci-runner01:/,148.3,200\n\
+  2026-10-19T06:00,backup-nas:/srv/backups,2590.3,4000\n2026-10-20T06:00,db01:/var/lib/postgresql,356.8,500\n\
+  2026-10-20T06:00,web01:/var/log,35.8,100\n2026-10-20T06:00,ci-runner01:/,153.8,200\n\
+  2026-10-20T06:00,backup-nas:/srv/backups,2594.8,4000\n2026-10-21T06:00,db01:/var/lib/postgresql,360.1,500\n\
+  2026-10-21T06:00,web01:/var/log,25.1,100\n2026-10-21T06:00,ci-runner01:/,160.1,200\n\
+  2026-10-21T06:00,backup-nas:/srv/backups,2600.1,4000\n\x1FFILE:scripts/disk_runway.py\x1E\
+  \n#!/usr/bin/env python3\n\"\"\"Disk capacity runway forecaster (Python 3 standard\
+  \ library only).\n\nInput: CSV with a header row and columns\n  timestamp,volume,used_gb,size_gb\n\
+  timestamp is ISO 8601 (\"2026-10-01T00:00\", \"2026-10-01 06:00\" or a date); one\
+  \ row per sample,\nany order, several volumes in one file. size_gb may change (a\
+  \ resize); the latest value is used.\n\nModel per volume:\n  - growth rate = least-squares\
+  \ slope of used_gb over time (GB/day), plus R^2 for fit quality;\n    one-off steps\
+  \ larger than 5% of the size are kept in current usage but removed from the trend\n\
+  \  - recent rate = slope over the last 7 days of samples (or the last third if shorter)\n\
+  \  - runway to 80/90/95/100% full = (threshold x size - used now) / max(rate, recent\
+  \ rate),\n    counted from the LAST sample (not from today), so results are reproducible\n\
+  \  - suggested size: smallest whole 10 GB step that keeps the volume under 80% for\n\
+  \    --horizon days (default 90) at the worse of the two rates\nStatus / findings\
+  \ (severity):\n  CRITICAL FULL_SOON       100% within 7 days, or already >= 95%\
+  \ used\n  HIGH     RUNWAY_SHORT    90% within 14 days\n  MEDIUM   RUNWAY_WATCH \
+  \   80% within 30 days\n  MEDIUM   ACCELERATING    recent rate > 1.5x the overall\
+  \ rate (and > 0.1 GB/day)\n  MEDIUM   SUDDEN_JUMP     one step grew by more than\
+  \ 5% of the volume size\n  LOW      NOISY_TREND     R^2 < 0.5: usage swings (log\
+  \ rotation, temp files); trust less\n  LOW      SHRINKING       usage is falling;\
+  \ no runway\n  LOW      FEW_SAMPLES     fewer than 4 samples or under 2 days of\
+  \ data\nUsage:\n  python3 disk_runway.py usage.csv\n  python3 disk_runway.py usage.csv\
+  \ --horizon 180 --json\n  python3 disk_runway.py --self-test\nExit code: 0 no CRITICAL/HIGH,\
+  \ 1 CRITICAL or HIGH findings, 2 bad input.\n\"\"\"\nimport argparse\nimport csv\n\
+  import datetime as dt\nimport io\nimport json\nimport math\nimport sys\n\nTHRESHOLDS\
+  \ = (0.8, 0.9, 0.95, 1.0)\n\n\nclass DataError(ValueError):\n    pass\n\n\ndef parse_time(s):\n\
+  \    s = s.strip().replace(\"Z\", \"+00:00\")\n    try:\n        t = dt.datetime.fromisoformat(s)\n\
+  \    except ValueError:\n        raise DataError(f\"bad timestamp {s!r}\")\n   \
+  \ return t.replace(tzinfo=None) if t.tzinfo is None else t.astimezone(dt.timezone.utc).replace(tzinfo=None)\n\
+  \n\ndef read_rows(text):\n    rd = csv.DictReader(io.StringIO(text))\n    need =\
+  \ {\"timestamp\", \"volume\", \"used_gb\", \"size_gb\"}\n    if not rd.fieldnames\
+  \ or not need <= {f.strip() for f in rd.fieldnames}:\n        raise DataError(f\"\
+  CSV header must contain {', '.join(sorted(need))}\")\n    vols = {}\n    for n,\
+  \ row in enumerate(rd, start=2):\n        row = {k.strip(): (v or \"\").strip()\
+  \ for k, v in row.items() if k}\n        if not any(row.values()):\n           \
+  \ continue\n        try:\n            used, size = float(row[\"used_gb\"]), float(row[\"\
+  size_gb\"])\n        except ValueError:\n            raise DataError(f\"line {n}:\
+  \ used_gb and size_gb must be numbers\")\n        if size <= 0 or used < 0:\n  \
+  \          raise DataError(f\"line {n}: size_gb must be > 0 and used_gb >= 0\")\n\
+  \        vols.setdefault(row[\"volume\"] or \"(unnamed)\", []).append((parse_time(row[\"\
+  timestamp\"]), used, size))\n    if not vols:\n        raise DataError(\"no data\
+  \ rows\")\n    return {k: sorted(v) for k, v in vols.items()}\n\n\ndef slope(points):\n\
+  \    \"\"\"points: [(days, value)] -> (slope per day, r2)\"\"\"\n    n = len(points)\n\
+  \    if n < 2:\n        return 0.0, 0.0\n    mx = sum(p[0] for p in points) / n\n\
+  \    my = sum(p[1] for p in points) / n\n    sxx = sum((p[0] - mx) ** 2 for p in\
+  \ points)\n    if sxx == 0:\n        return 0.0, 0.0\n    sxy = sum((p[0] - mx)\
+  \ * (p[1] - my) for p in points)\n    b = sxy / sxx\n    syy = sum((p[1] - my) **\
+  \ 2 for p in points)\n    r2 = 1.0 if syy == 0 else (sxy * sxy) / (sxx * syy)\n\
+  \    return b, r2\n\n\ndef analyze(samples, horizon=90):\n    t0 = samples[0][0]\n\
+  \    last_t, used, size = samples[-1]\n    # one-off steps (> 5% of size in one\
+  \ sample) are removed from the trend, not extrapolated\n    steps = [samples[i][1]\
+  \ - samples[i - 1][1] for i in range(1, len(samples))]\n    normal = sorted(x for\
+  \ x in steps if x <= 0.05 * size)\n    typical = normal[len(normal) // 2] if normal\
+  \ else 0.0\n    shift, pts = 0.0, []\n    for i, (t, u, _) in enumerate(samples):\n\
+  \        if i and steps[i - 1] > 0.05 * size:\n            shift += steps[i - 1]\
+  \ - typical\n        pts.append(((t - t0).total_seconds() / 86400, u - shift))\n\
+  \    span = pts[-1][0]\n    rate, r2 = slope(pts)\n    cut = pts[-1][0] - 7 if span\
+  \ >= 14 else pts[-1][0] - span / 3\n    recent_pts = [p for p in pts if p[0] >=\
+  \ cut]\n    recent, _ = slope(recent_pts) if len(recent_pts) >= 2 else (rate, 0)\n\
+  \    worst = max(rate, recent)\n    pct = used / size\n    runway = {}\n    for\
+  \ th in THRESHOLDS:\n        left = th * size - used\n        if left <= 0:\n  \
+  \          runway[th] = (0.0, last_t)\n        elif worst > 1e-9:\n            d\
+  \ = left / worst\n            runway[th] = (d, last_t + dt.timedelta(days=d))\n\
+  \        else:\n            runway[th] = (None, None)\n    need = used + max(worst,\
+  \ 0) * horizon\n    suggest = max(size, math.ceil(need / 0.8 / 10) * 10)\n    findings\
+  \ = []\n\n    def f(sev, code, msg):\n        findings.append({\"severity\": sev,\
+  \ \"code\": code, \"message\": msg})\n\n    d100, d90, d80 = runway[1.0][0], runway[0.9][0],\
+  \ runway[0.8][0]\n    if pct >= 0.95 or (d100 is not None and d100 <= 7):\n    \
+  \    f(\"CRITICAL\", \"FULL_SOON\", f\"{pct:.0%} used; full in {fmt_days(d100)}\"\
+  )\n    elif d90 is not None and d90 <= 14:\n        f(\"HIGH\", \"RUNWAY_SHORT\"\
+  , f\"90% in {fmt_days(d90)}\")\n    elif d80 is not None and d80 <= 30:\n      \
+  \  f(\"MEDIUM\", \"RUNWAY_WATCH\", f\"80% in {fmt_days(d80)}\")\n    if rate > 0\
+  \ and recent > 1.5 * rate and recent > 0.1:\n        f(\"MEDIUM\", \"ACCELERATING\"\
+  , f\"last-week rate {recent:.2f} GB/day vs overall {rate:.2f} GB/day\")\n    jumps\
+  \ = [(samples[i][0], samples[i][1] - samples[i - 1][1]) for i in range(1, len(samples))]\n\
+  \    big = [j for j in jumps if j[1] > 0.05 * size]\n    if big:\n        t, g =\
+  \ max(big, key=lambda j: j[1])\n        f(\"MEDIUM\", \"SUDDEN_JUMP\", f\"+{g:.1f}\
+  \ GB in one step at {t:%Y-%m-%d %H:%M} (backup, dump, log burst?)\")\n    if len(pts)\
+  \ >= 4 and r2 < 0.5 and worst > 0:\n        f(\"LOW\", \"NOISY_TREND\", f\"R^2 {r2:.2f};\
+  \ usage swings, so treat the runway as rough\")\n    if worst < 0:\n        f(\"\
+  LOW\", \"SHRINKING\", f\"usage falling {rate:.2f} GB/day\")\n    if len(pts) < 4\
+  \ or span < 2:\n        f(\"LOW\", \"FEW_SAMPLES\", f\"{len(pts)} samples over {span:.1f}\
+  \ days; collect more data\")\n    rank = {\"CRITICAL\": 0, \"HIGH\": 1, \"MEDIUM\"\
+  : 2, \"LOW\": 3}\n    findings.sort(key=lambda x: rank[x[\"severity\"]])\n    return\
+  \ {\"last_sample\": last_t.strftime(\"%Y-%m-%d %H:%M\"), \"used_gb\": round(used,\
+  \ 2), \"size_gb\": size,\n            \"used_pct\": round(pct * 100, 1), \"rate_gb_day\"\
+  : round(rate, 3), \"recent_rate_gb_day\": round(recent, 3),\n            \"r2\"\
+  : round(r2, 3), \"samples\": len(pts), \"span_days\": round(span, 2),\n        \
+  \    \"runway\": {f\"{int(th * 100)}%\": {\"days\": None if d is None else round(d,\
+  \ 1),\n                                             \"date\": None if t is None\
+  \ else t.strftime(\"%Y-%m-%d\")}\n                       for th, (d, t) in runway.items()},\n\
+  \            \"suggested_size_gb\": suggest, \"horizon_days\": horizon, \"findings\"\
+  : findings,\n            \"status\": findings[0][\"severity\"] if findings and findings[0][\"\
+  severity\"] in (\"CRITICAL\", \"HIGH\", \"MEDIUM\") else \"OK\"}\n\n\ndef fmt_days(d):\n\
+  \    if d is None:\n        return \"never at current rate\"\n    if d <= 0:\n \
+  \       return \"already\"\n    if d < 1:\n        return f\"{d * 24:.0f} h\"\n\
+  \    return f\"{d:.1f} days\"\n\n\ndef report(res, horizon):\n    out = [\"# Disk\
+  \ runway report\", \"\", f\"Runway uses the worse of the overall and last-week growth\
+  \ rate; suggested size keeps usage under 80% for {horizon} days.\", \"\",\n    \
+  \       \"| Volume | Status | Used | Size | Growth GB/day (overall / recent) | 80%\
+  \ | 90% | 100% | Suggested size |\",\n           \"|---|---|---|---|---|---|---|---|---|\"\
+  ]\n    order = {\"CRITICAL\": 0, \"HIGH\": 1, \"MEDIUM\": 2, \"OK\": 3}\n    for\
+  \ name, r in sorted(res.items(), key=lambda kv: (order[kv[1][\"status\"]], kv[0])):\n\
+  \        def cell(k):\n            x = r[\"runway\"][k]\n            if x[\"days\"\
+  ] is None:\n                return \"never\"\n            return \"now\" if x[\"\
+  days\"] == 0 else f\"{x['days']} d ({x['date']})\"\n        out.append(f\"| {name}\
+  \ | {r['status']} | {r['used_gb']:g} GB ({r['used_pct']}%) | {r['size_gb']:g} GB\
+  \ | \"\n                   f\"{r['rate_gb_day']} / {r['recent_rate_gb_day']} | {cell('80%')}\
+  \ | {cell('90%')} | {cell('100%')} | \"\n                   f\"{r['suggested_size_gb']:g}\
+  \ GB |\")\n    out += [\"\", \"## Findings\"]\n    any_f = False\n    for name,\
+  \ r in sorted(res.items(), key=lambda kv: (order[kv[1][\"status\"]], kv[0])):\n\
+  \        for x in r[\"findings\"]:\n            any_f = True\n            out.append(f\"\
+  - **{x['severity']} {x['code']}** ({name}): {x['message']}\")\n    if not any_f:\n\
+  \        out.append(\"- none\")\n    out += [\"\", \"Last samples: \" + \", \".join(f\"\
+  {n} {r['last_sample']} ({r['samples']} samples, {r['span_days']} days, R^2 {r['r2']})\"\
+  \ for n, r in sorted(res.items()))]\n    return \"\\n\".join(out) + \"\\n\"\n\n\n\
+  def run(text, horizon=90):\n    if horizon <= 0:\n        raise DataError(\"horizon\
+  \ must be > 0\")\n    return {name: analyze(s, horizon) for name, s in read_rows(text).items()}\n\
+  \n\ndef self_test():\n    cases = []\n\n    def ok(name, cond):\n        cases.append(bool(cond))\n\
+  \        print((\"PASS \" if cond else \"FAIL \") + name)\n\n    b, r2 = slope([(0,\
+  \ 10), (1, 12), (2, 14)])\n    ok(\"slope 2/day exact fit\", abs(b - 2) < 1e-9 and\
+  \ abs(r2 - 1) < 1e-9)\n    ok(\"flat slope 0\", slope([(0, 5), (1, 5), (2, 5)])[0]\
+  \ == 0)\n    hdr = \"timestamp,volume,used_gb,size_gb\\n\"\n    lin = hdr + \"\"\
+  .join(f\"2026-10-{d:02d},v,{100 + 2 * d},500\\n\" for d in range(1, 15))\n    r\
+  \ = run(lin)[\"v\"]\n    ok(\"rate 2 GB/day\", abs(r[\"rate_gb_day\"] - 2) < 1e-6)\n\
+  \    ok(\"80% runway (400-128)/2 = 136 d\", r[\"runway\"][\"80%\"][\"days\"] ==\
+  \ 136.0)\n    ok(\"runway date from last sample\", r[\"runway\"][\"100%\"][\"date\"\
+  ] == \"2027-04-18\")\n    ok(\"healthy volume status OK\", r[\"status\"] == \"OK\"\
+  \ and r[\"findings\"] == [])\n    ok(\"suggested size keeps 500\", r[\"suggested_size_gb\"\
+  ] == 500)\n    r = run(lin, horizon=180)[\"v\"]\n    ok(\"180 d horizon suggests\
+  \ 610\", r[\"suggested_size_gb\"] == 610)\n    full = hdr + \"\".join(f\"2026-10-{d:02d},v,{80\
+  \ + 3 * d},100\\n\" for d in range(1, 6))\n    r = run(full)[\"v\"]\n    ok(\"95%\
+  \ used is CRITICAL\", r[\"status\"] == \"CRITICAL\" and r[\"findings\"][0][\"code\"\
+  ] == \"FULL_SOON\")\n    ok(\"past threshold runway is 0\", r[\"runway\"][\"90%\"\
+  ][\"days\"] == 0)\n    short = hdr + \"\".join(f\"2026-10-{d:02d},v,{50 + 3 * d},100\\\
+  n\" for d in range(1, 8))\n    r = run(short)[\"v\"]\n    ok(\"90% in ~6 days is\
+  \ HIGH\", r[\"status\"] == \"HIGH\")\n    watch = hdr + \"\".join(f\"2026-10-{d:02d},v,{40\
+  \ + d},100\\n\" for d in range(1, 8))\n    ok(\"80% in 33 d is OK, 80% in 26 d is\
+  \ MEDIUM\", run(watch)[\"v\"][\"status\"] == \"OK\" and\n       run(hdr + \"\".join(f\"\
+  2026-10-{d:02d},v,{47 + d},100\\n\" for d in range(1, 8)))[\"v\"][\"status\"] ==\
+  \ \"MEDIUM\")\n    acc = hdr + \"\".join(f\"2026-10-{d:02d},v,{100 + (d if d <=\
+  \ 14 else 14 + 5 * (d - 14))},1000\\n\" for d in range(1, 22))\n    r = run(acc)[\"\
+  v\"]\n    ok(\"accelerating flagged\", any(x[\"code\"] == \"ACCELERATING\" for x\
+  \ in r[\"findings\"]))\n    ok(\"recent rate used for runway\", r[\"recent_rate_gb_day\"\
+  ] > r[\"rate_gb_day\"])\n    jump = hdr + \"2026-10-01,v,100,500\\n2026-10-02,v,101,500\\\
+  n2026-10-03,v,140,500\\n2026-10-04,v,141,500\\n\"\n    r = run(jump)[\"v\"]\n  \
+  \  ok(\"sudden jump flagged\", any(x[\"code\"] == \"SUDDEN_JUMP\" for x in r[\"\
+  findings\"]))\n    ok(\"jump removed from trend (1 GB/day)\", abs(r[\"rate_gb_day\"\
+  ] - 1) < 1e-6 and r[\"used_gb\"] == 141)\n    noisy = hdr + \"\".join(f\"2026-10-{d:02d},v,{100\
+  \ + (8 if d % 2 else 0) + 0.3 * d:.1f},500\\n\" for d in range(1, 21))\n    ok(\"\
+  noisy trend flagged\", any(x[\"code\"] == \"NOISY_TREND\" for x in run(noisy)[\"\
+  v\"][\"findings\"]))\n    shr = hdr + \"\".join(f\"2026-10-{d:02d},v,{200 - 3 *\
+  \ d},500\\n\" for d in range(1, 8))\n    r = run(shr)[\"v\"]\n    ok(\"shrinking\
+  \ flagged and runway never\", any(x[\"code\"] == \"SHRINKING\" for x in r[\"findings\"\
+  ]) and r[\"runway\"][\"100%\"][\"days\"] is None)\n    few = hdr + \"2026-10-01T00:00,v,10,100\\\
+  n2026-10-01T12:00,v,11,100\\n\"\n    ok(\"few samples flagged\", any(x[\"code\"\
+  ] == \"FEW_SAMPLES\" for x in run(few)[\"v\"][\"findings\"]))\n    multi = hdr +\
+  \ \"2026-10-02,b,5,100\\n2026-10-01,a,1,100\\n2026-10-01,b,4,100\\n2026-10-02,a,1,100\\\
+  n\"\n    r = run(multi)\n    ok(\"multiple volumes, unsorted rows\", set(r) == {\"\
+  a\", \"b\"} and r[\"b\"][\"rate_gb_day\"] == 1)\n    ok(\"resize uses latest size\"\
+  , run(hdr + \"2026-10-01,v,50,100\\n2026-10-02,v,52,200\\n\")[\"v\"][\"size_gb\"\
+  ] == 200)\n    ok(\"fmt_days hours\", fmt_days(0.5) == \"12 h\")\n    for bad, label\
+  \ in ((\"a,b\\n1,2\\n\", \"missing columns\"), (hdr, \"no rows\"), (hdr + \"x,v,1,10\\\
+  n\", \"bad timestamp\"),\n                       (hdr + \"2026-10-01,v,abc,10\\\
+  n\", \"bad number\"), (hdr + \"2026-10-01,v,1,0\\n\", \"zero size\")):\n       \
+  \ try:\n            run(bad)\n            ok(label + \" rejected\", False)\n   \
+  \     except DataError:\n            ok(label + \" rejected\", True)\n    print(f\"\
+  {sum(cases)}/{len(cases)} passed\")\n    return 0 if all(cases) else 1\n\n\ndef\
+  \ main(argv=None):\n    ap = argparse.ArgumentParser(description=\"Forecast when\
+  \ disks fill up from usage samples.\")\n    ap.add_argument(\"file\", nargs=\"?\"\
+  , help=\"CSV: timestamp,volume,used_gb,size_gb\")\n    ap.add_argument(\"--horizon\"\
+  , type=int, default=90, help=\"days of runway the suggested size must cover (default\
+  \ 90)\")\n    ap.add_argument(\"--json\", action=\"store_true\")\n    ap.add_argument(\"\
+  --self-test\", action=\"store_true\")\n    a = ap.parse_args(argv)\n    if a.self_test:\n\
+  \        return self_test()\n    if not a.file:\n        ap.error(\"give a CSV file\
+  \ or --self-test\")\n    try:\n        res = run(open(a.file, encoding=\"utf-8\"\
+  ).read(), a.horizon)\n    except (OSError, DataError) as e:\n        print(f\"error:\
+  \ {e}\", file=sys.stderr)\n        return 2\n    print(json.dumps(res, indent=2)\
+  \ if a.json else report(res, a.horizon), end=\"\\n\" if a.json else \"\")\n    return\
+  \ 1 if any(r[\"status\"] in (\"CRITICAL\", \"HIGH\") for r in res.values()) else\
+  \ 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
