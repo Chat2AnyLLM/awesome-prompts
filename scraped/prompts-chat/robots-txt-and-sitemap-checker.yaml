@@ -1,0 +1,403 @@
+slug: robots-txt-and-sitemap-checker
+title: Robots.txt and Sitemap Checker
+description: Imported from Prompts Chat
+prompt: "---\nname: robots-txt-and-sitemap-checker\ndescription: Checks a site's robots.txt\
+  \ and XML sitemap offline the way Google reads them. Picks the crawler's group,\
+  \ resolves longest-match Allow and Disallow with wildcards, and tests the URLs that\
+  \ must be crawlable or blocked. Flags whole-site blocks, sitemap URLs that robots.txt\
+  \ blocks, blocked CSS and JS, unsupported noindex and crawl-delay lines, off-site,\
+  \ duplicate or invalid sitemap entries. Includes a stdlib Python checker with --self-test.\n\
+  ---\n\n# Robots.txt and Sitemap Checker\n\nYou help site owners, SEO specialists\
+  \ and web developers make sure search engines can crawl the pages that matter and\
+  \ skip the ones that do not. From a robots.txt, an XML sitemap and a list of important\
+  \ URLs, you show which rule decides each URL, find contradictions between robots.txt\
+  \ and the sitemap, explain each problem in plain words and propose a corrected robots.txt\
+  \ and sitemap fixes.\n\n## Files in this skill\n\n- `scripts/crawl_check.py` - parses\
+  \ robots.txt and a sitemap, decides allowed or blocked per URL like Googlebot, and\
+  \ prints a URL table and findings (Python 3 standard library only, no network)\n\
+  - `references/robots-txt-rules.md` - groups, longest-match and wildcard rules with\
+  \ examples, supported directives, common mistakes and how to test\n- `references/sitemap-rules-and-fixes.md`\
+  \ - sitemap format and limits, what to list, lastmod, and the fix for each finding\n\
+  - `templates/crawl-audit-report.md` - an audit report with a proposed robots.txt\
+  \ to hand to the developer\n- `examples/outdoor-shop-crawl-check.json` - an outdoor\
+  \ gear shop after a relaunch: blog and JS blocked by mistake, a noindex line, an\
+  \ open admin path, and a sitemap with a blocked, an off-site, a duplicate and badly\
+  \ dated URLs\n\n## Workflow\n\n### 1. Collect the files\nAsk for the live robots.txt\
+  \ (`https://<host>/robots.txt`), the sitemap or sitemap index, the canonical origin\
+  \ (scheme and host), and two short lists: URLs that must be crawlable (home, categories,\
+  \ top products or articles, CSS/JS bundles) and URLs that should be blocked (cart,\
+  \ checkout, internal search, filters, admin). Ask which crawler matters most (default\
+  \ Googlebot).\n\n### 2. Run the checker\n```\npython3 scripts/crawl_check.py examples/outdoor-shop-crawl-check.json\
+  \ --today 2026-10-23\npython3 scripts/crawl_check.py --robots robots.txt --sitemap\
+  \ sitemap.xml --site https://www.example.com --allow /product/x --block /cart/\n\
+  python3 scripts/crawl_check.py --self-test\n```\nA bundle JSON holds the site, crawler,\
+  \ robots.txt and sitemap lines and the URL lists. Exit code 1 means CRITICAL or\
+  \ HIGH findings, 2 means bad input.\n\n### 3. Explain and fix\nStart with CRITICAL\
+  \ and HIGH: whole-site blocks, important pages blocked, sitemap URLs that robots.txt\
+  \ blocks, off-site sitemap entries. For each, name the deciding line and give the\
+  \ corrected rule. Explain that robots.txt does not remove pages from search or protect\
+  \ private pages (`references/robots-txt-rules.md`), and point to the fix table in\
+  \ `references/sitemap-rules-and-fixes.md`.\n\n### 4. Deliver\nFill `templates/crawl-audit-report.md`\
+  \ with the URL table, findings, a full corrected robots.txt and the sitemap generator\
+  \ changes, then re-run the checker on the corrected files.\n\n## Example result\n\
+  For `examples/outdoor-shop-crawl-check.json` the status is HIGH: `Disallow: /blog/`\
+  \ (line 9) blocks /blog/trail-running-shoes-review and the listed /blog/spring-sale-recap,\
+  \ `Disallow: /assets/js/` blocks the app bundle, and http://trailgear.example/backpacks/\
+  \ in the sitemap is off-site. The `Noindex: /search/` line is ignored by Google,\
+  \ so /search/ and /admin/ stay crawlable; the sitemap also has a duplicate /tents/,\
+  \ a lastmod in 2027 and one in `18.10.2026` format.\n\n## Rules\n\n- Always name\
+  \ the exact robots.txt line that decides a URL, and the crawler it was evaluated\
+  \ for.\n- Never suggest robots.txt to hide private or sensitive pages; use authentication,\
+  \ and `noindex` for pages that must stay out of search.\n- Give a complete corrected\
+  \ robots.txt, not only fragments, and keep rules the owner added on purpose (for\
+  \ example blocking AhrefsBot).\n- The checker does not fetch URLs; say that status\
+  \ codes, redirects, canonicals and noindex tags need a crawl or Search Console.\n\
+  \x1FFILE:references/robots-txt-rules.md\x1E\n# robots.txt Rules (RFC 9309 and Google)\n\
+  \n## Where and what\n- Lives at the root of each host and protocol: `https://www.example.com/robots.txt`\
+  \ covers only that host. `example.com`, `shop.example.com` and `http://` need their\
+  \ own file.\n- Plain text, UTF-8. Google reads the first 500 KiB. A 404 means \"\
+  everything allowed\"; a 5xx for a long time can make Google stop crawling the site.\n\
+  - robots.txt controls **crawling**, not indexing. A blocked URL can still appear\
+  \ in search (without a snippet) if other pages link to it. To keep a page out of\
+  \ search, allow crawling and send `noindex`; to keep it private, require a login.\n\
+  \n## Groups\n```\nUser-agent: Googlebot\nUser-agent: Bingbot\nDisallow: /tmp/\n\n\
+  User-agent: *\nDisallow: /cart/\n```\n- Consecutive `User-agent` lines share one\
+  \ group. Rules belong to the group above them.\n- A crawler uses only **one** group:\
+  \ the one with the most specific matching name (`googlebot-image` over `googlebot`),\
+  \ otherwise `*`. Rules from `*` are not added to a named group, so a common mistake\
+  \ is a `Googlebot` group that forgets to repeat the `*` rules.\n- Groups with the\
+  \ same name are merged.\n\n## Matching\n- Paths are case-sensitive and match from\
+  \ the start of the path (including the query string).\n- `*` matches any characters;\
+  \ `$` anchors the end of the URL.\n- The **longest** matching rule wins; on equal\
+  \ length `Allow` wins. No matching rule means allowed.\n- `Disallow:` with an empty\
+  \ value allows everything.\n\n| Rule | Blocks | Does not block |\n|---|---|---|\n\
+  | `Disallow: /shop` | /shop, /shop/, /shopping | /Shop |\n| `Disallow: /shop/` |\
+  \ /shop/shoes | /shop |\n| `Disallow: /*?sort=` | /tents/?sort=price | /tents/?color=red&sort=price\
+  \ (needs `/*sort=`) |\n| `Disallow: /*.pdf$` | /docs/a.pdf | /docs/a.pdf?v=2 |\n\
+  | `Disallow: /blog/` + `Allow: /blog/guides/` | /blog/news | /blog/guides/x |\n\n\
+  ## Directives\n| Directive | Google | Notes |\n|---|---|---|\n| user-agent, allow,\
+  \ disallow | yes | core rules |\n| sitemap | yes | absolute URL, any number, outside\
+  \ groups |\n| crawl-delay | no | Bing and Yandex honour it; for Google, lower the\
+  \ crawl rate via server responses (429/503) |\n| noindex, nofollow | no (dropped\
+  \ 2019) | use `<meta name=\"robots\" content=\"noindex\">` or the `X-Robots-Tag`\
+  \ header |\n| host, clean-param | no | Yandex only |\n\n## Common mistakes\n- `Disallow:\
+  \ /` left over from staging after a launch (the whole site disappears from crawling).\n\
+  - Blocking CSS, JS or image folders: Google renders pages and needs them; blocked\
+  \ assets can make pages look broken or not mobile-friendly.\n- Blocking a page that\
+  \ carries `noindex`: the crawler never sees the noindex, so the URL can stay in\
+  \ the index.\n- Using robots.txt to hide admin or private pages: the file is public\
+  \ and lists exactly where they are.\n- Faceted URLs (sort, filter, session ids)\
+  \ left open, wasting crawl budget on endless combinations.\n- Typos (`Disalow`)\
+  \ are silently ignored.\n\n## Testing\n- Google Search Console: robots.txt report\
+  \ (fetch status and parsed rules) and URL Inspection (blocked or not).\n- Locally:\
+  \ `python3 scripts/crawl_check.py --robots robots.txt --site https://www.example.com\
+  \ --allow /product/x --block /cart/`.\n\x1FFILE:references/sitemap-rules-and-fixes.md\x1E\
+  \n# XML Sitemap Rules and Fixes\n\n## Format\n```xml\n<?xml version=\"1.0\" encoding=\"\
+  UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url>\n\
+  \    <loc>https://www.example.com/tents/ultralight-2p</loc>\n    <lastmod>2026-10-18T09:30:00+03:00</lastmod>\n\
+  \  </url>\n</urlset>\n```\n- At most **50,000 URLs** and **50 MB** uncompressed\
+  \ per file. Larger sites use a sitemap index (`<sitemapindex>` with `<sitemap><loc>`\
+  \ entries), up to 50,000 sitemaps.\n- UTF-8, entity-escape `&`, `<`, `>`, `'`, `\"\
+  ` inside `<loc>`.\n- `<loc>` must be absolute, on the same protocol and host as\
+  \ the sitemap (unless cross-submitted through Search Console for a verified host).\n\
+  \n## What to list\n- Only canonical, indexable URLs that return 200: no redirects,\
+  \ no 404s, no `noindex` pages, no URLs blocked by robots.txt, no parameter duplicates.\n\
+  - The exact canonical form: same scheme (https), same host (www or not), same trailing-slash\
+  \ style as the `rel=canonical` tag.\n- Each URL once.\n\n## lastmod\n- W3C datetime:\
+  \ `2026-10-18`, `2026-10-18T09:30+03:00` or `2026-10-18T06:30:00Z`. Formats like\
+  \ `18.10.2026` or `10/18/2026` are invalid.\n- Set it to the last **meaningful**\
+  \ content change, not the build time. Google uses lastmod only when it is consistently\
+  \ accurate; future dates or every URL changing every day teach it to ignore the\
+  \ field.\n- `<changefreq>` and `<priority>` are ignored by Google; they do no harm\
+  \ but are not worth maintaining.\n\n## Telling crawlers about the sitemap\n- `Sitemap:\
+  \ https://www.example.com/sitemap.xml` in robots.txt (absolute URL).\n- Submit in\
+  \ Google Search Console and Bing Webmaster Tools, then watch the \"Discovered\"\
+  \ and \"Indexed\" counts and errors.\n\n## Fixes by finding\n| Finding | Fix |\n\
+  |---|---|\n| SITEMAP_URL_BLOCKED | Decide: if the page should rank, remove the Disallow;\
+  \ if not, drop it from the sitemap |\n| SITEMAP_OFF_SITE | Rewrite `<loc>` to the\
+  \ canonical scheme and host; check the generator's base URL setting |\n| SITEMAP_DUPLICATE\
+  \ | Deduplicate in the generator (often category + tag listings of the same page)\
+  \ |\n| LASTMOD_INVALID / LASTMOD_FUTURE | Output ISO 8601 from the content's updated-at\
+  \ field; check server time zone and clock |\n| SITEMAP_TOO_BIG | Split by section\
+  \ or date into several files under one sitemap index |\n| SITEMAP_PARSE_ERROR |\
+  \ Escape `&` in URLs, remove a BOM or HTML error pages served instead of XML, check\
+  \ the namespace |\n\n## Beyond this checker\nThe script works offline on the files\
+  \ you give it. Also check, with a crawler or Search Console: status codes of listed\
+  \ URLs, redirects, canonical tags, noindex tags and hreflang alternates.\n\x1FFILE:templates/crawl-audit-report.md\x1E\
+  \n# Crawl Audit - <site> - <date>\n\n**Checked:** robots.txt (<fetched on / version>),\
+  \ <sitemap URL(s)>  **Crawler:** <Googlebot>  **Reviewer:** <name>\n\n## Summary\n\
+  - Status: <CRITICAL / HIGH / OK>\n- robots.txt: <n> groups, <n> rules for <crawler>\n\
+  - Sitemap: <n> URLs, <n> blocked, <n> off-site, <n> duplicates\n\n## Important URLs\n\
+  | URL | Should be | Result | Deciding rule | Fix |\n|---|---|---|---|---|\n| | crawlable\
+  \ | | | |\n| | blocked | | | |\n\n## Findings and fixes\n| Severity | Finding |\
+  \ Detail | Fix | Owner |\n|---|---|---|---|---|\n| | | | | |\n\n## Proposed robots.txt\n\
+  ```\nUser-agent: *\nDisallow: ...\nAllow: ...\n\nSitemap: https://...\n```\n\n##\
+  \ Follow-up\n- Deploy the new robots.txt and sitemap on <date>; test in Search Console\
+  \ (robots.txt report, URL Inspection)\n- Recheck coverage and crawl stats on <date>\n\
+  \x1FFILE:examples/outdoor-shop-crawl-check.json\x1E\n{\n  \"site\": \"https://www.trailgear.example\"\
+  ,\n  \"user_agent\": \"Googlebot\",\n  \"robots_txt\": [\n    \"# robots.txt for\
+  \ www.trailgear.example (after the October relaunch)\",\n    \"User-agent: *\",\n\
+  \    \"Disallow: /cart/\",\n    \"Disallow: /checkout/\",\n    \"Disallow: /account/\"\
+  ,\n    \"Disallow: /*?sort=\",\n    \"Disallow: /*?sessionid=\",\n    \"Disallow:\
+  \ /assets/js/\",\n    \"Disallow: /blog/\",\n    \"Allow: /blog/guides/\",\n   \
+  \ \"Crawl-delay: 10\",\n    \"Noindex: /search/\",\n    \"\",\n    \"User-agent:\
+  \ AhrefsBot\",\n    \"Disallow: /\",\n    \"\",\n    \"Sitemap: https://www.trailgear.example/sitemap.xml\"\
+  \n  ],\n  \"sitemap_xml\": [\n    \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\
+  \"?>\",\n    \"<urlset xmlns=\\\"http://www.sitemaps.org/schemas/sitemap/0.9\\\"\
+  >\",\n    \"  <url><loc>https://www.trailgear.example/</loc><lastmod>2026-10-20</lastmod></url>\"\
+  ,\n    \"  <url><loc>https://www.trailgear.example/tents/</loc><lastmod>2026-10-18</lastmod></url>\"\
+  ,\n    \"  <url><loc>https://www.trailgear.example/tents/ultralight-2p</loc><lastmod>2026-10-18T09:30:00+03:00</lastmod></url>\"\
+  ,\n    \"  <url><loc>https://www.trailgear.example/tents/</loc><lastmod>2026-10-18</lastmod></url>\"\
+  ,\n    \"  <url><loc>https://www.trailgear.example/blog/spring-sale-recap</loc><lastmod>2026-04-02</lastmod></url>\"\
+  ,\n    \"  <url><loc>https://www.trailgear.example/blog/guides/layering-for-hiking</loc><lastmod>2026-09-12</lastmod></url>\"\
+  ,\n    \"  <url><loc>http://trailgear.example/backpacks/</loc><lastmod>2026-10-01</lastmod></url>\"\
+  ,\n    \"  <url><loc>https://www.trailgear.example/sleeping-bags/</loc><lastmod>18.10.2026</lastmod></url>\"\
+  ,\n    \"  <url><loc>https://www.trailgear.example/stoves/</loc><lastmod>2027-03-01</lastmod></url>\"\
+  ,\n    \"</urlset>\"\n  ],\n  \"must_crawl\": [\n    \"/tents/ultralight-2p\",\n\
+  \    \"/blog/trail-running-shoes-review\",\n    \"/blog/guides/layering-for-hiking\"\
+  ,\n    \"/assets/js/app.js\",\n    \"/tents/?color=green\"\n  ],\n  \"must_block\"\
+  : [\n    \"/checkout/payment\",\n    \"/tents/?sort=price\",\n    \"/search/?q=stove\"\
+  ,\n    \"/admin/\"\n  ]\n}\n\x1FFILE:scripts/crawl_check.py\x1E\n#!/usr/bin/env\
+  \ python3\n\"\"\"robots.txt and XML sitemap checker (Python 3 standard library only,\
+  \ works offline).\n\nInput, either:\n  a JSON bundle  {\"site\": \"https://www.example.com\"\
+  , \"user_agent\": \"Googlebot\",\n                  \"robots_txt\": [lines] or \"\
+  text\", \"sitemap_xml\": [lines] or \"text\",\n                  \"must_crawl\"\
+  : [urls or paths], \"must_block\": [urls or paths]}\n  or files       --robots robots.txt\
+  \ [--sitemap sitemap.xml] --site https://... [--allow URL] [--block URL]\nMatching\
+  \ follows RFC 9309 / Google: the group whose user-agent token matches the crawler\
+  \ name\n(case-insensitive, most specific wins, else \"*\"), then the longest matching\
+  \ Allow/Disallow path\n(* = any characters, $ = end of URL); on a tie Allow wins;\
+  \ no match = allowed.\nFindings (severity):\n  CRITICAL BLOCK_ALL              \
+  \ \"Disallow: /\" applies to the crawler with no Allow rules\n  HIGH     MUST_CRAWL_BLOCKED\
+  \      a URL that must be crawlable is disallowed\n  HIGH     SITEMAP_URL_BLOCKED\
+  \     a URL listed in the sitemap is disallowed\n  HIGH     SITEMAP_PARSE_ERROR\
+  \     sitemap is not well-formed XML or not urlset/sitemapindex\n  HIGH     SITEMAP_TOO_BIG\
+  \         more than 50,000 URLs in one sitemap\n  HIGH     SITEMAP_OFF_SITE    \
+  \    a sitemap URL is on another host or scheme than the site\n  MEDIUM   MUST_BLOCK_CRAWLABLE\
+  \    a URL that should be blocked is crawlable (robots.txt is not access control)\n\
+  \  MEDIUM   ASSETS_BLOCKED          CSS, JS or image paths disallowed (pages cannot\
+  \ render for the crawler)\n  MEDIUM   UNSUPPORTED_RULE        noindex / nofollow\
+  \ / host lines (ignored by Google)\n  MEDIUM   SITEMAP_DUPLICATE       the same\
+  \ <loc> appears more than once\n  MEDIUM   LASTMOD_FUTURE          <lastmod> after\
+  \ --today\n  LOW      CRAWL_DELAY_IGNORED     crawl-delay (Googlebot ignores it;\
+  \ Bing and Yandex honour it)\n  LOW      RULE_OUTSIDE_GROUP      allow/disallow\
+  \ before any user-agent line\n  LOW      UNKNOWN_DIRECTIVE       unknown line or\
+  \ missing colon\n  LOW      SITEMAP_RELATIVE        Sitemap: line is not an absolute\
+  \ URL\n  LOW      NO_SITEMAP_LINE         robots.txt has no Sitemap: line\n  LOW\
+  \      LASTMOD_INVALID         <lastmod> is not W3C datetime (YYYY-MM-DD[Thh:mm[:ss]TZD])\n\
+  Usage:\n  python3 crawl_check.py bundle.json [--today 2026-10-23] [--json]\n  python3\
+  \ crawl_check.py --robots robots.txt --sitemap sitemap.xml --site https://www.example.com\
+  \ --allow /shop/\n  python3 crawl_check.py --self-test\nExit code: 0 no CRITICAL/HIGH,\
+  \ 1 CRITICAL or HIGH findings, 2 bad input.\n\"\"\"\nimport argparse\nimport datetime\
+  \ as dt\nimport json\nimport re\nimport sys\nimport urllib.parse\nimport xml.etree.ElementTree\
+  \ as ET\n\nSEV_ORDER = {\"CRITICAL\": 0, \"HIGH\": 1, \"MEDIUM\": 2, \"LOW\": 3}\n\
+  KNOWN = {\"user-agent\", \"allow\", \"disallow\", \"sitemap\", \"crawl-delay\",\
+  \ \"noindex\", \"nofollow\", \"host\", \"clean-param\"}\nASSET_RE = re.compile(r\"\
+  (\\.css|\\.js|\\.png|\\.jpe?g|\\.webp|\\.svg|\\.gif|/static/|/assets/|/_next/|/wp-includes/|/css/|/js/)\"\
+  , re.I)\nLASTMOD_RE = re.compile(r\"^\\d{4}(-\\d{2}(-\\d{2}(T\\d{2}:\\d{2}(:\\d{2}(\\\
+  .\\d+)?)?(Z|[+-]\\d{2}:\\d{2}))?)?)?$\")\nNS = \"{http://www.sitemaps.org/schemas/sitemap/0.9}\"\
+  \n\n\nclass DataError(ValueError):\n    pass\n\n\ndef text_of(v):\n    if v is None:\n\
+  \        return None\n    return \"\\n\".join(v) if isinstance(v, list) else str(v)\n\
+  \n\ndef parse_robots(text):\n    \"\"\"-> (groups [{agents, rules[(kind, path, line)]}],\
+  \ sitemaps [(url, line)], issues [(sev, code, msg)])\"\"\"\n    groups, sitemaps,\
+  \ issues = [], [], []\n    cur, last_was_agent = None, False\n    for n, raw in\
+  \ enumerate(text.splitlines(), start=1):\n        line = raw.split(\"#\", 1)[0].strip()\n\
+  \        if not line:\n            continue\n        if \":\" not in line:\n   \
+  \         issues.append((\"LOW\", \"UNKNOWN_DIRECTIVE\", f\"line {n}: no colon in\
+  \ {line!r}\"))\n            continue\n        key, val = (x.strip() for x in line.split(\"\
+  :\", 1))\n        key = key.lower()\n        if key == \"user-agent\":\n       \
+  \     if not last_was_agent or cur is None:\n                cur = {\"agents\":\
+  \ [], \"rules\": []}\n                groups.append(cur)\n            cur[\"agents\"\
+  ].append(val.lower())\n            last_was_agent = True\n            continue\n\
+  \        last_was_agent = False\n        if key in (\"allow\", \"disallow\"):\n\
+  \            if cur is None:\n                issues.append((\"LOW\", \"RULE_OUTSIDE_GROUP\"\
+  , f\"line {n}: {key} before any user-agent line is ignored\"))\n            elif\
+  \ val:\n                cur[\"rules\"].append((key, val, n))\n        elif key ==\
+  \ \"sitemap\":\n            sitemaps.append((val, n))\n            if not re.match(r\"\
+  ^https?://\", val, re.I):\n                issues.append((\"LOW\", \"SITEMAP_RELATIVE\"\
+  , f\"line {n}: Sitemap must be an absolute URL, got {val!r}\"))\n        elif key\
+  \ == \"crawl-delay\":\n            issues.append((\"LOW\", \"CRAWL_DELAY_IGNORED\"\
+  , f\"line {n}: crawl-delay {val} is ignored by Googlebot\"))\n        elif key in\
+  \ (\"noindex\", \"nofollow\", \"host\", \"clean-param\"):\n            issues.append((\"\
+  MEDIUM\", \"UNSUPPORTED_RULE\", f\"line {n}: '{key}' in robots.txt is not supported\
+  \ by Google; use meta robots / X-Robots-Tag or redirects\"))\n        else:\n  \
+  \          issues.append((\"LOW\", \"UNKNOWN_DIRECTIVE\", f\"line {n}: unknown directive\
+  \ {key!r}\"))\n    return groups, sitemaps, issues\n\n\ndef pick_group(groups, agent):\n\
+  \    \"\"\"Rules for the crawler: merge all groups with the longest matching agent\
+  \ token, else '*'.\"\"\"\n    a = agent.lower()\n    best, rules = -1, []\n    for\
+  \ g in groups:\n        for tok in g[\"agents\"]:\n            if tok != \"*\" and\
+  \ tok and a.startswith(tok) and len(tok) > best:\n                best, rules =\
+  \ len(tok), list(g[\"rules\"])\n            elif tok != \"*\" and tok and a.startswith(tok)\
+  \ and len(tok) == best:\n                rules += g[\"rules\"]\n    if best >= 0:\n\
+  \        return rules\n    return [r for g in groups if \"*\" in g[\"agents\"] for\
+  \ r in g[\"rules\"]]\n\n\ndef pattern_to_re(path):\n    end = path.endswith(\"$\"\
+  )\n    body = path[:-1] if end else path\n    return re.compile(\"^\" + \".*\".join(re.escape(p)\
+  \ for p in body.split(\"*\")) + (\"$\" if end else \"\"))\n\n\ndef path_of(url,\
+  \ site):\n    u = urllib.parse.urlsplit(urllib.parse.urljoin(site + \"/\", url))\n\
+  \    return (u.path or \"/\") + ((\"?\" + u.query) if u.query else \"\")\n\n\ndef\
+  \ decide(rules, path):\n    \"\"\"-> (allowed, matching rule or None)\"\"\"\n  \
+  \  best = None\n    for kind, pat, n in rules:\n        if pattern_to_re(pat).match(path):\n\
+  \            key = (len(pat), kind == \"allow\")\n            if best is None or\
+  \ key > best[0]:\n                best = (key, (kind, pat, n))\n    if best is None:\n\
+  \        return True, None\n    return best[1][0] == \"allow\", best[1]\n\n\ndef\
+  \ parse_sitemap(text):\n    try:\n        root = ET.fromstring(text.strip())\n \
+  \   except ET.ParseError as e:\n        raise DataError(f\"sitemap XML error: {e}\"\
+  )\n    tag = root.tag.replace(NS, \"\")\n    if tag not in (\"urlset\", \"sitemapindex\"\
+  ):\n        raise DataError(f\"sitemap root must be urlset or sitemapindex, got\
+  \ {tag!r}\")\n    child = \"url\" if tag == \"urlset\" else \"sitemap\"\n    items\
+  \ = []\n    for el in root.findall(NS + child) or root.findall(child):\n       \
+  \ loc = el.findtext(NS + \"loc\") or el.findtext(\"loc\") or \"\"\n        lm =\
+  \ el.findtext(NS + \"lastmod\") or el.findtext(\"lastmod\")\n        items.append((loc.strip(),\
+  \ lm.strip() if lm else None))\n    return tag, items\n\n\ndef check(bundle, today=None):\n\
+  \    site = (bundle.get(\"site\") or \"\").rstrip(\"/\")\n    if not re.match(r\"\
+  ^https?://[^/]+$\", site):\n        raise DataError(\"site must be an origin like\
+  \ https://www.example.com\")\n    robots = text_of(bundle.get(\"robots_txt\"))\n\
+  \    if robots is None:\n        raise DataError(\"robots_txt is required\")\n \
+  \   agent = bundle.get(\"user_agent\") or \"Googlebot\"\n    today = today or dt.date.today()\n\
+  \    groups, sitemaps, issues = parse_robots(robots)\n    rules = pick_group(groups,\
+  \ agent)\n    findings = [{\"severity\": s, \"code\": c, \"message\": m} for s,\
+  \ c, m in issues]\n\n    def f(sev, code, msg):\n        findings.append({\"severity\"\
+  : sev, \"code\": code, \"message\": msg})\n\n    if any(k == \"disallow\" and p\
+  \ == \"/\" for k, p, _ in rules) and not any(k == \"allow\" for k, _, _ in rules):\n\
+  \        f(\"CRITICAL\", \"BLOCK_ALL\", f\"'Disallow: /' blocks the whole site for\
+  \ {agent}\")\n    for k, p, n in rules:\n        if k == \"disallow\" and ASSET_RE.search(p):\n\
+  \            f(\"MEDIUM\", \"ASSETS_BLOCKED\", f\"line {n}: Disallow {p} blocks\
+  \ CSS/JS/images needed to render pages\")\n    if not sitemaps:\n        f(\"LOW\"\
+  , \"NO_SITEMAP_LINE\", \"robots.txt has no Sitemap: line\")\n    url_checks = []\n\
+  \    for kind, key in ((\"crawl\", \"must_crawl\"), (\"block\", \"must_block\")):\n\
+  \        for u in bundle.get(key) or []:\n            p = path_of(u, site)\n   \
+  \         allowed, rule = decide(rules, p)\n            url_checks.append({\"url\"\
+  : u, \"path\": p, \"expect\": kind, \"allowed\": allowed,\n                    \
+  \           \"rule\": f\"line {rule[2]}: {rule[0].title()}: {rule[1]}\" if rule\
+  \ else \"no rule\"})\n            if kind == \"crawl\" and not allowed:\n      \
+  \          f(\"HIGH\", \"MUST_CRAWL_BLOCKED\", f\"{p} is blocked by line {rule[2]}\
+  \ ({rule[0].title()}: {rule[1]})\")\n            if kind == \"block\" and allowed:\n\
+  \                f(\"MEDIUM\", \"MUST_BLOCK_CRAWLABLE\", f\"{p} is crawlable ({'no\
+  \ rule' if not rule else 'line %d Allow: %s' % (rule[2], rule[1])}); protect private\
+  \ pages with auth or noindex, not robots.txt\")\n    sm_info = None\n    sm_text\
+  \ = text_of(bundle.get(\"sitemap_xml\"))\n    if sm_text is not None:\n        try:\n\
+  \            kind, items = parse_sitemap(sm_text)\n        except DataError as e:\n\
+  \            f(\"HIGH\", \"SITEMAP_PARSE_ERROR\", str(e))\n            kind, items\
+  \ = None, []\n        host = urllib.parse.urlsplit(site)\n        seen, blocked,\
+  \ off = set(), 0, 0\n        for loc, lm in items:\n            u = urllib.parse.urlsplit(loc)\n\
+  \            if (u.scheme, u.netloc) != (host.scheme, host.netloc):\n          \
+  \      off += 1\n                f(\"HIGH\", \"SITEMAP_OFF_SITE\", f\"{loc} is not\
+  \ on {site}\")\n            if loc in seen:\n                f(\"MEDIUM\", \"SITEMAP_DUPLICATE\"\
+  , f\"{loc} listed more than once\")\n            seen.add(loc)\n            if kind\
+  \ == \"urlset\":\n                allowed, rule = decide(rules, path_of(loc, site))\n\
+  \                if not allowed:\n                    blocked += 1\n           \
+  \         f(\"HIGH\", \"SITEMAP_URL_BLOCKED\", f\"{loc} is in the sitemap but blocked\
+  \ by line {rule[2]} ({rule[0].title()}: {rule[1]})\")\n            if lm is not\
+  \ None:\n                if not LASTMOD_RE.match(lm):\n                    f(\"\
+  LOW\", \"LASTMOD_INVALID\", f\"{loc}: lastmod {lm!r} is not W3C datetime\")\n  \
+  \              elif dt.date.fromisoformat(lm[:10] if len(lm) >= 10 else lm[:4] +\
+  \ \"-01-01\") > today:\n                    f(\"MEDIUM\", \"LASTMOD_FUTURE\", f\"\
+  {loc}: lastmod {lm} is after {today}\")\n        if len(items) > 50000:\n      \
+  \      f(\"HIGH\", \"SITEMAP_TOO_BIG\", f\"{len(items)} URLs; split into files of\
+  \ at most 50,000 URLs and use a sitemap index\")\n        sm_info = {\"type\": kind,\
+  \ \"urls\": len(items), \"blocked\": blocked, \"off_site\": off}\n    findings.sort(key=lambda\
+  \ x: SEV_ORDER[x[\"severity\"]])\n    status = findings[0][\"severity\"] if findings\
+  \ and findings[0][\"severity\"] in (\"CRITICAL\", \"HIGH\") else \"OK\"\n    return\
+  \ {\"site\": site, \"user_agent\": agent, \"groups\": len(groups), \"rules_for_agent\"\
+  : len(rules),\n            \"sitemaps_declared\": [s for s, _ in sitemaps], \"sitemap\"\
+  : sm_info, \"url_checks\": url_checks,\n            \"findings\": findings, \"status\"\
+  : status}\n\n\ndef report(r):\n    L = [f\"# Crawl check for {r['site']} as {r['user_agent']}\"\
+  , \"\",\n         f\"robots.txt: {r['groups']} groups, {r['rules_for_agent']} rules\
+  \ apply to {r['user_agent']}; \"\n         f\"Sitemap lines: {', '.join(r['sitemaps_declared'])\
+  \ or 'none'}\"]\n    if r[\"sitemap\"]:\n        s = r[\"sitemap\"]\n        L.append(f\"\
+  Sitemap ({s['type']}): {s['urls']} URLs, {s['blocked']} blocked by robots.txt, {s['off_site']}\
+  \ off-site\")\n    if r[\"url_checks\"]:\n        L += [\"\", \"| URL | Expected\
+  \ | Result | Deciding rule |\", \"|---|---|---|---|\"]\n        for c in r[\"url_checks\"\
+  ]:\n            res = \"allowed\" if c[\"allowed\"] else \"blocked\"\n         \
+  \   good = (c[\"expect\"] == \"crawl\") == c[\"allowed\"]\n            L.append(f\"\
+  | {c['path']} | {c['expect']} | {res}{'' if good else ' (WRONG)'} | {c['rule']}\
+  \ |\")\n    L += [\"\", f\"## Findings (status {r['status']})\"]\n    L += [f\"\
+  - {x['severity']} {x['code']}: {x['message']}\" for x in r[\"findings\"]] or [\"\
+  - none\"]\n    return \"\\n\".join(L) + \"\\n\"\n\n\ndef self_test():\n    cases\
+  \ = []\n\n    def ok(name, cond):\n        cases.append(bool(cond))\n        print((\"\
+  PASS \" if cond else \"FAIL \") + name)\n\n    def codes(r):\n        return {x[\"\
+  code\"] for x in r[\"findings\"]}\n\n    R = lambda t: pick_group(parse_robots(t)[0],\
+  \ \"Googlebot\")\n    rules = R(\"User-agent: *\\nDisallow: /shop/\\nAllow: /shop/products/\\\
+  n\")\n    ok(\"longest match wins (allow deeper path)\", decide(rules, \"/shop/products/a\"\
+  )[0] and not decide(rules, \"/shop/cart\")[0])\n    ok(\"tie goes to allow\", decide(R(\"\
+  User-agent: *\\nDisallow: /p\\nAllow: /p\\n\"), \"/p\")[0])\n    ok(\"no rule =\
+  \ allowed\", decide(rules, \"/blog/\")[0])\n    wild = R(\"User-agent: *\\nDisallow:\
+  \ /*?sort=\\nDisallow: /*.pdf$\\n\")\n    ok(\"* wildcard matches query\", not decide(wild,\
+  \ \"/shop/shoes?sort=price\")[0])\n    ok(\"$ anchors end\", not decide(wild, \"\
+  /files/a.pdf\")[0] and decide(wild, \"/files/a.pdf?x=1\")[0])\n    ok(\"empty Disallow\
+  \ allows everything\", decide(R(\"User-agent: *\\nDisallow:\\n\"), \"/x\")[0])\n\
+  \    spec = parse_robots(\"User-agent: *\\nDisallow: /\\n\\nUser-agent: Googlebot\\\
+  nDisallow: /private/\\n\")[0]\n    ok(\"specific group beats *\", decide(pick_group(spec,\
+  \ \"Googlebot\"), \"/shop\")[0] and not decide(pick_group(spec, \"Bingbot\"), \"\
+  /shop\")[0])\n    ok(\"googlebot-image uses longest token\", pick_group(parse_robots(\"\
+  User-agent: googlebot\\nDisallow: /a\\nUser-agent: googlebot-image\\nDisallow: /b\\\
+  n\")[0], \"Googlebot-Image\")[0][1] == \"/b\")\n    multi = parse_robots(\"User-agent:\
+  \ a\\nUser-agent: b\\nDisallow: /x\\n\")[0]\n    ok(\"consecutive user-agents share\
+  \ a group\", len(multi) == 1 and multi[0][\"agents\"] == [\"a\", \"b\"])\n    ok(\"\
+  comments stripped\", R(\"User-agent: * # all\\nDisallow: /tmp/ # temp\\n\")[0][1]\
+  \ == \"/tmp/\")\n    base = {\"site\": \"https://www.shop.test\", \"robots_txt\"\
+  : \"User-agent: *\\nDisallow: /\\n\"}\n    r = check(base, dt.date(2026, 10, 23))\n\
+  \    ok(\"block all is CRITICAL\", \"BLOCK_ALL\" in codes(r) and r[\"status\"] ==\
+  \ \"CRITICAL\")\n    r = check({**base, \"robots_txt\": [\"User-agent: *\", \"Disallow:\
+  \ /checkout/\", \"Sitemap: https://www.shop.test/sitemap.xml\"],\n             \
+  \  \"must_crawl\": [\"/checkout/thanks\"], \"must_block\": [\"/admin/\"]}, dt.date(2026,\
+  \ 10, 23))\n    ok(\"must_crawl blocked is HIGH\", \"MUST_CRAWL_BLOCKED\" in codes(r)\
+  \ and r[\"status\"] == \"HIGH\")\n    ok(\"must_block crawlable is MEDIUM\", \"\
+  MUST_BLOCK_CRAWLABLE\" in codes(r))\n    ok(\"list of lines accepted, sitemap line\
+  \ read\", r[\"sitemaps_declared\"] == [\"https://www.shop.test/sitemap.xml\"])\n\
+  \    r = check({**base, \"robots_txt\": \"Disallow: /x\\nUser-agent: *\\nNoindex:\
+  \ /tmp/\\nCrawl-delay: 5\\nDisalow: /y\\nSitemap: /sitemap.xml\\nDisallow: /assets/\\\
+  n\"}, dt.date(2026, 10, 23))\n    for c in (\"RULE_OUTSIDE_GROUP\", \"UNSUPPORTED_RULE\"\
+  , \"CRAWL_DELAY_IGNORED\", \"UNKNOWN_DIRECTIVE\", \"SITEMAP_RELATIVE\", \"ASSETS_BLOCKED\"\
+  ):\n        ok(c + \" flagged\", c in codes(r))\n    ok(\"missing sitemap line flagged\"\
+  , \"NO_SITEMAP_LINE\" in codes(check({**base, \"robots_txt\": \"User-agent: *\\\
+  nDisallow:\\n\"})))\n    sm = ('<?xml version=\"1.0\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\
+  >'\n          \"<url><loc>https://www.shop.test/a</loc><lastmod>2026-10-01</lastmod></url>\"\
+  \n          \"<url><loc>https://www.shop.test/a</loc></url>\"\n          \"<url><loc>http://www.shop.test/b</loc><lastmod>01/10/2026</lastmod></url>\"\
+  \n          \"<url><loc>https://www.shop.test/cart/x</loc><lastmod>2030-01-01T00:00:00+00:00</lastmod></url></urlset>\"\
+  )\n    r = check({**base, \"robots_txt\": \"User-agent: *\\nDisallow: /cart/\\nSitemap:\
+  \ https://www.shop.test/sitemap.xml\\n\", \"sitemap_xml\": sm}, dt.date(2026, 10,\
+  \ 23))\n    for c in (\"SITEMAP_DUPLICATE\", \"SITEMAP_OFF_SITE\", \"LASTMOD_INVALID\"\
+  , \"LASTMOD_FUTURE\", \"SITEMAP_URL_BLOCKED\"):\n        ok(c + \" flagged\", c\
+  \ in codes(r))\n    ok(\"sitemap counts\", r[\"sitemap\"] == {\"type\": \"urlset\"\
+  , \"urls\": 4, \"blocked\": 1, \"off_site\": 1})\n    ok(\"bad XML is HIGH SITEMAP_PARSE_ERROR\"\
+  , \"SITEMAP_PARSE_ERROR\" in codes(check({**base, \"robots_txt\": \"\", \"sitemap_xml\"\
+  : \"<urlset><url>\"})))\n    idx = '<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\
+  ><sitemap><loc>https://www.shop.test/s1.xml</loc></sitemap></sitemapindex>'\n  \
+  \  ok(\"sitemap index read\", check({**base, \"robots_txt\": \"\", \"sitemap_xml\"\
+  : idx})[\"sitemap\"][\"type\"] == \"sitemapindex\")\n    for bad, label in (({\"\
+  robots_txt\": \"\"}, \"missing site\"), ({\"site\": \"https://x.test/path\", \"\
+  robots_txt\": \"\"}, \"site with path\"),\n                       ({\"site\": \"\
+  https://x.test\"}, \"missing robots_txt\")):\n        try:\n            check(bad)\n\
+  \            ok(label + \" rejected\", False)\n        except DataError:\n     \
+  \       ok(label + \" rejected\", True)\n    print(f\"{sum(cases)}/{len(cases)}\
+  \ passed\")\n    return 0 if all(cases) else 1\n\n\ndef main(argv=None):\n    ap\
+  \ = argparse.ArgumentParser(description=\"Check robots.txt rules and an XML sitemap\
+  \ offline.\")\n    ap.add_argument(\"bundle\", nargs=\"?\", help=\"JSON bundle (see\
+  \ module docstring)\")\n    ap.add_argument(\"--robots\", help=\"robots.txt file\
+  \ (instead of a bundle)\")\n    ap.add_argument(\"--sitemap\", help=\"sitemap.xml\
+  \ file\")\n    ap.add_argument(\"--site\", help=\"site origin, e.g. https://www.example.com\"\
+  )\n    ap.add_argument(\"--agent\", help=\"crawler name (default Googlebot)\")\n\
+  \    ap.add_argument(\"--allow\", action=\"append\", default=[], help=\"URL or path\
+  \ that must be crawlable (repeatable)\")\n    ap.add_argument(\"--block\", action=\"\
+  append\", default=[], help=\"URL or path that should be blocked (repeatable)\")\n\
+  \    ap.add_argument(\"--today\", help=\"date for the future-lastmod check (default\
+  \ today)\")\n    ap.add_argument(\"--json\", action=\"store_true\")\n    ap.add_argument(\"\
+  --self-test\", action=\"store_true\")\n    a = ap.parse_args(argv)\n    if a.self_test:\n\
+  \        return self_test()\n    try:\n        if a.bundle:\n            b = json.load(open(a.bundle,\
+  \ encoding=\"utf-8\"))\n        elif a.robots:\n            b = {\"site\": a.site,\
+  \ \"robots_txt\": open(a.robots, encoding=\"utf-8\").read(),\n                 \"\
+  sitemap_xml\": open(a.sitemap, encoding=\"utf-8\").read() if a.sitemap else None,\n\
+  \                 \"must_crawl\": a.allow, \"must_block\": a.block}\n        else:\n\
+  \            ap.error(\"give a JSON bundle, --robots FILE or --self-test\")\n  \
+  \      if a.agent:\n            b[\"user_agent\"] = a.agent\n        today = dt.date.fromisoformat(a.today)\
+  \ if a.today else None\n        r = check(b, today)\n    except (OSError, ValueError,\
+  \ DataError) as e:\n        print(f\"error: {e}\", file=sys.stderr)\n        return\
+  \ 2\n    print(json.dumps(r, indent=2) if a.json else report(r), end=\"\\n\" if\
+  \ a.json else \"\")\n    return 1 if r[\"status\"] in (\"CRITICAL\", \"HIGH\") else\
+  \ 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
