@@ -1,0 +1,398 @@
+slug: stale-git-branch-cleanup-auditor
+title: Stale Git Branch Cleanup Auditor
+description: Imported from Prompts Chat
+prompt: "---\nname: stale-git-branch-cleanup-auditor\ndescription: Audits a repository's\
+  \ remote branches and plans a safe cleanup. Sorts each branch into delete (merged,\
+  \ squash-merged or empty), archive then delete (idle unmerged work), ask the owner,\
+  \ open PR, active or protected, and groups the asks by author. Flags case-colliding\
+  \ names, stale PRs, branches far behind main, long-lived branches and bad names,\
+  \ and prints a reviewable tag-then-delete script. Includes a stdlib Python auditor\
+  \ with --self-test.\n---\n\n# Stale Git Branch Cleanup Auditor\n\nYou help teams\
+  \ clean up the dozens or hundreds of forgotten branches on a shared remote without\
+  \ losing anyone's work. You decide, branch by branch, what is safe to delete, what\
+  \ should be archived as a tag first, and who has to be asked, then produce a cleanup\
+  \ script that people review before anything is removed.\n\n## Files in this skill\n\
+  \n- `scripts/branch_audit.py` - classifies remote branches from a TSV or CSV export\
+  \ or straight from a local clone (`--repo`), prints findings, owner lists and a\
+  \ cleanup script (Python 3 standard library only; never deletes anything itself)\n\
+  - `references/cleanup-rules.md` - the decision rules, squash-merge detection, archive\
+  \ tags, protected branches, naming conventions and how to restore a deleted branch\n\
+  - `references/exporting-branch-data.md` - git and GitHub/GitLab commands to produce\
+  \ the input, including PR states\n- `templates/cleanup-announcement.md` - a team\
+  \ message with the plan, the owner asks and the deadline\n- `examples/webshop-branches.csv`\
+  \ - 16 branches of an online shop repository with merged, squash-merged, stale,\
+  \ colliding and protected branches\n\n## Workflow\n\n### 1. Get the branch data\n\
+  Preferred: a fresh local clone (`git fetch --prune origin`) and run the script with\
+  \ `--repo`. Ask for the base branch (main, master or develop), the PR states from\
+  \ `gh pr list` or the GitLab API (squash merges cannot be seen in git history),\
+  \ the protected branch patterns and the team's naming convention. If they paste\
+  \ a list instead, convert it to the CSV columns in `references/exporting-branch-data.md`.\n\
+  \n### 2. Run the auditor\n```\npython3 scripts/branch_audit.py examples/webshop-branches.csv\
+  \ --today 2026-10-24\npython3 scripts/branch_audit.py --repo . --base main --prs\
+  \ prs.tsv --stale-days 90 --ask-days 30\npython3 scripts/branch_audit.py --self-test\n\
+  ```\nExit code 1 means HIGH findings, 2 means bad input.\n\n### 3. Review with the\
+  \ user\nWalk through the actions in this order: DELETE_MERGED (safe, the work is\
+  \ in the base branch), ARCHIVE_AND_DELETE (recoverable from the archive tag), ASK_OWNER\
+  \ (needs an answer), then the findings. Fix CASE_COLLISION first because it breaks\
+  \ clones on macOS and Windows. Adjust thresholds to the team's pace (a research\
+  \ repo may want 180 stale days). Use `references/cleanup-rules.md` to explain each\
+  \ decision.\n\n### 4. Deliver\nFill `templates/cleanup-announcement.md` with the\
+  \ counts, the per-owner list and a deadline (usually 7 days). Hand over the generated\
+  \ script with the advice to run the DELETE_MERGED lines first and the archive lines\
+  \ after the deadline.\n\n## Example result\nFor `examples/webshop-branches.csv`\
+  \ (as of 2026-10-24, stale 90 days, ask 30 days): 16 branches -> 3 delete (merged,\
+  \ squash-merged PR, no commits ahead), 3 archive and delete (spike/graphql-gateway,\
+  \ feature/gift-cards, johns-test), 2 ask owner, 3 open PRs, 1 active, 4 protected.\
+  \ Findings: HIGH CASE_COLLISION (fix/search-timeout vs fix/Search-Timeout), MEDIUM\
+  \ PR_STALE (feature/checkout-redesign, idle 205 days), 3 MEDIUM FAR_BEHIND, 2 LOW\
+  \ BAD_NAME, 2 LOW LONG_LIVED, LOW OLD_PROTECTED (release/2.3).\n\n## Rules\n\n-\
+  \ Never delete branches yourself and never run the script for the user; print it\
+  \ for review.\n- Unmerged work is archived as a tag (`archive/<branch>`) before\
+  \ the branch is deleted, so it can be restored.\n- Squash and rebase merges leave\
+  \ the branch \"unmerged\" in git; trust the PR state, not only `--merged`.\n- Protected,\
+  \ release and base branches are never in the delete list, even if they look idle.\n\
+  - Ask owners before touching unmerged work and give a clear deadline.\n\x1FFILE:references/cleanup-rules.md\x1E\
+  \n# Cleanup Rules\n\n## Decision order (first match wins)\n| Action | Condition\
+  \ | Why it is safe or not |\n|---|---|---|\n| KEEP_PROTECTED | matches `--protect`\
+  \ (main, master, develop, trunk, gh-pages, release/*, hotfix/*) | Deployments, release\
+  \ maintenance and branch protection rules depend on them |\n| DELETE_MERGED | reachable\
+  \ from the base branch, 0 commits ahead, or its PR was merged | Every commit (or\
+  \ its squashed equivalent) is already in the base branch |\n| KEEP_OPEN_PR | open\
+  \ pull/merge request | Deleting the branch closes the PR; ask instead (see PR_STALE)\
+  \ |\n| ARCHIVE_AND_DELETE | unmerged and idle >= stale days (default 90) | Unique\
+  \ commits: tag first so the work is recoverable |\n| ASK_OWNER | unmerged and idle\
+  \ >= ask days (default 30) | Might still be in use; the owner decides |\n| KEEP_ACTIVE\
+  \ | unmerged, recent commits | Work in progress |\n\n\"Idle\" is the committer date\
+  \ of the branch tip. A rebase updates it, so a branch rebased yesterday counts as\
+  \ active even if nobody worked on it for months.\n\n## Squash and rebase merges\n\
+  `git branch -r --merged main` only finds branches whose tip commit is in main. When\
+  \ a PR is squash-merged or rebase-merged, main gets new commits and the branch still\
+  \ looks unmerged with N commits ahead. Use the PR state (`pr = merged`) to catch\
+  \ these. Without PR data, check by hand:\n```\ngit diff --stat origin/main...origin/<branch>\
+  \     # empty or tiny = changes already in main\ngit log --oneline origin/main --grep\
+  \ \"<PR title or number>\"\n```\nA closed (not merged) PR with old commits is abandoned\
+  \ work: archive it.\n\n## Archive tags\n```\ngit tag archive/<branch> origin/<branch>\n\
+  git push origin refs/tags/archive/<branch>\ngit push origin --delete <branch>\n\
+  ```\nRestore later with `git push origin archive/<branch>:refs/heads/<branch>`.\
+  \ Tags keep the commits alive forever (no garbage collection). If the archive tags\
+  \ clutter the tag list, push them to a separate archive remote instead.\n\nDeleted\
+  \ without a tag? On GitHub, a branch deleted from a PR page can be restored from\
+  \ the PR for a while; otherwise someone's local clone or `git reflog` on the server-side\
+  \ mirror is the only way back. That is why the script tags first.\n\n## Findings\n\
+  | Code | Severity | Meaning | Action |\n|---|---|---|---|\n| CASE_COLLISION | HIGH\
+  \ | `fix/Login` and `fix/login` exist; case-insensitive file systems store refs\
+  \ as files, so fetch fails or one ref hides the other | Delete or rename one today\
+  \ |\n| PR_STALE | MEDIUM | Open PR with no commit for >= stale days | Owner finishes,\
+  \ splits or closes it |\n| FAR_BEHIND | MEDIUM | Unmerged branch > 300 commits behind\
+  \ base | Rebase/merge base soon or archive; conflicts grow every day |\n| LONG_LIVED\
+  \ | LOW | > 50 unmerged commits and idle >= ask days | Split into smaller PRs; hide\
+  \ unfinished work behind a feature flag |\n| OLD_PROTECTED | LOW | release/* or\
+  \ hotfix/* idle >= stale days | Tag the release (`v2.3.x`), remove protection, delete\
+  \ |\n| BAD_NAME | LOW | No allowed `<type>/` prefix, or uppercase/spaces | Rename\
+  \ to `feature/...`, `fix/...`, `chore/...` |\n\n## Naming convention\n`<type>/<short-kebab-description>`\
+  \ with optional ticket: `feature/cart-coupons`, `fix/1423-vat-rounding`, `chore/bump-node-22`.\
+  \ Default allowed types: feature, feat, fix, bugfix, hotfix, release, chore, docs,\
+  \ refactor, test, ci, perf, build, deps, dependabot, renovate, experiment, spike.\
+  \ Override with `--prefixes`.\n\n## Keeping it clean afterwards\n- Enable \"Automatically\
+  \ delete head branches\" (GitHub) or \"Delete source branch\" (GitLab) on merge.\n\
+  - Protect only branches that need it, with patterns.\n- Run the audit monthly; most\
+  \ teams settle at 90 stale days and 30 ask days.\n- Bots (dependabot, renovate)\
+  \ recreate their branches; keep their PRs moving instead of deleting branches.\n\
+  \x1FFILE:references/exporting-branch-data.md\x1E\n# Exporting Branch Data\n\n##\
+  \ Option A: let the script read the clone\n```\ngit fetch --prune origin\npython3\
+  \ scripts/branch_audit.py --repo . --remote origin --base main\n```\nThe script\
+  \ runs `git for-each-ref`, `git branch -r --merged origin/main` and `git rev-list\
+  \ --left-right --count origin/main...origin/<branch>` for every branch. Large repositories\
+  \ with thousands of branches take a minute.\n\n## Option B: build the TSV (or CSV)\
+  \ yourself\nColumns (tab or comma separated, header required; the delimiter is detected\
+  \ from the header): `branch last_commit author ahead behind merged pr`\n\n```\n\
+  base=origin/main\nprintf 'branch\\tlast_commit\\tauthor\\tahead\\tbehind\\tmerged\\\
+  tpr\\n' > branches.tsv\ngit branch -r --merged \"$base\" | sed 's/^ *//' > /tmp/merged.txt\n\
+  git for-each-ref --format='%(refname:short)%09%(committerdate:short)%09%(authorname)'\
+  \ refs/remotes/origin |\nwhile IFS=\"$(printf '\\t')\" read -r ref date author;\
+  \ do\n  case \"$ref\" in origin|origin/HEAD|\"$base\") continue;; esac\n  set --\
+  \ $(git rev-list --left-right --count \"$base...$ref\")\n  merged=no; grep -qx \"\
+  $ref\" /tmp/merged.txt && merged=yes\n  printf '%s\\t%s\\t%s\\t%s\\t%s\\t%s\\tnone\\\
+  n' \"${ref#origin/}\" \"$date\" \"$author\" \"$2\" \"$1\" \"$merged\" >> branches.tsv\n\
+  done\n```\n`$1` is \"behind\" (commits only in base) and `$2` is \"ahead\" (commits\
+  \ only in the branch).\n\n## PR states\nGitHub CLI (`gh pr list` returns newest\
+  \ PRs first; awk keeps the first, i.e. newest, PR per branch):\n```\ngh pr list\
+  \ --state all --limit 1000 --json headRefName,state \\\n  -q '.[] | [.headRefName,\
+  \ (.state|ascii_downcase)] | @tsv' | awk -F'\\t' '!seen[$1]++' > prs.tsv\npython3\
+  \ scripts/branch_audit.py --repo . --prs prs.tsv\n```\nGitHub states map to open,\
+  \ merged, closed. GitLab: `glab mr list --all` or the API `GET /projects/:id/merge_requests?state=all`\
+  \ (`source_branch`, `state`: opened -> open, merged, closed).\n\nFor a TSV or CSV,\
+  \ put the state in the `pr` column (open, merged, closed or none).\n\n## Thresholds\n\
+  | Option | Default | Notes |\n|---|---|---|\n| `--stale-days` | 90 | Idle unmerged\
+  \ branches beyond this are archived |\n| `--ask-days` | 30 | Idle unmerged branches\
+  \ beyond this need an owner answer |\n| `--behind-limit` | 300 | FAR_BEHIND threshold\
+  \ in commits |\n| `--protect` | main,master,develop,trunk,gh-pages,release/*,hotfix/*\
+  \ | fnmatch patterns, case-sensitive |\n| `--prefixes` | feature,fix,chore,... |\
+  \ Allowed name prefixes for BAD_NAME |\n| `--today` | today | Fix the date for repeatable\
+  \ reports |\n\n## Privacy\nAuthor names come from commits. Share the per-owner list\
+  \ only inside the team.\n\x1FFILE:templates/cleanup-announcement.md\x1E\n# Branch\
+  \ cleanup on <repository> - please check by <deadline date>\n\nHi team,\n\nWe have\
+  \ <N> branches on `<remote>`. On <cleanup date> we will clean up:\n\n- **<n> merged\
+  \ branches** will be deleted (their changes are already in `<base>`).\n- **<n> idle\
+  \ unmerged branches** (no commits for <stale days>+ days) will be saved as `archive/<branch>`\
+  \ tags and then deleted. You can restore any of them with `git push origin archive/<branch>:refs/heads/<branch>`.\n\
+  - **<n> branches need your answer** (no commits for <ask days>+ days): keep, merge,\
+  \ or archive?\n\n## Your branches\n| Owner | Branches | Needed from you |\n|---|---|---|\n\
+  | <name> | <branch, branch> | <keep / archive / merge by deadline> |\n\n## Please\
+  \ fix\n- <CASE_COLLISION: fix/search-timeout and fix/Search-Timeout - Lena, delete\
+  \ one today>\n- <PR_STALE: feature/checkout-redesign - Marco, finish, split or close>\n\
+  \n## From now on\n- Branch names: `<type>/<short-description>` (feature/, fix/,\
+  \ chore/, ...)\n- Head branches are deleted automatically after merge.\n- This audit\
+  \ runs on the first Monday of each month.\n\nReply in <channel/thread> if a branch\
+  \ must stay. Thanks!\n\x1FFILE:examples/webshop-branches.csv\x1E\nbranch,last_commit,author,ahead,behind,merged,pr\n\
+  main,2026-10-23,Selin Kaya,0,0,yes,none\ndevelop,2026-10-22,Selin Kaya,4,0,no,none\n\
+  release/2.3,2025-11-12,Selin Kaya,2,611,no,none\nrelease/2.8,2026-09-30,Selin Kaya,1,48,no,none\n\
+  feature/cart-coupons,2026-10-20,Marco Rossi,12,6,no,open\nfeature/checkout-redesign,2026-04-02,Marco\
+  \ Rossi,134,742,no,open\nfeature/wishlist-sharing,2026-09-08,Aiko Tanaka,7,95,no,none\n\
+  feature/gift-cards,2026-05-19,Aiko Tanaka,23,401,no,closed\nfix/vat-rounding,2026-10-02,Lena\
+  \ Fischer,3,22,yes,merged\nfix/search-timeout,2026-08-14,Lena Fischer,5,130,no,merged\n\
+  fix/Search-Timeout,2026-08-13,Lena Fischer,1,131,no,none\nchore/bump-node-22,2026-07-01,Omar\
+  \ Haddad,0,210,no,none\nspike/graphql-gateway,2026-02-10,Omar Haddad,58,988,no,none\n\
+  johns-test,2026-06-21,John Miller,2,260,no,none\ndependabot/npm_and_yarn/axios-1.7.4,2026-10-18,dependabot[bot],1,9,no,open\n\
+  experiment/ab-banner,2026-10-12,Aiko Tanaka,4,14,no,none\n\x1FFILE:scripts/branch_audit.py\x1E\
+  \n#!/usr/bin/env python3\n\"\"\"Stale Git branch cleanup auditor (Python 3 standard\
+  \ library only).\n\nSorts every remote branch into an action, flags risky branches\
+  \ and prints a reviewable\ncleanup script. Nothing is deleted: the script only prints\
+  \ commands.\n\nInput, either:\n  1. a TSV or CSV export (header required, delimiter\
+  \ detected from the header, extra columns ignored):\n       branch  last_commit\
+  \  author  ahead  behind  merged  pr\n     last_commit = YYYY-MM-DD, ahead/behind\
+  \ = commits vs the base branch,\n     merged = yes/no (reachable from base), pr\
+  \ = open | merged | closed | none\n  2. --repo PATH: reads the remote branches straight\
+  \ from a local clone with git\n     (run `git fetch --prune` first). PR state comes\
+  \ from --prs FILE (lines \"branch<TAB>state\",\n     e.g. from `gh pr list --state\
+  \ all --json headRefName,state`), otherwise \"none\".\nActions (first match wins):\n\
+  \  KEEP_PROTECTED      name matches --protect patterns (main, master, develop, release/*,\
+  \ ...)\n  DELETE_MERGED       merged into base, 0 commits ahead, or its PR was merged\
+  \ (squash/rebase)\n  KEEP_OPEN_PR        has an open pull request\n  ARCHIVE_AND_DELETE\
+  \  unmerged and no commit for >= --stale-days (tag archive/<name>, then delete)\n\
+  \  ASK_OWNER           unmerged and no commit for >= --ask-days\n  KEEP_ACTIVE \
+  \        recent unmerged work\nFindings (severity):\n  HIGH   CASE_COLLISION  branch\
+  \ names that differ only by case (break on macOS/Windows clones)\n  MEDIUM PR_STALE\
+  \        open PR whose branch has had no commit for >= --stale-days\n  MEDIUM FAR_BEHIND\
+  \      unmerged branch more than --behind-limit commits behind base\n  LOW    LONG_LIVED\
+  \      unmerged branch more than 50 commits ahead and older than --ask-days\n  LOW\
+  \    OLD_PROTECTED   protected release/hotfix branch older than --stale-days (tag\
+  \ it, unprotect, delete)\n  LOW    BAD_NAME        name without an allowed prefix,\
+  \ or with uppercase/space characters\nUsage:\n  python3 branch_audit.py branches.csv\
+  \ --today 2026-10-24\n  python3 branch_audit.py --repo . --base main --prs prs.tsv\n\
+  \  python3 branch_audit.py branches.tsv --json\n  python3 branch_audit.py --self-test\n\
+  Exit code: 0 no HIGH findings, 1 HIGH findings, 2 bad input.\n\"\"\"\nimport argparse\n\
+  import csv\nimport datetime as dt\nimport fnmatch\nimport json\nimport shlex\nimport\
+  \ subprocess\nimport sys\n\nDEFAULT_PROTECT = \"main,master,develop,trunk,gh-pages,release/*,hotfix/*\"\
+  \nDEFAULT_PREFIXES = \"feature,feat,fix,bugfix,hotfix,release,chore,docs,refactor,test,ci,perf,build,deps,dependabot,renovate,experiment,spike\"\
+  \nACTION_ORDER = [\"DELETE_MERGED\", \"ARCHIVE_AND_DELETE\", \"ASK_OWNER\", \"KEEP_OPEN_PR\"\
+  , \"KEEP_ACTIVE\", \"KEEP_PROTECTED\"]\nSEV_ORDER = {\"HIGH\": 0, \"MEDIUM\": 1,\
+  \ \"LOW\": 2}\n\n\nclass DataError(ValueError):\n    pass\n\n\ndef yes(v):\n   \
+  \ return str(v).strip().lower() in (\"yes\", \"y\", \"true\", \"1\")\n\n\ndef parse_tsv(text):\n\
+  \    lines = text.splitlines()\n    delim = \"\\t\" if lines and \"\\t\" in lines[0]\
+  \ else \",\"\n    rows = list(csv.DictReader(lines, delimiter=delim))\n    need\
+  \ = {\"branch\", \"last_commit\", \"author\", \"ahead\", \"behind\", \"merged\"\
+  }\n    if not rows:\n        raise DataError(\"no branches in input\")\n    missing\
+  \ = need - set(rows[0].keys())\n    if missing:\n        raise DataError(\"missing\
+  \ columns: \" + \", \".join(sorted(missing)))\n    out = []\n    for i, r in enumerate(rows,\
+  \ 2):\n        try:\n            out.append({\"branch\": r[\"branch\"].strip(),\
+  \ \"last_commit\": dt.date.fromisoformat(r[\"last_commit\"].strip()[:10]),\n   \
+  \                     \"author\": r[\"author\"].strip() or \"unknown\", \"ahead\"\
+  : int(r[\"ahead\"]), \"behind\": int(r[\"behind\"]),\n                        \"\
+  merged\": yes(r[\"merged\"]), \"pr\": (r.get(\"pr\") or \"none\").strip().lower()\
+  \ or \"none\"})\n        except (ValueError, TypeError) as e:\n            raise\
+  \ DataError(f\"line {i}: {e}\")\n    return out\n\n\ndef git(repo, *args):\n   \
+  \ r = subprocess.run([\"git\", \"-C\", repo, *args], capture_output=True, text=True)\n\
+  \    if r.returncode != 0:\n        raise DataError(f\"git {' '.join(args)}: {r.stderr.strip()}\"\
+  )\n    return r.stdout\n\n\ndef read_repo(repo, remote, base, prs):\n    base_ref\
+  \ = f\"{remote}/{base}\"\n    git(repo, \"rev-parse\", \"--verify\", base_ref)\n\
+  \    merged = {l.strip() for l in git(repo, \"branch\", \"-r\", \"--merged\", base_ref).splitlines()}\n\
+  \    out = []\n    fmt = \"%(refname:short)%09%(committerdate:short)%09%(authorname)\"\
+  \n    for line in git(repo, \"for-each-ref\", f\"--format={fmt}\", f\"refs/remotes/{remote}\"\
+  ).splitlines():\n        ref, date, author = line.split(\"\\t\")\n        if ref\
+  \ in (remote, f\"{remote}/HEAD\") or ref == base_ref:\n            continue\n  \
+  \      behind, ahead = git(repo, \"rev-list\", \"--left-right\", \"--count\", f\"\
+  {base_ref}...{ref}\").split()\n        name = ref[len(remote) + 1:]\n        out.append({\"\
+  branch\": name, \"last_commit\": dt.date.fromisoformat(date), \"author\": author,\n\
+  \                    \"ahead\": int(ahead), \"behind\": int(behind), \"merged\"\
+  : ref in merged, \"pr\": prs.get(name, \"none\")})\n    return out\n\n\ndef audit(branches,\
+  \ today, base=\"main\", remote=\"origin\", stale_days=90, ask_days=30, behind_limit=300,\n\
+  \          protect=DEFAULT_PROTECT, prefixes=DEFAULT_PREFIXES):\n    protect_pats\
+  \ = [p.strip() for p in protect.split(\",\") if p.strip()]\n    allowed = {p.strip()\
+  \ for p in prefixes.split(\",\") if p.strip()}\n    findings, rows = [], []\n\n\
+  \    def add(sev, code, branch, msg):\n        findings.append({\"severity\": sev,\
+  \ \"code\": code, \"branch\": branch, \"message\": msg})\n\n    for b in branches:\n\
+  \        name, age = b[\"branch\"], (today - b[\"last_commit\"]).days\n        prot\
+  \ = name == base or any(fnmatch.fnmatchcase(name, p) for p in protect_pats)\n  \
+  \      if prot:\n            action = \"KEEP_PROTECTED\"\n        elif b[\"merged\"\
+  ] or b[\"ahead\"] == 0 or b[\"pr\"] == \"merged\":\n            action = \"DELETE_MERGED\"\
+  \n        elif b[\"pr\"] == \"open\":\n            action = \"KEEP_OPEN_PR\"\n \
+  \       elif age >= stale_days:\n            action = \"ARCHIVE_AND_DELETE\"\n \
+  \       elif age >= ask_days:\n            action = \"ASK_OWNER\"\n        else:\n\
+  \            action = \"KEEP_ACTIVE\"\n        why = {\"KEEP_PROTECTED\": \"protected\
+  \ pattern\",\n               \"DELETE_MERGED\": \"merged into \" + base if b[\"\
+  merged\"] else (\"no commits ahead\" if b[\"ahead\"] == 0 else \"PR merged (squash/rebase)\"\
+  ),\n               \"KEEP_OPEN_PR\": \"open pull request\", \"ARCHIVE_AND_DELETE\"\
+  : f\"unmerged, idle {age} days\",\n               \"ASK_OWNER\": f\"unmerged, idle\
+  \ {age} days\", \"KEEP_ACTIVE\": f\"active {age} days ago\"}[action]\n        rows.append({**b,\
+  \ \"last_commit\": b[\"last_commit\"].isoformat(), \"age_days\": age, \"action\"\
+  : action, \"reason\": why})\n        unmerged = action in (\"ARCHIVE_AND_DELETE\"\
+  , \"ASK_OWNER\", \"KEEP_OPEN_PR\", \"KEEP_ACTIVE\")\n        if action == \"KEEP_OPEN_PR\"\
+  \ and age >= stale_days:\n            add(\"MEDIUM\", \"PR_STALE\", name, f\"open\
+  \ PR but no commit for {age} days; ask {b['author']} to finish or close it\")\n\
+  \        if unmerged and b[\"behind\"] > behind_limit:\n            add(\"MEDIUM\"\
+  , \"FAR_BEHIND\", name, f\"{b['behind']} commits behind {base}; rebase soon or expect\
+  \ painful conflicts\")\n        if unmerged and b[\"ahead\"] > 50 and age >= ask_days:\n\
+  \            add(\"LOW\", \"LONG_LIVED\", name, f\"{b['ahead']} unmerged commits;\
+  \ split into smaller PRs or put it behind a feature flag\")\n        if prot and\
+  \ name != base and age >= stale_days and (name.startswith(\"release/\") or name.startswith(\"\
+  hotfix/\")):\n            add(\"LOW\", \"OLD_PROTECTED\", name, f\"protected branch\
+  \ idle {age} days; tag it, remove protection and delete\")\n        if not prot:\n\
+  \            prefix = name.split(\"/\", 1)[0] if \"/\" in name else \"\"\n     \
+  \       if prefix not in allowed or name != name.lower() or \" \" in name:\n   \
+  \             add(\"LOW\", \"BAD_NAME\", name, \"use lowercase <type>/<short-description>\
+  \ (e.g. feature/cart-coupons)\")\n    seen = {}\n    for b in branches:\n      \
+  \  seen.setdefault(b[\"branch\"].lower(), []).append(b[\"branch\"])\n    for names\
+  \ in seen.values():\n        if len(names) > 1:\n            add(\"HIGH\", \"CASE_COLLISION\"\
+  , \" / \".join(names), \"names differ only by case; clones on macOS/Windows see\
+  \ one ref and fetches fail; delete or rename one\")\n    findings.sort(key=lambda\
+  \ f: (SEV_ORDER[f[\"severity\"]], f[\"code\"], f[\"branch\"]))\n    rows.sort(key=lambda\
+  \ r: (ACTION_ORDER.index(r[\"action\"]), -r[\"age_days\"]))\n    counts = {a: sum(r[\"\
+  action\"] == a for r in rows) for a in ACTION_ORDER}\n    owners = {}\n    for r\
+  \ in rows:\n        if r[\"action\"] in (\"ASK_OWNER\", \"ARCHIVE_AND_DELETE\"):\n\
+  \            owners.setdefault(r[\"author\"], []).append(r[\"branch\"])\n    script\
+  \ = [\"#!/bin/sh\", \"# Review before running. Generated by branch_audit.py; nothing\
+  \ has been deleted.\", \"set -e\"]\n    for r in rows:\n        q = shlex.quote(r[\"\
+  branch\"])\n        if r[\"action\"] == \"DELETE_MERGED\":\n            script.append(f\"\
+  git push {remote} --delete {q}   # {r['reason']}\")\n    for r in rows:\n      \
+  \  if r[\"action\"] == \"ARCHIVE_AND_DELETE\":\n            q = shlex.quote(r[\"\
+  branch\"])\n            tag = shlex.quote(\"archive/\" + r[\"branch\"])\n      \
+  \      script.append(f\"git tag {tag} {shlex.quote(remote + '/' + r['branch'])}\
+  \ && git push {remote} {shlex.quote('refs/tags/archive/' + r['branch'])} && git\
+  \ push {remote} --delete {q}\")\n    return {\"today\": today.isoformat(), \"base\"\
+  : base, \"remote\": remote, \"stale_days\": stale_days, \"ask_days\": ask_days,\n\
+  \            \"branches\": len(rows), \"counts\": counts, \"rows\": rows, \"owners\"\
+  : owners, \"findings\": findings,\n            \"cleanup_script\": \"\\n\".join(script)\
+  \ + \"\\n\"}\n\n\ndef render(r):\n    c = r[\"counts\"]\n    out = [f\"# Branch\
+  \ cleanup audit ({r['remote']}, base {r['base']}, as of {r['today']})\", \"\",\n\
+  \           f\"{r['branches']} branches: {c['DELETE_MERGED']} delete (merged), {c['ARCHIVE_AND_DELETE']}\
+  \ archive and delete, \"\n           f\"{c['ASK_OWNER']} ask owner, {c['KEEP_OPEN_PR']}\
+  \ open PR, {c['KEEP_ACTIVE']} active, {c['KEEP_PROTECTED']} protected\",\n     \
+  \      f\"Rules: stale >= {r['stale_days']} days idle, ask owner >= {r['ask_days']}\
+  \ days\", \"\",\n           \"| Action | Branch | Last commit | Author | Ahead/behind\
+  \ | Reason |\", \"|---|---|---|---|---|---|\"]\n    for row in r[\"rows\"]:\n  \
+  \      out.append(f\"| {row['action']} | {row['branch']} | {row['last_commit']}\
+  \ | {row['author']} | {row['ahead']}/{row['behind']} | {row['reason']} |\")\n  \
+  \  out += [\"\", \"## Ask the owners\"]\n    if not r[\"owners\"]:\n        out.append(\"\
+  - nobody\")\n    for who, names in sorted(r[\"owners\"].items()):\n        out.append(f\"\
+  - {who}: {', '.join(names)}\")\n    out += [\"\", \"## Findings\"]\n    if not r[\"\
+  findings\"]:\n        out.append(\"- none\")\n    for f in r[\"findings\"]:\n  \
+  \      out.append(f\"- {f['severity']} {f['code']} {f['branch']}: {f['message']}\"\
+  )\n    out += [\"\", \"## Cleanup script (review first, run after owners agree)\"\
+  , \"```sh\", r[\"cleanup_script\"].rstrip(), \"```\"]\n    return \"\\n\".join(out)\
+  \ + \"\\n\"\n\n\ndef self_test():\n    tests, ok = [], 0\n\n    def check(name,\
+  \ cond):\n        nonlocal ok\n        tests.append(name)\n        print((\"PASS\
+  \ \" if cond else \"FAIL \") + name)\n        ok += bool(cond)\n\n    today = dt.date(2026,\
+  \ 10, 24)\n\n    def b(name, days, ahead=3, behind=10, merged=False, pr=\"none\"\
+  , author=\"ana\"):\n        return {\"branch\": name, \"last_commit\": today - dt.timedelta(days=days),\
+  \ \"author\": author,\n                \"ahead\": ahead, \"behind\": behind, \"\
+  merged\": merged, \"pr\": pr}\n\n    def act(**kw):\n        name = kw.pop(\"name\"\
+  , \"feature/x\")\n        days = kw.pop(\"days\", 10)\n        return audit([b(name,\
+  \ days, **kw)], today)[\"rows\"][0][\"action\"]\n\n    check(\"main protected\"\
+  , act(name=\"main\", days=500) == \"KEEP_PROTECTED\")\n    check(\"release/* protected\"\
+  , act(name=\"release/2.4\", days=200) == \"KEEP_PROTECTED\")\n    check(\"merged\
+  \ -> DELETE_MERGED\", act(merged=True, days=5) == \"DELETE_MERGED\")\n    check(\"\
+  0 ahead -> DELETE_MERGED\", act(ahead=0) == \"DELETE_MERGED\")\n    check(\"squash-merged\
+  \ PR -> DELETE_MERGED\", act(pr=\"merged\", ahead=4) == \"DELETE_MERGED\")\n   \
+  \ check(\"open PR kept\", act(pr=\"open\", days=200) == \"KEEP_OPEN_PR\")\n    check(\"\
+  idle 120 d unmerged -> ARCHIVE\", act(days=120) == \"ARCHIVE_AND_DELETE\")\n   \
+  \ check(\"idle 45 d -> ASK_OWNER\", act(days=45) == \"ASK_OWNER\")\n    check(\"\
+  idle 5 d -> KEEP_ACTIVE\", act(days=5) == \"KEEP_ACTIVE\")\n    check(\"closed PR\
+  \ idle 100 d -> ARCHIVE\", act(pr=\"closed\", days=100) == \"ARCHIVE_AND_DELETE\"\
+  )\n\n    def codes(rows, **kw):\n        return {f[\"code\"] for f in audit(rows,\
+  \ today, **kw)[\"findings\"]}\n\n    check(\"case collision HIGH\", \"CASE_COLLISION\"\
+  \ in codes([b(\"feature/Login\", 3), b(\"feature/login\", 3)]))\n    check(\"stale\
+  \ PR MEDIUM\", \"PR_STALE\" in codes([b(\"feature/a\", 100, pr=\"open\")]))\n  \
+  \  check(\"far behind MEDIUM\", \"FAR_BEHIND\" in codes([b(\"feature/a\", 10, behind=900)]))\n\
+  \    check(\"merged far behind not flagged\", \"FAR_BEHIND\" not in codes([b(\"\
+  feature/a\", 10, behind=900, merged=True)]))\n    check(\"long lived LOW\", \"LONG_LIVED\"\
+  \ in codes([b(\"feature/a\", 40, ahead=80)]))\n    check(\"old release LOW\", \"\
+  OLD_PROTECTED\" in codes([b(\"release/1.0\", 400)]))\n    check(\"bad name LOW\"\
+  , \"BAD_NAME\" in codes([b(\"johns-test\", 3)]) and \"BAD_NAME\" in codes([b(\"\
+  feature/NewThing\", 3)]))\n    check(\"good name not flagged\", \"BAD_NAME\" not\
+  \ in codes([b(\"fix/cart-total\", 3)]))\n    r = audit([b(\"feature/old\", 200),\
+  \ b(\"fix/done\", 3, merged=True)], today)\n    check(\"script deletes merged branch\"\
+  , \"git push origin --delete fix/done\" in r[\"cleanup_script\"])\n    check(\"\
+  script tags before deleting stale\", \"git tag archive/feature/old origin/feature/old\
+  \ && git push origin refs/tags/archive/feature/old && git push origin --delete feature/old\"\
+  \ in r[\"cleanup_script\"])\n    r = audit([b(\"main\", 1, ahead=0, behind=0), b(\"\
+  feature/old\", 200), b(\"develop\", 300)], today)\n    check(\"script never deletes\
+  \ protected branches\", \"--delete main\" not in r[\"cleanup_script\"] and \"--delete\
+  \ develop\" not in r[\"cleanup_script\"]\n          and r[\"cleanup_script\"].rstrip().endswith(\"\
+  git push origin --delete feature/old\"))\n    r = audit([b(\"feature/it's\", 200)],\
+  \ today)\n    check(\"odd names are shell-quoted\", \"'feature/it'\\\"'\\\"'s'\"\
+  \ in r[\"cleanup_script\"])\n    r = audit([b(\"feature/a\", 200, author=\"ana\"\
+  ), b(\"feature/b\", 40, author=\"ana\"), b(\"feature/c\", 2, author=\"bo\")], today)\n\
+  \    check(\"owners grouped\", r[\"owners\"] == {\"ana\": [\"feature/a\", \"feature/b\"\
+  ]})\n    rows = parse_tsv(\"branch\\tlast_commit\\tauthor\\tahead\\tbehind\\tmerged\\\
+  tpr\\nfeature/x\\t2026-10-01\\tAna\\t2\\t5\\tno\\topen\\n\")\n    check(\"TSV parsed\"\
+  , rows[0][\"ahead\"] == 2 and rows[0][\"pr\"] == \"open\" and not rows[0][\"merged\"\
+  ])\n    rows = parse_tsv(\"branch,last_commit,author,ahead,behind,merged,pr\\nfix/y,2026-09-01,Bo,0,3,yes,none\\\
+  n\")\n    check(\"CSV parsed\", rows[0][\"branch\"] == \"fix/y\" and rows[0][\"\
+  merged\"] and rows[0][\"behind\"] == 3)\n    try:\n        parse_tsv(\"branch\\\
+  tauthor\\nx\\ty\\n\")\n        check(\"missing columns rejected\", False)\n    except\
+  \ DataError:\n        check(\"missing columns rejected\", True)\n    # real git\
+  \ repository round trip (skipped if git is missing)\n    import os, shutil, tempfile\n\
+  \    if shutil.which(\"git\"):\n        d = tempfile.mkdtemp()\n        try:\n \
+  \           env = {**os.environ, \"GIT_AUTHOR_NAME\": \"Ana\", \"GIT_AUTHOR_EMAIL\"\
+  : \"a@x\", \"GIT_COMMITTER_NAME\": \"Ana\", \"GIT_COMMITTER_EMAIL\": \"a@x\"}\n\
+  \            run = lambda *a, cwd=d: subprocess.run([\"git\", *a], cwd=cwd, env=env,\
+  \ capture_output=True, check=True)\n            os.makedirs(f\"{d}/remote.git\"\
+  ); run(\"init\", \"-q\", \"--bare\", \"-b\", \"main\", cwd=f\"{d}/remote.git\")\n\
+  \            run(\"clone\", \"-q\", f\"{d}/remote.git\", \"w\"); w = f\"{d}/w\"\n\
+  \            run(\"checkout\", \"-q\", \"-b\", \"main\", cwd=w); run(\"commit\"\
+  , \"-q\", \"--allow-empty\", \"-m\", \"init\", cwd=w)\n            run(\"checkout\"\
+  , \"-q\", \"-b\", \"fix/done\", cwd=w); run(\"commit\", \"-q\", \"--allow-empty\"\
+  , \"-m\", \"fix\", cwd=w)\n            run(\"checkout\", \"-q\", \"main\", cwd=w);\
+  \ run(\"merge\", \"-q\", \"--ff-only\", \"fix/done\", cwd=w)\n            run(\"\
+  checkout\", \"-q\", \"-b\", \"feature/wip\", cwd=w); run(\"commit\", \"-q\", \"\
+  --allow-empty\", \"-m\", \"wip\", cwd=w)\n            run(\"push\", \"-q\", \"origin\"\
+  , \"main\", \"fix/done\", \"feature/wip\", cwd=w)\n            r = audit(read_repo(w,\
+  \ \"origin\", \"main\", {}), today)\n            acts = {x[\"branch\"]: x[\"action\"\
+  ] for x in r[\"rows\"]}\n            check(\"git repo: merged and active branches\
+  \ read\", acts == {\"fix/done\": \"DELETE_MERGED\", \"feature/wip\": \"KEEP_ACTIVE\"\
+  })\n        finally:\n            shutil.rmtree(d, ignore_errors=True)\n    print(f\"\
+  {ok}/{len(tests)} passed\")\n    return 0 if ok == len(tests) else 1\n\n\ndef main():\n\
+  \    ap = argparse.ArgumentParser(description=\"Stale Git branch cleanup auditor\"\
+  )\n    ap.add_argument(\"tsv\", nargs=\"?\", help=\"branch TSV or CSV export\")\n\
+  \    ap.add_argument(\"--repo\", help=\"read remote branches from this local clone\
+  \ instead of a TSV\")\n    ap.add_argument(\"--prs\", help=\"TSV 'branch<TAB>state'\
+  \ with PR states (open/merged/closed), used with --repo\")\n    ap.add_argument(\"\
+  --remote\", default=\"origin\")\n    ap.add_argument(\"--base\", default=\"main\"\
+  )\n    ap.add_argument(\"--today\", help=\"YYYY-MM-DD (default: today)\")\n    ap.add_argument(\"\
+  --stale-days\", type=int, default=90)\n    ap.add_argument(\"--ask-days\", type=int,\
+  \ default=30)\n    ap.add_argument(\"--behind-limit\", type=int, default=300)\n\
+  \    ap.add_argument(\"--protect\", default=DEFAULT_PROTECT)\n    ap.add_argument(\"\
+  --prefixes\", default=DEFAULT_PREFIXES)\n    ap.add_argument(\"--json\", action=\"\
+  store_true\")\n    ap.add_argument(\"--self-test\", action=\"store_true\")\n   \
+  \ a = ap.parse_args()\n    if a.self_test:\n        return self_test()\n    try:\n\
+  \        today = dt.date.fromisoformat(a.today) if a.today else dt.date.today()\n\
+  \        if a.repo:\n            prs = {}\n            if a.prs:\n             \
+  \   with open(a.prs, encoding=\"utf-8\") as fh:\n                    for line in\
+  \ fh:\n                        if \"\\t\" in line:\n                           \
+  \ k, v = line.rstrip(\"\\n\").split(\"\\t\", 1)\n                            prs[k]\
+  \ = v.strip().lower()\n            branches = read_repo(a.repo, a.remote, a.base,\
+  \ prs)\n        elif a.tsv:\n            with open(a.tsv, encoding=\"utf-8\") as\
+  \ fh:\n                branches = parse_tsv(fh.read())\n        else:\n        \
+  \    ap.error(\"give a TSV/CSV file or --repo PATH\")\n        r = audit(branches,\
+  \ today, a.base, a.remote, a.stale_days, a.ask_days, a.behind_limit, a.protect,\
+  \ a.prefixes)\n    except (OSError, DataError, ValueError) as e:\n        print(f\"\
+  error: {e}\", file=sys.stderr)\n        return 2\n    print(json.dumps(r, indent=2)\
+  \ if a.json else render(r), end=\"\\n\" if a.json else \"\")\n    return 1 if any(f[\"\
+  severity\"] == \"HIGH\" for f in r[\"findings\"]) else 0\n\n\nif __name__ == \"\
+  __main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,0 +1,378 @@
+slug: freelance-hourly-rate-calculator
+title: Freelance Hourly Rate Calculator
+description: Imported from Prompts Chat
+prompt: "---\nname: freelance-hourly-rate-calculator\ndescription: Works out the hourly\
+  \ and day rate a freelancer must charge from the take-home income they want. Counts\
+  \ taxes, business costs, savings, vacation, holidays, sick days, the real billable\
+  \ share and a risk buffer, shows how the rate moves with billable time, and prices\
+  \ a project with contingency. Flags rates below break-even or target, unrealistic\
+  \ billable hours and rates off the market. Includes a stdlib Python calculator with\
+  \ --self-test.\n---\n\n# Freelance Hourly Rate Calculator\n\nYou help freelancers\
+  \ and people about to go freelance find a rate they can live on. Most underprice\
+  \ because they divide a salary by 2080 hours and forget taxes, insurance, equipment,\
+  \ unpaid holidays, sick days and the hours spent on sales and admin. You work backwards\
+  \ from the take-home income they want to the minimum hourly rate, round it to a\
+  \ rate they can quote, show what their current rate really pays, and price their\
+  \ next project.\n\n## Files in this skill\n\n- `scripts/rate_calc.py` - calculates\
+  \ revenue needed, billable hours, minimum, quoted, day and break-even rates, a billable-share\
+  \ table, the current-rate gap and a project price (Python 3 standard library only)\n\
+  - `references/rate-math.md` - the formulas step by step, typical cost lists, billable\
+  \ share by type of work, tax rough guides and common mistakes\n- `references/pricing-and-raising-rates.md`\
+  \ - day, project, retainer and value pricing, how to quote, and how to raise rates\
+  \ with existing clients\n- `templates/rate-card.md` - a one-page rate card with\
+  \ hourly, day and package prices and terms\n- `examples/ux-designer-rate-plan.json`\
+  \ - a Berlin UX designer who wants 48,000 EUR take-home and currently charges 65\
+  \ EUR/h\n\n## Workflow\n\n### 1. Collect the numbers\nAsk for: the take-home income\
+  \ they want per year (after tax and business costs), savings they want to put aside\
+  \ (pension, emergency fund), their effective tax and social contribution rate (if\
+  \ unknown, use the rough guide in `references/rate-math.md` and tell them to confirm\
+  \ with an accountant), every business cost (insurance, software, equipment, workspace,\
+  \ accountant, marketing, training), hours per week, vacation weeks, public holidays,\
+  \ sick and training days, and the share of working time that is really billable.\
+  \ Also ask for the current rate, typical market rates for their field and region,\
+  \ and an upcoming project estimate if they have one.\n\n### 2. Run the calculator\n\
+  ```\npython3 scripts/rate_calc.py examples/ux-designer-rate-plan.json\npython3 scripts/rate_calc.py\
+  \ plan.json --round 10 --json\npython3 scripts/rate_calc.py --self-test\n```\nExit\
+  \ code 1 means HIGH findings, 2 means bad input.\n\n### 3. Explain the result\n\
+  Lead with the minimum rate and the quoted rate, then walk the chain from take-home\
+  \ to revenue so they see where the money goes. Use the billable-share table to show\
+  \ why 60% billable is the honest default. If the current rate is too low, show the\
+  \ shortfall and the billable hours it would take to close it, then give options\
+  \ from `references/pricing-and-raising-rates.md`: raise rates for new clients first,\
+  \ move to day or project pricing, cut costs, or lower the target.\n\n### 4. Deliver\n\
+  Fill `templates/rate-card.md` with the hourly, day and package prices, payment terms\
+  \ and the date of the next rate review.\n\n## Example result\nFor `examples/ux-designer-rate-plan.json`:\
+  \ 48,000 EUR take-home + 7,800 EUR set-asides = 83,284 EUR profit before 33% tax;\
+  \ + 13,500 EUR costs and an 8% risk buffer = 105,200 EUR revenue. 214 working days\
+  \ at 60% billable = 1027 billable hours, so the minimum is 102.41 EUR/h: quote 105\
+  \ EUR/h or 840 EUR/day. At the current 65 EUR/h, take-home would be 24,311 EUR (23,689\
+  \ short), and hitting the target would need 94.5% billable time (HIGH BELOW_REQUIRED).\
+  \ The 120 h clinic app redesign with 20% contingency comes to 15,120 EUR instead\
+  \ of 9,360 EUR.\n\n## Rules\n\n- Tax figures are rough guides, not tax advice; tell\
+  \ them to confirm their rate with a local accountant.\n- Never assume more than\
+  \ 70% billable time without evidence from their own time tracking.\n- Show the formulas\
+  \ and inputs so they can change one assumption and re-run.\n- A rate below the market\
+  \ can be raised; a minimum above the market needs a different offer, not just a\
+  \ higher number.\n- Use the currency and the tax situation they give; do not mix\
+  \ currencies.\n\x1FFILE:references/rate-math.md\x1E\n# Rate Math\n\n## The chain,\
+  \ step by step\n1. **Needed after tax** = target take-home + set-asides (pension,\
+  \ emergency fund, savings goals)\n2. **Profit before tax** = needed after tax /\
+  \ (1 - effective tax and social contribution rate)\n3. **Revenue needed** = (profit\
+  \ before tax + business costs) / (1 - risk buffer)\n4. **Working days** = 260 weekdays\
+  \ - vacation weeks x 5 - public holidays - sick days - training days\n5. **Billable\
+  \ hours** = working days x hours per week / 5 x billable share\n6. **Minimum rate**\
+  \ = revenue needed / billable hours\n7. **Quoted rate** = minimum rounded up (to\
+  \ 5 or 10); **day rate** = quoted x hours per day\n8. **Break-even rate** = business\
+  \ costs / (1 - buffer) / billable hours (pays the bills, pays you nothing)\n\nCheck:\
+  \ take-home at a rate R = (R x billable hours x (1 - buffer) - costs) x (1 - tax)\
+  \ - set-asides.\n\n## Why \"salary / 2080\" is wrong\n2080 = 52 weeks x 40 hours.\
+  \ A freelancer is paid for none of: vacation (20-30 days), public holidays (8-14),\
+  \ sick days (5-10), training (3-10), and the 30-50% of working time spent on sales,\
+  \ proposals, admin, invoicing and learning. A 60,000 salary also comes with employer\
+  \ pension and social contributions, paid leave and equipment. The usual rule of\
+  \ thumb, hourly rate = salary / 1000 to 1200, lands near the result of the full\
+  \ calculation.\n\n## Billable share by type of work\n| Situation | Realistic billable\
+  \ share |\n|---|---|\n| New freelancer, still finding clients | 35-50% |\n| Mix\
+  \ of projects, regular clients | 50-65% |\n| Long full-time contract with one client\
+  \ | 70-85% (but sales stop, and the gap after the contract is long) |\n| Agency-style\
+  \ with heavy account management | 45-60% |\n\nMeasure it: track every working hour\
+  \ for 4-8 weeks, then use the real share.\n\n## Typical business costs\n- Health,\
+  \ disability and liability insurance (where self-paid)\n- Pension contributions\
+  \ if compulsory (or put them in set-asides)\n- Hardware with replacement cycle (laptop\
+  \ 3 years, phone 2-3 years), software subscriptions, cloud and domains\n- Workspace:\
+  \ coworking, home office share, internet, phone\n- Accountant, bank fees, payment\
+  \ provider fees, invoicing tool\n- Marketing: website, portfolio, platforms, events,\
+  \ travel to clients\n- Training: courses, books, conferences\n- Professional memberships,\
+  \ licences, legal templates\n\n## Effective tax and contribution rate (rough guide\
+  \ only)\nThe effective rate is total income tax and compulsory social contributions\
+  \ divided by profit. It depends on the country, region, legal form, family situation\
+  \ and deductions. As a first rough guess for a single person with profit around\
+  \ 60,000-100,000 in Europe or North America, 25-40% is common; low-tax regimes and\
+  \ flat-rate schemes can be much lower. Always confirm with a local accountant and\
+  \ replace the guess.\n\n## Risk buffer\nCovers late or unpaid invoices, gaps between\
+  \ clients, scope that cannot be billed and slow months. 5% for stable retainers,\
+  \ 10-15% for project work with new clients.\n\n## Common mistakes\n- Using gross\
+  \ revenue as income (taxes and costs come out later)\n- Planning 100% billable hours\n\
+  - Forgetting VAT/sales tax is not income (rates here are net of VAT)\n- Not pricing\
+  \ holidays: every week off has to be paid for by the weeks worked\n- Discounting\
+  \ the hourly rate for long projects without a guaranteed volume\n\x1FFILE:references/pricing-and-raising-rates.md\x1E\
+  \n# Pricing Models and Raising Rates\n\n## Choosing a pricing model\n| Model | Use\
+  \ when | Calculation from the minimum rate |\n|---|---|---|\n| Hourly | Unclear\
+  \ scope, support work, small changes | Quoted rate; bill in 15 or 30 minute steps\
+  \ |\n| Day rate | Workshops, embedded work, contracts | Quoted rate x hours per\
+  \ day; half-day = 55-60% of a day (switching cost) |\n| Project (fixed price) |\
+  \ Clear deliverables, you estimate well | Estimated hours x (1 + contingency) x\
+  \ quoted rate; list what is included and the number of revisions |\n| Retainer |\
+  \ Ongoing work each month | Reserved hours per month x quoted rate, often 5-10%\
+  \ lower for guaranteed volume; unused hours expire |\n| Value-based | Your work\
+  \ drives measurable revenue or savings | 5-20% of the first-year value, never below\
+  \ the project price |\n\nContingency for fixed prices: 10-15% for work you have\
+  \ done many times, 20-30% for new types of work, 30-50% with unclear requirements\
+  \ or many stakeholders.\n\n## Quoting\n- Quote a number, not a range; ranges get\
+  \ negotiated to the bottom.\n- Show the price per package or deliverable, not the\
+  \ hours, when you price by project.\n- Put payment terms on the quote: 30-50% upfront\
+  \ for new clients, net 14 or net 30, late fee, what happens when scope changes.\n\
+  - Rates are net of VAT/sales tax; say so.\n\n## When the minimum is below the market\n\
+  Quote at least the market middle for your level. Charging less signals lower quality\
+  \ and leaves no room for slow months.\n\n## When the minimum is above the market\n\
+  A higher number alone will not sell. Options:\n1. Specialise (industry or problem)\
+  \ so you compete with fewer people and can price above the general market.\n2. Package\
+  \ outcomes and use project or value pricing.\n3. Cut costs that do not bring work.\n\
+  4. Raise the billable share with retainers and fewer, larger clients.\n5. Lower\
+  \ the target for the first year and plan rate increases.\n\n## Raising rates with\
+  \ existing clients\n- New clients get the new rate immediately.\n- Existing clients:\
+  \ 30-60 days notice, a date, a short reason (more experience, scope, market), no\
+  \ apology.\n- Raise by 10-20% at a time, once a year or when you are fully booked\
+  \ for 3+ months.\n- Offer the old rate for a prepaid block of hours or a longer\
+  \ retainer if you want to keep a key client.\n\nSample notice:\n> From 1 January,\
+  \ my rate for new work will be 105 EUR per hour (840 EUR per day). Work already\
+  \ agreed stays at the current rate until it is finished. Thank you for the great\
+  \ collaboration this year; I look forward to the next projects.\n\n## Signals that\
+  \ the rate is too low\n- You are fully booked for months and nobody pushes back\
+  \ on price.\n- You win almost every proposal.\n- You cannot take time off or pay\
+  \ for training.\n\x1FFILE:templates/rate-card.md\x1E\n# Rate Card - <name>, <role>\n\
+  \n**Valid from:** <date>  **Next review:** <date + 12 months>  **Currency:** <EUR>,\
+  \ prices net of VAT\n\n## Rates\n| Service | Price |\n|---|---|\n| Hourly rate |\
+  \ <105> per hour |\n| Day rate (8 h) | <840> per day |\n| Half day (4 h) | <480>\
+  \ |\n| Monthly retainer (<20> h, unused hours expire) | <2,000> per month |\n\n\
+  ## Packages\n| Package | Includes | Price |\n|---|---|---|\n| <UX audit> | <expert\
+  \ review of 10 key screens, prioritised report, 1 h call> | <2,400> |\n| <App redesign>\
+  \ | <research, wireframes, UI for <n> screens, 2 revision rounds, design system>\
+  \ | <15,120> |\n\n## Terms\n- Payment: <40% upfront, rest on delivery>, invoices\
+  \ due in <14> days; late fee <x%> per month\n- Scope changes: quoted separately\
+  \ before work starts\n- Revisions: <2> rounds included, then hourly\n- Cancellation:\
+  \ <notice period / fee>\n- Travel: <outside city billed at cost + travel time at\
+  \ 50%>\n\n## Behind the numbers (private, do not send)\n- Minimum rate: <102.41>/h\
+  \ at <60>% billable (<1027> h/year)\n- Break-even rate: <14.29>/h\n- Target take-home:\
+  \ <48,000>, revenue needed: <105,200>\n\x1FFILE:examples/ux-designer-rate-plan.json\x1E\
+  \n{\n  \"name\": \"Deniz, freelance UX/UI designer (Berlin)\",\n  \"currency\":\
+  \ \"EUR\",\n  \"target_net_income\": 48000,\n  \"set_asides\": [\n    {\"name\"\
+  : \"retirement\", \"annual\": 6000},\n    {\"name\": \"emergency fund top-up\",\
+  \ \"monthly\": 150}\n  ],\n  \"tax\": {\"effective_rate_pct\": 33},\n  \"business_costs\"\
+  : [\n    {\"name\": \"health and care insurance (self-paid)\", \"monthly\": 520},\n\
+  \    {\"name\": \"coworking desk\", \"monthly\": 190},\n    {\"name\": \"software\
+  \ (Figma, Adobe, Notion)\", \"monthly\": 95},\n    {\"name\": \"laptop and display\
+  \ (3-year write-off)\", \"annual\": 1100},\n    {\"name\": \"accountant\", \"monthly\"\
+  : 110},\n    {\"name\": \"liability insurance\", \"annual\": 280},\n    {\"name\"\
+  : \"website, portfolio and domain\", \"annual\": 240},\n    {\"name\": \"courses\
+  \ and conferences\", \"annual\": 900}\n  ],\n  \"time\": {\n    \"hours_per_week\"\
+  : 40,\n    \"vacation_weeks\": 5,\n    \"public_holidays_days\": 10,\n    \"sick_days\"\
+  : 6,\n    \"training_days\": 5,\n    \"billable_pct\": 60,\n    \"hours_per_day\"\
+  : 8\n  },\n  \"risk_buffer_pct\": 8,\n  \"current_rate\": 65,\n  \"market_rate\"\
+  : {\"low\": 70, \"high\": 110},\n  \"project\": {\"name\": \"Clinic booking app\
+  \ redesign\", \"estimated_hours\": 120, \"contingency_pct\": 20}\n}\n\x1FFILE:scripts/rate_calc.py\x1E\
+  \n#!/usr/bin/env python3\n\"\"\"Freelance hourly rate calculator (Python 3 standard\
+  \ library only).\n\nWorks backwards from the take-home income you want to the hourly\
+  \ and day rate you must charge,\ncounting taxes, business costs, unpaid time and\
+  \ a risk buffer. Compares the result with your\ncurrent rate and the market, and\
+  \ prices a project.\n\nInput JSON (amounts per year unless \"monthly\" is given):\n\
+  \  {\"name\": \"...\", \"currency\": \"EUR\",\n   \"target_net_income\": 48000,\
+  \                      # take-home after tax and costs\n   \"set_asides\": [{\"\
+  name\": \"retirement\", \"annual\": 6000}],          (optional, after tax)\n   \"\
+  tax\": {\"effective_rate_pct\": 32},               # income tax + social contributions\
+  \ on profit\n   \"business_costs\": [{\"name\": \"coworking\", \"monthly\": 180},\
+  \ {\"name\": \"laptop\", \"annual\": 2400}],\n   \"time\": {\"hours_per_week\":\
+  \ 40, \"vacation_weeks\": 5, \"public_holidays_days\": 10,\n            \"sick_days\"\
+  : 6, \"training_days\": 5, \"billable_pct\": 60, \"hours_per_day\": 8},\n   \"risk_buffer_pct\"\
+  : 10,                           # unpaid invoices, gaps between clients\n   \"current_rate\"\
+  : 55, \"market_rate\": {\"low\": 60, \"high\": 95},       (optional)\n   \"project\"\
+  : {\"name\": \"...\", \"estimated_hours\": 120, \"contingency_pct\": 20}}  (optional)\n\
+  Formulas:\n  needed after tax   = target net + set-asides\n  profit before tax \
+  \ = needed after tax / (1 - tax rate)\n  revenue needed     = (profit before tax\
+  \ + business costs) / (1 - risk buffer)\n  working days       = 260 - vacation weeks\
+  \ x 5 - holidays - sick days - training days\n  billable hours     = working days\
+  \ x hours per week / 5 x billable %\n  minimum rate       = revenue needed / billable\
+  \ hours; quoted rate = minimum rounded up to\n                       the next --round\
+  \ (default 5); project price rounded up to 10; day rate = quoted x hours per day\n\
+  \  break-even rate    = business costs / (1 - buffer) / billable hours (no income\
+  \ at all)\n  net at a rate      = (rate x billable hours x (1 - buffer) - costs)\
+  \ x (1 - tax) - set-asides\nFindings (severity):\n  HIGH   NO_TAX            tax\
+  \ rate missing or 0\n  HIGH   BELOW_BREAK_EVEN  current rate does not even cover\
+  \ business costs\n  HIGH   BELOW_REQUIRED    current rate below the minimum rate\
+  \ (yearly shortfall shown)\n  MEDIUM ABOVE_MARKET      minimum rate above the market\
+  \ high: niche, value pricing or lower target\n  MEDIUM BILLABLE_HIGH     billable\
+  \ share above 75% of working time\n  MEDIUM LONG_HOURS        more than 50 hours\
+  \ per week\n  MEDIUM SHORT_VACATION    under 3 weeks of vacation\n  LOW    UNDER_MARKET\
+  \      quoted rate below the market low: you can likely charge more\n  LOW    NO_BUFFER\
+  \         risk buffer 0\n  LOW    NO_SICK_DAYS      no sick days planned\n  LOW\
+  \    NO_CONTINGENCY    project quote without contingency\nUsage:\n  python3 rate_calc.py\
+  \ plan.json\n  python3 rate_calc.py plan.json --round 10 --json\n  python3 rate_calc.py\
+  \ --self-test\nExit code: 0 no HIGH findings, 1 HIGH findings, 2 bad input.\n\"\"\
+  \"\nimport argparse\nimport json\nimport math\nimport sys\n\nSEV_ORDER = {\"HIGH\"\
+  : 0, \"MEDIUM\": 1, \"LOW\": 2}\n\n\nclass DataError(ValueError):\n    pass\n\n\n\
+  def annual(item):\n    if \"annual\" in item:\n        return float(item[\"annual\"\
+  ])\n    if \"monthly\" in item:\n        return float(item[\"monthly\"]) * 12\n\
+  \    raise DataError(f\"cost '{item.get('name', '?')}' needs 'annual' or 'monthly'\"\
+  )\n\n\ndef round_up(x, step):\n    return math.ceil(x / step - 1e-9) * step\n\n\n\
+  def calc(cfg, step=5):\n    t = cfg.get(\"time\") or {}\n    hpw = float(t.get(\"\
+  hours_per_week\", 40))\n    hpd = float(t.get(\"hours_per_day\", hpw / 5))\n   \
+  \ billable = float(t.get(\"billable_pct\", 60)) / 100\n    vac, hol = float(t.get(\"\
+  vacation_weeks\", 4)), float(t.get(\"public_holidays_days\", 10))\n    sick, train\
+  \ = float(t.get(\"sick_days\", 5)), float(t.get(\"training_days\", 0))\n    tax\
+  \ = float((cfg.get(\"tax\") or {}).get(\"effective_rate_pct\", 0)) / 100\n    buffer\
+  \ = float(cfg.get(\"risk_buffer_pct\", 0)) / 100\n    if \"target_net_income\" not\
+  \ in cfg:\n        raise DataError(\"target_net_income is required\")\n    net =\
+  \ float(cfg[\"target_net_income\"])\n    if not (0 <= tax < 0.9) or not (0 <= buffer\
+  \ < 0.5):\n        raise DataError(\"tax must be 0-90% and risk buffer 0-50%\")\n\
+  \    if not (0 < billable <= 1) or hpw <= 0:\n        raise DataError(\"billable_pct\
+  \ must be 1-100 and hours_per_week > 0\")\n    costs = [{\"name\": c.get(\"name\"\
+  , \"cost\"), \"annual\": annual(c)} for c in cfg.get(\"business_costs\", [])]\n\
+  \    sets = [{\"name\": s.get(\"name\", \"set-aside\"), \"annual\": annual(s)} for\
+  \ s in cfg.get(\"set_asides\", [])]\n    cost_total = sum(c[\"annual\"] for c in\
+  \ costs)\n    set_total = sum(s[\"annual\"] for s in sets)\n    working_days = 260\
+  \ - vac * 5 - hol - sick - train\n    if working_days <= 0:\n        raise DataError(\"\
+  no working days left after vacation, holidays, sick and training days\")\n    avail\
+  \ = working_days * hpw / 5\n    bill_h = avail * billable\n    after_tax = net +\
+  \ set_total\n    pre_tax = after_tax / (1 - tax)\n    revenue = (pre_tax + cost_total)\
+  \ / (1 - buffer)\n    min_rate = revenue / bill_h\n    rate = round_up(min_rate,\
+  \ step)\n    breakeven = cost_total / (1 - buffer) / bill_h\n\n    def net_at(r,\
+  \ hours=bill_h):\n        return (r * hours * (1 - buffer) - cost_total) * (1 -\
+  \ tax) - set_total\n\n    sens = []\n    for pct in (40, 50, 60, 70, 80):\n    \
+  \    h = avail * pct / 100\n        sens.append({\"billable_pct\": pct, \"billable_hours\"\
+  : round(h), \"min_rate\": round(revenue / h, 2)})\n    res = {\"name\": cfg.get(\"\
+  name\", \"freelancer\"), \"currency\": cfg.get(\"currency\", \"\"),\n          \
+  \ \"costs\": costs, \"set_asides\": sets, \"business_costs\": round(cost_total,\
+  \ 2), \"set_aside_total\": round(set_total, 2),\n           \"target_net_income\"\
+  : net, \"profit_before_tax\": round(pre_tax, 2), \"revenue_needed\": round(revenue,\
+  \ 2),\n           \"working_days\": working_days, \"available_hours\": round(avail,\
+  \ 1), \"billable_hours\": round(bill_h, 1),\n           \"billable_pct\": billable\
+  \ * 100, \"min_rate\": round(min_rate, 2), \"quoted_rate\": rate,\n           \"\
+  day_rate\": round_up(rate * hpd, step), \"hours_per_day\": hpd, \"break_even_rate\"\
+  : round(breakeven, 2),\n           \"net_at_quoted\": round(net_at(rate), 2), \"\
+  sensitivity\": sens, \"findings\": []}\n    findings = res[\"findings\"]\n\n   \
+  \ def add(sev, code, msg):\n        findings.append({\"severity\": sev, \"code\"\
+  : code, \"message\": msg})\n\n    cur = cfg.get(\"current_rate\")\n    cur_info\
+  \ = None\n    if cur:\n        cur = float(cur)\n        hours_needed = revenue\
+  \ / cur\n        cur_info = {\"rate\": cur, \"net_income\": round(net_at(cur), 2),\
+  \ \"shortfall\": round(net - net_at(cur), 2),\n                    \"billable_hours_needed\"\
+  : round(hours_needed), \"billable_pct_needed\": round(hours_needed / avail * 100,\
+  \ 1)}\n        res[\"current\"] = cur_info\n    if tax == 0:\n        add(\"HIGH\"\
+  , \"NO_TAX\", \"no tax rate given; income tax and social contributions usually take\
+  \ 25-45% of profit\")\n    if cur_info and cur < breakeven:\n        add(\"HIGH\"\
+  , \"BELOW_BREAK_EVEN\", f\"current rate {cur:g} is below the break-even rate {breakeven:.2f};\
+  \ every billed hour loses money\")\n    elif cur_info and cur < min_rate:\n    \
+  \    add(\"HIGH\", \"BELOW_REQUIRED\", f\"current rate {cur:g} is {min_rate - cur:.2f}\
+  \ below the minimum {min_rate:.2f}; take-home falls {cur_info['shortfall']:,.0f}\
+  \ short \"\n            f\"(you would need {cur_info['billable_hours_needed']} billable\
+  \ hours, {cur_info['billable_pct_needed']}% of working time)\")\n    m = cfg.get(\"\
+  market_rate\") or {}\n    if m.get(\"high\") and min_rate > float(m[\"high\"]):\n\
+  \        add(\"MEDIUM\", \"ABOVE_MARKET\", f\"minimum rate {min_rate:.2f} is above\
+  \ the market high {m['high']}; specialise, price by value, cut costs or lower the\
+  \ target\")\n    elif m.get(\"low\") and rate < float(m[\"low\"]):\n        add(\"\
+  LOW\", \"UNDER_MARKET\", f\"quoted rate {rate:g} is below the market low {m['low']};\
+  \ quote at least {m['low']}\")\n    if billable > 0.75:\n        add(\"MEDIUM\"\
+  , \"BILLABLE_HIGH\", f\"{billable * 100:.0f}% billable leaves too little time for\
+  \ sales, admin and learning; 50-70% is realistic\")\n    if hpw > 50:\n        add(\"\
+  MEDIUM\", \"LONG_HOURS\", f\"{hpw:g} hours per week is not sustainable for a year\"\
+  )\n    if vac < 3:\n        add(\"MEDIUM\", \"SHORT_VACATION\", f\"only {vac:g}\
+  \ weeks of vacation planned; nobody pays you for holidays, so price them in\")\n\
+  \    if buffer == 0:\n        add(\"LOW\", \"NO_BUFFER\", \"no risk buffer for unpaid\
+  \ invoices and gaps between clients; 5-15% is common\")\n    if sick == 0:\n   \
+  \     add(\"LOW\", \"NO_SICK_DAYS\", \"no sick days planned; budget at least 5\"\
+  )\n    p = cfg.get(\"project\")\n    if p:\n        hrs = float(p.get(\"estimated_hours\"\
+  , 0))\n        cont = float(p.get(\"contingency_pct\", 0)) / 100\n        res[\"\
+  project\"] = {\"name\": p.get(\"name\", \"project\"), \"estimated_hours\": hrs,\
+  \ \"contingency_pct\": cont * 100,\n                          \"quoted_hours\":\
+  \ round(hrs * (1 + cont), 1), \"price\": round_up(hrs * (1 + cont) * rate, 10),\n\
+  \                          \"price_at_current\": round_up(hrs * (1 + cont) * cur,\
+  \ 10) if cur else None}\n        if cont == 0:\n            add(\"LOW\", \"NO_CONTINGENCY\"\
+  , \"project estimate has no contingency; add 15-30% for unknowns and revisions\"\
+  )\n    findings.sort(key=lambda f: SEV_ORDER[f[\"severity\"]])\n    return res\n\
+  \n\ndef money(x, cur=\"\"):\n    return f\"{x:,.0f} {cur}\".strip() if abs(x) >=\
+  \ 100 else f\"{x:,.2f} {cur}\".strip()\n\n\ndef rate_fmt(x, cur=\"\"):\n    return\
+  \ f\"{x:,.2f} {cur}\".strip()\n\n\ndef render(r):\n    c = r[\"currency\"]\n   \
+  \ out = [f\"# Freelance rate plan: {r['name']}\", \"\",\n           f\"Minimum rate\
+  \ {rate_fmt(r['min_rate'], c)}/h -> quote **{rate_fmt(r['quoted_rate'], c)}/h**,\
+  \ day rate {money(r['day_rate'], c)} ({r['hours_per_day']:g} h)\",\n           f\"\
+  Break-even (covers costs, no income): {rate_fmt(r['break_even_rate'], c)}/h | take-home\
+  \ at the quoted rate: {money(r['net_at_quoted'], c)}/year\", \"\",\n           \"\
+  ## From take-home to revenue\", \"| Step | Amount |\", \"|---|---|\",\n        \
+  \   f\"| Target take-home | {money(r['target_net_income'], c)} |\",\n          \
+  \ f\"| + set-asides ({', '.join(s['name'] for s in r['set_asides']) or 'none'})\
+  \ | {money(r['set_aside_total'], c)} |\",\n           f\"| = profit before tax |\
+  \ {money(r['profit_before_tax'], c)} |\",\n           f\"| + business costs | {money(r['business_costs'],\
+  \ c)} |\",\n           f\"| = revenue needed (incl. risk buffer) | {money(r['revenue_needed'],\
+  \ c)} |\", \"\",\n           \"## Time\", f\"{r['working_days']:g} working days,\
+  \ {r['available_hours']:g} working hours, {r['billable_pct']:g}% billable = **{r['billable_hours']:g}\
+  \ billable hours**\", \"\",\n           \"| Billable share | Billable hours | Minimum\
+  \ rate |\", \"|---|---|---|\"]\n    for s in r[\"sensitivity\"]:\n        out.append(f\"\
+  | {s['billable_pct']}% | {s['billable_hours']} | {rate_fmt(s['min_rate'], c)} |\"\
+  )\n    out += [\"\", \"## Business costs\", \"| Cost | Per year |\", \"|---|---|\"\
+  ]\n    for k in r[\"costs\"]:\n        out.append(f\"| {k['name']} | {money(k['annual'],\
+  \ c)} |\")\n    if r.get(\"current\"):\n        cu = r[\"current\"]\n        out\
+  \ += [\"\", \"## Current rate\", f\"At {rate_fmt(cu['rate'], c)}/h: take-home {money(cu['net_income'],\
+  \ c)}/year \"\n                f\"({'short by ' + money(cu['shortfall'], c) if cu['shortfall']\
+  \ > 0 else 'target met'}); target needs {cu['billable_hours_needed']} billable hours\
+  \ ({cu['billable_pct_needed']}% of working time)\"]\n    if r.get(\"project\"):\n\
+  \        p = r[\"project\"]\n        out += [\"\", f\"## Project quote: {p['name']}\"\
+  , f\"{p['estimated_hours']:g} h + {p['contingency_pct']:g}% contingency = {p['quoted_hours']:g}\
+  \ h x {rate_fmt(r['quoted_rate'], c)} -> **{money(p['price'], c)}**\"\n        \
+  \        + (f\" (at the current rate: {money(p['price_at_current'], c)})\" if p.get(\"\
+  price_at_current\") else \"\")]\n    out += [\"\", \"## Findings\"]\n    if not\
+  \ r[\"findings\"]:\n        out.append(\"- none\")\n    for f in r[\"findings\"\
+  ]:\n        out.append(f\"- {f['severity']} {f['code']}: {f['message']}\")\n   \
+  \ return \"\\n\".join(out) + \"\\n\"\n\n\ndef self_test():\n    tests, ok = [],\
+  \ 0\n\n    def check(name, cond):\n        nonlocal ok\n        tests.append(name)\n\
+  \        print((\"PASS \" if cond else \"FAIL \") + name)\n        ok += bool(cond)\n\
+  \n    base = {\"target_net_income\": 50000, \"tax\": {\"effective_rate_pct\": 30},\
+  \ \"business_costs\": [{\"name\": \"x\", \"annual\": 10000}],\n            \"time\"\
+  : {\"hours_per_week\": 40, \"vacation_weeks\": 4, \"public_holidays_days\": 10,\
+  \ \"sick_days\": 5, \"training_days\": 5, \"billable_pct\": 60},\n            \"\
+  risk_buffer_pct\": 10}\n    r = calc(base)\n    check(\"working days 260-20-10-5-5\
+  \ = 220\", r[\"working_days\"] == 220)\n    check(\"billable hours 220 x 8 x 60%\
+  \ = 1056\", r[\"billable_hours\"] == 1056)\n    check(\"profit before tax 50000/0.7\"\
+  , abs(r[\"profit_before_tax\"] - 71428.57) < 0.01)\n    check(\"revenue (71428.57+10000)/0.9\"\
+  , abs(r[\"revenue_needed\"] - 90476.19) < 0.01)\n    check(\"minimum rate 90476.19/1056\
+  \ = 85.68\", abs(r[\"min_rate\"] - 85.68) < 0.01)\n    check(\"quoted rate rounded\
+  \ up to 90\", r[\"quoted_rate\"] == 90)\n    check(\"day rate 8 x 90 = 720\", r[\"\
+  day_rate\"] == 720)\n    check(\"break-even 10000/0.9/1056 = 10.52\", abs(r[\"break_even_rate\"\
+  ] - 10.52) < 0.01)\n    check(\"net at the minimum rate equals target\", abs(((r[\"\
+  min_rate\"] * 1056 * 0.9 - 10000) * 0.7) - 50000) < 10)\n    check(\"clean plan\
+  \ has no findings\", r[\"findings\"] == [])\n    check(\"monthly cost x 12\", annual({\"\
+  monthly\": 150}) == 1800)\n    check(\"set-asides raise the rate\", calc({**base,\
+  \ \"set_asides\": [{\"name\": \"pension\", \"annual\": 7000}]})[\"min_rate\"] >\
+  \ r[\"min_rate\"])\n    check(\"sensitivity 50% rate higher than 70%\", r[\"sensitivity\"\
+  ][1][\"min_rate\"] > r[\"sensitivity\"][3][\"min_rate\"])\n\n    def codes(**over):\n\
+  \        c = json.loads(json.dumps(base))\n        for k, v in over.items():\n \
+  \           if isinstance(v, dict) and isinstance(c.get(k), dict):\n           \
+  \     c[k].update(v)\n            else:\n                c[k] = v\n        return\
+  \ {f[\"code\"] for f in calc(c)[\"findings\"]}\n\n    check(\"no tax HIGH\", \"\
+  NO_TAX\" in codes(tax={\"effective_rate_pct\": 0}))\n    check(\"below required\
+  \ HIGH\", \"BELOW_REQUIRED\" in codes(current_rate=60))\n    check(\"below break-even\
+  \ HIGH\", \"BELOW_BREAK_EVEN\" in codes(current_rate=8))\n    check(\"rate above\
+  \ market MEDIUM\", \"ABOVE_MARKET\" in codes(market_rate={\"low\": 40, \"high\"\
+  : 70}))\n    check(\"rate under market LOW\", \"UNDER_MARKET\" in codes(market_rate={\"\
+  low\": 120, \"high\": 160}))\n    check(\"billable 85% MEDIUM\", \"BILLABLE_HIGH\"\
+  \ in codes(time={\"billable_pct\": 85}))\n    check(\"55 h/week MEDIUM\", \"LONG_HOURS\"\
+  \ in codes(time={\"hours_per_week\": 55}))\n    check(\"2 weeks vacation MEDIUM\"\
+  , \"SHORT_VACATION\" in codes(time={\"vacation_weeks\": 2}))\n    check(\"no buffer\
+  \ LOW\", \"NO_BUFFER\" in codes(risk_buffer_pct=0))\n    check(\"no sick days LOW\"\
+  , \"NO_SICK_DAYS\" in codes(time={\"sick_days\": 0}))\n    check(\"no contingency\
+  \ LOW\", \"NO_CONTINGENCY\" in codes(project={\"estimated_hours\": 40, \"contingency_pct\"\
+  : 0}))\n    p = calc({**base, \"project\": {\"estimated_hours\": 100, \"contingency_pct\"\
+  : 20}})[\"project\"]\n    check(\"project 120 h x 90 = 10800\", p[\"quoted_hours\"\
+  ] == 120 and p[\"price\"] == 10800)\n    for bad, label in (({\"tax\": {\"effective_rate_pct\"\
+  : 95}}, \"tax 95% rejected\"), ({\"time\": {\"billable_pct\": 0}}, \"billable 0\
+  \ rejected\"),\n                       ({\"time\": {\"vacation_weeks\": 60}}, \"\
+  no working days rejected\")):\n        try:\n            c = json.loads(json.dumps(base))\n\
+  \            for k, v in bad.items():\n                c[k].update(v)\n        \
+  \    calc(c)\n            check(label, False)\n        except DataError:\n     \
+  \       check(label, True)\n    print(f\"{ok}/{len(tests)} passed\")\n    return\
+  \ 0 if ok == len(tests) else 1\n\n\ndef main():\n    ap = argparse.ArgumentParser(description=\"\
+  Freelance hourly rate calculator\")\n    ap.add_argument(\"plan\", nargs=\"?\",\
+  \ help=\"plan JSON file\")\n    ap.add_argument(\"--round\", type=float, default=5,\
+  \ help=\"round the quoted rate up to this step (default 5)\")\n    ap.add_argument(\"\
+  --json\", action=\"store_true\")\n    ap.add_argument(\"--self-test\", action=\"\
+  store_true\")\n    a = ap.parse_args()\n    if a.self_test:\n        return self_test()\n\
+  \    if not a.plan:\n        ap.error(\"plan file required\")\n    try:\n      \
+  \  with open(a.plan, encoding=\"utf-8\") as fh:\n            r = calc(json.load(fh),\
+  \ a.round)\n    except (OSError, json.JSONDecodeError, DataError, ValueError, TypeError)\
+  \ as e:\n        print(f\"error: {e}\", file=sys.stderr)\n        return 2\n   \
+  \ print(json.dumps(r, indent=2) if a.json else render(r), end=\"\\n\" if a.json\
+  \ else \"\")\n    return 1 if any(f[\"severity\"] == \"HIGH\" for f in r[\"findings\"\
+  ]) else 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
