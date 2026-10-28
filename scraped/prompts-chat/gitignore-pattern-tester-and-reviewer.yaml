@@ -1,0 +1,471 @@
+slug: gitignore-pattern-tester-and-reviewer
+title: Gitignore Pattern Tester and Reviewer
+description: Imported from Prompts Chat
+prompt: "---\nname: gitignore-pattern-tester-and-reviewer\ndescription: Explains every\
+  \ line of a .gitignore, tests it against paths that must be ignored or must stay\
+  \ committable, names the rule that decides each path, and flags mistakes such as\
+  \ negations blocked by an excluded parent folder, inline comments, leading spaces,\
+  \ backslashes, stray **, secrets not covered and .env.example ignored. Returns a\
+  \ fixed file. Includes a stdlib Python checker with --self-test, matched against\
+  \ real git.\n---\n\n# Gitignore Pattern Tester and Reviewer\n\nYou help developers\
+  \ understand and fix `.gitignore` files. You explain what each pattern really matches,\
+  \ prove it with path tests, and find the mistakes that make git ignore source files\
+  \ or commit secrets and build output. You return a corrected file with tests that\
+  \ pass, not just advice.\n\n## Files in this skill\n\n- `scripts/gitignore_check.py`\
+  \ - explains each rule, runs \"+ path\" (must be ignored) and \"- path\" (must be\
+  \ kept) tests, names the deciding line for each path, and reports HIGH, MEDIUM,\
+  \ LOW and INFO findings (Python 3 standard library only)\n- `references/gitignore-rules.md`\
+  \ - how git reads ignore files: sources and priority, line syntax, anchoring, wildcards,\
+  \ the parent-directory rule, tracked files and commands to confirm\n- `references/common-pitfalls.md`\
+  \ - every finding code with its fix, pitfalls the script cannot see (broad names,\
+  \ tracked files, nested files, case sensitivity, lock files, .dockerignore differences)\
+  \ and good starting blocks\n- `templates/gitignore-review.md` - the review to hand\
+  \ back\n- `examples/webapp.gitignore` - a web app ignore file with six real bugs\n\
+  - `examples/webapp-fixed.gitignore` - the corrected file (all tests pass)\n- `examples/webapp-paths.txt`\
+  \ - 19 path tests used with both files\n\n## Workflow\n\n### 1. Collect the inputs\n\
+  Ask for the `.gitignore` (and any nested ones), the stack, and the paths that matter:\
+  \ what must be ignored (build output, dependencies, logs, secrets) and what must\
+  \ stay committable (source folders with common names like `build/` or `lib/`, `.gitkeep`\
+  \ files, `.env.example`, lock files). If the user only asks \"why is X ignored?\"\
+  \ ask for the path and use `git check-ignore -v X` output if they have it.\n\n###\
+  \ 2. Run the checker\n```\npython3 scripts/gitignore_check.py examples/webapp.gitignore\
+  \ --test examples/webapp-paths.txt\npython3 scripts/gitignore_check.py .gitignore\
+  \ --test paths.txt --json\npython3 scripts/gitignore_check.py --self-test\n```\n\
+  Paths file: `+ path` must be ignored, `- path` must be kept, end directories with\
+  \ `/`. Exit 1 means a HIGH finding or a failed test, 2 means unreadable input. The\
+  \ checker models one ignore file at the repo root; for a nested file, give paths\
+  \ relative to its folder.\n\n### 3. Explain and fix\n- Walk through the Rules table\
+  \ in plain words, especially anchoring (slash at start or middle = relative to the\
+  \ .gitignore folder) and the parent-directory rule (see `references/gitignore-rules.md`).\n\
+  - For each FAIL, quote the deciding line from the \"Decided by\" column and give\
+  \ the smallest change that fixes it.\n- Fix every HIGH and MEDIUM finding; explain\
+  \ any INFO you leave in place.\n- Add `- path` tests for source folders with common\
+  \ names so over-broad rules show up.\n- Re-run the checker on the fixed file until\
+  \ all tests pass, and show the diff.\n\n### 4. Deliver\nFill `templates/gitignore-review.md`:\
+  \ what the current file does, the test table, findings, the full fixed file, a diff,\
+  \ and the commands to confirm (`git check-ignore -v`, `git status --ignored`) and\
+  \ to untrack files that were already committed (`git rm --cached`).\n\n## Example\
+  \ result\nFor `examples/webapp.gitignore` with `examples/webapp-paths.txt`: 13/19\
+  \ tests pass, 1 HIGH, 4 MEDIUM, 2 LOW, 1 INFO. HIGH NEGATION_BLOCKED: `logs/` excludes\
+  \ the folder, so `!logs/.gitkeep` can never apply (fix: `logs/*`). MEDIUM: `config/secrets.yml\
+  \ # never commit` is one pattern, so the secrets file would be committed; ` Thumbs.db`\
+  \ has a leading space; `src\\generated` is read as `srcgenerated`; and `*.key`,\
+  \ `*.pem` and `id_rsa` files are not covered. LOW: `.env*` hides `.env.example`;\
+  \ `*.log` is listed twice. The unanchored `build` also hides `src/build/README.md`\
+  \ (fix: `/build/`). `examples/webapp-fixed.gitignore` passes 19/19 with no HIGH,\
+  \ MEDIUM or LOW findings.\n\n## Rules\n\n- Last matching line wins; a file inside\
+  \ an excluded folder can never be re-included. Say this whenever a `!` line is involved.\n\
+  - Never suggest ignoring lock files (`package-lock.json`, `poetry.lock`, `go.sum`,\
+  \ app `Cargo.lock`) or shared config the team commits on purpose.\n- If a secret\
+  \ was already committed, say that ignoring it is not enough: rotate it and consider\
+  \ rewriting history.\n- Prefer anchored root patterns (`/dist/`, `/build/`) for\
+  \ output folders, and put personal editor and OS files in the global ignore file\
+  \ when the team agrees.\n- Confirm on the real repository with `git check-ignore\
+  \ -v`: the script follows git's documented rules for one file, but nested files,\
+  \ `.git/info/exclude`, the global file and `core.ignorecase` can change the result.\n\
+  \x1FFILE:references/gitignore-rules.md\x1E\n# How git reads .gitignore\n\nSource:\
+  \ the gitignore(5) manual (`git help gitignore`). The checker implements these rules\
+  \ and was compared with real git 2.47 on 6,956 path checks with no differences.\n\
+  \n## Where rules come from (highest priority first)\n1. Command-line `--exclude`\
+  \ options (rare; used by some tools).\n2. `.gitignore` files: the one in the same\
+  \ folder as the path wins over the ones above it. Patterns are relative to the folder\
+  \ that holds that `.gitignore`.\n3. `.git/info/exclude` - local to one clone, never\
+  \ committed. Good for personal scratch files.\n4. The global file in `core.excludesFile`\
+  \ (default `~/.config/git/ignore`) - good for editor and OS files such as `.DS_Store`\
+  \ and `*.swp`.\n\nInside one file, the LAST matching line decides.\n\n## Line syntax\n\
+  | Line | Meaning |\n|---|---|\n| empty | ignored, use as a separator |\n| `# text`\
+  \ | comment; only at the very start of a line. `foo # bar` is the pattern `foo #\
+  \ bar` |\n| `\\#file` | a name that starts with `#` |\n| `!pattern` | re-include\
+  \ something an earlier line excluded |\n| `\\!file` | a name that starts with `!`\
+  \ |\n| `name   ` | trailing spaces are dropped unless escaped (`name\\ `) |\n| `\
+  \  name` | leading spaces are KEPT and become part of the name |\n| `\\` | escapes\
+  \ the next character; it is never a path separator |\n\n## Slashes decide where\
+  \ a pattern matches\n| Pattern | Matches | Does not match |\n|---|---|---|\n| `build`\
+  \ | `build`, `src/build`, `a/b/build/x.js` (any file or folder named build) | `build.sh`\
+  \ |\n| `build/` | folders named build at any depth | a FILE named build |\n| `/build`\
+  \ | `build` next to the .gitignore only | `src/build` |\n| `doc/frotz` | `doc/frotz`\
+  \ next to the .gitignore (a slash in the middle anchors like a leading slash) |\
+  \ `a/doc/frotz` |\n| `**/doc/frotz` | `doc/frotz` at any depth | |\n\nRule of thumb:\
+  \ no slash (or only a trailing one) = any depth; a slash at the start or middle\
+  \ = relative to the .gitignore folder.\n\n## Wildcards\n| Wildcard | Meaning |\n\
+  |---|---|\n| `*` | any characters except `/` (`*.log`, `/a*z` does not match `ab/cz`)\
+  \ |\n| `?` | exactly one character except `/` |\n| `[abc]`, `[a-z]`, `[!0-9]`, `[^0-9]`\
+  \ | one character from (or not from) the set; `[[:digit:]]` style classes work |\n\
+  | `**/name` | `name` in any folder, including the top |\n| `dir/**` | everything\
+  \ inside `dir`, but not `dir` itself |\n| `a/**/b` | `a/b`, `a/x/b`, `a/x/y/b` |\n\
+  | `foo**`, `**bar` | `**` not next to slashes acts like a single `*` |\n\n## The\
+  \ parent-directory rule (the most common surprise)\n\"It is not possible to re-include\
+  \ a file if a parent directory of that file is excluded.\" Git does not even list\
+  \ the contents of an excluded folder, so a later `!` line never gets a chance.\n\
+  \n```gitignore\n# does NOT work: logs/ is excluded as a folder\nlogs/\n!logs/.gitkeep\n\
+  \n# works: exclude the folder's contents, keep the folder visible\nlogs/*\n!logs/.gitkeep\n\
+  \n# works for deeper files: re-include each folder level\n/assets/*\n!/assets/icons/\n\
+  /assets/icons/*\n!/assets/icons/app.svg\n```\n\n## Whitelist style\nIgnore everything,\
+  \ then allow what you want:\n```gitignore\n*\n!*/\n!*.md\n!src/**\n```\n`!*/` re-includes\
+  \ every folder so the later `!` lines can reach files inside them.\n\n## Already\
+  \ tracked files\n.gitignore only affects untracked files. A file that is already\
+  \ committed stays tracked:\n```\ngit rm --cached path/to/file        # keep it on\
+  \ disk, stop tracking it\ngit rm -r --cached build/           # same for a folder\n\
+  ```\nIf it was a secret, removing it from tracking is not enough: rotate the secret,\
+  \ because it is still in history.\n\n## Commands to confirm\n```\ngit check-ignore\
+  \ -v path/to/file          # prints the file, line and pattern that ignores it (nothing\
+  \ = not ignored)\ngit check-ignore -v --no-index path       # also for files that\
+  \ are tracked\ngit status --ignored --short              # lists ignored files as\
+  \ \"!!\"\ngit ls-files --others --ignored --exclude-standard   # every ignored untracked\
+  \ file\n```\n\x1FFILE:references/common-pitfalls.md\x1E\n# Common .gitignore pitfalls\
+  \ and the checker's codes\n\n| Code | Severity | What goes wrong | Fix |\n|---|---|---|---|\n\
+  | NEGATION_BLOCKED | HIGH | `!path/file` after a rule that excludes a parent folder\
+  \ (`logs/`, `dist`, `a/*` for `a/b/c`) never takes effect, so the file you meant\
+  \ to commit stays ignored | Exclude contents (`logs/*` or `logs/**`) instead of\
+  \ the folder, or re-include each folder level (`!a/b/`) |\n| SECRETS_NOT_COVERED\
+  \ | MEDIUM | typical secret files (`.env`, `*.pem`, `*.key`, `id_rsa`) would be\
+  \ committed by `git add .` | Add `.env`, `.env.*`, `*.pem`, `*.key`, `id_rsa*`;\
+  \ also use a secret scanner in CI |\n| INLINE_COMMENT | MEDIUM | `secrets.yml #\
+  \ never commit` is one pattern including the comment text, so `secrets.yml` is NOT\
+  \ ignored | Put comments on their own line |\n| LEADING_SPACE | MEDIUM | ` Thumbs.db`\
+  \ matches only a name that starts with a space | Remove the space |\n| BACKSLASH_SEPARATOR\
+  \ | MEDIUM | `src\\generated` means \"src\" + escaped \"g\" + \"enerated\" = `srcgenerated`\
+  \ | Always use `/`, also on Windows |\n| ENV_EXAMPLE_IGNORED | LOW | `.env*` also\
+  \ hides `.env.example`, the template other developers need | Add `!.env.example`\
+  \ after it |\n| DUPLICATE | LOW | the same line twice; harmless but a sign of copy-paste\
+  \ merges | Delete one |\n| DOUBLE_STAR | LOW | `foo**` is just `foo*`; the author\
+  \ probably meant `foo/**` | Use `**` only as `**/x`, `x/**` or `a/**/b` |\n| TRAILING_SPACE\
+  \ | LOW | trailing spaces are silently dropped; if they were meant, the file will\
+  \ not match | Remove or escape them |\n| CRLF | LOW | Windows line endings in .gitignore\
+  \ | Save as LF; add `* text=auto` to .gitattributes |\n| ANCHORED_BY_SLASH | INFO\
+  \ | `src/gen` only matches next to the .gitignore, not `packages/a/src/gen` | Add\
+  \ `/` to show intent or `**/` to match at any depth |\n\n## Pitfalls the script\
+  \ cannot see (check them by hand)\n- **Unanchored names that are too broad.** `build`\
+  \ also hides `src/build/` and `docs/build/`; `lib` hides every `lib` folder including\
+  \ source code. Use `/build/` for the root output folder. Write a `- path` test for\
+  \ any source folder with a common name.\n- **Tracked files.** Adding a rule does\
+  \ not untrack files already committed. Run `git ls-files -ci --exclude-standard`\
+  \ to list tracked files that match the ignore rules, then `git rm --cached`.\n-\
+  \ **Nested .gitignore files.** A `.gitignore` in a subfolder adds rules relative\
+  \ to that subfolder and can re-include what the root file excluded (unless a parent\
+  \ folder is excluded). Run the checker on each file with paths relative to its folder,\
+  \ or confirm with `git check-ignore -v`.\n- **Case sensitivity.** On macOS and Windows\
+  \ `core.ignorecase=true` makes `*.JPG` match `photo.jpg`; on Linux CI it does not.\
+  \ Write both cases or use `*.[jJ][pP][gG]`.\n- **Personal files in the shared file.**\
+  \ `.idea/`, `.vscode/`, `*.swp`, `.DS_Store` belong in the global ignore file (`core.excludesFile`),\
+  \ though many teams keep them in the repo file for convenience. Do not ignore `.vscode/settings.json`\
+  \ if the team shares it on purpose.\n- **Lock files.** Do not ignore `package-lock.json`,\
+  \ `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`, `Cargo.lock` (for applications)\
+  \ or `go.sum`: they make builds reproducible.\n- **Ignoring then committing anyway.**\
+  \ `git add -f` overrides ignore rules; reviewers should check for force-added build\
+  \ output or secrets.\n- **Other ignore files use different rules.** `.dockerignore`\
+  \ uses Go filepath.Match plus `**` and is always anchored at the build context root\
+  \ (no \"any depth\" for plain names). `.npmignore`, `.eslintignore` and `.prettierignore`\
+  \ follow gitignore-like rules but not always every detail. Test them with their\
+  \ own tools.\n\n## Good starting blocks\n```gitignore\n# Node\nnode_modules/\n/dist/\n\
+  /build/\nnpm-debug.log*\n.npm/\n\n# Python\n__pycache__/\n*.py[cod]\n.venv/\n.pytest_cache/\n\
+  /dist/\n*.egg-info/\n\n# Secrets\n.env\n.env.*\n!.env.example\n*.pem\n*.key\nid_rsa*\n\
+  \n# Logs that keep their folder\nlogs/*\n!logs/.gitkeep\n```\n\x1FFILE:templates/gitignore-review.md\x1E\
+  \n# .gitignore review: <repository or folder>\n\n**Stack:** <Node 20 + Vite / Python\
+  \ 3.12 / monorepo with pnpm workspaces>\n**Files reviewed:** <.gitignore at root,\
+  \ packages/api/.gitignore>\n**Summary:** <one sentence: the most important problem\
+  \ and what the fix changes>\n\n## What the current file does\n| Line | Pattern |\
+  \ Meaning |\n|---|---|---|\n| <9> | <`logs/`> | <ignores every folder named logs,\
+  \ at any depth, and everything in it> |\n\n## Path tests\n| Result | Path | Expected\
+  \ | Actual | Decided by |\n|---|---|---|---|---|\n| <FAIL> | <`logs/.gitkeep`> |\
+  \ <kept> | <ignored> | <parent logs/ excluded by L9; L10 cannot re-include it> |\n\
+  \n## Findings\n| # | Severity | Code | Line | Problem | Fix |\n|---|---|---|---|---|---|\n\
+  | 1 | <HIGH> | <NEGATION_BLOCKED> | <10> | <...> | <use logs/* instead of logs/>\
+  \ |\n\n## Proposed .gitignore\n```gitignore\n<full fixed file, with comments on\
+  \ their own lines>\n```\n\n## Changes\n```diff\n- logs/\n+ logs/*\n```\n\n## Apply\
+  \ and confirm\n1. Replace the file, then run: `git check-ignore -v <each path from\
+  \ the tests>`\n2. `git status --ignored --short` and check nothing important shows\
+  \ as `!!`\n3. Untrack files that are now ignored but were committed: `git rm --cached\
+  \ <path>` (rotate any secret that was committed)\n4. Commit: `chore: fix .gitignore\
+  \ (<short reason>)`\n\n## Follow-ups\n- <move editor files to the global ignore\
+  \ file>\n- <add a secret scanner (gitleaks, trufflehog) to CI>\n\x1FFILE:examples/webapp.gitignore\x1E\
+  \n# Dependencies\nnode_modules\n/vendor/\n\n# Build output\ndist/\nbuild\n*.log\n\
+  logs/\n!logs/.gitkeep\n\n# Environment\n.env*\nconfig/secrets.yml # never commit\n\
+  \n# OS and editor files\n.DS_Store\n.idea/\n*.swp\n Thumbs.db\n\n# Test coverage\n\
+  coverage/**\n!coverage/README.md\n\n# Generated code\nsrc\\generated\n*.log\n\x1F\
+  FILE:examples/webapp-fixed.gitignore\x1E\n# Dependencies\nnode_modules/\n/vendor/\n\
+  \n# Build output (root only, so src/build/ stays tracked)\n/dist/\n/build/\n*.log\n\
+  # ignore the contents of logs/, not the folder, so the negation can work\nlogs/*\n\
+  !logs/.gitkeep\n\n# Environment and secrets\n.env\n.env.*\n!.env.example\n*.pem\n\
+  *.key\nid_rsa*\n# never commit\nconfig/secrets.yml\n\n# OS and editor files\n.DS_Store\n\
+  Thumbs.db\n.idea/\n*.swp\n\n# Test coverage\ncoverage/**\n!coverage/README.md\n\n\
+  # Generated code\n/src/generated/\n\x1FFILE:examples/webapp-paths.txt\x1E\n# Paths\
+  \ for examples/webapp.gitignore and webapp-fixed.gitignore\n# \"+ path\" = must\
+  \ be ignored, \"- path\" = must stay committable\n+ node_modules/react/index.js\n\
+  + packages/api/node_modules/lodash/lodash.js\n+ vendor/autoload.php\n- packages/vendor/README.md\n\
+  + dist/app.js\n+ build/output.js\n- src/build/README.md\n+ logs/app.log\n- logs/.gitkeep\n\
+  + .env\n+ .env.local\n- .env.example\n+ config/secrets.yml\n+ .DS_Store\n+ Thumbs.db\n\
+  + coverage/lcov.info\n- coverage/README.md\n+ src/generated/types.ts\n- src/index.ts\n\
+  \x1FFILE:scripts/gitignore_check.py\x1E\n#!/usr/bin/env python3\n\"\"\"Gitignore\
+  \ pattern tester and reviewer (Python 3 standard library only).\n\nExplains every\
+  \ rule in a .gitignore file, tests the file against paths that must be\nignored\
+  \ (\"+ path\") or must stay committable (\"- path\"), names the rule that decides\n\
+  each path, and flags common mistakes: negations that cannot work because a parent\n\
+  directory is excluded, inline comments, leading spaces, Windows backslashes, stray\n\
+  \"**\", duplicates, secrets that are not covered and .env.example being ignored.\n\
+  \nMatching follows git's documented gitignore rules for a single .gitignore at the\n\
+  repository root: last matching rule wins, \"!\" re-includes, a trailing \"/\" matches\n\
+  directories only, a \"/\" at the start or in the middle anchors the pattern to the\n\
+  .gitignore's directory, \"*\" \"?\" \"[...]\" never match \"/\", \"**\" spans directories,\n\
+  and a file can never be re-included if a parent directory is excluded.\n\nUsage:\n\
+  \  python3 gitignore_check.py .gitignore [--test paths.txt] [--json]\n  python3\
+  \ gitignore_check.py --self-test\nPaths file: one path per line, \"+ path\" = must\
+  \ be ignored, \"- path\" = must NOT be\nignored, end a path with \"/\" if it is\
+  \ a directory, \"#\" starts a comment.\nExit codes: 0 = no HIGH findings and all\
+  \ tests pass, 1 = HIGH finding or failed test,\n2 = unreadable input.\n\"\"\"\n\
+  import argparse, json, re, sys\n\nSEV_ORDER = {\"HIGH\": 0, \"MEDIUM\": 1, \"LOW\"\
+  : 2, \"INFO\": 3}\nSECRET_PROBES = [\".env\", \"config/.env.production\", \"certs/server.key\"\
+  , \"deploy/id_rsa\",\n                 \"secrets/service-account.pem\"]\nPOSIX_CLASSES\
+  \ = {\"alnum\": \"a-zA-Z0-9\", \"alpha\": \"a-zA-Z\", \"digit\": \"0-9\", \"lower\"\
+  : \"a-z\",\n                 \"upper\": \"A-Z\", \"space\": \" \\\\t\\\\n\\\\r\\\
+  \\f\\\\v\", \"xdigit\": \"0-9A-Fa-f\",\n                 \"punct\": re.escape(\"\
+  !\\\"#$%&'()*+,-./:;<=>?@[\\\\]^_`{|}~\"), \"blank\": \" \\\\t\"}\n\n\nclass Rule:\n\
+  \    def __init__(self, line_no, raw, negate, dir_only, anchored, body, regex):\n\
+  \        self.line_no, self.raw, self.negate, self.dir_only = line_no, raw, negate,\
+  \ dir_only\n        self.anchored, self.body, self.regex = anchored, body, regex\n\
+  \n    def matches(self, rel_path, is_dir):\n        if self.dir_only and not is_dir:\n\
+  \            return False\n        target = rel_path if self.anchored else rel_path.rsplit(\"\
+  /\", 1)[-1]\n        return self.regex.fullmatch(target) is not None\n\n    def\
+  \ label(self):\n        return f\"L{self.line_no} `{self.raw}`\"\n\n\ndef strip_trailing_spaces(s):\n\
+  \    \"\"\"git drops trailing spaces unless the last one is escaped with a backslash.\"\
+  \"\"\n    end = len(s)\n    while end > 0 and s[end - 1] == \" \":\n        bs,\
+  \ k = 0, end - 2\n        while k >= 0 and s[k] == \"\\\\\":\n            bs +=\
+  \ 1; k -= 1\n        if bs % 2 == 1:\n            break\n        end -= 1\n    return\
+  \ s[:end]\n\n\ndef class_to_regex(body):\n    out, m = \"\", 0\n    while m < len(body):\n\
+  \        ch = body[m]\n        if ch == \"[\" and body.startswith(\"[:\", m):\n\
+  \            end = body.find(\":]\", m + 2)\n            if end != -1 and body[m\
+  \ + 2:end] in POSIX_CLASSES:\n                out += POSIX_CLASSES[body[m + 2:end]];\
+  \ m = end + 2; continue\n        if ch == \"\\\\\" and m + 1 < len(body):\n    \
+  \        out += re.escape(body[m + 1]); m += 2; continue\n        if ch == \"-\"\
+  \ and 0 < m < len(body) - 1:\n            out += \"-\"; m += 1; continue\n     \
+  \   out += re.escape(ch); m += 1\n    return out\n\n\ndef glob_to_regex(p):\n  \
+  \  out, i, n = \"\", 0, len(p)\n    while i < n:\n        c = p[i]\n        if c\
+  \ == \"\\\\\":\n            if i + 1 < n:\n                out += re.escape(p[i\
+  \ + 1]); i += 2\n            else:\n                i += 1  # a lone trailing backslash\
+  \ matches nothing extra\n            continue\n        if c == \"*\":\n        \
+  \    j = i\n            while j < n and p[j] == \"*\":\n                j += 1\n\
+  \            if j - i >= 2 and (i == 0 or p[i - 1] == \"/\") and (j == n or p[j]\
+  \ == \"/\"):\n                if j == n:\n                    out += \".*\"; i =\
+  \ j\n                else:\n                    out += \"(?:.*/)?\"; i = j + 1\n\
+  \                continue\n            out += \"[^/]*\"; i = j; continue\n     \
+  \   if c == \"?\":\n            out += \"[^/]\"; i += 1; continue\n        if c\
+  \ == \"[\":\n            j = i + 1\n            neg = j < n and p[j] in \"!^\"\n\
+  \            if neg:\n                j += 1\n            k = j + 1 if j < n and\
+  \ p[j] == \"]\" else j\n            while k < n and p[k] != \"]\":\n           \
+  \     if p[k] == \"[\" and p.startswith(\"[:\", k):\n                    end = p.find(\"\
+  :]\", k + 2)\n                    if end != -1:\n                        k = end\
+  \ + 2; continue\n                k += 2 if p[k] == \"\\\\\" else 1\n           \
+  \ if k >= n:\n                out += re.escape(\"[\"); i += 1; continue\n      \
+  \      cls = class_to_regex(p[j:k])\n            out += (\"[^/\" + cls + \"]\")\
+  \ if neg else (\"(?!/)[\" + cls + \"]\")\n            i = k + 1; continue\n    \
+  \    out += re.escape(c); i += 1\n    return out\n\n\ndef parse_rules(text):\n \
+  \   rules, findings, seen = [], [], {}\n    for no, raw in enumerate(text.split(\"\
+  \\n\"), 1):\n        if raw.endswith(\"\\r\"):\n            findings.append((\"\
+  LOW\", \"CRLF\", no, \"line ends with CR (Windows line ending)\",\n            \
+  \                 \"Save the file with LF line endings; set `* text=auto` in .gitattributes.\"\
+  ))\n            raw = raw[:-1]\n        if not raw.strip() or raw.startswith(\"\
+  #\"):\n            continue\n        line = strip_trailing_spaces(raw)\n       \
+  \ if line != raw:\n            findings.append((\"LOW\", \"TRAILING_SPACE\", no,\
+  \ f\"`{raw}` has trailing spaces, which git drops\",\n                         \
+  \    \"Delete them; escape a real trailing space as `\\\\ `.\"))\n        if raw[0]\
+  \ in \" \\t\":\n            findings.append((\"MEDIUM\", \"LEADING_SPACE\", no,\
+  \ f\"`{raw}` starts with whitespace, which git keeps as part of the name, so it\
+  \ matches nothing useful\",\n                             \"Remove the leading whitespace.\"\
+  ))\n        m = re.search(r\"\\s#\", line)\n        if m:\n            findings.append((\"\
+  MEDIUM\", \"INLINE_COMMENT\", no, f\"`{line}`: git has no inline comments, so `{line[m.start():].strip()}`\
+  \ becomes part of the pattern\",\n                             \"Move the comment\
+  \ to its own line starting with #.\"))\n        if re.search(r\"\\\\[A-Za-z0-9_]\"\
+  , line):\n            findings.append((\"MEDIUM\", \"BACKSLASH_SEPARATOR\", no,\
+  \ f\"`{line}` uses a backslash, which escapes the next character instead of separating\
+  \ directories\",\n                             \"Use forward slashes: `\" + line.replace(\"\
+  \\\\\", \"/\") + \"`.\"))\n        key = line.strip()\n        if key in seen:\n\
+  \            findings.append((\"LOW\", \"DUPLICATE\", no, f\"`{key}` repeats line\
+  \ {seen[key]}\", \"Delete the duplicate.\"))\n        else:\n            seen[key]\
+  \ = no\n        negate = line.startswith(\"!\")\n        body = line[1:] if negate\
+  \ else line\n        if body.startswith(\"\\\\!\") or body.startswith(\"\\\\#\"\
+  ):\n            body = body[1:]\n        if negate and not body:\n            findings.append((\"\
+  LOW\", \"EMPTY_NEGATION\", no, \"`!` alone does nothing\", \"Delete the line.\"\
+  ))\n            continue\n        dir_only = body.endswith(\"/\") and not body.endswith(\"\
+  \\\\/\")\n        if dir_only:\n            body = body.rstrip(\"/\")\n        if\
+  \ not body:\n            continue\n        anchored = \"/\" in body\n        if\
+  \ body.startswith(\"/\"):\n            body = body[1:]\n        if any((m.start()\
+  \ > 0 and body[m.start() - 1] != \"/\") or (m.end() < len(body) and body[m.end()]\
+  \ != \"/\")\n               for m in re.finditer(r\"\\*{2,}\", body)):\n       \
+  \     findings.append((\"LOW\", \"DOUBLE_STAR\", no, f\"`{line}`: `**` not between\
+  \ slashes acts like a single `*`\",\n                             \"Use `**/name`,\
+  \ `dir/**` or `a/**/b`, or a single `*`.\"))\n        rules.append(Rule(no, line,\
+  \ negate, dir_only, anchored, body, re.compile(glob_to_regex(body), re.S)))\n  \
+  \  return rules, findings\n\n\ndef last_match(rules, rel_path, is_dir):\n    hit\
+  \ = None\n    for r in rules:\n        if r.matches(rel_path, is_dir):\n       \
+  \     hit = r\n    return hit\n\n\ndef check_path(rules, path):\n    \"\"\"Return\
+  \ (ignored, reason, blocked_rule) following git's parent-directory rule.\"\"\"\n\
+  \    is_dir = path.endswith(\"/\")\n    parts = [p for p in path.strip(\"/\").split(\"\
+  /\") if p]\n    for k in range(1, len(parts) + 1):\n        sub = \"/\".join(parts[:k])\n\
+  \        sub_is_dir = k < len(parts) or is_dir\n        hit = last_match(rules,\
+  \ sub, sub_is_dir)\n        if k < len(parts):\n            if hit and not hit.negate:\n\
+  \                own = last_match(rules, \"/\".join(parts), is_dir)\n          \
+  \      blocked = own if own and own.negate else None\n                return True,\
+  \ f\"parent `{sub}/` excluded by {hit.label()}\", blocked\n        else:\n     \
+  \       if hit is None:\n                return False, \"no rule matches\", None\n\
+  \            if hit.negate:\n                return False, f\"re-included by {hit.label()}\"\
+  , None\n            return True, f\"ignored by {hit.label()}\", None\n    return\
+  \ False, \"empty path\", None\n\n\ndef literal_dirs(body):\n    parts = body.split(\"\
+  /\")[:-1]\n    out = []\n    for p in parts:\n        if any(ch in p for ch in \"\
+  *?[\\\\\"):\n            break\n        out.append(p)\n    return out\n\n\ndef lint_negations(rules):\n\
+  \    findings = []\n    for idx, r in enumerate(rules):\n        if not r.negate\
+  \ or not r.anchored:\n            continue\n        before = rules[:idx]\n     \
+  \   dirs = literal_dirs(r.body)\n        for k in range(1, len(dirs) + 1):\n   \
+  \         sub = \"/\".join(dirs[:k])\n            hit = last_match(before, sub,\
+  \ True)\n            if hit and not hit.negate:\n                findings.append((\"\
+  HIGH\", \"NEGATION_BLOCKED\", r.line_no,\n                                 f\"`{r.raw.strip()}`\
+  \ can never apply: its parent directory `{sub}/` is excluded by {hit.label()} and\
+  \ git does not look inside excluded directories\",\n                           \
+  \      f\"Exclude the contents instead of the directory (`{sub}/*` or `{sub}/**`),\
+  \ then keep the `!` rule; or re-include `!{sub}/` first.\"))\n                break\n\
+  \    return findings\n\n\ndef lint_secrets(rules):\n    findings = []\n    missing\
+  \ = [p for p in SECRET_PROBES if not check_path(rules, p)[0]]\n    if missing:\n\
+  \        findings.append((\"MEDIUM\", \"SECRETS_NOT_COVERED\", 0, \"these typical\
+  \ secret files would NOT be ignored: \" + \", \".join(missing),\n              \
+  \           \"Add `.env`, `.env.*` (with `!.env.example`), `*.pem`, `*.key`, `id_rsa*`\
+  \ if the project could ever contain them.\"))\n    if check_path(rules, \".env.example\"\
+  )[0]:\n        findings.append((\"LOW\", \"ENV_EXAMPLE_IGNORED\", 0, \"`.env.example`\
+  \ is ignored, so the documented template cannot be committed\",\n              \
+  \           \"Add `!.env.example` after the .env rule.\"))\n    return findings\n\
+  \n\ndef explain(rule):\n    body = rule.body\n    kind = \"directories\" if rule.dir_only\
+  \ else \"files or directories\"\n    verb = \"Re-includes\" if rule.negate else\
+  \ \"Ignores\"\n    wild = any(ch in body for ch in \"*?[\")\n    if rule.anchored\
+  \ and body.endswith(\"/**\") and \"*\" not in body[:-3]:\n        text = f\"{verb}\
+  \ everything inside `{body[:-3]}/` (but not the folder itself), relative to the\
+  \ .gitignore folder\"\n    elif rule.anchored and body.startswith(\"**/\") and \"\
+  /\" not in body[3:]:\n        text = f\"{verb} {kind} {'matching' if wild else 'named'}\
+  \ `{body[3:]}` at any depth\"\n    elif rule.anchored:\n        text = f\"{verb}\
+  \ {kind} {'matching' if wild else 'at'} `{body}` relative to the .gitignore folder\
+  \ only\"\n    else:\n        text = f\"{verb} {kind} {'matching' if wild else 'named'}\
+  \ `{body}` at any depth\"\n    if not rule.negate and not body.endswith(\"/**\"\
+  ):\n        text += \"; a matched directory hides everything inside it\"\n    if\
+  \ rule.negate:\n        text += \" (only works if no parent directory is excluded)\"\
+  \n    return text + \".\"\n\n\ndef read_tests(text):\n    tests = []\n    for no,\
+  \ line in enumerate(text.splitlines(), 1):\n        s = line.strip()\n        if\
+  \ not s or s.startswith(\"#\"):\n            continue\n        if s[0] not in \"\
+  +-\" or len(s) < 3:\n            raise ValueError(f\"paths file line {no}: expected\
+  \ '+ path' or '- path', got {line!r}\")\n        tests.append((s[0] == \"+\", s[1:].strip()))\n\
+  \    return tests\n\n\ndef review(gi_text, tests_text=None):\n    rules, findings\
+  \ = parse_rules(gi_text)\n    findings += lint_negations(rules)\n    findings +=\
+  \ lint_secrets(rules)\n    anchored = [r.line_no for r in rules if r.anchored and\
+  \ not r.negate and \"/\" in r.body\n                and not r.raw.startswith((\"\
+  /\", \"**/\")) and not r.body.endswith(\"/**\")]\n    if anchored:\n        findings.append((\"\
+  INFO\", \"ANCHORED_BY_SLASH\", anchored[0],\n                         \"lines \"\
+  \ + \", \".join(map(str, anchored)) + \" contain a slash, so they only match relative\
+  \ to the .gitignore folder, not deeper copies\",\n                         \"Fine\
+  \ if intended; add a leading `/` to make that explicit, or prefix `**/` to match\
+  \ at any depth.\"))\n    results = []\n    if tests_text:\n        for want, path\
+  \ in read_tests(tests_text):\n            got, reason, blocked = check_path(rules,\
+  \ path)\n            note = reason\n            if blocked:\n                note\
+  \ += f\"; {blocked.label()} cannot re-include it\"\n            results.append({\"\
+  path\": path, \"expect\": \"ignored\" if want else \"kept\",\n                 \
+  \           \"actual\": \"ignored\" if got else \"kept\", \"pass\": got == want,\
+  \ \"why\": note})\n    findings.sort(key=lambda f: (SEV_ORDER[f[0]], f[2]))\n  \
+  \  return {\"rules\": [{\"line\": r.line_no, \"pattern\": r.raw, \"meaning\": explain(r)}\
+  \ for r in rules],\n            \"findings\": [dict(zip((\"severity\", \"code\"\
+  , \"line\", \"problem\", \"fix\"), f)) for f in findings],\n            \"tests\"\
+  : results}\n\n\ndef render(name, rep):\n    out = [f\"# .gitignore review: {name}\"\
+  , \"\"]\n    counts = {s: sum(1 for f in rep[\"findings\"] if f[\"severity\"] ==\
+  \ s) for s in SEV_ORDER}\n    failed = sum(1 for t in rep[\"tests\"] if not t[\"\
+  pass\"])\n    out.append(f\"Findings: {counts['HIGH']} HIGH, {counts['MEDIUM']}\
+  \ MEDIUM, {counts['LOW']} LOW, {counts['INFO']} INFO\")\n    if rep[\"tests\"]:\n\
+  \        out.append(f\"Tests: {len(rep['tests']) - failed}/{len(rep['tests'])} passed\"\
+  )\n    out += [\"\", \"## Rules\", \"\", \"| Line | Pattern | Meaning |\", \"|---|---|---|\"\
+  ]\n    for r in rep[\"rules\"]:\n        out.append(f\"| {r['line']} | `{r['pattern']}`\
+  \ | {r['meaning']} |\")\n    if rep[\"tests\"]:\n        out += [\"\", \"## Path\
+  \ tests\", \"\", \"| Result | Path | Expected | Actual | Decided by |\", \"|---|---|---|---|---|\"\
+  ]\n        for t in rep[\"tests\"]:\n            out.append(f\"| {'PASS' if t['pass']\
+  \ else 'FAIL'} | `{t['path']}` | {t['expect']} | {t['actual']} | {t['why']} |\"\
+  )\n    out += [\"\", \"## Findings\", \"\"]\n    if rep[\"findings\"]:\n       \
+  \ out += [\"| Severity | Code | Line | Problem | Fix |\", \"|---|---|---|---|---|\"\
+  ]\n        for f in rep[\"findings\"]:\n            out.append(f\"| {f['severity']}\
+  \ | {f['code']} | {f['line'] or '-'} | {f['problem']} | {f['fix']} |\")\n    else:\n\
+  \        out.append(\"No findings.\")\n    out += [\"\", \"Confirm on the real repo\
+  \ with `git check-ignore -v <path>` and `git status --ignored`; files that are already\
+  \ tracked stay tracked until `git rm --cached <path>`.\"]\n    return \"\\n\".join(out)\n\
+  \n\ndef self_test():\n    cases = []\n    def t(name, cond):\n        cases.append((name,\
+  \ bool(cond)))\n    R = lambda s: parse_rules(s)[0]\n    ign = lambda s, p: check_path(R(s),\
+  \ p)[0]\n    t(\"*.log matches at any depth\", ign(\"*.log\", \"a/b/c.log\") and\
+  \ ign(\"*.log\", \"x.log\"))\n    t(\"* does not cross /\", not ign(\"/a*z\", \"\
+  ab/cz\") and ign(\"/a*z\", \"abcz\"))\n    t(\"name without slash matches basename\
+  \ anywhere\", ign(\"build\", \"src/build/x.js\"))\n    t(\"leading slash anchors\"\
+  , ign(\"/vendor\", \"vendor/a\") and not ign(\"/vendor\", \"lib/vendor/a\"))\n \
+  \   t(\"middle slash anchors\", ign(\"doc/frotz\", \"doc/frotz\") and not ign(\"\
+  doc/frotz\", \"a/doc/frotz\"))\n    t(\"trailing slash = directory only\", ign(\"\
+  logs/\", \"logs/x\") and not ign(\"logs/\", \"logs\"))\n    t(\"dir-only rule ignores\
+  \ a dir path\", ign(\"logs/\", \"logs/\"))\n    t(\"**/ prefix matches any depth\"\
+  , ign(\"**/foo\", \"foo\") and ign(\"**/foo\", \"a/b/foo\"))\n    t(\"**/foo/bar\"\
+  , ign(\"**/foo/bar\", \"x/foo/bar\") and not ign(\"**/foo/bar\", \"x/foo/baz\"))\n\
+  \    t(\"trailing /** matches contents only\", ign(\"abc/**\", \"abc/x/y\") and\
+  \ not ign(\"abc/**\", \"abc\"))\n    t(\"a/**/b zero or more dirs\", ign(\"a/**/b\"\
+  , \"a/b\") and ign(\"a/**/b\", \"a/x/y/b\") and not ign(\"a/**/b\", \"ab\"))\n \
+  \   t(\"? matches one char not /\", ign(\"/a?c\", \"abc\") and not ign(\"/a?c\"\
+  , \"a/c\"))\n    t(\"[abc] class\", ign(\"file[12].txt\", \"file1.txt\") and not\
+  \ ign(\"file[12].txt\", \"file3.txt\"))\n    t(\"[!x] negated class\", ign(\"f[!0-9]\"\
+  , \"fa\") and not ign(\"f[!0-9]\", \"f5\"))\n    t(\"[[:digit:]] posix class\",\
+  \ ign(\"v[[:digit:]]\", \"v7\") and not ign(\"v[[:digit:]]\", \"vx\"))\n    t(\"\
+  last match wins with negation\", not ign(\"*.txt\\n!keep.txt\", \"keep.txt\") and\
+  \ ign(\"*.txt\\n!keep.txt\", \"a.txt\"))\n    t(\"order matters\", ign(\"!keep.txt\\\
+  n*.txt\", \"keep.txt\"))\n    t(\"parent dir excluded blocks negation\", ign(\"\
+  logs/\\n!logs/.gitkeep\", \"logs/.gitkeep\"))\n    t(\"dir/* allows negation\",\
+  \ not ign(\"logs/*\\n!logs/.gitkeep\", \"logs/.gitkeep\"))\n    t(\"dir/** allows\
+  \ negation\", not ign(\"coverage/**\\n!coverage/README.md\", \"coverage/README.md\"\
+  ))\n    t(\"re-include dir then file\", not ign(\"/a/*\\n!/a/b/\\n/a/b/*\\n!/a/b/c\"\
+  , \"a/b/c\"))\n    t(\"escaped # and !\", ign(\"\\\\#notes\", \"#notes\") and ign(\"\
+  \\\\!bang\", \"!bang\"))\n    t(\"comment lines skipped\", not ign(\"# *.log\",\
+  \ \"a.log\"))\n    t(\"trailing spaces stripped\", ign(\"foo   \", \"foo\"))\n \
+  \   t(\"escaped trailing space kept\", ign(\"foo\\\\ \", \"foo \") and not ign(\"\
+  foo\\\\ \", \"foo\"))\n    t(\"leading space kept as part of name\", not ign(\"\
+  \ Thumbs.db\", \"Thumbs.db\"))\n    t(\"inline comment becomes pattern\", not ign(\"\
+  secrets.yml # x\", \"secrets.yml\"))\n    t(\"backslash escapes, not a separator\"\
+  , not ign(\"src\\\\gen\", \"src/gen/a.ts\"))\n    def codes(s):\n        return\
+  \ {f[1] for f in parse_rules(s)[1]} | {f[1] for f in lint_negations(parse_rules(s)[0])}\
+  \ | {f[1] for f in lint_secrets(parse_rules(s)[0])}\n    t(\"NEGATION_BLOCKED found\"\
+  , \"NEGATION_BLOCKED\" in codes(\"logs/\\n!logs/.gitkeep\"))\n    t(\"NEGATION_BLOCKED\
+  \ not for dir/*\", \"NEGATION_BLOCKED\" not in codes(\"logs/*\\n!logs/.gitkeep\"\
+  ))\n    t(\"NEGATION_BLOCKED via dir/* deeper\", \"NEGATION_BLOCKED\" in codes(\"\
+  a/*\\n!a/b/c.txt\"))\n    t(\"INLINE_COMMENT found\", \"INLINE_COMMENT\" in codes(\"\
+  x.yml # c\"))\n    t(\"LEADING_SPACE found\", \"LEADING_SPACE\" in codes(\" x\"\
+  ))\n    t(\"BACKSLASH_SEPARATOR found\", \"BACKSLASH_SEPARATOR\" in codes(\"a\\\\\
+  b\"))\n    t(\"DUPLICATE found\", \"DUPLICATE\" in codes(\"*.log\\n*.log\"))\n \
+  \   t(\"DOUBLE_STAR found\", \"DOUBLE_STAR\" in codes(\"foo**\") and \"DOUBLE_STAR\"\
+  \ not in codes(\"**/foo\\nfoo/**\"))\n    t(\"CRLF found\", \"CRLF\" in codes(\"\
+  a\\r\\nb\"))\n    t(\"SECRETS_NOT_COVERED found\", \"SECRETS_NOT_COVERED\" in codes(\"\
+  *.log\"))\n    t(\"secrets covered\", \"SECRETS_NOT_COVERED\" not in codes(\".env\\\
+  n.env.*\\n!.env.example\\n*.key\\n*.pem\\nid_rsa*\"))\n    t(\"ENV_EXAMPLE_IGNORED\
+  \ found\", \"ENV_EXAMPLE_IGNORED\" in codes(\".env*\"))\n    acodes = lambda s:\
+  \ {f[\"code\"] for f in review(s)[\"findings\"]}\n    t(\"ANCHORED_BY_SLASH info\"\
+  , \"ANCHORED_BY_SLASH\" in acodes(\"src/gen\") and \"ANCHORED_BY_SLASH\" not in\
+  \ acodes(\"/src/gen\\nlogs/**\\n**/x/y\"))\n    rep = review(\"logs/\\n!logs/.gitkeep\\\
+  n\", \"+ logs/a.log\\n- logs/.gitkeep\\n\")\n    t(\"test table marks blocked negation\
+  \ FAIL\", rep[\"tests\"][0][\"pass\"] and not rep[\"tests\"][1][\"pass\"] and \"\
+  cannot re-include\" in rep[\"tests\"][1][\"why\"])\n    try:\n        read_tests(\"\
+  ? bad\")\n        t(\"bad paths line rejected\", False)\n    except ValueError:\n\
+  \        t(\"bad paths line rejected\", True)\n    t(\"findings sorted HIGH first\"\
+  , review(\"x # c\\nlogs/\\n!logs/a\\n\")[\"findings\"][0][\"severity\"] == \"HIGH\"\
+  )\n    passed = sum(ok for _, ok in cases)\n    for name, ok in cases:\n       \
+  \ print((\"PASS \" if ok else \"FAIL \") + name)\n    print(f\"{passed}/{len(cases)}\
+  \ passed\")\n    return 0 if passed == len(cases) else 1\n\n\ndef main():\n    ap\
+  \ = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)\n\
+  \    ap.add_argument(\"gitignore\", nargs=\"?\")\n    ap.add_argument(\"--test\"\
+  , help=\"paths file with '+ path' (must be ignored) and '- path' (must be kept)\"\
+  )\n    ap.add_argument(\"--json\", action=\"store_true\")\n    ap.add_argument(\"\
+  --self-test\", action=\"store_true\")\n    a = ap.parse_args()\n    if a.self_test:\n\
+  \        return self_test()\n    if not a.gitignore:\n        ap.print_usage(sys.stderr);\
+  \ return 2\n    try:\n        gi = open(a.gitignore, encoding=\"utf-8\", newline=\"\
+  \").read()\n        tests = open(a.test, encoding=\"utf-8\").read() if a.test else\
+  \ None\n        rep = review(gi, tests)\n    except (OSError, UnicodeDecodeError,\
+  \ ValueError) as e:\n        print(f\"error: {e}\", file=sys.stderr); return 2\n\
+  \    print(json.dumps(rep, indent=2) if a.json else render(a.gitignore, rep))\n\
+  \    bad = any(f[\"severity\"] == \"HIGH\" for f in rep[\"findings\"]) or any(not\
+  \ t[\"pass\"] for t in rep[\"tests\"])\n    return 1 if bad else 0\n\n\nif __name__\
+  \ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

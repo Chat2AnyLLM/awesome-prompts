@@ -130,17 +130,17 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 3212 |
+| Unified prompts (in `dist/prompts.json`) | 3240 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 3217 |
+| Scraped prompts cached in `scraped/` | 3245 |
 
 ### Configured Sources
 
 | Source | Type | Location | Format | Loaded |
 |--------|------|----------|--------|--------|
 | Local Prompts | local | `prompts/` | - | 3 |
-| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 2676 |
+| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 2704 |
 | Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 180 |
 | AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 361 |
 
@@ -225,7 +225,7 @@ make all           # Run validation, tests, build, and README update
 </details>
 
 <details>
-<summary><strong>Prompts Chat</strong> (2676 prompts)</summary>
+<summary><strong>Prompts Chat</strong> (2704 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -242,24 +242,24 @@ make all           # Run validation, tests, build, and README update
 | 11 | 30-Day Adaptive Personal Tutor | Act as my personal tutor for a 30-day learning program. You… |
 | 12 | 30-Day Skill Mastery Challenge Prompt T… | # 30-Day Skill Mastery Challenge Prompt Template ## Goal St… |
 | 13 | 30 tweet Project | Act as a Senior Crypto Narrative Strategist & Rally.fun Alg… |
-| 14 | 3D Avatar Prompt | Use a user-uploaded image as the source and convert the per… |
-| 15 | 3D Cartoon Animation: Baby Bunny Advent… | Vertical 9:16, 3D cartoon-style animation of a cute baby bu… |
-| 16 | 3D Character Render In High-End Disney … | 3D character render in high-end Pixar Disney animation styl… |
-| 17 | 3D City Prompt | Hyper-realistic 3D square diorama of ${city_name:Istanbul},… |
-| 18 | 3D FACTORY | I NEED THIS FULLY INTEGRATED, IMPLEMENTED, ENFORCED, HARDEN… |
-| 19 | 3D FPS Game | Develop a first-person shooter game using Three.js and Java… |
-| 20 | 3D Isometric Miniature City View with W… | Present a clear, 45° top-down view of a vertical (9:16) iso… |
-| 21 | 3D Isometric Miniature Diorama | "When I give you a movie quote, never reply with text or a … |
-| 22 | 3D Kinetic Ball Simulation | I want you to act as an expert front-end game engineer spec… |
-| 23 | 3D Mechanical Part Image to Technical D… | {   "task": "image_to_image",   "input_image": "3d_render_o… |
-| 24 | 3D Medical Anatomy Model Render Prompt | {   "fixed_prompt_components": {     "composition": "Wide a… |
-| 25 | 3D Physics Sandbox Architect | I want you to act as a Senior WebGL Game Architect speciali… |
-| 26 | 3D Racing Game | Create an exciting 3D racing game using Three.js and JavaSc… |
-| 27 | 3D Space Explorer | Build an immersive 3D space exploration game using Three.js… |
-| 28 | 3D to 2D Floor Plan Converter | {   "task": "image_to_image",   "description": "Convert a f… |
-| 29 | 3x3 Grid Storyboarding from Photo | Act as a storyboard artist. You are skilled in visual story… |
-| 30 | 4 Optimized Versions of A Prompt (in Ar… | Act as a certified and expert AI prompt engineer  Analyze a… |
-| … | *+2646 more* | See `scraped/prompts-chat/` |
+| 14 | 3D Animated Family Short: Toddler Meets… | Create a beautiful, ultra-detailed 3D animated family short… |
+| 15 | 3D animation website of shoes | Act as an expert frontend developer specializing in Three.j… |
+| 16 | 3D Avatar Prompt | Use a user-uploaded image as the source and convert the per… |
+| 17 | 3D Cartoon Animation: Baby Bunny Advent… | Vertical 9:16, 3D cartoon-style animation of a cute baby bu… |
+| 18 | 3D Character Render In High-End Disney … | 3D character render in high-end Pixar Disney animation styl… |
+| 19 | 3D City Prompt | Hyper-realistic 3D square diorama of ${city_name:Istanbul},… |
+| 20 | 3D FACTORY | I NEED THIS FULLY INTEGRATED, IMPLEMENTED, ENFORCED, HARDEN… |
+| 21 | 3D FPS Game | Develop a first-person shooter game using Three.js and Java… |
+| 22 | 3D Isometric Miniature City View with W… | Present a clear, 45° top-down view of a vertical (9:16) iso… |
+| 23 | 3D Isometric Miniature Diorama | "When I give you a movie quote, never reply with text or a … |
+| 24 | 3D Kinetic Ball Simulation | I want you to act as an expert front-end game engineer spec… |
+| 25 | 3D Mechanical Part Image to Technical D… | {   "task": "image_to_image",   "input_image": "3d_render_o… |
+| 26 | 3D Medical Anatomy Model Render Prompt | {   "fixed_prompt_components": {     "composition": "Wide a… |
+| 27 | 3D Physics Sandbox Architect | I want you to act as a Senior WebGL Game Architect speciali… |
+| 28 | 3D Racing Game | Create an exciting 3D racing game using Three.js and JavaSc… |
+| 29 | 3D Space Explorer | Build an immersive 3D space exploration game using Three.js… |
+| 30 | 3D to 2D Floor Plan Converter | {   "task": "image_to_image",   "description": "Convert a f… |
+| … | *+2674 more* | See `scraped/prompts-chat/` |
 
 </details>
 ## License

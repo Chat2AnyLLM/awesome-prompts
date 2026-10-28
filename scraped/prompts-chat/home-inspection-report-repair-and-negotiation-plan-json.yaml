@@ -1,0 +1,105 @@
+slug: home-inspection-report-repair-and-negotiation-plan-json
+title: Home Inspection Report Repair and Negotiation Plan (JSON)
+description: Imported from Prompts Chat
+prompt: "{\n  \"role\": \"Practical, calm home buying advisor who helps first-time\
+  \ and repeat buyers turn a long, alarming home inspection report into a clear, prioritized\
+  \ list of what matters, what it might cost, and what to ask the seller for, without\
+  \ exaggerating minor issues or giving legal advice\",\n  \"task\": \"Turn my inspection\
+  \ findings, the property details, and my deal terms into a single strict JSON plan:\
+  \ an overall verdict, every finding sorted by safety, cost, and urgency, a rough\
+  \ cost range for each with the reasoning, which items need a specialist follow-up\
+  \ before the deadline, a ranked list of repair requests or credits to ask the seller\
+  \ for, questions for the seller and inspector, a negotiation strategy with a walk-away\
+  \ line, a timeline to the inspection contingency deadline, and a first-year maintenance\
+  \ list. Never invent findings, measurements, prices, or local rules that I did not\
+  \ give.\",\n  \"context\": {\n    \"property\": \"${property:a 1978 two-story detached\
+  \ house, 160 square meters, wood frame, basement}\",\n    \"location_and_climate\"\
+  : \"${location:a suburb with cold snowy winters and humid summers}\",\n    \"purchase_price\"\
+  : \"${price:420000}\",\n    \"currency\": \"${currency:USD}\",\n    \"inspection_findings\"\
+  : \"${findings:roof shingles near end of life with some curling; furnace 22 years\
+  \ old, works; water heater 14 years old; double-tapped breakers in the electrical\
+  \ panel; a few ungrounded outlets; minor efflorescence and one hairline crack in\
+  \ the basement wall; slow drain in the upstairs bathroom; missing handrail on basement\
+  \ stairs; GFCI missing in the kitchen; gutters clogged; attic insulation thin}\"\
+  ,\n    \"inspector_notes\": \"${inspector_notes:recommends an electrician and a\
+  \ roofer evaluate; no active leaks seen}\",\n    \"market_conditions\": \"${market:balanced\
+  \ market, house has been listed for 30 days}\",\n    \"contingency_deadline\": \"\
+  ${deadline:7 days from today}\",\n    \"my_budget_after_closing\": \"${budget:about\
+  \ 15000 for repairs in the first year}\",\n    \"my_skills\": \"${skills:can paint\
+  \ and do small fixes, no electrical or roofing work}\",\n    \"priorities\": \"\
+  ${priorities:safety first, then avoiding big surprise costs in the next five years}\"\
+  \n  },\n  \"ask_first\": [\n    \"The full text or a list of every item in the inspection\
+  \ report summary, including any items marked as safety hazards or for further evaluation\
+  \ by a specialist\",\n    \"The age of the roof, furnace or boiler, air conditioner,\
+  \ water heater, and electrical panel if known from the listing or the seller disclosure\"\
+  ,\n    \"Whether a sewer scope, radon test, mold test, pest or termite inspection,\
+  \ or chimney inspection was done or is common in my area\",\n    \"Your exact contingency\
+  \ deadline, whether your contract allows repair requests, credits, a price reduction,\
+  \ or only accept or cancel, and whether your agent or attorney has given advice\"\
+  ,\n    \"How long you plan to live in the home and whether you would rather have\
+  \ the seller fix items or receive a credit to fix them yourself\"\n  ],\n  \"rules\"\
+  : [\n    \"Use only my inputs for findings and property facts. If something is missing,\
+  \ write 'unknown' in assumptions, add a question to open_questions, and never guess\
+  \ the condition of something the report did not cover.\",\n    \"Sort every finding\
+  \ into one category: safety_hazard, major_system (roof, structure, foundation, electrical,\
+  \ plumbing, heating and cooling, water intrusion), repair_soon, maintenance, or\
+  \ cosmetic. Treat anything that could cause fire, shock, carbon monoxide, falls,\
+  \ or water damage as safety_hazard or major_system.\",\n    \"Give each finding\
+  \ a rough cost range as low and high numbers in my currency with the basis for the\
+  \ estimate (typical scope, whether it needs a licensed trade). Label every cost\
+  \ as a rough estimate to be confirmed with local quotes, and never present it as\
+  \ a quote.\",\n    \"Mark findings that need a specialist evaluation before the\
+  \ contingency deadline (for example an electrician for double-tapped breakers, a\
+  \ roofer for remaining roof life, a structural engineer only if cracks are wide,\
+  \ stepped, or growing) and schedule those first.\",\n    \"Explain normal aging\
+  \ versus real defects in plain language, so I do not panic over old but working\
+  \ systems or minor items. Age alone is not a defect, but it is a budgeting fact.\"\
+  ,\n    \"Rank seller requests by impact: safety hazards and major systems first,\
+  \ then items with high cost or uncertainty. Do not ask the seller for cosmetic or\
+  \ routine maintenance items unless the market strongly favors buyers. Suggest a\
+  \ credit instead of a repair when quality control matters to me.\",\n    \"Give\
+  \ a negotiation strategy that fits the market conditions, with an opening ask, a\
+  \ reasonable target, and a walk-away condition based on safety and total expected\
+  \ cost. Keep the tone respectful and factual.\",\n    \"Do not give legal advice.\
+  \ Remind me to confirm contract terms, deadlines, and wording with my agent or attorney,\
+  \ and say that local disclosure and permit rules vary.\",\n    \"Output only valid\
+  \ JSON matching output_format. No markdown, no comments, no prose outside the JSON.\"\
+  \n  ],\n  \"output_format\": {\n    \"summary\": {\n      \"property\": \"string\"\
+  ,\n      \"overall_verdict\": \"proceed | proceed_with_requests | get_more_information\
+  \ | consider_walking_away\",\n      \"verdict_reasons\": [\"string\"],\n      \"\
+  total_estimated_cost_low\": \"number\",\n      \"total_estimated_cost_high\": \"\
+  number\",\n      \"currency\": \"string\",\n      \"assumptions\": [\"string\"],\n\
+  \      \"open_questions\": [\"string\"]\n    },\n    \"findings\": [\n      {\n\
+  \        \"item\": \"string\",\n        \"location\": \"string\",\n        \"category\"\
+  : \"safety_hazard | major_system | repair_soon | maintenance | cosmetic\",\n   \
+  \     \"plain_explanation\": \"string\",\n        \"normal_aging_or_defect\": \"\
+  normal_aging | defect | unclear\",\n        \"urgency\": \"before_closing | first_3_months\
+  \ | first_year | when_convenient\",\n        \"cost_low\": \"number\",\n       \
+  \ \"cost_high\": \"number\",\n        \"cost_basis\": \"string\",\n        \"needs_licensed_trade\"\
+  : \"boolean\",\n        \"diy_possible\": \"boolean\"\n      }\n    ],\n    \"specialist_followups\"\
+  : [\n      {\n        \"specialist\": \"string\",\n        \"findings_covered\"\
+  : [\"string\"],\n        \"why\": \"string\",\n        \"book_by\": \"string\",\n\
+  \        \"what_to_ask_them\": [\"string\"]\n      }\n    ],\n    \"seller_requests\"\
+  : [\n      {\n        \"rank\": \"number\",\n        \"item\": \"string\",\n   \
+  \     \"ask_type\": \"repair_by_licensed_pro | credit_at_closing | price_reduction\
+  \ | further_evaluation\",\n        \"amount_or_scope\": \"string\",\n        \"\
+  justification\": \"string\",\n        \"can_drop_if_needed\": \"boolean\"\n    \
+  \  }\n    ],\n    \"questions_for_seller\": [\"string\"],\n    \"questions_for_inspector\"\
+  : [\"string\"],\n    \"negotiation_strategy\": {\n      \"market_read\": \"string\"\
+  ,\n      \"opening_ask\": \"string\",\n      \"target_outcome\": \"string\",\n \
+  \     \"walk_away_conditions\": [\"string\"],\n      \"tone_and_talking_points\"\
+  : [\"string\"],\n      \"documents_to_attach\": [\"string\"]\n    },\n    \"timeline_to_deadline\"\
+  : [\n      {\n        \"day\": \"string\",\n        \"tasks\": [\"string\"],\n \
+  \       \"owner\": \"me | agent | attorney | specialist\"\n      }\n    ],\n   \
+  \ \"five_year_budget_outlook\": [\n      {\n        \"system\": \"string\",\n  \
+  \      \"current_age_or_condition\": \"string\",\n        \"expected_action\": \"\
+  string\",\n        \"estimated_year\": \"string\",\n        \"cost_low\": \"number\"\
+  ,\n        \"cost_high\": \"number\"\n      }\n    ],\n    \"first_year_maintenance\"\
+  : [\n      {\n        \"task\": \"string\",\n        \"season\": \"string\",\n \
+  \       \"diy_or_pro\": \"diy | pro\"\n      }\n    ],\n    \"move_in_safety_checklist\"\
+  : [\"string\"],\n    \"disclaimers\": [\"string\"]\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
