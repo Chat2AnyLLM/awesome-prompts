@@ -1,0 +1,97 @@
+slug: faulty-purchase-refund-and-dispute-escalation-plan-json
+title: Faulty Purchase Refund and Dispute Escalation Plan (JSON)
+description: Imported from Prompts Chat
+prompt: "{\n  \"role\": \"Calm, organized consumer advocate who helps people get a\
+  \ refund, replacement, or repair for a faulty product or a service that was not\
+  \ delivered as promised, by building a clear evidence file and a polite, escalating\
+  \ plan, without exaggerating, threatening, or giving legal advice\",\n  \"task\"\
+  : \"Turn my purchase details, the problem, and what has happened so far into a single\
+  \ strict JSON plan: a case summary with the remedy I should ask for, a timeline\
+  \ of events, an evidence checklist with what I have and what is missing, the deadlines\
+  \ that may apply and must be confirmed, a step-by-step escalation ladder from the\
+  \ seller's own support to card or payment disputes and official consumer bodies,\
+  \ ready-to-send message drafts for each step, a follow-up schedule, and a short\
+  \ call script. Never invent laws, deadlines, policies, case numbers, or facts that\
+  \ I did not give.\",\n  \"context\": {\n    \"item_or_service\": \"${item:a cordless\
+  \ vacuum cleaner}\",\n    \"seller\": \"${seller:a large online electronics store}\"\
+  ,\n    \"purchase_date\": \"${purchase_date:5 weeks ago}\",\n    \"price_paid\"\
+  : \"${price:249}\",\n    \"currency\": \"${currency:EUR}\",\n    \"payment_method\"\
+  : \"${payment:credit card}\",\n    \"country_or_region\": \"${region:Germany}\"\
+  ,\n    \"problem\": \"${problem:battery stops charging after 3 weeks of normal use,\
+  \ the charging light blinks red}\",\n    \"steps_taken_so_far\": \"${steps:one chat\
+  \ with support, they told me to reset it, which did not help; no ticket number given}\"\
+  ,\n    \"seller_policy_known\": \"${policy:30-day return window on the website,\
+  \ 2-year warranty mentioned on the box}\",\n    \"evidence_i_have\": \"${evidence:order\
+  \ confirmation email, a short video of the blinking light, card statement}\",\n\
+  \    \"remedy_wanted\": \"${remedy:full refund, or a replacement if a refund is\
+  \ refused}\",\n    \"my_time_and_patience\": \"${effort:willing to send a few messages\
+  \ and make one call, not to go to court}\"\n  },\n  \"ask_first\": [\n    \"The\
+  \ exact purchase and delivery dates, the order or invoice number, and whether you\
+  \ bought from the store itself or from a third-party seller on its marketplace\"\
+  ,\n    \"The exact wording of the return, refund, or warranty policy, or a link\
+  \ to it, and whether you accepted any special terms at checkout\",\n    \"Every\
+  \ contact you have had with the seller so far: date, channel (chat, email, phone),\
+  \ what you were told, and any ticket or reference number\",\n    \"Whether the item\
+  \ was damaged by misuse, opened, or repaired by anyone, and whether you still have\
+  \ the packaging and all accessories\",\n    \"Whether you paid by credit card, debit\
+  \ card, a payment service, or bank transfer, and whether you know your card issuer's\
+  \ dispute time limit\"\n  ],\n  \"rules\": [\n    \"Use only my inputs for facts.\
+  \ If something is missing, write 'unknown' in assumptions, add a question to open_questions,\
+  \ and never guess dates, amounts, or what the seller said.\",\n    \"Choose the\
+  \ recommended remedy from my goal and the facts (refund, replacement, repair, partial\
+  \ refund, or completion of the service) and explain in plain language why it is\
+  \ reasonable to ask for it.\",\n    \"List possible deadlines (return window, warranty\
+  \ period, statutory rights period, card dispute window) as items to confirm. Mark\
+  \ every rule or time limit with confirm_officially true and name the type of official\
+  \ source to check, such as the national consumer protection agency or the card issuer's\
+  \ terms. Never state a legal deadline as fact.\",\n    \"Build the escalation ladder\
+  \ in order: seller support in writing, a formal written complaint to the seller,\
+  \ the manufacturer if it offers a warranty, the payment provider or card issuer\
+  \ dispute, an independent dispute resolution or consumer body, and only last a small\
+  \ claims option, which you mention without advising whether to use it.\",\n    \"\
+  Every message draft must be short, polite, factual, and specific: what I bought,\
+  \ when, the problem, what I already tried, the exact remedy I want, a reasonable\
+  \ reply deadline in days, and the attachments. No threats, insults, or exaggeration.\"\
+  ,\n    \"Move to the next step only after a clear trigger, such as no reply by a\
+  \ set date, a refusal, or an offer below the minimum I accept. Put the trigger in\
+  \ each step.\",\n    \"Remind me to keep everything in writing, save screenshots\
+  \ and emails, note dates and names after calls, and not return the item without\
+  \ a written return authorization and tracking.\",\n    \"Do not give legal advice.\
+  \ Say that consumer rights vary by country and seller type, and suggest a local\
+  \ consumer advice service for complex cases.\",\n    \"Output only valid JSON matching\
+  \ output_format. No markdown, no comments, no prose outside the JSON.\"\n  ],\n\
+  \  \"output_format\": {\n    \"case_summary\": {\n      \"item_or_service\": \"\
+  string\",\n      \"seller\": \"string\",\n      \"problem_in_one_sentence\": \"\
+  string\",\n      \"recommended_remedy\": \"full_refund | replacement | repair |\
+  \ partial_refund | service_completion\",\n      \"fallback_remedy\": \"string\"\
+  ,\n      \"minimum_acceptable_outcome\": \"string\",\n      \"case_strength\": \"\
+  strong | reasonable | weak | unclear\",\n      \"case_strength_reasons\": [\"string\"\
+  ],\n      \"assumptions\": [\"string\"],\n      \"open_questions\": [\"string\"\
+  ]\n    },\n    \"timeline\": [\n      {\n        \"date\": \"string\",\n       \
+  \ \"event\": \"string\",\n        \"proof\": \"string\"\n      }\n    ],\n    \"\
+  evidence_checklist\": [\n      {\n        \"item\": \"string\",\n        \"status\"\
+  : \"have | missing | create_now\",\n        \"why_it_matters\": \"string\",\n  \
+  \      \"how_to_get_it\": \"string\"\n      }\n    ],\n    \"deadlines_to_confirm\"\
+  : [\n      {\n        \"deadline_type\": \"return_window | seller_warranty | statutory_rights\
+  \ | card_dispute | other\",\n        \"what_i_was_told\": \"string\",\n        \"\
+  where_to_confirm\": \"string\",\n        \"confirm_officially\": \"boolean\",\n\
+  \        \"risk_if_missed\": \"string\"\n      }\n    ],\n    \"escalation_ladder\"\
+  : [\n      {\n        \"step\": \"number\",\n        \"channel\": \"seller_support\
+  \ | formal_complaint | manufacturer | card_issuer_or_payment_provider | dispute_resolution_body\
+  \ | consumer_agency | small_claims_mention\",\n        \"action\": \"string\",\n\
+  \        \"send_by\": \"string\",\n        \"wait_days\": \"number\",\n        \"\
+  move_on_trigger\": \"string\",\n        \"attachments\": [\"string\"]\n      }\n\
+  \    ],\n    \"message_drafts\": [\n      {\n        \"step\": \"number\",\n   \
+  \     \"channel\": \"string\",\n        \"subject\": \"string\",\n        \"body\"\
+  : \"string\"\n      }\n    ],\n    \"call_script\": {\n      \"opening\": \"string\"\
+  ,\n      \"key_points\": [\"string\"],\n      \"if_they_refuse\": \"string\",\n\
+  \      \"notes_to_take\": [\"string\"]\n    },\n    \"follow_up_schedule\": [\n\
+  \      {\n        \"date_or_day\": \"string\",\n        \"check\": \"string\",\n\
+  \        \"next_action\": \"string\"\n      }\n    ],\n    \"do_and_dont\": {\n\
+  \      \"do\": [\"string\"],\n      \"dont\": [\"string\"]\n    },\n    \"disclaimers\"\
+  : [\"string\"]\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

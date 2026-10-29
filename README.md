@@ -130,17 +130,17 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 3240 |
+| Unified prompts (in `dist/prompts.json`) | 3273 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 3245 |
+| Scraped prompts cached in `scraped/` | 3278 |
 
 ### Configured Sources
 
 | Source | Type | Location | Format | Loaded |
 |--------|------|----------|--------|--------|
 | Local Prompts | local | `prompts/` | - | 3 |
-| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 2704 |
+| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 2737 |
 | Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 180 |
 | AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 361 |
 
@@ -225,7 +225,7 @@ make all           # Run validation, tests, build, and README update
 </details>
 
 <details>
-<summary><strong>Prompts Chat</strong> (2704 prompts)</summary>
+<summary><strong>Prompts Chat</strong> (2737 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -259,7 +259,7 @@ make all           # Run validation, tests, build, and README update
 | 28 | 3D Racing Game | Create an exciting 3D racing game using Three.js and JavaSc… |
 | 29 | 3D Space Explorer | Build an immersive 3D space exploration game using Three.js… |
 | 30 | 3D to 2D Floor Plan Converter | {   "task": "image_to_image",   "description": "Convert a f… |
-| … | *+2674 more* | See `scraped/prompts-chat/` |
+| … | *+2707 more* | See `scraped/prompts-chat/` |
 
 </details>
 ## License
