@@ -1,0 +1,485 @@
+slug: time-zone-meeting-slot-finder
+title: Time Zone Meeting Slot Finder
+description: Imported from Prompts Chat
+prompt: "---\nname: time-zone-meeting-slot-finder\ndescription: Finds fair meeting\
+  \ times for distributed teams. Takes each participant's IANA time zone, working\
+  \ days and hours, how far they will stretch, holidays and blocked time, then lists\
+  \ every slot in a date range in each person's local time, handles daylight-saving\
+  \ switches that happen on different weekends, and picks a rotating series so the\
+  \ same people do not always take the early or late call. Includes a stdlib Python\
+  \ zoneinfo script with --self-test.\n---\n\n# Time Zone Meeting Slot Finder\n\n\
+  You help distributed teams pick meeting times that are possible for everyone required\
+  \ and fair over time. You work in each person's own local time on the actual dates\
+  \ (never with \"LA is 9 hours behind Berlin\" rules of thumb, which are wrong for\
+  \ weeks every spring and autumn), show the trade-offs openly, and rotate the inconvenient\
+  \ slots instead of always putting them on the same people.\n\n## Files in this skill\n\
+  \n- `scripts/slot_finder.py` - reads a team CSV and optional blocked-time CSV, evaluates\
+  \ every slot on a grid over the date range in each participant's local time (Python\
+  \ zoneinfo), ranks slots by who is missing and how much stretch they need, reports\
+  \ DST changes in the range, and can pick a fair rotating series (Python 3.9+ standard\
+  \ library only)\n- `references/dst-and-time-zone-pitfalls.md` - DST dates by region,\
+  \ zones that do not switch, half-hour zones, weekends that are not Sat-Sun, abbreviations\
+  \ to avoid, and how calendar invites behave across a switch\n- `references/fairness-and-rotation.md`\
+  \ - the pain-point model, how the rotation chooses, when to split a meeting or go\
+  \ async instead, and how to explain the choice to the team\n- `templates/slot-proposal.md`\
+  \ - the proposal to send to the team\n- `examples/team.csv` - five people in Los\
+  \ Angeles, New York, Berlin, Istanbul and Kolkata (one optional)\n- `examples/blocked.csv`\
+  \ - a public holiday, a dentist appointment, a board review and a day of leave\n\
+  \n## Workflow\n\n### 1. Collect the facts\nFor each participant: name, IANA zone\
+  \ (city based, e.g. `America/Los_Angeles`, never \"PST\"), working days (Mon-Fri,\
+  \ or Sun-Thu in much of the Middle East), working hours, how many hours they are\
+  \ willing to start earlier or finish later, and whether they are required. Also\
+  \ the date range, meeting length, how often it repeats, known holidays and blocked\
+  \ times (in that person's local time). Ask rather than guess zones from a city that\
+  \ has several (e.g. a \"Mexico\" team member).\n\n### 2. Run the finder\n```\npython3\
+  \ scripts/slot_finder.py --team examples/team.csv --blocked examples/blocked.csv\
+  \ --start 2026-10-26 --end 2026-11-20 --days Tue,Wed,Thu --series 4\npython3 scripts/slot_finder.py\
+  \ --team team.csv --start 2026-11-02 --end 2026-11-06 --duration 30 --step 15 --top\
+  \ 5\npython3 scripts/slot_finder.py --team team.csv --start 2026-11-02 --end 2026-11-27\
+  \ --series 8 --every day --ref-zone Europe/Berlin --json\npython3 scripts/slot_finder.py\
+  \ --self-test\n```\nDates (`--start`, `--end`, `--days`) are read in `--ref-zone`\
+  \ (default UTC). Exit 0 means slots were found, 1 means no slot works for every\
+  \ required person, 2 means bad input (unknown zone, bad time, missing column).\n\
+  \n### 3. Read the result\n- **DST changes in range** come first: if any zone switches\
+  \ inside the range, the same UTC time lands an hour earlier or later for those people\
+  \ afterwards. Propose slots per period, not one UTC time for the whole range.\n\
+  - **Best slots** are ranked by: optional people missing, then the worst single person's\
+  \ stretch, then total stretch.\n- **Rotating series** picks one meeting per week\
+  \ (or per day) to keep the worst cumulative inconvenience as low as possible, then\
+  \ spreads it. The summary shows how often each person met in hours, stretched or\
+  \ missed.\n- If there is no slot, say why (who blocks whom) and offer options: more\
+  \ stretch from volunteers, a shorter meeting, making someone optional, two regional\
+  \ meetings, or async updates.\n\n### 4. Deliver\nFill `templates/slot-proposal.md`:\
+  \ the recommendation with every person's local time and weekday, the DST note, the\
+  \ rotation table, alternatives, and the open questions. Send invites from a calendar\
+  \ with a real zone (the organizer's IANA zone), not \"UTC\" unless the team agreed,\
+  \ and say which zone anchors the series.\n\n## Example result\nFive people, 2026-10-26\
+  \ to 2026-11-20, Tue-Thu, 60 minutes, series of 4 weekly meetings. Europe left summer\
+  \ time on 25 October and the US on 1 November, so in the week of 26 October New\
+  \ York is only 5 hours behind Berlin instead of 6. Week 1: 13:30 UTC (Ana 06:30\
+  \ in Los Angeles, a stretch; Priya 19:00 in Kolkata, a stretch; everyone else in\
+  \ hours). After the US change, two weeks at 16:00 UTC (Ana 08:00 in hours, Eva 17:00-18:00\
+  \ stretch, Bilal 19:00-20:00 stretch) and one at 14:30 UTC (Ana stretches again).\
+  \ Bilal is blocked on 29 October (Republic Day). Priya (optional, +05:30) can join\
+  \ only before the US change; the proposal adds a recorded summary for her and suggests\
+  \ an Asia-friendly slot once a month.\n\n## Rules\n\n- Always use IANA zone names\
+  \ and compute local times per date; never apply fixed offsets across a DST boundary.\n\
+  - Show every participant's local time and weekday for each proposal, since the date\
+  \ can differ (Kolkata evening, Los Angeles morning).\n- Nobody is scheduled outside\
+  \ the stretch they agreed to; ask before assuming someone will take a 06:00 or 22:00\
+  \ call.\n- Rotate inconvenience and show the tally; if one person always loses,\
+  \ say so and suggest a structural fix (split, async, rotate the meeting owner).\n\
+  - Respect weekends, public holidays and blocked time in the person's own calendar\
+  \ and zone.\n- Keep the recommendation short; put the full table in an appendix.\n\
+  \x1FFILE:references/dst-and-time-zone-pitfalls.md\x1E\n# DST and time zone pitfalls\n\
+  \n## Use IANA zone names\n- `America/New_York`, `Europe/Berlin`, `Asia/Kolkata`,\
+  \ `Australia/Sydney`. They carry the full history and future rules of that region.\n\
+  - Avoid abbreviations: \"EST\", \"CST\", \"IST\" and \"BST\" are ambiguous (IST\
+  \ = India, Ireland or Israel; CST = US Central, China or Cuba) and the zoneinfo\
+  \ entries named EST or MST are fixed offsets with no DST. The script warns on names\
+  \ without a \"/\".\n- Avoid fixed offsets like UTC+1 for people: offsets change\
+  \ twice a year in many places.\n- Pick the city that shares the person's rules:\
+  \ Arizona (`America/Phoenix`) has no DST; most of Mexico dropped DST in 2022; `America/Sao_Paulo`\
+  \ dropped DST in 2019.\n- Keep the zone database current (`tzdata`); governments\
+  \ change rules with a few weeks' notice.\n\n## DST dates (2026, check each year)\n\
+  | Region | Summer time starts | Ends | Note |\n|---|---|---|---|\n| US and Canada\
+  \ (most) | 2nd Sunday of March (2026-03-08) | 1st Sunday of November (2026-11-01)\
+  \ | local 02:00 |\n| EU, UK | last Sunday of March (2026-03-29) | last Sunday of\
+  \ October (2026-10-25) | 01:00 UTC, all at once |\n| Australia (south-east), New\
+  \ Zealand | first Sunday of October / last Sunday of September | first Sunday of\
+  \ April | southern hemisphere: opposite season |\n| No DST | Turkey (UTC+3), India\
+  \ (+05:30), China, Japan, Singapore, UAE, most of Africa, Arizona | | |\n\nSo there\
+  \ are two \"gap\" periods each year when the US-Europe difference is one hour smaller\
+  \ than usual: about 3 weeks in March and 1 week at the end of October / start of\
+  \ November. Recurring meetings anchored in one region move by an hour for the other\
+  \ during those weeks.\n\n## Offsets that are not whole hours\n- India +05:30, Iran\
+  \ +03:30, Nepal +05:45, Newfoundland -03:30 (-02:30 in summer), South Australia\
+  \ +09:30/+10:30, Chatham Islands +12:45. A grid on the hour in UTC lands on :30\
+  \ or :45 for these people; the script evaluates in 5-minute chunks so these are\
+  \ exact.\n\n## Weekends and working days\n- Sun-Thu working weeks: e.g. Israel;\
+  \ Fri-Sat weekends in several Gulf countries, while the UAE moved to Mon-Fri (with\
+  \ a half Friday) in 2022. Ask each person.\n- Public holidays differ per country\
+  \ and per region (Bavaria vs Berlin, US states). Add them to the blocked file in\
+  \ local dates.\n- A Monday 08:00 slot in Los Angeles is Monday evening in India\
+  \ but already Tuesday morning in Sydney or Auckland. Always show the weekday per\
+  \ person.\n\n## DST on the switch day itself\n- Spring forward: local times between\
+  \ 02:00 and 03:00 (US) do not exist; autumn back: 01:00-02:00 happens twice. Avoid\
+  \ scheduling in those hours on switch days; the script works on UTC instants so\
+  \ it never produces an invalid time, but humans reading \"01:30\" on that day can\
+  \ be confused.\n\n## Calendar invites across a switch\n- A recurring invite is anchored\
+  \ to the organizer's zone. A 10:00 New York weekly meeting stays at 10:00 in New\
+  \ York and moves for Berlin during the gap weeks.\n- If the series must stay fair\
+  \ for both sides, anchor it in UTC deliberately and tell everyone, or plan the gap\
+  \ weeks explicitly.\n- Check the invite's zone after creating it (some tools default\
+  \ to the device zone or to \"floating\" time).\n\x1FFILE:references/fairness-and-rotation.md\x1E\
+  \n# Fairness and rotation\n\n## Pain-point model used by the script\n| Situation\
+  \ for one person in one meeting | Points |\n|---|---|\n| Entirely inside their working\
+  \ hours | 0 |\n| Partly or fully in their stretch window (before or after work,\
+  \ as much as they agreed to) | 2 per hour of stretch, pro rata (30 min = 1) |\n\
+  | Outside the stretch window, on a non-working day, or during blocked time | cannot\
+  \ attend (slot invalid if they are required) |\n| Optional person who cannot attend\
+  \ (rotation tally only) | 3 |\n\nRanking of single slots: fewest optional people\
+  \ missing, then the lowest worst-off person, then the lowest total.\n\nRotation\
+  \ (`--series N`): greedily adds one meeting at a time, at most one per ISO week\
+  \ (`--every week`, default) or per date (`--every day`), choosing the slot that\
+  \ keeps the highest cumulative score lowest, then the sum of squared cumulative\
+  \ scores (which spreads pain instead of concentrating it), then fewer people missing.\
+  \ The summary table shows per person: meetings in hours, stretched, missed, total\
+  \ points.\n\nThe weights are a model, not a truth. Adjust them with the team: an\
+  \ early start may cost a parent more than a late finish, a 22:00 call costs more\
+  \ than 18:30. Change stretch windows per person to reflect what they actually accept.\n\
+  \n## Make the trade-offs visible\n- Show each person's local time and weekday for\
+  \ each option.\n- Show the rotation tally, so that \"Bilal stretches 3 of 4 times\"\
+  \ is a visible decision, not an accident.\n- Ask people to set their own stretch\
+  \ windows; never assume someone will take a 06:30 call because they did it once.\n\
+  \n## When no fair slot exists\n- Shorten the meeting: 30 minutes often fits where\
+  \ 60 does not.\n- Make people optional and record the meeting with written notes\
+  \ and a decision log.\n- Split by region (Americas + Europe, Europe + Asia) with\
+  \ one person bridging, and rotate the bridge.\n- Alternate two time slots week by\
+  \ week (e.g. 14:00 UTC and 07:00 UTC) so each side gets the convenient one half\
+  \ the time.\n- Go async: written updates, recorded demos, decisions in a doc with\
+  \ a deadline in everyone's local time.\n\n## Checklist before sending\n- Every required\
+  \ person is in hours or in their agreed stretch for every meeting in the series.\n\
+  - Holidays and leave in each country are in the blocked file.\n- DST changes in\
+  \ the range are named, and the series accounts for them.\n- The invite is created\
+  \ in the agreed anchor zone; times in the message are given per person.\n- There\
+  \ is a review date (e.g. after the next DST change) to rotate again.\n\x1FFILE:templates/slot-proposal.md\x1E\
+  \n# Meeting time proposal: <meeting name>\n\n**Who:** <Ana (Los Angeles), Dana (New\
+  \ York), Eva (Berlin), Bilal (Istanbul), Priya (Kolkata, optional)>\n**Length /\
+  \ cadence:** <60 min weekly, Tue-Thu>   **Range checked:** <2026-10-26 to 2026-11-20>\n\
+  **Anchor zone for the invite:** <UTC / organizer's zone>\n\n## Recommendation\n\
+  | Week | Start (UTC) | Ana | Dana | Eva | Bilal | Priya |\n|---|---|---|---|---|---|---|\n\
+  | <Oct 26> | <Tue 13:30> | <Tue 06:30 (stretch)> | <09:30> | <14:30> | <16:30> |\
+  \ <19:00 (stretch)> |\n| <Nov 2> | <Wed 16:00> | <08:00> | <11:00> | <17:00 (stretch)>\
+  \ | <19:00 (stretch)> | <cannot (21:30)> |\n\n## Daylight saving\n- <Europe left\
+  \ summer time on Oct 25, the US on Nov 1: during the week of Oct 26 New York is\
+  \ 5 h behind Berlin instead of 6, so the slot moves by an hour from Nov 2>\n\n##\
+  \ Fairness over the series\n| Name | In hours | Stretch | Missed | Points |\n|---|---|---|---|---|\n\
+  | <Ana> | <2> | <2> | <0> | <4> |\n\n<One sentence on who carries the most and what\
+  \ we do about it (e.g. Priya: recorded summary + an Asia-friendly slot monthly).>\n\
+  \n## Alternatives\n1. <30-minute version at 15:00 UTC: everyone in hours except\
+  \ ...>\n2. <alternate two slots week by week>\n\n## Blocked dates taken into account\n\
+  - <Oct 29: Republic Day, Turkey (Bilal)>\n\n## Please confirm\n- <your stretch window\
+  \ is still right>\n- <holidays or leave in this range we missed>\n\x1FFILE:examples/team.csv\x1E\
+  \nname,zone,work_start,work_end,days,flex_before,flex_after,required\nAna,America/Los_Angeles,08:00,16:30,Mon-Fri,1.5,1,yes\n\
+  Dana,America/New_York,08:30,17:00,Mon-Fri,1,1,yes\nEva,Europe/Berlin,09:00,17:30,Mon-Fri,1,1.5,yes\n\
+  Bilal,Europe/Istanbul,09:00,18:00,Mon-Fri,0,2,yes\nPriya,Asia/Kolkata,10:00,18:30,Mon-Fri,0,2,no\n\
+  \x1FFILE:examples/blocked.csv\x1E\nname,date,start,end,reason\nBilal,2026-10-29,,,Republic\
+  \ Day (public holiday in Turkey)\nDana,2026-11-03,10:00,11:30,dentist\nEva,2026-11-05,15:30,17:30,quarterly\
+  \ board review\nPriya,2026-11-06,,,leave\n\x1FFILE:scripts/slot_finder.py\x1E\n\
+  #!/usr/bin/env python3\n\"\"\"Time zone meeting slot finder (Python 3.9+ standard\
+  \ library: zoneinfo).\n\nGiven participants with IANA time zones, working days and\
+  \ hours (plus how far each one\nis willing to stretch before or after work), finds\
+  \ meeting slots over a date range,\nranks them by fairness, and can pick a rotating\
+  \ series so the same people do not take\nthe early or late call every time. Each\
+  \ slot is evaluated in every participant's own\nlocal time on that date, so daylight-saving\
+  \ transitions inside the range (Europe and\nthe US switch on different weekends)\
+  \ are handled automatically and reported.\n\nPain points per participant and meeting:\
+  \ 0 inside working hours, 2 per hour inside the\nstretch (\"flex\") window before\
+  \ or after work, unavailable beyond that, on non-working\ndays or during blocked\
+  \ time. Missing an optional participant counts as 3 pain points\nfor them in the\
+  \ rotation tally.\n\nUsage:\n  python3 slot_finder.py --team team.csv --start 2026-10-26\
+  \ --end 2026-11-06\n        [--duration 60] [--step 30] [--blocked blocked.csv]\
+  \ [--days Tue,Wed,Thu]\n        [--ref-zone UTC] [--top 10] [--series N [--every\
+  \ week|day]] [--json]\n  python3 slot_finder.py --self-test\nteam.csv columns: name,\
+  \ zone, work_start, work_end, days (Mon-Fri or Sun-Thu or\nMon,Wed,Fri), flex_before,\
+  \ flex_after (hours, optional), required (yes/no, optional).\nwork_end earlier than\
+  \ work_start means a shift that runs past midnight.\nblocked.csv columns: name,\
+  \ date (participant's local date), start, end (empty = all day), reason.\nExit codes:\
+  \ 0 = slots found, 1 = no slot where all required participants can attend,\n2 =\
+  \ bad input (unknown time zone, bad time, missing file or column).\n\"\"\"\nimport\
+  \ argparse, csv, datetime as dt, io, json, sys\nfrom zoneinfo import ZoneInfo, ZoneInfoNotFoundError\n\
+  \nDAY_NAMES = [\"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", \"Sat\", \"Sun\"]\n\
+  CHUNK = 5  # minutes; fine enough for +05:30 and +05:45 zones\nFLEX_PAIN_PER_HOUR\
+  \ = 2\nMISSED_PAIN = 3\n\n\nclass InputError(Exception):\n    pass\n\n\ndef parse_days(s):\n\
+  \    s = (s or \"Mon-Fri\").strip()\n    out = set()\n    for part in s.replace(\"\
+  \ \", \"\").split(\",\"):\n        if not part:\n            continue\n        if\
+  \ \"-\" in part:\n            a, b = part.split(\"-\", 1)\n            i, j = day_index(a),\
+  \ day_index(b)\n            k = i\n            while True:\n                out.add(k)\n\
+  \                if k == j:\n                    break\n                k = (k +\
+  \ 1) % 7\n        else:\n            out.add(day_index(part))\n    return out\n\n\
+  \ndef day_index(name):\n    n = name.strip()[:3].title()\n    if n not in DAY_NAMES:\n\
+  \        raise InputError(f\"unknown day '{name}' (use Mon..Sun)\")\n    return\
+  \ DAY_NAMES.index(n)\n\n\ndef parse_hm(s, what):\n    try:\n        h, m = s.strip().split(\"\
+  :\")\n        h, m = int(h), int(m)\n        if not (0 <= h <= 24 and 0 <= m < 60)\
+  \ or (h == 24 and m):\n            raise ValueError\n        return h * 60 + m\n\
+  \    except (ValueError, AttributeError):\n        raise InputError(f\"bad time\
+  \ '{s}' for {what} (use HH:MM, 24-hour)\")\n\n\ndef load_zone(name, who, warnings):\n\
+  \    name = (name or \"\").strip()\n    try:\n        z = ZoneInfo(name)\n    except\
+  \ (ZoneInfoNotFoundError, ValueError):\n        raise InputError(f\"unknown time\
+  \ zone '{name}' for {who}: use an IANA name such as America/New_York, Europe/Berlin,\
+  \ Asia/Kolkata (pip install tzdata if the system has no zone database)\")\n    if\
+  \ \"/\" not in name and name not in (\"UTC\", \"Etc/UTC\"):\n        warnings.append(f\"\
+  {who}: '{name}' is an abbreviation or legacy zone with fixed rules; use the city-based\
+  \ IANA name (e.g. America/New_York, not EST) so daylight saving is right\")\n  \
+  \  return z\n\n\ndef read_team(text, warnings):\n    rows = list(csv.DictReader(io.StringIO(text.lstrip(\"\
+  \\ufeff\"))))\n    if not rows:\n        raise InputError(\"team file has no rows\"\
+  )\n    for col in (\"name\", \"zone\", \"work_start\", \"work_end\"):\n        if\
+  \ col not in rows[0]:\n            raise InputError(f\"team file is missing column\
+  \ '{col}'\")\n    team = []\n    for r in rows:\n        who = (r.get(\"name\")\
+  \ or \"\").strip()\n        if not who:\n            continue\n        p = {\"name\"\
+  : who, \"zone_name\": r[\"zone\"].strip(), \"zone\": load_zone(r[\"zone\"], who,\
+  \ warnings),\n             \"start\": parse_hm(r[\"work_start\"], who + \" work_start\"\
+  ), \"end\": parse_hm(r[\"work_end\"], who + \" work_end\"),\n             \"days\"\
+  : parse_days(r.get(\"days\")),\n             \"flex_before\": int(round(float(r.get(\"\
+  flex_before\") or 0) * 60)),\n             \"flex_after\": int(round(float(r.get(\"\
+  flex_after\") or 0) * 60)),\n             \"required\": (r.get(\"required\") or\
+  \ \"yes\").strip().lower() not in (\"no\", \"n\", \"false\", \"0\", \"optional\"\
+  ),\n             \"blocked\": []}\n        if p[\"start\"] == p[\"end\"]:\n    \
+  \        raise InputError(f\"{who}: work_start equals work_end\")\n        team.append(p)\n\
+  \    names = [p[\"name\"] for p in team]\n    if len(set(names)) != len(names):\n\
+  \        raise InputError(\"duplicate participant names in team file\")\n    return\
+  \ team\n\n\ndef read_blocked(text, team):\n    byname = {p[\"name\"].lower(): p\
+  \ for p in team}\n    for r in csv.DictReader(io.StringIO(text.lstrip(\"\\ufeff\"\
+  ))):\n        who = (r.get(\"name\") or \"\").strip()\n        if not who:\n   \
+  \         continue\n        p = byname.get(who.lower())\n        if not p:\n   \
+  \         raise InputError(f\"blocked time for unknown participant '{who}'\")\n\
+  \        try:\n            d = dt.date.fromisoformat(r[\"date\"].strip())\n    \
+  \    except (ValueError, KeyError):\n            raise InputError(f\"bad date in\
+  \ blocked file for {who}: {r.get('date')}\")\n        s, e = (r.get(\"start\") or\
+  \ \"\").strip(), (r.get(\"end\") or \"\").strip()\n        a = dt.datetime.combine(d,\
+  \ dt.time()) + dt.timedelta(minutes=parse_hm(s, who + \" blocked start\") if s else\
+  \ 0)\n        b = dt.datetime.combine(d, dt.time()) + dt.timedelta(minutes=parse_hm(e,\
+  \ who + \" blocked end\") if e else 1440)\n        p[\"blocked\"].append((a, b,\
+  \ (r.get(\"reason\") or \"\").strip()))\n\n\ndef classify(p, local):\n    \"\"\"\
+  local: naive local datetime. Return 'core', 'flex' or None (unavailable).\"\"\"\n\
+  \    best = None\n    for back in (0, 1):\n        d = local.date() - dt.timedelta(days=back)\n\
+  \        if d.weekday() not in p[\"days\"]:\n            continue\n        base\
+  \ = dt.datetime.combine(d, dt.time())\n        cs = base + dt.timedelta(minutes=p[\"\
+  start\"])\n        ce = base + dt.timedelta(minutes=p[\"end\"] + (1440 if p[\"end\"\
+  ] <= p[\"start\"] else 0))\n        if cs <= local < ce:\n            return \"\
+  core\"\n        if cs - dt.timedelta(minutes=p[\"flex_before\"]) <= local < ce +\
+  \ dt.timedelta(minutes=p[\"flex_after\"]):\n            best = \"flex\"\n    return\
+  \ best\n\n\ndef evaluate(p, start_utc, minutes):\n    \"\"\"Return (status, pain,\
+  \ local_start, local_end, reason). status in core, flex, out.\"\"\"\n    flex_min\
+  \ = 0\n    reason = \"\"\n    for k in range(0, minutes, CHUNK):\n        t = (start_utc\
+  \ + dt.timedelta(minutes=k)).astimezone(p[\"zone\"]).replace(tzinfo=None)\n    \
+  \    c = classify(p, t)\n        if c is None:\n            reason = \"outside hours\"\
+  \ if t.date().weekday() in p[\"days\"] or classify_day_any(p, t) else \"day off\"\
+  \n            return \"out\", 0.0, *local_span(p, start_utc, minutes), reason\n\
+  \        for a, b, why in p[\"blocked\"]:\n            if a <= t < b:\n        \
+  \        return \"out\", 0.0, *local_span(p, start_utc, minutes), f\"blocked: {why}\"\
+  \ if why else \"blocked\"\n        if c == \"flex\":\n            flex_min += CHUNK\n\
+  \    pain = round(flex_min / 60 * FLEX_PAIN_PER_HOUR, 2)\n    return (\"flex\" if\
+  \ flex_min else \"core\"), pain, *local_span(p, start_utc, minutes), \"\"\n\n\n\
+  def classify_day_any(p, t):\n    return (t.date() - dt.timedelta(days=1)).weekday()\
+  \ in p[\"days\"] and p[\"end\"] <= p[\"start\"]\n\n\ndef local_span(p, start_utc,\
+  \ minutes):\n    a = start_utc.astimezone(p[\"zone\"])\n    b = (start_utc + dt.timedelta(minutes=minutes)).astimezone(p[\"\
+  zone\"])\n    return a, b\n\n\ndef dst_changes(team, start, end):\n    out = []\n\
+  \    seen = set()\n    for p in team:\n        if p[\"zone_name\"] in seen:\n  \
+  \          continue\n        seen.add(p[\"zone_name\"])\n        z = p[\"zone\"\
+  ]\n        t = dt.datetime.combine(start - dt.timedelta(days=1), dt.time(), tzinfo=dt.timezone.utc)\n\
+  \        stop = dt.datetime.combine(end + dt.timedelta(days=2), dt.time(), tzinfo=dt.timezone.utc)\n\
+  \        prev = t.astimezone(z).utcoffset()\n        while t < stop:\n         \
+  \   t2 = t + dt.timedelta(minutes=30)\n            off = t2.astimezone(z).utcoffset()\n\
+  \            if off != prev:\n                loc = t2.astimezone(z)\n         \
+  \       out.append({\"zone\": p[\"zone_name\"], \"utc\": t2.strftime(\"%Y-%m-%d\
+  \ %H:%M UTC\"),\n                            \"local\": loc.strftime(\"%Y-%m-%d\
+  \ %H:%M %Z\"), \"from\": fmt_off(prev), \"to\": fmt_off(off)})\n               \
+  \ prev = off\n            t = t2\n    return out\n\n\ndef fmt_off(td):\n    m =\
+  \ int(td.total_seconds() // 60)\n    s = \"+\" if m >= 0 else \"-\"\n    m = abs(m)\n\
+  \    return f\"UTC{s}{m // 60:02d}:{m % 60:02d}\"\n\n\ndef find_slots(team, start,\
+  \ end, duration, step, ref_zone, only_days=None):\n    \"\"\"start/end: dates in\
+  \ ref_zone (inclusive). Returns list of slot dicts.\"\"\"\n    slots = []\n    t\
+  \ = dt.datetime.combine(start, dt.time(), tzinfo=ref_zone).astimezone(dt.timezone.utc)\n\
+  \    stop = dt.datetime.combine(end + dt.timedelta(days=1), dt.time(), tzinfo=ref_zone).astimezone(dt.timezone.utc)\n\
+  \    t = t.replace(minute=(t.minute // step) * step if step < 60 else 0, second=0,\
+  \ microsecond=0)\n    while t + dt.timedelta(minutes=duration) <= stop:\n      \
+  \  ref_local = t.astimezone(ref_zone)\n        if only_days is None or ref_local.weekday()\
+  \ in only_days:\n            per, ok = {}, True\n            for p in team:\n  \
+  \              st, pain, a, b, why = evaluate(p, t, duration)\n                per[p[\"\
+  name\"]] = {\"status\": st, \"pain\": pain, \"local_start\": a, \"local_end\": b,\
+  \ \"reason\": why}\n                if st == \"out\" and p[\"required\"]:\n    \
+  \                ok = False\n                    break\n            if ok:\n   \
+  \             missing = [p[\"name\"] for p in team if per[p[\"name\"]][\"status\"\
+  ] == \"out\"]\n                pains = [per[p[\"name\"]][\"pain\"] for p in team]\n\
+  \                slots.append({\"utc\": t, \"per\": per, \"missing\": missing, \"\
+  total_pain\": round(sum(pains), 2),\n                              \"max_pain\"\
+  : max(pains)})\n        t += dt.timedelta(minutes=step)\n    return slots\n\n\n\
+  def rank(slots):\n    return sorted(slots, key=lambda s: (len(s[\"missing\"]), s[\"\
+  max_pain\"], s[\"total_pain\"], s[\"utc\"]))\n\n\ndef period_key(s, ref_zone, every):\n\
+  \    d = s[\"utc\"].astimezone(ref_zone).date()\n    return d.isocalendar()[:2]\
+  \ if every == \"week\" else d\n\n\ndef pick_series(slots, team, n, ref_zone, every=\"\
+  week\"):\n    \"\"\"Greedy fair rotation: n slots, at most one per ref-zone ISO\
+  \ week (every=\"week\") or\n    per date (every=\"day\"), minimising the worst cumulative\
+  \ pain, then the sum of squared\n    cumulative pain, then missed people.\"\"\"\n\
+  \    cum = {p[\"name\"]: 0.0 for p in team}\n    chosen, used_dates = [], set()\n\
+  \    for _ in range(n):\n        best, best_key = None, None\n        for s in slots:\n\
+  \            d = period_key(s, ref_zone, every)\n            if d in used_dates:\n\
+  \                continue\n            new = {k: cum[k] + (MISSED_PAIN if s[\"per\"\
+  ][k][\"status\"] == \"out\" else s[\"per\"][k][\"pain\"]) for k in cum}\n      \
+  \      key = (round(max(new.values()), 2), round(sum(v * v for v in new.values()),\
+  \ 2), len(s[\"missing\"]), s[\"total_pain\"], s[\"utc\"])\n            if best_key\
+  \ is None or key < best_key:\n                best, best_key = s, key\n        if\
+  \ best is None:\n            break\n        chosen.append(best)\n        used_dates.add(period_key(best,\
+  \ ref_zone, every))\n        for k in cum:\n            cum[k] += MISSED_PAIN if\
+  \ best[\"per\"][k][\"status\"] == \"out\" else best[\"per\"][k][\"pain\"]\n    chosen.sort(key=lambda\
+  \ s: s[\"utc\"])\n    return chosen, cum\n\n\ndef cell(info):\n    a, b = info[\"\
+  local_start\"], info[\"local_end\"]\n    txt = f\"{DAY_NAMES[a.weekday()]} {a:%H:%M}-{b:%H:%M}\"\
+  \n    if info[\"status\"] == \"flex\":\n        txt += f\" (stretch, {info['pain']:g})\"\
+  \n    elif info[\"status\"] == \"out\":\n        txt += f\" (cannot: {info['reason']})\"\
+  \n    return txt\n\n\ndef table(slots, team, ref_zone):\n    head = [\"#\", f\"\
+  Start ({ref_zone.key})\"] + [f\"{p['name']} ({p['zone_name']})\" for p in team]\
+  \ + [\"Pain total/max\", \"Missing\"]\n    out = [\"| \" + \" | \".join(head) +\
+  \ \" |\", \"|\" + \"---|\" * len(head)]\n    for i, s in enumerate(slots, 1):\n\
+  \        r = s[\"utc\"].astimezone(ref_zone)\n        row = [str(i), f\"{DAY_NAMES[r.weekday()]}\
+  \ {r:%Y-%m-%d %H:%M}\"] + [cell(s[\"per\"][p[\"name\"]]) for p in team] + \\\n \
+  \             [f\"{s['total_pain']:g}/{s['max_pain']:g}\", \", \".join(s[\"missing\"\
+  ]) or \"-\"]\n        out.append(\"| \" + \" | \".join(row) + \" |\")\n    return\
+  \ out\n\n\ndef report(team, slots, args, ref_zone, warnings, changes, series=None,\
+  \ cum=None):\n    out = [f\"# Meeting slots {args['start']} to {args['end']} ({args['duration']}\
+  \ min, dates in {ref_zone.key})\", \"\"]\n    for w in warnings:\n        out.append(f\"\
+  > WARNING: {w}\")\n    if warnings:\n        out.append(\"\")\n    out.append(\"\
+  ## Participants\")\n    out.append(\"| Name | Zone | Hours (local) | Days | Stretch\
+  \ before/after | Required |\")\n    out.append(\"|---|---|---|---|---|---|\")\n\
+  \    for p in team:\n        days = \",\".join(DAY_NAMES[d] for d in sorted(p[\"\
+  days\"]))\n        out.append(f\"| {p['name']} | {p['zone_name']} | {p['start']\
+  \ // 60:02d}:{p['start'] % 60:02d}-{p['end'] // 60:02d}:{p['end'] % 60:02d} | {days}\
+  \ | {p['flex_before'] / 60:g}h / {p['flex_after'] / 60:g}h | {'yes' if p['required']\
+  \ else 'no'} |\")\n    out += [\"\", \"## Daylight saving changes in range\"]\n\
+  \    if changes:\n        for c in changes:\n            out.append(f\"- {c['zone']}:\
+  \ {c['from']} -> {c['to']} at {c['local']} ({c['utc']}); the same UTC time moves\
+  \ by an hour locally after this\")\n    else:\n        out.append(\"- none\")\n\
+  \    out.append(\"\")\n    if not slots:\n        out.append(\"No slot found where\
+  \ every required participant is available. Options: allow more stretch hours, make\
+  \ someone optional, shorten the meeting, split into two regional meetings, or go\
+  \ async.\")\n        return \"\\n\".join(out)\n    if series:\n        out += [f\"\
+  ## Rotating series ({len(series)} meetings, fairest combination found by greedy\
+  \ rotation)\", \"\"] + table(series, team, ref_zone)\n        out += [\"\", \"|\
+  \ Name | In hours | Stretch | Missed | Pain total |\", \"|---|---|---|---|---|\"\
+  ]\n        for p in team:\n            st = [s[\"per\"][p[\"name\"]][\"status\"\
+  ] for s in series]\n            out.append(f\"| {p['name']} | {st.count('core')}\
+  \ | {st.count('flex')} | {st.count('out')} | {cum[p['name']]:g} |\")\n        out.append(\"\
+  \")\n    top = rank(slots)[:args[\"top\"]]\n    out += [f\"## Best {len(top)} of\
+  \ {len(slots)} possible slots\", \"\"] + table(top, team, ref_zone)\n    out +=\
+  \ [\"\", f\"Pain: 0 inside working hours, {FLEX_PAIN_PER_HOUR} per hour of stretch,\
+  \ {MISSED_PAIN} for an optional person who cannot attend (rotation only).\"]\n \
+  \   return \"\\n\".join(out)\n\n\ndef to_json(team, slots, series, cum, changes,\
+  \ warnings, ref_zone, top):\n    def enc(s):\n        return {\"start_utc\": s[\"\
+  utc\"].strftime(\"%Y-%m-%dT%H:%MZ\"), \"start_ref\": s[\"utc\"].astimezone(ref_zone).isoformat(),\n\
+  \                \"total_pain\": s[\"total_pain\"], \"max_pain\": s[\"max_pain\"\
+  ], \"missing\": s[\"missing\"],\n                \"participants\": {k: {\"status\"\
+  : v[\"status\"], \"pain\": v[\"pain\"], \"local_start\": v[\"local_start\"].isoformat(),\n\
+  \                                     \"local_end\": v[\"local_end\"].isoformat(),\
+  \ \"reason\": v[\"reason\"]} for k, v in s[\"per\"].items()}}\n    return {\"warnings\"\
+  : warnings, \"dst_changes\": changes, \"slot_count\": len(slots),\n            \"\
+  best\": [enc(s) for s in rank(slots)[:top]], \"series\": [enc(s) for s in series\
+  \ or []], \"series_pain\": cum or {}}\n\n\ndef run(team_text, start, end, duration=60,\
+  \ step=30, blocked_text=None, ref=\"UTC\", top=10, series=0, only_days=None, every=\"\
+  week\"):\n    warnings = []\n    team = read_team(team_text, warnings)\n    if blocked_text:\n\
+  \        read_blocked(blocked_text, team)\n    ref_zone = load_zone(ref, \"--ref-zone\"\
+  , warnings)\n    if end < start:\n        raise InputError(\"--end is before --start\"\
+  )\n    if duration % CHUNK or step % CHUNK or duration <= 0 or step <= 0:\n    \
+  \    raise InputError(f\"--duration and --step must be positive multiples of {CHUNK}\
+  \ minutes\")\n    slots = find_slots(team, start, end, duration, step, ref_zone,\
+  \ only_days)\n    chosen, cum = pick_series(slots, team, series, ref_zone, every)\
+  \ if series else (None, None)\n    changes = dst_changes(team, start, end)\n   \
+  \ return team, slots, chosen, cum, changes, warnings, ref_zone\n\n\ndef self_test():\n\
+  \    T = \"name,zone,work_start,work_end,days,flex_before,flex_after,required\\\
+  n\"\n    D = dt.date\n    passed, total = 0, 0\n\n    def check(name, cond):\n \
+  \       nonlocal passed, total\n        total += 1\n        passed += bool(cond)\n\
+  \        print((\"PASS \" if cond else \"FAIL \") + name)\n\n    team, slots, *_\
+  \ = run(T + \"A,Europe/Berlin,09:00,17:00,Mon-Fri,0,0,yes\\nB,Europe/London,09:00,17:00,Mon-Fri,0,0,yes\\\
+  n\", D(2026, 11, 2), D(2026, 11, 2))\n    check(\"Berlin+London overlap is 09:00-16:00\
+  \ UTC (13 one-hour starts on the 30-min grid)\", len(slots) == 13 and slots[0][\"\
+  utc\"].hour == 9 and slots[-1][\"utc\"].hour == 15)\n    check(\"all in-hours slots\
+  \ have zero pain\", all(s[\"total_pain\"] == 0 for s in slots))\n    team, slots,\
+  \ *_ = run(T + \"A,America/Los_Angeles,09:00,17:00,Mon-Fri,0,0,yes\\nB,Asia/Kolkata,09:00,18:00,Mon-Fri,0,0,yes\\\
+  n\", D(2026, 11, 2), D(2026, 11, 6))\n    check(\"LA and Kolkata without stretch:\
+  \ no slot\", not slots)\n    team, slots, *_ = run(T + \"A,America/Los_Angeles,09:00,17:00,Mon-Fri,2,0,yes\\\
+  nB,Asia/Kolkata,09:00,18:00,Mon-Fri,0,3,yes\\n\", D(2026, 11, 2), D(2026, 11, 6),\
+  \ duration=30)\n    check(\"with 2h/3h stretch: only 30-min slots (15:00 UTC) exist\
+  \ and all carry pain\", slots and all(s[\"total_pain\"] > 0 for s in slots))\n \
+  \   s0 = rank(slots)[0]\n    check(\"half-hour zone: Kolkata local minutes end in\
+  \ :30\", s0[\"per\"][\"B\"][\"local_start\"].minute == 30)\n    team, slots, *_\
+  \ = run(T + \"A,Europe/Berlin,09:00,17:00,Mon-Fri,0,0,yes\\nB,America/New_York,09:00,17:00,Mon-Fri,0,0,yes\\\
+  n\", D(2026, 10, 26), D(2026, 10, 26))\n    first = slots[0][\"utc\"]\n    check(\"\
+  Berlin-NY in the gap week (EU back on CET, US still EDT): overlap 13:00-16:00 UTC\"\
+  , first.hour == 13 and slots[-1][\"utc\"].hour == 15)\n    team, slots2, *_ = run(T\
+  \ + \"A,Europe/Berlin,09:00,17:00,Mon-Fri,0,0,yes\\nB,America/New_York,09:00,17:00,Mon-Fri,0,0,yes\\\
+  n\", D(2026, 11, 2), D(2026, 11, 2))\n    check(\"after US DST end: overlap starts\
+  \ 14:00 UTC\", slots2[0][\"utc\"].hour == 14)\n    *_, changes, w, rz = run(T +\
+  \ \"A,Europe/Berlin,09:00,17:00,Mon-Fri,0,0,yes\\nB,America/New_York,09:00,17:00,Mon-Fri,0,0,yes\\\
+  n\", D(2026, 10, 24), D(2026, 11, 3))\n    zones = {c[\"zone\"]: c for c in changes}\n\
+  \    check(\"DST changes found: Berlin 2026-10-25 and New York 2026-11-01\", \"\
+  2026-10-25\" in zones.get(\"Europe/Berlin\", {}).get(\"local\", \"\") and \"2026-11-01\"\
+  \ in zones.get(\"America/New_York\", {}).get(\"local\", \"\"))\n    team, slots,\
+  \ *_ = run(T + \"A,Asia/Dubai,09:00,17:00,Sun-Thu,0,0,yes\\nB,Europe/London,09:00,17:00,Mon-Fri,0,0,yes\\\
+  n\", D(2026, 11, 6), D(2026, 11, 8))\n    check(\"Sun-Thu vs Mon-Fri: no Fri/Sat/Sun\
+  \ slot\", not slots)\n    team, slots, *_ = run(T + \"A,Asia/Dubai,09:00,17:00,Sun-Thu,0,0,yes\\\
+  nB,Europe/London,09:00,17:00,Mon-Fri,0,0,yes\\n\", D(2026, 11, 9), D(2026, 11, 9))\n\
+  \    check(\"Sun-Thu vs Mon-Fri: Monday works\", bool(slots))\n    team, slots,\
+  \ *_ = run(T + \"A,Europe/Berlin,09:00,17:00,Mon-Fri,0,0,yes\\nB,Europe/Paris,09:00,17:00,Mon-Fri,0,0,no\\\
+  n\", D(2026, 11, 2), D(2026, 11, 2),\n                          blocked_text=\"\
+  name,date,start,end,reason\\nB,2026-11-02,,,holiday\\n\")\n    check(\"optional\
+  \ person blocked all day: slots still found, B missing\", slots and all(s[\"missing\"\
+  ] == [\"B\"] for s in slots))\n    check(\"blocked reason shown\", slots and \"\
+  holiday\" in slots[0][\"per\"][\"B\"][\"reason\"])\n    team, slots, *_ = run(T\
+  \ + \"A,Europe/Berlin,09:00,17:00,Mon-Fri,0,0,yes\\nB,Europe/Paris,09:00,17:00,Mon-Fri,0,0,yes\\\
+  n\", D(2026, 11, 2), D(2026, 11, 2),\n                          blocked_text=\"\
+  name,date,start,end,reason\\nB,2026-11-02,10:00,12:00,dentist\\n\")\n    check(\"\
+  required person blocked 10-12 local: no slot overlaps 09:00-11:00 UTC\", slots and\
+  \ not any(dt.time(8, 30) < s[\"utc\"].time() < dt.time(11, 0) for s in slots))\n\
+  \    team, slots, *_ = run(T + \"N,Europe/Berlin,22:00,06:00,Mon-Fri,0,0,yes\\n\"\
+  , D(2026, 11, 3), D(2026, 11, 3))\n    hours = sorted({s[\"utc\"].hour for s in\
+  \ slots})\n    check(\"overnight shift 22:00-06:00 Berlin (UTC+1): starts 00:00-04:00\
+  \ and 21:00-23:00 UTC\", hours == [0, 1, 2, 3, 4, 21, 22, 23])\n    w = []\n   \
+  \ load_zone(\"EST\", \"X\", w)\n    check(\"abbreviation zone gives a warning\"\
+  , w and \"abbreviation\" in w[0])\n    try:\n        load_zone(\"Mars/Olympus\"\
+  , \"X\", [])\n        ok = False\n    except InputError as e:\n        ok = \"unknown\
+  \ time zone\" in str(e)\n    check(\"unknown zone is an input error\", ok)\n   \
+  \ try:\n        parse_hm(\"9am\", \"x\")\n        ok = False\n    except InputError:\n\
+  \        ok = True\n    check(\"bad time is an input error\", ok)\n    check(\"\
+  day ranges wrap: Fri-Mon\", parse_days(\"Fri-Mon\") == {4, 5, 6, 0})\n    team3\
+  \ = T + \"A,America/Los_Angeles,09:00,17:00,Mon-Fri,2,0,yes\\nB,Europe/Istanbul,09:00,18:00,Mon-Fri,0,2,yes\\\
+  n\"\n    team, slots, chosen, cum, *_ = run(team3, D(2026, 11, 2), D(2026, 11, 6),\
+  \ series=4, every=\"day\")\n    st = {k: sum(1 for s in chosen if s[\"per\"][k][\"\
+  status\"] == \"flex\") for k in (\"A\", \"B\")}\n    check(\"series of 4 on 4 different\
+  \ dates\", len(chosen) == 4 and len({s[\"utc\"].date() for s in chosen}) == 4)\n\
+  \    check(\"rotation shares the stretch: both A and B stretch at least once\",\
+  \ st[\"A\"] >= 1 and st[\"B\"] >= 1)\n    check(\"rotation pain is balanced (difference\
+  \ <= 2 points)\", abs(cum[\"A\"] - cum[\"B\"]) <= 2)\n    team, slots, chosen, cum,\
+  \ *_ = run(team3, D(2026, 10, 26), D(2026, 11, 20), series=4)\n    check(\"weekly\
+  \ series: one meeting in each of 4 ISO weeks\", len({s[\"utc\"].isocalendar()[1]\
+  \ for s in chosen}) == 4)\n    team, slots, *_ = run(T + \"A,Europe/Berlin,09:00,17:00,Mon-Fri,0,0,yes\\\
+  n\", D(2026, 11, 2), D(2026, 11, 6), only_days={1, 3})\n    check(\"--days Tue,Thu\
+  \ filters candidate days\", slots and {s[\"utc\"].weekday() for s in slots} == {1,\
+  \ 3})\n    team, slots, ch, cum, changes, w, rz = run(T + \"A,Europe/Berlin,09:00,17:00,Mon-Fri,0,0,yes\\\
+  n\", D(2026, 11, 2), D(2026, 11, 2))\n    text = report(team, slots, {\"start\"\
+  : \"2026-11-02\", \"end\": \"2026-11-02\", \"duration\": 60, \"top\": 3}, rz, w,\
+  \ changes)\n    check(\"report renders table\", \"| 1 | Mon 2026-11-02 08:00 |\"\
+  \ in text and \"Daylight saving\" in text)\n    j = to_json(team, slots, None, None,\
+  \ changes, w, rz, 3)\n    check(\"json output has best slots\", len(j[\"best\"])\
+  \ == 3 and j[\"best\"][0][\"start_utc\"] == \"2026-11-02T08:00Z\")\n    print(f\"\
+  {passed}/{total} passed\")\n    return 0 if passed == total else 1\n\n\ndef main(argv=None):\n\
+  \    ap = argparse.ArgumentParser(description=\"Find fair meeting slots across time\
+  \ zones\")\n    ap.add_argument(\"--team\")\n    ap.add_argument(\"--blocked\")\n\
+  \    ap.add_argument(\"--start\")\n    ap.add_argument(\"--end\")\n    ap.add_argument(\"\
+  --duration\", type=int, default=60)\n    ap.add_argument(\"--step\", type=int, default=30)\n\
+  \    ap.add_argument(\"--days\", help=\"only these weekdays in --ref-zone, e.g.\
+  \ Tue,Wed,Thu\")\n    ap.add_argument(\"--ref-zone\", default=\"UTC\")\n    ap.add_argument(\"\
+  --top\", type=int, default=10)\n    ap.add_argument(\"--series\", type=int, default=0,\
+  \ help=\"pick N meetings with rotating inconvenience\")\n    ap.add_argument(\"\
+  --every\", default=\"week\", choices=[\"week\", \"day\"], help=\"series spacing:\
+  \ one meeting per ISO week (default) or per day\")\n    ap.add_argument(\"--json\"\
+  , action=\"store_true\")\n    ap.add_argument(\"--self-test\", action=\"store_true\"\
+  )\n    a = ap.parse_args(argv)\n    if a.self_test:\n        return self_test()\n\
+  \    if not (a.team and a.start and a.end):\n        ap.print_usage(sys.stderr)\n\
+  \        print(\"error: --team, --start and --end are required\", file=sys.stderr)\n\
+  \        return 2\n    try:\n        start, end = dt.date.fromisoformat(a.start),\
+  \ dt.date.fromisoformat(a.end)\n        team_text = open(a.team, encoding=\"utf-8\"\
+  ).read()\n        blocked_text = open(a.blocked, encoding=\"utf-8\").read() if a.blocked\
+  \ else None\n        only = parse_days(a.days) if a.days else None\n        team,\
+  \ slots, chosen, cum, changes, warnings, rz = run(team_text, start, end, a.duration,\
+  \ a.step, blocked_text, a.ref_zone, a.top, a.series, only, a.every)\n    except\
+  \ (InputError, OSError, ValueError) as e:\n        print(f\"error: {e}\", file=sys.stderr)\n\
+  \        return 2\n    if a.json:\n        print(json.dumps(to_json(team, slots,\
+  \ chosen, cum, changes, warnings, rz, a.top), indent=2))\n    else:\n        print(report(team,\
+  \ slots, {\"start\": a.start, \"end\": a.end, \"duration\": a.duration, \"top\"\
+  : a.top}, rz, warnings, changes, chosen, cum))\n    return 0 if slots else 1\n\n\
+  \nif __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
