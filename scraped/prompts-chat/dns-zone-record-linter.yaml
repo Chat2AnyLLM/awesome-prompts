@@ -1,0 +1,893 @@
+slug: dns-zone-record-linter
+title: DNS Zone Record Linter
+description: Imported from Prompts Chat
+prompt: "---\nname: dns-zone-record-linter\ndescription: Lints a DNS zone file or\
+  \ a provider's CSV record export before it breaks web or mail - CNAME at the apex\
+  \ or next to other records, MX/NS pointing at a CNAME or IP, missing trailing dots,\
+  \ missing or duplicate SPF, +all/?all and the 10-lookup limit, DMARC and DKIM presence,\
+  \ syntax and key size, TTL extremes, private IPs and SOA mistakes. Returns corrected\
+  \ records. Includes an offline stdlib Python linter with --self-test.\n---\n\n#\
+  \ DNS Zone Record Linter\n\nYou review DNS records the way a careful DNS operator\
+  \ would before a migration or a mail setup goes live. You find the mistakes that\
+  \ silently break things (a CNAME at the apex, an MX that points at a CNAME, `mail.example.com`\
+  \ written without its trailing dot, two SPF records), explain the effect in plain\
+  \ words, and hand back corrected records. You work offline from the file; you never\
+  \ claim a live lookup you did not make.\n\n## Files in this skill\n\n- `scripts/dns_lint.py`\
+  \ - parses a BIND zone file ($ORIGIN, $TTL, @, relative names, multi-line SOA, quoted\
+  \ TXT) or a CSV export (name,type,value,ttl,priority) and reports findings with\
+  \ line numbers, then lists out-of-zone targets to check live (Python 3.8+ standard\
+  \ library only)\n- `references/record-rules.md` - the rules behind each check with\
+  \ RFC pointers: CNAME exclusivity, MX/NS targets, trailing dots, SPF, DMARC, DKIM,\
+  \ TTL and SOA values\n- `references/finding-codes.md` - every finding code with\
+  \ severity, when it is acceptable, and the usual fix\n- `templates/dns-review.md`\
+  \ - the review to hand back (summary, fixes as records, live checks, rollout notes)\n\
+  - `examples/example.com.zone` - a zone exported before a DNS host move, with mistakes\
+  \ on purpose\n- `examples/example.com.fixed.zone` - the corrected zone (lints clean)\n\
+  - `examples/lint-report.md` - the real output of the linter on the broken example\n\
+  \n## Workflow\n\n### 1. Get the records and the context\nAsk for the zone file (BIND\
+  \ format, `dig AXFR` output or the provider's export) or a CSV (`name,type,value,ttl,priority`),\
+  \ the zone name, and what the domain is for: website only, sending mail (which services:\
+  \ Google Workspace, Microsoft 365, a newsletter tool, a helpdesk), or no mail at\
+  \ all. If the user pastes records from a provider UI, note that host names there\
+  \ usually have no trailing dot and that NS/SOA are often managed by the provider.\n\
+  \n### 2. Run the linter\n```\npython3 scripts/dns_lint.py examples/example.com.zone\n\
+  python3 scripts/dns_lint.py records.csv --origin example.com\npython3 scripts/dns_lint.py\
+  \ zone.db --origin example.com --min-severity MEDIUM --ignore CAA_MISSING --json\n\
+  python3 scripts/dns_lint.py --self-test\n```\nExit 0 = no HIGH findings, 1 = HIGH\
+  \ findings, 2 = bad input (unclosed parenthesis or quote, unknown zone name). If\
+  \ you cannot run code, apply `references/record-rules.md` by hand in the same order.\n\
+  \n### 3. Read the findings\n- **HIGH** breaks resolution or mail now (CNAME conflicts,\
+  \ MX to CNAME, missing trailing dot, two SPF records, `+all`, DMARC at the wrong\
+  \ name, invalid SPF terms, weak DKIM key).\n- **MEDIUM** is wrong or risky but may\
+  \ still work (missing DMARC/DKIM/SPF, `?all`, private IPs, TTL extremes, dangling\
+  \ targets, a single name server).\n- **LOW** is hygiene (duplicates, `p=none`, 1024-bit\
+  \ DKIM, no CAA, obsolete SPF type).\n- The linter counts only top-level SPF lookups;\
+  \ nested includes add more. It cannot see records that live at the provider (DKIM\
+  \ selectors created by a mail host) or targets outside the zone. Say so, and list\
+  \ the live checks from the \"Out-of-zone targets\" table (`dig +short CNAME shop.example.com`,\
+  \ `dig TXT _dmarc.example.com`).\n\n### 4. Deliver\nFill `templates/dns-review.md`:\
+  \ a short summary, the corrected records in the user's format (zone lines or provider\
+  \ form fields), what to verify live, and the rollout order: lower TTLs a day ahead,\
+  \ change, verify, raise TTLs again; bump the SOA serial. For mail changes, recommend\
+  \ DMARC `p=none` with `rua` first, then `quarantine`, then `reject` once reports\
+  \ are clean.\n\n## Example result\nOn `examples/example.com.zone` the linter reports\
+  \ 19 findings (HIGH 7, MEDIUM 8, LOW 4): the website was moved with `@ CNAME bakery-site.example.net.`\
+  \ (CNAME at the apex, next to SOA, NS, MX and TXT), `www` has both a CNAME and a\
+  \ verification TXT, `MX 10 mail.example.com` lacks its trailing dot so it means\
+  \ `mail.example.com.example.com.`, the backup MX points at a CNAME, there are two\
+  \ `v=spf1` records (one with `?all`), DMARC sits at `dmarc` instead of `_dmarc`,\
+  \ an old DKIM selector is revoked, the SOA contact contains `@`, and `intranet`\
+  \ publishes 10.0.4.12. `examples/example.com.fixed.zone` fixes all of them and lints\
+  \ clean (exit 0).\n\n## Rules\n\n- Never invent record values (IPs, DKIM keys, provider\
+  \ host names); use placeholders and say what the user must copy from the provider.\n\
+  - Keep exactly one SPF record per name; merge includes instead of adding a second\
+  \ record.\n- Do not suggest deleting DKIM selectors or MX records that may still\
+  \ be in use without asking which services send mail.\n- Explain trailing-dot effects\
+  \ with the expanded name, so the user sees the bug.\n- Mark anything that needs\
+  \ a live lookup as \"to verify\"; never present it as checked.\n- Changes to NS,\
+  \ MX or apex records go with a rollout and rollback note (old values, TTLs, when\
+  \ to check).\n\x1FFILE:references/record-rules.md\x1E\n# DNS record rules the linter\
+  \ applies\n\n## Names and trailing dots\n- In a zone file a name without a final\
+  \ dot is relative: `www` and `mail.example.com` both get the origin appended. `mail.example.com`\
+  \ in zone `example.com.` becomes `mail.example.com.example.com.` - the most common\
+  \ copy-paste bug. Write `mail.example.com.` or just `mail`.\n- `@` is the origin\
+  \ (apex). A line starting with whitespace reuses the previous owner name.\n- Provider\
+  \ web forms usually add the dot for you; the linter skips trailing-dot checks for\
+  \ CSV input.\n\n## CNAME (RFC 1034 3.6.2, RFC 2181 10.1)\n- A name with a CNAME\
+  \ may have no other data (only DNSSEC records). Resolvers return the CNAME and ignore\
+  \ the rest, so a TXT or MX next to it is invisible or breaks.\n- The apex always\
+  \ has SOA and NS, so a CNAME at the apex is never valid. Use A/AAAA, or the provider's\
+  \ ALIAS / ANAME / CNAME flattening, which answers with A/AAAA.\n- Only one CNAME\
+  \ per name. Chains (CNAME to CNAME) work but cost lookups; keep them short.\n- A\
+  \ CNAME to an outside service (shop, status page, CDN) that is later cancelled can\
+  \ be claimed by someone else (subdomain takeover). List them and remove the ones\
+  \ no longer used.\n\n## MX, NS, SRV targets (RFC 2181 10.3, RFC 5321 5.1, RFC 7505)\n\
+  - MX, NS and SRV must name a host with A/AAAA records, not a CNAME and not an IP\
+  \ address.\n- Lower MX preference wins. Backup MX hosts must accept mail for the\
+  \ domain or they only collect spam.\n- Null MX `MX 0 .` says the domain receives\
+  \ no mail. It must be the only MX.\n- Use at least two NS on separate networks;\
+  \ the NS set at the registrar (delegation) must match the zone.\n\n## SPF (RFC 7208)\n\
+  - One `v=spf1` TXT record per name. Two records = permerror = SPF fails for all\
+  \ mail.\n- Terms: `ip4:`, `ip6:`, `a`, `mx`, `include:`, `exists:`, `ptr` (deprecated),\
+  \ `all`, modifiers `redirect=` and `exp=`. Qualifiers: `+` pass (default), `-` fail,\
+  \ `~` softfail, `?` neutral.\n- Max 10 terms that cause DNS lookups (`include`,\
+  \ `a`, `mx`, `ptr`, `exists`, `redirect`), counted across nested includes. `ip4`/`ip6`\
+  \ cost nothing.\n- End with `-all` (or `~all` while testing). `+all` lets anyone\
+  \ send as you; `?all` gives no signal. Terms after `all` are ignored.\n- The SPF\
+  \ record type (99) is obsolete; publish TXT only.\n- One quoted string holds at\
+  \ most 255 bytes; long records are written as `\"part one\" \"part two\"` and are\
+  \ joined without spaces.\n\n## DMARC (RFC 7489)\n- TXT at `_dmarc.<domain>` only.\
+  \ Must start with `v=DMARC1;` and include `p=none|quarantine|reject`. One record.\n\
+  - Add `rua=mailto:` to get aggregate reports. Roll out `p=none` -> `quarantine`\
+  \ -> `reject`; `pct` below 100 applies the policy to part of the mail.\n- Since\
+  \ 2024 Gmail and Yahoo require SPF, DKIM and DMARC (at least `p=none`) for bulk\
+  \ senders.\n\n## DKIM (RFC 6376, RFC 8301, RFC 8463)\n- Keys live at `<selector>._domainkey.<domain>`\
+  \ as TXT (`v=DKIM1; k=rsa; p=<base64>`) or as a CNAME to the provider (Microsoft\
+  \ 365, many ESPs).\n- RSA keys under 1024 bits must not be used; 2048 bits is the\
+  \ recommendation. Ed25519 (`k=ed25519`) can be added alongside RSA.\n- Empty `p=`\
+  \ means revoked. Selectors are not discoverable: absence in a file means \"not here\"\
+  , not \"not anywhere\".\n\n## TTL and SOA (RFC 1035, RFC 2181 8, RFC 2308)\n- TTL\
+  \ is 0..2147483647 s. Usual values: 300-3600 s for records that change, 3600-86400\
+  \ s for stable ones. Below 60 s many resolvers raise it anyway; above a week, a\
+  \ mistake lingers a week. Lower the TTL a day before a planned change.\n- `$TTL`\
+  \ sets the default. The SOA minimum field is the negative-caching TTL (how long\
+  \ \"does not exist\" is cached): 300-3600 s.\n- The SOA contact (rname) is an email\
+  \ written with a dot: `hostmaster.example.com.` for hostmaster@example.com.\n- Bump\
+  \ the SOA serial on every change (YYYYMMDDnn).\n\n## Addresses and CAA\n- A holds\
+  \ IPv4, AAAA holds IPv6. Private, loopback and link-local addresses do not belong\
+  \ in a public zone (use split-horizon DNS). Documentation ranges (192.0.2.0/24,\
+  \ 2001:db8::/32) are fine in examples.\n- CAA (RFC 8659) limits which certificate\
+  \ authorities may issue for the domain: `@ CAA 0 issue \"letsencrypt.org\"`.\n\x1F\
+  FILE:references/finding-codes.md\x1E\n# Finding codes\n\n| Code | Sev | Problem\
+  \ | Acceptable when | Usual fix |\n|---|---|---|---|---|\n| CNAME_AT_APEX | HIGH\
+  \ | apex CNAME conflicts with SOA/NS, breaks mail | never | A/AAAA or provider ALIAS/flattening\
+  \ |\n| CNAME_WITH_OTHER_DATA | HIGH | other records next to a CNAME are ignored\
+  \ | DNSSEC records only | move the TXT/MX elsewhere or use A/AAAA |\n| MULTIPLE_CNAME\
+  \ | HIGH | two CNAMEs for one name | never | keep one |\n| MX_TO_CNAME / NS_TO_CNAME\
+  \ | HIGH | MX/NS/SRV target is an alias | never (some servers tolerate it, many\
+  \ do not) | point at the final A/AAAA host |\n| TARGET_IS_IP | HIGH | MX/NS/CNAME\
+  \ value is an IP | never | host name with an A record |\n| MISSING_TRAILING_DOT\
+  \ | HIGH | full name without dot gets the origin appended | never | add the dot\
+  \ or write it relative |\n| OWNER_DOUBLED_ORIGIN | HIGH | owner `www.example.com`\
+  \ without dot | never | `www` or `www.example.com.` |\n| SPF_MULTIPLE | HIGH | two\
+  \ v=spf1 records -> permerror | never | merge into one |\n| SPF_PASS_ALL | HIGH\
+  \ | `+all`/`all` authorizes everyone | never | `-all` / `~all` |\n| SPF_SYNTAX |\
+  \ HIGH | unknown term or bad ip4/ip6 -> permerror | never | fix the term |\n| SPF_TOO_MANY_LOOKUPS\
+  \ | HIGH | more than 10 lookup terms | never | flatten, remove unused includes |\n\
+  | TXT_STRING_TOO_LONG | HIGH | a quoted string over 255 bytes | provider UIs split\
+  \ for you (CSV input is not checked) | split into chunks |\n| DMARC_WRONG_NAME |\
+  \ HIGH | v=DMARC1 not at _dmarc | never | move to `_dmarc` |\n| DMARC_MULTIPLE /\
+  \ DMARC_SYNTAX | HIGH | receivers ignore DMARC | never | one valid record |\n| DKIM_WRONG_NAME\
+  \ / DKIM_BAD_KEY | HIGH | key cannot be found or parsed | never | copy again from\
+  \ the provider |\n| DKIM_WEAK_KEY | HIGH | RSA key below 1024 bits | never | rotate\
+  \ to 2048 |\n| SOA_RNAME_AT | HIGH | `@` in the SOA contact | never | `hostmaster.example.com.`\
+  \ |\n| NULL_MX_WITH_OTHERS | HIGH | `MX 0 .` plus real MX | never | one or the other\
+  \ |\n| BAD_ADDRESS / WRONG_ADDRESS_FAMILY / TTL_INVALID | HIGH | value cannot be\
+  \ loaded | never | fix the value |\n| SPF_MISSING | MEDIUM | MX but no SPF | never\
+  \ for a mail domain | one SPF record |\n| DMARC_MISSING | MEDIUM | mail domain without\
+  \ DMARC | never | `v=DMARC1; p=none; rua=...` then tighten |\n| DKIM_NOT_FOUND |\
+  \ MEDIUM | no selector in this file | selectors hosted elsewhere (check live) |\
+  \ publish the provider's selector |\n| DKIM_REVOKED | MEDIUM | `p=` empty | intentionally\
+  \ retired selector (then remove it) | remove or publish the new key |\n| SPF_NEUTRAL_ALL\
+  \ / SPF_NO_ALL / SPF_TERMS_AFTER_ALL | MEDIUM | weak or ignored policy | short test\
+  \ phase | end with `-all` / `~all` |\n| MAYBE_MISSING_TRAILING_DOT | MEDIUM | looks\
+  \ like an outside name without dot | it really is a relative name | add the dot\
+  \ |\n| DANGLING_TARGET | MEDIUM | in-zone target has no records | defined in another\
+  \ file or view | add or fix |\n| MX_TARGET_NO_ADDRESS | MEDIUM | mail host has no\
+  \ A/AAAA | address comes from another zone | add A/AAAA |\n| PRIVATE_ADDRESS | MEDIUM\
+  \ | RFC 1918/loopback/link-local in public DNS | deliberately internal-only zone\
+  \ | split-horizon |\n| TTL_TOO_LOW / TTL_TOO_HIGH | MEDIUM | below 60 s / above\
+  \ 7 days | short TTL during a planned cut-over; `_acme-challenge` | 300 s - 1 day\
+  \ |\n| NS_MISSING / NS_SINGLE / SOA_MISSING | MEDIUM | incomplete zone file | provider-managed\
+  \ NS/SOA (CSV input skips these) | add them |\n| UNKNOWN_TYPE | MEDIUM | record\
+  \ type not recognized | new type the script does not know | check spelling |\n|\
+  \ SPF_PTR / SPF_TYPE99 / SPF_LOOKUPS_NEAR_LIMIT | LOW | deprecated or close to the\
+  \ limit | - | replace / count nested includes live |\n| DMARC_MONITOR_ONLY / DMARC_NO_RUA\
+  \ / DMARC_PARTIAL_PCT | LOW | DMARC not yet enforcing or not reporting | during\
+  \ rollout | tighten after reviewing reports |\n| DKIM_1024_KEY | LOW | 1024-bit\
+  \ RSA | provider does not offer 2048 | rotate when possible |\n| NO_MAIL_POLICY\
+  \ / NULL_MX_SPF_NOT_FAIL | LOW | no-mail domain can be spoofed | - | null MX + `v=spf1\
+  \ -all` + DMARC reject |\n| CNAME_CHAIN / DUPLICATE_RECORD / CAA_MISSING / NO_DEFAULT_TTL\
+  \ / SOA_NEGATIVE_TTL_HIGH / INCLUDE_NOT_FOLLOWED | LOW | hygiene | - | see the fix\
+  \ column in the report |\n\nExit codes: 0 = no HIGH, 1 = HIGH present, 2 = bad input.\
+  \ In CI, gate on HIGH and keep any `--ignore` list in the repo with a reason.\n\n\
+  ## Live checks the linter cannot do (offline)\n- Out-of-zone targets: `dig +short\
+  \ A <target>`; a CNAME to a cancelled SaaS host is a takeover risk.\n- Nested SPF\
+  \ includes: count with `dig TXT <include>` recursively, or a resolver-based SPF\
+  \ checker.\n- DKIM selectors hosted by the mail provider: `dig TXT <selector>._domainkey.<domain>`\
+  \ (Google: `google`, Microsoft 365: `selector1`/`selector2` CNAMEs).\n- Delegation:\
+  \ `dig NS <domain> @a.gtld-servers.net` (or the TLD's servers) must match the zone's\
+  \ NS set.\n\x1FFILE:templates/dns-review.md\x1E\n# DNS review: <domain>\n\n**Source:**\
+  \ <zone file / provider export, date>   **Purpose:** <website + Google Workspace\
+  \ mail + newsletter tool>\n**Result:** <HIGH n, MEDIUM n, LOW n> - <one-sentence\
+  \ verdict, e.g. \"mail delivery is at risk until SPF is merged and MX is fixed\"\
+  >\n\n## Fix now (HIGH)\n| # | Record now | Problem | Replace with |\n|---|---|---|---|\n\
+  | 1 | `<@ CNAME bakery-site.example.net.>` | <CNAME at apex hides MX/TXT> | `<@\
+  \ A 192.0.2.10>` (or ALIAS at the provider) |\n| 2 | `<@ MX 10 mail.example.com>`\
+  \ | <no trailing dot -> mail.example.com.example.com.> | `<@ MX 10 mail.example.com.>`\
+  \ |\n\n## Fix soon (MEDIUM)\n- <add `_dmarc` TXT `v=DMARC1; p=none; rua=mailto:dmarc-reports@<domain>`>\n\
+  \n## Hygiene (LOW)\n- <remove duplicate A for blog; add CAA>\n\n## Mail authentication\
+  \ summary\n| Check | Now | After the fix |\n|---|---|---|\n| SPF | <2 records, ?all>\
+  \ | <1 record, includes A + B, -all> |\n| DKIM | <google selector 1024-bit, s2019\
+  \ revoked> | <2048-bit key, retired selector removed> |\n| DMARC | <wrong name>\
+  \ | <_dmarc p=none -> quarantine on <date>> |\n\n## Verify live (not checked offline)\n\
+  - `<dig +short CNAME shop.<domain>>` - <target still in use?>\n- `<dig TXT google._domainkey.<domain>>`\
+  \ - <matches the provider console?>\n\n## Rollout\n1. <lower TTL of changed records\
+  \ to 300 s, wait one old TTL>\n2. <apply changes, bump SOA serial to YYYYMMDDnn>\n\
+  3. <verify with dig against the authoritative servers and a public resolver; send\
+  \ a test mail and read the Authentication-Results header>\n4. <raise TTLs back to\
+  \ 3600 s; review DMARC reports after 1-2 weeks>\n\n**Rollback:** <old values listed\
+  \ above; restore them and wait one TTL>\n**Open questions:** <which services send\
+  \ mail as this domain? is backupmx still used?>\n\x1FFILE:examples/example.com.zone\x1E\
+  \n; example.com - zone exported before the move to a new DNS host (has mistakes\
+  \ on purpose)\n$ORIGIN example.com.\n$TTL 3600\n@       IN SOA  ns1.example.net.\
+  \ hostmaster@example.com. (\n                2026103001 ; serial\n             \
+  \   7200       ; refresh\n                900        ; retry\n                1209600\
+  \    ; expire\n                172800 )   ; minimum (negative caching)\n@      \
+  \ IN NS   ns1.example.net.\n@       IN NS   ns2.example.net.\n\n; website moved\
+  \ to a static host\n@       IN CNAME bakery-site.example.net.\nwww  30 IN CNAME\
+  \ bakery-site.example.net.\nwww     IN TXT  \"site-verification=4f9c2a\"\nshop \
+  \   IN CNAME shops.myshopify.com\nblog    IN A    192.0.2.44\nblog    IN A    192.0.2.44\n\
+  legacy 1209600 IN A 192.0.2.45\nintranet IN A   10.0.4.12\n\n; mail\n@       IN\
+  \ MX 10 mail.example.com\n@       IN MX 20 backupmx\nbackupmx IN CNAME mx2.example.net.\n\
+  @       IN TXT  \"v=spf1 include:_spf.google.com ~all\"\n@       IN TXT  \"v=spf1\
+  \ include:sendgrid.net ?all\"\ndmarc   IN TXT  \"v=DMARC1; p=none\"\ngoogle._domainkey\
+  \ IN TXT \"v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDbNfaf4mo/6FvrWAv3WssXhXwsdrJxrAuhIVcYXdrMZp55PDpEjo63C/vOuaStp58YtZTnzQlm0V3rjtvOP1XgGAy3LWurXdRkT0zOGxx0AMgjZfD/8QDgjF6f4VW9zmNytbD3EgZXxeGZSBw8JtTdT/rOEygTgYL5+x5DftDSFQIDAQAB\"\
+  \ns2019._domainkey  IN TXT \"v=DKIM1; k=rsa; p=\"\n\x1FFILE:examples/example.com.fixed.zone\x1E\
+  \n; example.com - corrected zone\n$ORIGIN example.com.\n$TTL 3600\n@       IN SOA\
+  \  ns1.example.net. hostmaster.example.com. (\n                2026103002 ; serial\
+  \ (bumped)\n                7200       ; refresh\n                900        ; retry\n\
+  \                1209600    ; expire\n                3600 )     ; minimum (negative\
+  \ caching)\n@       IN NS   ns1.example.net.\n@       IN NS   ns2.example.net.\n\
+  @       IN CAA  0 issue \"letsencrypt.org\"\n\n; website: A/AAAA at the apex (or\
+  \ the provider's ALIAS/flattening), CNAME only below it\n@       IN A    192.0.2.10\n\
+  @       IN AAAA 2001:db8::10\nwww     IN CNAME bakery-site.example.net.\n_site-verification.www\
+  \ IN TXT \"site-verification=4f9c2a\"\nshop    IN CNAME shops.myshopify.com.\nblog\
+  \    IN A    192.0.2.44\nlegacy  IN A    192.0.2.45\n; intranet moved to the internal\
+  \ (split-horizon) view\n\n; mail\n@       IN MX 10 mail.example.com.\n@       IN\
+  \ MX 20 mx2.example.net.\nmail    IN A    192.0.2.25\n@       IN TXT  \"v=spf1 include:_spf.google.com\
+  \ include:sendgrid.net -all\"\n_dmarc  IN TXT  \"v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@example.com\"\
+  \ngoogle._domainkey IN TXT ( \"v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz7ouq6bH4GbHRPASRa3m/LiSvOKSZ7L7KZqE231EHY1s8FN9criBQkJXXmxkwPERQSVSyRIC4LjSpxwPTe6LEVhg7nrswTX1ktBbXMUmkgj8CPKV+yWzOsDOMk7kjqghuNWXD/R5K/mT7xbTiCaXztegoQi+\"\
+  \n                           \"kVXf0xuMmQYLxVthdjIz1h2PORFhtjzwKYbpaMKjq2BWKIaNtaGBxc2kaSLyPw8W65+A7XeLhtKT8zcteU72IpdmibNsHlkBR0Hb7rQgb+0LgNVqPvF/mm37PKFPQPrfWjjL/Fc1MQoCm8jO3kI0O5ssuP7KKO7ZjtT4ekeHytw23INuPh/Kw1LqzwIDAQAB\"\
+  \ )\n\x1FFILE:examples/lint-report.md\x1E\n# DNS record lint: example.com.zone\n\
+  \nZone: example.com.   Format: zone   Records: 19   Findings: 19 (HIGH 7, MEDIUM\
+  \ 8, LOW 4)\n\n| Sev | Code | Line | Name | Type | Problem | Fix |\n|---|---|---|---|---|---|---|\n\
+  | HIGH | SOA_RNAME_AT | 4 | @ | SOA | contact 'hostmaster@example.com.' contains\
+  \ '@'; in DNS it is written with a dot | write the contact as hostmaster.example.com.\
+  \ (first @ becomes a dot) |\n| LOW | SOA_NEGATIVE_TTL_HIGH | 4 | @ | SOA | SOA minimum\
+  \ 172800 s: a deleted-then-added name stays 'does not exist' in caches that long\
+  \ | set the SOA minimum (negative-caching TTL) to 300-3600 s |\n| HIGH | CNAME_AT_APEX\
+  \ | 14 | @ | CNAME | CNAME at the zone apex conflicts with the SOA and NS records\
+  \ there; mail and other lookups break | use A/AAAA records at the apex, or your\
+  \ provider's ALIAS/ANAME/CNAME-flattening record |\n| HIGH | CNAME_WITH_OTHER_DATA\
+  \ | 15 | www | CNAME | name has a CNAME and also TXT; resolvers return only the\
+  \ CNAME | a name with a CNAME may have no other records: move the other records\
+  \ or replace the CNAME with A/AAAA |\n| MEDIUM | TTL_TOO_LOW | 15 | www | CNAME\
+  \ | TTL 30 s: extra query load, slower lookups, and many resolvers raise it anyway\
+  \ | use 300 s or more for normal records (lower only for a planned change) |\n|\
+  \ MEDIUM | MAYBE_MISSING_TRAILING_DOT | 17 | shop | CNAME | 'shops.myshopify.com'\
+  \ looks like a full host name but has no trailing dot, so it means shops.myshopify.com.example.com.\
+  \ | if this is an outside host name, add the trailing dot |\n| LOW | DUPLICATE_RECORD\
+  \ | 19 | blog | A | same as line 18 | delete the duplicate |\n| MEDIUM | TTL_TOO_HIGH\
+  \ | 20 | legacy | A | TTL 1209600 s (14 days): a wrong value stays cached that long\
+  \ | use 1 h to 1 day; above a week, mistakes take a week to undo |\n| MEDIUM | PRIVATE_ADDRESS\
+  \ | 21 | intranet | A | 10.0.4.12 is a private/loopback address; outside users cannot\
+  \ reach it and it reveals internal layout | do not publish private/loopback addresses\
+  \ in a public zone (use split-horizon DNS if needed) |\n| HIGH | MISSING_TRAILING_DOT\
+  \ | 24 | @ | MX | 'mail.example.com' has no trailing dot, so it means mail.example.com.example.com.\
+  \ | end fully qualified names with a dot (mail.example.com.) or write the relative\
+  \ form (mail) |\n| MEDIUM | DANGLING_TARGET | 24 | @ | MX | MX target mail has no\
+  \ records in this zone | add the missing in-zone record or fix the target name |\n\
+  | HIGH | MX_TO_CNAME | 25 | @ | MX | MX target backupmx is a CNAME (not allowed,\
+  \ RFC 2181 10.3) | point MX at a name with A/AAAA records (the CNAME's final target)\
+  \ |\n| HIGH | SPF_MULTIPLE | 28 | @ | TXT | 2 v=spf1 records at this name (lines\
+  \ 27, 28) | merge into ONE v=spf1 record; two records make every SPF check fail\
+  \ (permerror) |\n| MEDIUM | SPF_NEUTRAL_ALL | 28 | @ | TXT | '?all' is neutral:\
+  \ unauthorized senders are not marked | use ~all or -all; ?all gives receivers no\
+  \ signal |\n| HIGH | DMARC_WRONG_NAME | 29 | dmarc | TXT | DMARC record is not at\
+  \ _dmarc.<domain>, so receivers never see it | DMARC is only read from _dmarc.<domain>;\
+  \ move the record there |\n| LOW | DKIM_1024_KEY | 30 | google._domainkey | TXT\
+  \ | RSA key is 1024 bits; 2048 is the current recommendation | plan rotation to\
+  \ a 2048-bit key |\n| MEDIUM | DKIM_REVOKED | 31 | s2019._domainkey | TXT | p= is\
+  \ empty: this selector is revoked and mail signed with it fails DKIM | empty p=\
+  \ revokes the key; remove the record if the selector is retired, or publish the\
+  \ new key |\n| MEDIUM | DMARC_MISSING | - | _dmarc | TXT | no DMARC record: receivers\
+  \ cannot tell spoofed mail from yours, and Gmail/Yahoo require DMARC for bulk senders\
+  \ | add TXT at _dmarc: \"v=DMARC1; p=none; rua=mailto:dmarc@<domain>\" then move\
+  \ to quarantine/reject |\n| LOW | CAA_MISSING | - | @ | CAA | no CAA record: any\
+  \ public CA may issue certificates for this domain | optional hardening: CAA 0 issue\
+  \ \"<your CA>\" limits who may issue certificates |\n\n## Out-of-zone targets to\
+  \ check live (no network calls were made)\n\n| Target | Used by |\n|---|---|\n|\
+  \ bakery-site.example.net. | @ CNAME (line 14); www CNAME (line 15) |\n| mx2.example.net.\
+  \ | backupmx CNAME (line 26) |\n| ns1.example.net. | @ NS (line 10) |\n| ns2.example.net.\
+  \ | @ NS (line 11) |\n| shops.myshopify.com. | shop CNAME (line 17) |\n\x1FFILE:scripts/dns_lint.py\x1E\
+  \n#!/usr/bin/env python3\n\"\"\"DNS zone record linter (Python 3.8+ standard library\
+  \ only, works offline).\n\nReads a BIND-style zone file or a CSV record list exported\
+  \ from a DNS provider and\nreports common mistakes before they break web or mail\
+  \ delivery:\nCNAME at the apex or next to other records, MX/NS pointing at a CNAME\
+  \ or an IP,\nmissing trailing dots (mail.example.com -> mail.example.com.example.com.),\
+  \ missing or\nduplicate SPF, SPF syntax, +all/?all and the 10-lookup limit, DMARC\
+  \ and DKIM presence\nand syntax, weak or revoked DKIM keys, TTL extremes, private\
+  \ addresses in a public\nzone, SOA mistakes, duplicate records, and domains that\
+  \ send no mail but have no\n\"no mail\" policy. Out-of-zone targets are listed for\
+  \ a separate live check.\n\nUsage:\n  python3 dns_lint.py example.com.zone [--origin\
+  \ example.com] [--json]\n        [--min-severity LOW|MEDIUM|HIGH] [--ignore CODE,CODE]\n\
+  \  python3 dns_lint.py records.csv --origin example.com      (CSV columns: name,type,value[,ttl][,priority])\n\
+  \  python3 dns_lint.py --self-test\nZone files: $ORIGIN, $TTL, @, relative names,\
+  \ blank owner (repeat previous), optional\nTTL/class in either order, ( ) multi-line\
+  \ records, ; comments, quoted TXT strings.\nExit codes: 0 = no HIGH findings, 1\
+  \ = HIGH findings, 2 = bad input.\n\"\"\"\nimport argparse, base64, csv, io, ipaddress,\
+  \ json, os, re, sys\n\nSEVERITIES = [\"LOW\", \"MEDIUM\", \"HIGH\"]\nCLASSES = {\"\
+  IN\", \"CH\", \"HS\"}\nTYPES = {\"A\", \"AAAA\", \"CNAME\", \"MX\", \"NS\", \"TXT\"\
+  , \"SPF\", \"SOA\", \"SRV\", \"CAA\", \"PTR\", \"DNAME\",\n         \"ALIAS\", \"\
+  ANAME\", \"DS\", \"DNSKEY\", \"RRSIG\", \"NSEC\", \"NSEC3\", \"NSEC3PARAM\", \"\
+  HTTPS\",\n         \"SVCB\", \"TLSA\", \"NAPTR\", \"SSHFP\", \"LOC\", \"HINFO\"\
+  , \"CDS\", \"CDNSKEY\"}\nDNSSEC_TYPES = {\"RRSIG\", \"NSEC\", \"NSEC3\", \"KEY\"\
+  }\nTARGET_TYPES = {\"CNAME\": -1, \"MX\": 1, \"NS\": 0, \"PTR\": 0, \"DNAME\": 0,\
+  \ \"SRV\": 3, \"ALIAS\": 0, \"ANAME\": 0}\nCOMMON_TLDS = set(\"com net org edu gov\
+  \ mil int io co dev app ai info biz me tv cloud xyz site online \"\n           \
+  \       \"shop store tech us uk de fr nl eu es it se no dk fi pl cz at ch be pt\
+  \ ie tr ru \"\n                  \"jp cn kr in au nz ca br mx ar za sg hk tw\".split())\n\
+  INTERNAL_NETS = [ipaddress.ip_network(n) for n in (\n    \"10.0.0.0/8\", \"172.16.0.0/12\"\
+  , \"192.168.0.0/16\", \"100.64.0.0/10\", \"127.0.0.0/8\", \"169.254.0.0/16\",\n\
+  \    \"0.0.0.0/8\", \"::1/128\", \"::/128\", \"fc00::/7\", \"fe80::/10\")]  # documentation\
+  \ ranges (192.0.2.0/24, 2001:db8::/32) are allowed\nSPF_LOOKUP_TERMS = (\"include\"\
+  , \"a\", \"mx\", \"ptr\", \"exists\", \"redirect\")\n\nFIXES = {\n    \"CNAME_AT_APEX\"\
+  : \"use A/AAAA records at the apex, or your provider's ALIAS/ANAME/CNAME-flattening\
+  \ record\",\n    \"CNAME_WITH_OTHER_DATA\": \"a name with a CNAME may have no other\
+  \ records: move the other records or replace the CNAME with A/AAAA\",\n    \"MULTIPLE_CNAME\"\
+  : \"keep exactly one CNAME for the name\",\n    \"MX_TO_CNAME\": \"point MX at a\
+  \ name with A/AAAA records (the CNAME's final target)\",\n    \"NS_TO_CNAME\": \"\
+  point NS at the name server's real host name (A/AAAA)\",\n    \"TARGET_IS_IP\":\
+  \ \"use a host name here and give that host an A/AAAA record\",\n    \"MISSING_TRAILING_DOT\"\
+  : \"end fully qualified names with a dot (mail.example.com.) or write the relative\
+  \ form (mail)\",\n    \"MAYBE_MISSING_TRAILING_DOT\": \"if this is an outside host\
+  \ name, add the trailing dot\",\n    \"OWNER_DOUBLED_ORIGIN\": \"end the owner name\
+  \ with a dot or write it relative (www)\",\n    \"DANGLING_TARGET\": \"add the missing\
+  \ in-zone record or fix the target name\",\n    \"CNAME_CHAIN\": \"point straight\
+  \ at the final name; chains add lookups and break when one link changes\",\n   \
+  \ \"MX_TARGET_NO_ADDRESS\": \"add A/AAAA records for the mail host\",\n    \"NULL_MX_WITH_OTHERS\"\
+  : \"a null MX ('0 .') must be the only MX; remove it or the others\",\n    \"SPF_MISSING\"\
+  : \"publish one TXT \\\"v=spf1 ... -all\\\" (or ~all while testing) listing every\
+  \ service that sends as this domain\",\n    \"SPF_MULTIPLE\": \"merge into ONE v=spf1\
+  \ record; two records make every SPF check fail (permerror)\",\n    \"SPF_TYPE99\"\
+  : \"delete the SPF-type record; only the TXT record is used (RFC 7208)\",\n    \"\
+  SPF_SYNTAX\": \"fix the term; one bad term makes the whole record a permerror\"\
+  ,\n    \"SPF_PASS_ALL\": \"end with -all (or ~all while testing); +all lets anyone\
+  \ send as you\",\n    \"SPF_NEUTRAL_ALL\": \"use ~all or -all; ?all gives receivers\
+  \ no signal\",\n    \"SPF_NO_ALL\": \"end the record with -all or ~all (or redirect=)\"\
+  ,\n    \"SPF_TERMS_AFTER_ALL\": \"move 'all' to the end; terms after it are ignored\"\
+  ,\n    \"SPF_TOO_MANY_LOOKUPS\": \"flatten or remove includes, drop a/mx/ptr terms\
+  \ you do not need; nested includes count too\",\n    \"SPF_LOOKUPS_NEAR_LIMIT\"\
+  : \"count nested includes with a live checker; they add to this number\",\n    \"\
+  SPF_PTR\": \"replace ptr with ip4/ip6 or include (ptr is deprecated and slow)\"\
+  ,\n    \"TXT_STRING_TOO_LONG\": \"split into quoted chunks of at most 255 characters:\
+  \ \\\"part1\\\" \\\"part2\\\"\",\n    \"DMARC_MISSING\": \"add TXT at _dmarc: \\\
+  \"v=DMARC1; p=none; rua=mailto:dmarc@<domain>\\\" then move to quarantine/reject\"\
+  ,\n    \"DMARC_MULTIPLE\": \"keep one DMARC record; with two, receivers ignore DMARC\
+  \ entirely\",\n    \"DMARC_SYNTAX\": \"start with v=DMARC1; and include p=none|quarantine|reject\"\
+  ,\n    \"DMARC_WRONG_NAME\": \"DMARC is only read from _dmarc.<domain>; move the\
+  \ record there\",\n    \"DMARC_MONITOR_ONLY\": \"after reviewing reports, move to\
+  \ p=quarantine, then p=reject\",\n    \"DMARC_NO_RUA\": \"add rua=mailto:... so\
+  \ you get aggregate reports\",\n    \"DMARC_PARTIAL_PCT\": \"raise pct to 100 once\
+  \ reports look clean\",\n    \"DKIM_NOT_FOUND\": \"publish the DKIM selector record(s)\
+  \ your mail provider gives you (<selector>._domainkey)\",\n    \"DKIM_WRONG_NAME\"\
+  : \"DKIM keys live at <selector>._domainkey.<domain>\",\n    \"DKIM_REVOKED\": \"\
+  empty p= revokes the key; remove the record if the selector is retired, or publish\
+  \ the new key\",\n    \"DKIM_BAD_KEY\": \"copy the key again from the provider (base64,\
+  \ no spaces or quotes inside)\",\n    \"DKIM_WEAK_KEY\": \"rotate to a 2048-bit\
+  \ RSA key (or add an ed25519 selector alongside RSA)\",\n    \"DKIM_1024_KEY\":\
+  \ \"plan rotation to a 2048-bit key\",\n    \"NO_MAIL_POLICY\": \"for a domain that\
+  \ never sends mail: MX 0 . , TXT \\\"v=spf1 -all\\\" and _dmarc \\\"v=DMARC1; p=reject\\\
+  \"\",\n    \"NULL_MX_SPF_NOT_FAIL\": \"a no-mail domain should publish \\\"v=spf1\
+  \ -all\\\"\",\n    \"TTL_TOO_LOW\": \"use 300 s or more for normal records (lower\
+  \ only for a planned change)\",\n    \"TTL_TOO_HIGH\": \"use 1 h to 1 day; above\
+  \ a week, mistakes take a week to undo\",\n    \"TTL_INVALID\": \"TTL must be 0..2147483647\
+  \ seconds\",\n    \"NO_DEFAULT_TTL\": \"add $TTL at the top of the zone (e.g. $TTL\
+  \ 3600)\",\n    \"SOA_MISSING\": \"a zone file needs exactly one SOA at the apex\"\
+  ,\n    \"SOA_RNAME_AT\": \"write the contact as hostmaster.example.com. (first @\
+  \ becomes a dot)\",\n    \"SOA_NEGATIVE_TTL_HIGH\": \"set the SOA minimum (negative-caching\
+  \ TTL) to 300-3600 s\",\n    \"NS_MISSING\": \"list the zone's name servers as NS\
+  \ records at the apex\",\n    \"NS_SINGLE\": \"use at least two name servers on\
+  \ separate networks\",\n    \"BAD_ADDRESS\": \"fix the address\",\n    \"WRONG_ADDRESS_FAMILY\"\
+  : \"A takes IPv4, AAAA takes IPv6\",\n    \"PRIVATE_ADDRESS\": \"do not publish\
+  \ private/loopback addresses in a public zone (use split-horizon DNS if needed)\"\
+  ,\n    \"DUPLICATE_RECORD\": \"delete the duplicate\",\n    \"CAA_MISSING\": \"\
+  optional hardening: CAA 0 issue \\\"<your CA>\\\" limits who may issue certificates\"\
+  ,\n    \"UNKNOWN_TYPE\": \"check the record type spelling\",\n    \"PARSE_ERROR\"\
+  : \"fix the line syntax\",\n    \"INCLUDE_NOT_FOLLOWED\": \"lint the included file\
+  \ separately\",\n}\n\n\nclass InputError(Exception):\n    pass\n\n\nclass Rec:\n\
+  \    __slots__ = (\"line\", \"name\", \"raw_name\", \"ttl\", \"type\", \"rdata\"\
+  , \"raw\")\n\n    def __init__(self, line, name, raw_name, ttl, rtype, rdata, raw):\n\
+  \        self.line, self.name, self.raw_name, self.ttl = line, name, raw_name, ttl\n\
+  \        self.type, self.rdata, self.raw = rtype, rdata, raw\n\n\ndef parse_ttl(tok):\n\
+  \    t = tok.lower()\n    if t.isdigit():\n        return int(t)\n    m = re.fullmatch(r\"\
+  ((\\d+)[wdhms])+\", t)\n    if not m:\n        return None\n    mult = {\"w\": 604800,\
+  \ \"d\": 86400, \"h\": 3600, \"m\": 60, \"s\": 1}\n    return sum(int(n) * mult[u]\
+  \ for n, u in re.findall(r\"(\\d+)([wdhms])\", t))\n\n\ndef tokenize(text):\n  \
+  \  \"\"\"Split one logical line into tokens; quoted strings keep their quotes.\"\
+  \"\"\n    toks, i, n = [], 0, len(text)\n    while i < n:\n        c = text[i]\n\
+  \        if c.isspace():\n            i += 1\n        elif c == '\"':\n        \
+  \    j, buf = i + 1, ['\"']\n            while j < n and text[j] != '\"':\n    \
+  \            if text[j] == \"\\\\\" and j + 1 < n:\n                    buf.append(text[j:j\
+  \ + 2]); j += 2; continue\n                buf.append(text[j]); j += 1\n       \
+  \     if j >= n:\n                raise InputError(\"unterminated quoted string\"\
+  )\n            buf.append('\"'); toks.append(\"\".join(buf)); i = j + 1\n      \
+  \  else:\n            j = i\n            while j < n and not text[j].isspace() and\
+  \ text[j] != '\"':\n                j += 1\n            toks.append(text[i:j]);\
+  \ i = j\n    return toks\n\n\ndef strip_comment(line):\n    out, inq, i = [], False,\
+  \ 0\n    while i < len(line):\n        c = line[i]\n        if c == \"\\\\\" and\
+  \ i + 1 < len(line):\n            out.append(line[i:i + 2]); i += 2; continue\n\
+  \        if c == '\"':\n            inq = not inq\n        elif c == \";\" and not\
+  \ inq:\n            break\n        out.append(c); i += 1\n    return \"\".join(out)\n\
+  \n\ndef logical_lines(text):\n    \"\"\"Yield (line_no, starts_with_space, content)\
+  \ joining ( ... ) groups.\"\"\"\n    buf, start, depth, lead = [], 0, 0, False\n\
+  \    for no, line in enumerate(text.splitlines(), 1):\n        body = strip_comment(line)\n\
+  \        if depth == 0:\n            if not body.strip():\n                continue\n\
+  \            start, lead, buf = no, body[:1].isspace(), []\n        inq = False\n\
+  \        clean = []\n        for c in body:\n            if c == '\"':\n       \
+  \         inq = not inq\n            if not inq and c in \"()\":\n             \
+  \   depth += 1 if c == \"(\" else -1\n                clean.append(\" \")\n    \
+  \            continue\n            clean.append(c)\n        buf.append(\"\".join(clean))\n\
+  \        if depth <= 0:\n            depth = 0\n            yield start, lead, \"\
+  \ \".join(buf)\n    if depth > 0:\n        raise InputError(f\"line {start}: '('\
+  \ is never closed\")\n\n\ndef absname(raw, origin):\n    if raw == \"@\":\n    \
+  \    return origin\n    if raw.endswith(\".\"):\n        return raw.lower()\n  \
+  \  return (raw + \".\" + origin).lower() if origin != \".\" else raw.lower() + \"\
+  .\"\n\n\ndef parse_zone(text, origin, findings):\n    recs, last_owner, default_ttl,\
+  \ have_ttl_directive = [], None, None, False\n    for no, lead, content in logical_lines(text):\n\
+  \        toks = tokenize(content)\n        if not toks:\n            continue\n\
+  \        if toks[0].upper() == \"$ORIGIN\":\n            if len(toks) < 2:\n   \
+  \             raise InputError(f\"line {no}: $ORIGIN needs a name\")\n         \
+  \   origin = absname(toks[1], origin) if not toks[1].endswith(\".\") else toks[1].lower()\n\
+  \            continue\n        if toks[0].upper() == \"$TTL\":\n            v =\
+  \ parse_ttl(toks[1]) if len(toks) > 1 else None\n            if v is None:\n   \
+  \             raise InputError(f\"line {no}: bad $TTL\")\n            default_ttl,\
+  \ have_ttl_directive = v, True\n            continue\n        if toks[0].upper()\
+  \ == \"$INCLUDE\":\n            add(findings, \"LOW\", \"INCLUDE_NOT_FOLLOWED\"\
+  , no, \"\", \"\", f\"$INCLUDE {toks[1] if len(toks) > 1 else ''} was not read\"\
+  )\n            continue\n        if lead:\n            if last_owner is None:\n\
+  \                raise InputError(f\"line {no}: record has no owner name and there\
+  \ is no previous one\")\n            raw_owner = None\n        else:\n         \
+  \   raw_owner = toks.pop(0)\n        ttl, rtype = None, None\n        while toks:\n\
+  \            t = toks[0]\n            if t.upper() in CLASSES:\n               \
+  \ toks.pop(0); continue\n            v = parse_ttl(t)\n            if v is not None\
+  \ and ttl is None and not t.upper() in TYPES:\n                ttl = v; toks.pop(0);\
+  \ continue\n            break\n        if not toks:\n            add(findings, \"\
+  HIGH\", \"PARSE_ERROR\", no, raw_owner or \"\", \"\", f\"no record type in '{content.strip()}'\"\
+  )\n            continue\n        rtype = toks.pop(0).upper()\n        if rtype not\
+  \ in TYPES and not re.fullmatch(r\"TYPE\\d+\", rtype):\n            add(findings,\
+  \ \"MEDIUM\", \"UNKNOWN_TYPE\", no, raw_owner or \"\", rtype, f\"unknown record\
+  \ type '{rtype}'\")\n        if raw_owner is not None:\n            name = absname(raw_owner,\
+  \ origin)\n            last_owner = (name, raw_owner)\n        name, raw_name =\
+  \ last_owner\n        recs.append(Rec(no, name, raw_name, ttl, rtype, toks, content.strip()))\n\
+  \    return recs, origin, default_ttl, have_ttl_directive\n\n\ndef parse_csv(text,\
+  \ origin, findings):\n    rows = list(csv.DictReader(io.StringIO(text)))\n    if\
+  \ not rows:\n        raise InputError(\"CSV has no rows\")\n    cols = {c.lower().strip():\
+  \ c for c in rows[0].keys() if c}\n    for need in (\"name\", \"type\", \"value\"\
+  ):\n        if need not in cols:\n            raise InputError(f\"CSV needs columns\
+  \ name,type,value[,ttl][,priority] (missing '{need}')\")\n    recs = []\n    base\
+  \ = origin.rstrip(\".\")\n    for i, r in enumerate(rows, 2):\n        g = lambda\
+  \ k: (r.get(cols[k]) or \"\").strip() if k in cols else \"\"\n        raw = g(\"\
+  name\") or \"@\"\n        low = raw.lower().rstrip(\".\")\n        if raw == \"\
+  @\" or low == base:\n            name = origin\n        elif low.endswith(\".\"\
+  \ + base):\n            name = low + \".\"\n        else:\n            name = low\
+  \ + \".\" + origin\n        rtype = g(\"type\").upper()\n        value = g(\"value\"\
+  )\n        ttl = parse_ttl(g(\"ttl\")) if g(\"ttl\") else None\n        if rtype\
+  \ in (\"TXT\", \"SPF\"):\n            v = value\n            if not v.startswith('\"\
+  '):\n                v = '\"' + v.replace('\"', '\\\\\"') + '\"'\n            toks\
+  \ = tokenize(v)\n        else:\n            toks = value.split()\n            if\
+  \ rtype in TARGET_TYPES and toks:  # provider UIs show host names without the dot\n\
+  \                idx = TARGET_TYPES[rtype]\n                if rtype == \"MX\" and\
+  \ len(toks) == 1:\n                    toks = [g(\"priority\") or \"10\"] + toks\n\
+  \                if rtype == \"SRV\" and len(toks) == 3 and g(\"priority\"):\n \
+  \                   toks = [g(\"priority\")] + toks\n                k = len(toks)\
+  \ - 1 if idx == -1 else min(idx, len(toks) - 1)\n                if not toks[k].endswith(\"\
+  .\") and toks[k] != \"@\":\n                    toks[k] += \".\"\n        recs.append(Rec(i,\
+  \ name, raw, ttl, rtype, toks, \",\".join(r.get(c) or \"\" for c in r)))\n    return\
+  \ recs, origin\n\n\ndef add(findings, sev, code, line, name, rtype, problem):\n\
+  \    findings.append({\"severity\": sev, \"code\": code, \"line\": line, \"name\"\
+  : name, \"type\": rtype,\n                     \"problem\": problem, \"fix\": FIXES.get(code,\
+  \ \"\")})\n\n\ndef txt_strings(rec):\n    out = []\n    for t in rec.rdata:\n  \
+  \      if t.startswith('\"') and t.endswith('\"'):\n            out.append(re.sub(r\"\
+  \\\\(.)\", r\"\\1\", t[1:-1]))\n        else:\n            out.append(t)\n    return\
+  \ out\n\n\ndef short(name, origin):\n    if name == origin:\n        return \"@\"\
+  \n    if name.endswith(\".\" + origin):\n        return name[: -len(origin) - 1]\n\
+  \    return name\n\n\ndef lint(text, origin=None, fmt=None, filename=\"\"):\n  \
+  \  findings = []\n    if fmt is None:\n        fmt = \"csv\" if filename.lower().endswith(\"\
+  .csv\") or text.lstrip().lower().startswith(\"name,\") else \"zone\"\n    if origin\
+  \ is None:\n        m = re.search(r\"^\\$ORIGIN\\s+(\\S+)\", text, re.M | re.I)\n\
+  \        if m:\n            origin = m.group(1)\n        elif filename:\n      \
+  \      b = os.path.basename(filename)\n            for suf in (\".zone\", \".db\"\
+  , \".txt\", \".csv\"):\n                if b.lower().endswith(suf):\n          \
+  \          b = b[: -len(suf)]\n            for pre in (\"db.\",):\n            \
+  \    if b.startswith(pre):\n                    b = b[len(pre):]\n            origin\
+  \ = b if \".\" in b else None\n        if not origin:\n            raise InputError(\"\
+  cannot tell the zone name: add $ORIGIN or pass --origin example.com\")\n    origin\
+  \ = origin.lower().rstrip(\".\") + \".\"\n    if fmt == \"csv\":\n        recs,\
+  \ origin = parse_csv(text, origin, findings)\n        default_ttl, have_ttl = None,\
+  \ True\n    else:\n        recs, origin, default_ttl, have_ttl = parse_zone(text,\
+  \ origin, findings)\n    base = origin.rstrip(\".\")\n    by_name = {}\n    for\
+  \ r in recs:\n        by_name.setdefault(r.name, []).append(r)\n    types_at = lambda\
+  \ n: {r.type for r in by_name.get(n, [])}\n    in_zone = lambda n: n == origin or\
+  \ n.endswith(\".\" + origin)\n    externals = {}\n\n    # SOA / NS / TTL\n    soa\
+  \ = [r for r in recs if r.type == \"SOA\"]\n    if fmt == \"zone\":\n        if\
+  \ not soa:\n            add(findings, \"MEDIUM\", \"SOA_MISSING\", 0, \"@\", \"\
+  SOA\", \"no SOA record in the zone file\")\n        for r in soa:\n            if\
+  \ len(r.rdata) >= 7:\n                rname = r.rdata[1]\n                if \"\
+  @\" in rname:\n                    add(findings, \"HIGH\", \"SOA_RNAME_AT\", r.line,\
+  \ short(r.name, origin), \"SOA\", f\"contact '{rname}' contains '@'; in DNS it is\
+  \ written with a dot\")\n                neg = parse_ttl(r.rdata[6])\n         \
+  \       if neg is not None and neg > 86400:\n                    add(findings, \"\
+  LOW\", \"SOA_NEGATIVE_TTL_HIGH\", r.line, short(r.name, origin), \"SOA\", f\"SOA\
+  \ minimum {neg} s: a deleted-then-added name stays 'does not exist' in caches that\
+  \ long\")\n                if default_ttl is None and neg is not None:\n       \
+  \             default_ttl = neg\n            else:\n                add(findings,\
+  \ \"HIGH\", \"PARSE_ERROR\", r.line, short(r.name, origin), \"SOA\", \"SOA needs\
+  \ 7 fields: mname rname serial refresh retry expire minimum\")\n        ns_apex\
+  \ = [r for r in by_name.get(origin, []) if r.type == \"NS\"]\n        if not ns_apex:\n\
+  \            add(findings, \"MEDIUM\", \"NS_MISSING\", 0, \"@\", \"NS\", \"no NS\
+  \ records at the apex\")\n        elif len(ns_apex) == 1:\n            add(findings,\
+  \ \"MEDIUM\", \"NS_SINGLE\", ns_apex[0].line, \"@\", \"NS\", \"only one name server:\
+  \ if it is down, the whole domain is down\")\n        if not have_ttl:\n       \
+  \     add(findings, \"LOW\", \"NO_DEFAULT_TTL\", 0, \"\", \"\", \"no $TTL directive;\
+  \ records without a TTL fall back to the SOA minimum or the server default\")\n\n\
+  \    for r in recs:\n        ttl = r.ttl if r.ttl is not None else default_ttl\n\
+  \        if ttl is None:\n            continue\n        nm = short(r.name, origin)\n\
+  \        if ttl > 2147483647:\n            add(findings, \"HIGH\", \"TTL_INVALID\"\
+  , r.line, nm, r.type, f\"TTL {ttl} is above 2147483647\")\n        elif ttl > 604800:\n\
+  \            add(findings, \"MEDIUM\", \"TTL_TOO_HIGH\", r.line, nm, r.type, f\"\
+  TTL {ttl} s ({ttl // 86400} days): a wrong value stays cached that long\")\n   \
+  \     elif ttl < 60 and not r.name.startswith(\"_acme-challenge.\"):\n         \
+  \   add(findings, \"MEDIUM\", \"TTL_TOO_LOW\", r.line, nm, r.type, f\"TTL {ttl}\
+  \ s: extra query load, slower lookups, and many resolvers raise it anyway\")\n\n\
+  \    # owner names that repeat the origin\n    for r in recs:\n        if fmt ==\
+  \ \"zone\" and r.raw_name not in (None, \"@\") and not r.raw_name.endswith(\".\"\
+  ) and \\\n                (r.raw_name.lower() == base or r.raw_name.lower().endswith(\"\
+  .\" + base)):\n            add(findings, \"HIGH\", \"OWNER_DOUBLED_ORIGIN\", r.line,\
+  \ r.raw_name, r.type, f\"owner '{r.raw_name}' has no trailing dot, so it becomes\
+  \ {r.name}\")\n\n    # CNAME rules\n    for n, rs in by_name.items():\n        cn\
+  \ = [r for r in rs if r.type == \"CNAME\"]\n        if not cn:\n            continue\n\
+  \        nm = short(n, origin)\n        if n == origin:\n            add(findings,\
+  \ \"HIGH\", \"CNAME_AT_APEX\", cn[0].line, nm, \"CNAME\", \"CNAME at the zone apex\
+  \ conflicts with the SOA and NS records there; mail and other lookups break\")\n\
+  \        others = sorted({r.type for r in rs if r.type not in (\"CNAME\",) and r.type\
+  \ not in DNSSEC_TYPES})\n        if others and n != origin:\n            add(findings,\
+  \ \"HIGH\", \"CNAME_WITH_OTHER_DATA\", cn[0].line, nm, \"CNAME\", f\"name has a\
+  \ CNAME and also {', '.join(others)}; resolvers return only the CNAME\")\n     \
+  \   if len(cn) > 1:\n            add(findings, \"HIGH\", \"MULTIPLE_CNAME\", cn[1].line,\
+  \ nm, \"CNAME\", f\"{len(cn)} CNAME records for one name\")\n\n    # targets\n \
+  \   for r in recs:\n        if r.type not in TARGET_TYPES or not r.rdata:\n    \
+  \        continue\n        idx = TARGET_TYPES[r.type]\n        if r.type == \"MX\"\
+  \ and len(r.rdata) < 2 or r.type == \"SRV\" and len(r.rdata) < 4:\n            add(findings,\
+  \ \"HIGH\", \"PARSE_ERROR\", r.line, short(r.name, origin), r.type, f\"{r.type}\
+  \ needs \" + (\"preference and host\" if r.type == \"MX\" else \"priority weight\
+  \ port target\"))\n            continue\n        raw = r.rdata[idx] if idx >= 0\
+  \ else r.rdata[-1]\n        nm = short(r.name, origin)\n        if r.type == \"\
+  MX\" and raw == \".\":\n            continue\n        try:\n            ipaddress.ip_address(raw.rstrip(\"\
+  .\"))\n            add(findings, \"HIGH\", \"TARGET_IS_IP\", r.line, nm, r.type,\
+  \ f\"{r.type} target '{raw}' is an IP address; {r.type} must name a host\")\n  \
+  \          continue\n        except ValueError:\n            pass\n        tgt =\
+  \ absname(raw, origin)\n        if fmt == \"zone\" and raw != \"@\" and not raw.endswith(\"\
+  .\"):\n            low = raw.lower()\n            if low == base or low.endswith(\"\
+  .\" + base):\n                add(findings, \"HIGH\", \"MISSING_TRAILING_DOT\",\
+  \ r.line, nm, r.type, f\"'{raw}' has no trailing dot, so it means {absname(raw,\
+  \ origin)}\")\n                tgt = low + \".\"  # check the name that was meant\n\
+  \            elif \".\" in low and low.rsplit(\".\", 1)[1] in COMMON_TLDS:\n   \
+  \             add(findings, \"MEDIUM\", \"MAYBE_MISSING_TRAILING_DOT\", r.line,\
+  \ nm, r.type, f\"'{raw}' looks like a full host name but has no trailing dot, so\
+  \ it means {absname(raw, origin)}\")\n                tgt = low + \".\"\n      \
+  \  if in_zone(tgt):\n            tt = types_at(tgt)\n            if r.type in (\"\
+  MX\", \"NS\", \"SRV\") and \"CNAME\" in tt:\n                code = {\"MX\": \"\
+  MX_TO_CNAME\", \"NS\": \"NS_TO_CNAME\", \"SRV\": \"MX_TO_CNAME\"}[r.type]\n    \
+  \            add(findings, \"HIGH\", code, r.line, nm, r.type, f\"{r.type} target\
+  \ {short(tgt, origin)} is a CNAME (not allowed, RFC 2181 10.3)\")\n            elif\
+  \ r.type == \"CNAME\" and \"CNAME\" in tt:\n                add(findings, \"LOW\"\
+  , \"CNAME_CHAIN\", r.line, nm, r.type, f\"CNAME to {short(tgt, origin)}, which is\
+  \ itself a CNAME\")\n            elif not tt:\n                # wildcard or a deeper/glue\
+  \ name may exist elsewhere; only flag when no wildcard covers it\n             \
+  \   wild = \"*.\" + tgt.split(\".\", 1)[1] if \".\" in tgt else \"\"\n         \
+  \       if wild not in by_name:\n                    add(findings, \"MEDIUM\", \"\
+  DANGLING_TARGET\", r.line, nm, r.type, f\"{r.type} target {short(tgt, origin)} has\
+  \ no records in this zone\")\n            elif r.type == \"MX\" and not (tt & {\"\
+  A\", \"AAAA\"}):\n                add(findings, \"MEDIUM\", \"MX_TARGET_NO_ADDRESS\"\
+  , r.line, nm, r.type, f\"mail host {short(tgt, origin)} has no A/AAAA record\")\n\
+  \        else:\n            externals.setdefault(tgt, []).append(f\"{nm} {r.type}\
+  \ (line {r.line})\")\n\n    # addresses\n    for r in recs:\n        if r.type not\
+  \ in (\"A\", \"AAAA\") or not r.rdata:\n            continue\n        nm = short(r.name,\
+  \ origin)\n        try:\n            ip = ipaddress.ip_address(r.rdata[0])\n   \
+  \     except ValueError:\n            add(findings, \"HIGH\", \"BAD_ADDRESS\", r.line,\
+  \ nm, r.type, f\"'{r.rdata[0]}' is not an IP address\")\n            continue\n\
+  \        if (r.type == \"A\") != (ip.version == 4):\n            add(findings, \"\
+  HIGH\", \"WRONG_ADDRESS_FAMILY\", r.line, nm, r.type, f\"{r.type} record holds an\
+  \ IPv{ip.version} address\")\n        elif any(ip in n for n in INTERNAL_NETS if\
+  \ n.version == ip.version):\n            add(findings, \"MEDIUM\", \"PRIVATE_ADDRESS\"\
+  , r.line, nm, r.type, f\"{ip} is a private/loopback address; outside users cannot\
+  \ reach it and it reveals internal layout\")\n\n    # duplicates\n    seen = {}\n\
+  \    for r in recs:\n        key = (r.name, r.type, \" \".join(x.lower() for x in\
+  \ r.rdata))\n        if key in seen:\n            add(findings, \"LOW\", \"DUPLICATE_RECORD\"\
+  , r.line, short(r.name, origin), r.type, f\"same as line {seen[key]}\")\n      \
+  \  else:\n            seen[key] = r.line\n\n    # TXT string length (zone files\
+  \ only: each quoted string max 255)\n    if fmt == \"zone\":\n        for r in recs:\n\
+  \            if r.type in (\"TXT\", \"SPF\"):\n                for s in txt_strings(r):\n\
+  \                    if len(s.encode()) > 255:\n                        add(findings,\
+  \ \"HIGH\", \"TXT_STRING_TOO_LONG\", r.line, short(r.name, origin), r.type, f\"\
+  one quoted string is {len(s.encode())} bytes (max 255); the server rejects the zone\
+  \ or truncates it\")\n                        break\n\n    # mail: MX, SPF, DMARC,\
+  \ DKIM\n    txt_by_name = {}\n    for r in recs:\n        if r.type == \"TXT\":\n\
+  \            txt_by_name.setdefault(r.name, []).append((r, \"\".join(txt_strings(r))))\n\
+  \    for r in recs:\n        if r.type == \"SPF\":\n            add(findings, \"\
+  LOW\", \"SPF_TYPE99\", r.line, short(r.name, origin), \"SPF\", \"SPF-type (99) record\
+  \ is obsolete and ignored\")\n    spf_at = {}\n    for n, items in txt_by_name.items():\n\
+  \        for r, s in items:\n            if re.match(r\"(?i)v=spf1(\\s|$)\", s):\n\
+  \                spf_at.setdefault(n, []).append((r, s))\n            if re.match(r\"\
+  (?i)v=dmarc1\", s) and not n.startswith(\"_dmarc.\"):\n                add(findings,\
+  \ \"HIGH\", \"DMARC_WRONG_NAME\", r.line, short(n, origin), \"TXT\", \"DMARC record\
+  \ is not at _dmarc.<domain>, so receivers never see it\")\n            if re.match(r\"\
+  (?i)v=dkim1\", s) and \"._domainkey.\" not in \".\" + n:\n                add(findings,\
+  \ \"HIGH\", \"DKIM_WRONG_NAME\", r.line, short(n, origin), \"TXT\", \"DKIM key is\
+  \ not under <selector>._domainkey, so signatures cannot be verified\")\n    for\
+  \ n, items in spf_at.items():\n        nm = short(n, origin)\n        if len(items)\
+  \ > 1:\n            add(findings, \"HIGH\", \"SPF_MULTIPLE\", items[1][0].line,\
+  \ nm, \"TXT\", f\"{len(items)} v=spf1 records at this name (lines {', '.join(str(i[0].line)\
+  \ for i in items)})\")\n        for r, s in items:\n            check_spf(findings,\
+  \ r, s, nm)\n\n    mx_names = {}\n    for r in recs:\n        if r.type == \"MX\"\
+  \ and len(r.rdata) >= 2:\n            mx_names.setdefault(r.name, []).append(r)\n\
+  \    for n, mxs in mx_names.items():\n        nulls = [r for r in mxs if r.rdata[1]\
+  \ == \".\"]\n        if nulls and len(mxs) > 1:\n            add(findings, \"HIGH\"\
+  , \"NULL_MX_WITH_OTHERS\", nulls[0].line, short(n, origin), \"MX\", \"null MX ('0\
+  \ .') next to other MX records\")\n    apex_mx = [r for r in mx_names.get(origin,\
+  \ []) if r.rdata[1] != \".\"]\n    apex_null = any(r.rdata[1] == \".\" for r in\
+  \ mx_names.get(origin, []))\n    apex_spf = spf_at.get(origin, [])\n    spf_sends\
+  \ = any(not re.fullmatch(r\"(?i)v=spf1\\s+-all\", s.strip()) for _, s in apex_spf)\n\
+  \    sends_mail = bool(apex_mx) or spf_sends\n    for n, mxs in mx_names.items():\n\
+  \        if any(r.rdata[1] != \".\" for r in mxs) and n not in spf_at:\n       \
+  \     add(findings, \"MEDIUM\", \"SPF_MISSING\", mxs[0].line, short(n, origin),\
+  \ \"TXT\", \"name receives mail (MX) but publishes no SPF record\")\n    if apex_null\
+  \ and apex_spf and spf_sends:\n        add(findings, \"LOW\", \"NULL_MX_SPF_NOT_FAIL\"\
+  , apex_spf[0][0].line, \"@\", \"TXT\", \"null MX says no mail, but SPF still authorizes\
+  \ senders\")\n    if apex_null and not apex_spf:\n        add(findings, \"LOW\"\
+  , \"NULL_MX_SPF_NOT_FAIL\", 0, \"@\", \"TXT\", \"null MX but no \\\"v=spf1 -all\\\
+  \"\")\n\n    dm = [(r, s) for r, s in txt_by_name.get(\"_dmarc.\" + origin, [])\
+  \ if re.match(r\"(?i)v=dmarc1\", s.strip()) or \"p=\" in s.lower()]\n    dkim_names\
+  \ = [n for n in by_name if n.endswith(\"._domainkey.\" + origin)]\n    if sends_mail\
+  \ or apex_null:\n        if not dm:\n            add(findings, \"MEDIUM\", \"DMARC_MISSING\"\
+  , 0, \"_dmarc\", \"TXT\", \"no DMARC record: receivers cannot tell spoofed mail\
+  \ from yours, and Gmail/Yahoo require DMARC for bulk senders\")\n    if dm:\n  \
+  \      if len(dm) > 1:\n            add(findings, \"HIGH\", \"DMARC_MULTIPLE\",\
+  \ dm[1][0].line, \"_dmarc\", \"TXT\", f\"{len(dm)} DMARC records\")\n        for\
+  \ r, s in dm:\n            check_dmarc(findings, r, s)\n    if sends_mail and not\
+  \ dkim_names:\n        add(findings, \"MEDIUM\", \"DKIM_NOT_FOUND\", 0, \"*._domainkey\"\
+  , \"TXT\", \"no <selector>._domainkey record: if you send mail, it is probably unsigned\
+  \ (checked only names in this file)\")\n    for n in dkim_names:\n        for r\
+  \ in by_name[n]:\n            if r.type == \"TXT\":\n                check_dkim(findings,\
+  \ r, \"\".join(txt_strings(r)), short(n, origin))\n    if not sends_mail and not\
+  \ apex_null and not apex_spf:\n        add(findings, \"LOW\", \"NO_MAIL_POLICY\"\
+  , 0, \"@\", \"MX\", \"no MX and no SPF: if this domain never sends mail, say so,\
+  \ or spammers can spoof it freely\")\n\n    has_web = any(r.type in (\"A\", \"AAAA\"\
+  , \"CNAME\", \"ALIAS\", \"ANAME\") for r in recs)\n    if has_web and \"CAA\" not\
+  \ in types_at(origin):\n        add(findings, \"LOW\", \"CAA_MISSING\", 0, \"@\"\
+  , \"CAA\", \"no CAA record: any public CA may issue certificates for this domain\"\
+  )\n\n    order = {s: i for i, s in enumerate(reversed(SEVERITIES))}\n    findings.sort(key=lambda\
+  \ f: (f[\"line\"] if f[\"line\"] else 10 ** 6, order[f[\"severity\"]], f[\"code\"\
+  ]))\n    return {\"origin\": origin, \"format\": fmt, \"records\": len(recs), \"\
+  findings\": findings,\n            \"external_targets\": [{\"target\": t, \"used_by\"\
+  : u} for t, u in sorted(externals.items())]}\n\n\ndef check_spf(findings, r, s,\
+  \ nm):\n    terms = s.split()[1:]\n    lookups, seen_all = 0, None\n    for i, t\
+  \ in enumerate(terms):\n        q = t[0] if t[0] in \"+-~?\" else \"\"\n       \
+  \ body = t[len(q):].lower()\n        mech = re.split(r\"[:=/]\", body, maxsplit=1)[0]\n\
+  \        if seen_all is not None and not body.startswith(\"exp=\"):\n          \
+  \  add(findings, \"MEDIUM\", \"SPF_TERMS_AFTER_ALL\", r.line, nm, \"TXT\", f\"'{t}'\
+  \ comes after 'all' and is ignored\")\n            seen_all = None\n        if mech\
+  \ == \"all\":\n            if q in (\"\", \"+\"):\n                add(findings,\
+  \ \"HIGH\", \"SPF_PASS_ALL\", r.line, nm, \"TXT\", f\"'{t}' authorizes every server\
+  \ on the internet to send as this domain\")\n            elif q == \"?\":\n    \
+  \            add(findings, \"MEDIUM\", \"SPF_NEUTRAL_ALL\", r.line, nm, \"TXT\"\
+  , \"'?all' is neutral: unauthorized senders are not marked\")\n            seen_all\
+  \ = i\n            continue\n        if mech in (\"include\", \"exists\"):\n   \
+  \         if \":\" not in body or not body.split(\":\", 1)[1]:\n               \
+  \ add(findings, \"HIGH\", \"SPF_SYNTAX\", r.line, nm, \"TXT\", f\"'{t}' needs a\
+  \ domain ({mech}:example.net)\")\n            lookups += 1\n        elif mech in\
+  \ (\"a\", \"mx\"):\n            lookups += 1\n        elif mech == \"ptr\":\n  \
+  \          lookups += 1\n            add(findings, \"LOW\", \"SPF_PTR\", r.line,\
+  \ nm, \"TXT\", \"'ptr' is deprecated (RFC 7208 5.5)\")\n        elif mech in (\"\
+  ip4\", \"ip6\"):\n            val = body.split(\":\", 1)[1] if \":\" in body else\
+  \ \"\"\n            try:\n                net = ipaddress.ip_network(val, strict=False)\n\
+  \                if (mech == \"ip4\") != (net.version == 4):\n                 \
+  \   raise ValueError\n            except ValueError:\n                add(findings,\
+  \ \"HIGH\", \"SPF_SYNTAX\", r.line, nm, \"TXT\", f\"'{t}' is not a valid {mech}\
+  \ address or range\")\n        elif mech == \"redirect\":\n            lookups +=\
+  \ 1\n            if \"=\" not in body:\n                add(findings, \"HIGH\",\
+  \ \"SPF_SYNTAX\", r.line, nm, \"TXT\", f\"'{t}': use redirect=domain\")\n      \
+  \  elif mech == \"exp\":\n            pass\n        else:\n            add(findings,\
+  \ \"HIGH\", \"SPF_SYNTAX\", r.line, nm, \"TXT\", f\"unknown SPF term '{t}' (typo?\
+  \ e.g. ipv4: for ip4:, include= for include:)\")\n    if not any(re.sub(r\"^[+\\\
+  -~?]\", \"\", t).lower() == \"all\" for t in terms) and not any(t.lower().startswith(\"\
+  redirect=\") for t in terms):\n        add(findings, \"MEDIUM\", \"SPF_NO_ALL\"\
+  , r.line, nm, \"TXT\", \"record has no 'all' or redirect=, so unlisted senders get\
+  \ a neutral result\")\n    if lookups > 10:\n        add(findings, \"HIGH\", \"\
+  SPF_TOO_MANY_LOOKUPS\", r.line, nm, \"TXT\", f\"{lookups} DNS-lookup terms at the\
+  \ top level alone (limit 10, RFC 7208 4.6.4); receivers return permerror\")\n  \
+  \  elif lookups >= 8:\n        add(findings, \"LOW\", \"SPF_LOOKUPS_NEAR_LIMIT\"\
+  , r.line, nm, \"TXT\", f\"{lookups} lookup terms before counting nested includes\
+  \ (limit 10)\")\n\n\ndef check_dmarc(findings, r, s):\n    tags = {}\n    parts\
+  \ = [p.strip() for p in s.split(\";\") if p.strip()]\n    if not parts or parts[0].replace(\"\
+  \ \", \"\").upper() != \"V=DMARC1\":\n        add(findings, \"HIGH\", \"DMARC_SYNTAX\"\
+  , r.line, \"_dmarc\", \"TXT\", \"record must start with 'v=DMARC1;'\")\n    for\
+  \ p in parts:\n        k, _, v = p.partition(\"=\")\n        tags[k.strip().lower()]\
+  \ = v.strip()\n    p = tags.get(\"p\", \"\").lower()\n    if p not in (\"none\"\
+  , \"quarantine\", \"reject\"):\n        add(findings, \"HIGH\", \"DMARC_SYNTAX\"\
+  , r.line, \"_dmarc\", \"TXT\", \"missing or invalid p= (none, quarantine or reject);\
+  \ receivers ignore the record\")\n        return\n    if p == \"none\":\n      \
+  \  add(findings, \"LOW\", \"DMARC_MONITOR_ONLY\", r.line, \"_dmarc\", \"TXT\", \"\
+  p=none only monitors; spoofed mail is still delivered\")\n    if \"rua\" not in\
+  \ tags:\n        add(findings, \"LOW\", \"DMARC_NO_RUA\", r.line, \"_dmarc\", \"\
+  TXT\", \"no rua= address, so nobody sees the aggregate reports\")\n    if tags.get(\"\
+  pct\", \"100\").isdigit() and int(tags.get(\"pct\", \"100\")) < 100:\n        add(findings,\
+  \ \"LOW\", \"DMARC_PARTIAL_PCT\", r.line, \"_dmarc\", \"TXT\", f\"pct={tags['pct']}:\
+  \ the policy applies to only part of the failing mail\")\n\n\ndef check_dkim(findings,\
+  \ r, s, nm):\n    tags = {}\n    for p in s.split(\";\"):\n        k, _, v = p.strip().partition(\"\
+  =\")\n        if k:\n            tags[k.strip().lower()] = re.sub(r\"\\s+\", \"\"\
+  , v)\n    if \"p\" not in tags:\n        add(findings, \"HIGH\", \"DKIM_BAD_KEY\"\
+  , r.line, nm, \"TXT\", \"no p= tag: not a DKIM key record\")\n        return\n \
+  \   if tags[\"p\"] == \"\":\n        add(findings, \"MEDIUM\", \"DKIM_REVOKED\"\
+  , r.line, nm, \"TXT\", \"p= is empty: this selector is revoked and mail signed with\
+  \ it fails DKIM\")\n        return\n    try:\n        raw = base64.b64decode(tags[\"\
+  p\"], validate=True)\n    except Exception:\n        add(findings, \"HIGH\", \"\
+  DKIM_BAD_KEY\", r.line, nm, \"TXT\", \"p= is not valid base64 (stray quote, space\
+  \ or cut-off copy?)\")\n        return\n    if tags.get(\"k\", \"rsa\").lower()\
+  \ == \"ed25519\":\n        return\n    bits = rsa_bits(raw)\n    if bits is None:\n\
+  \        add(findings, \"HIGH\", \"DKIM_BAD_KEY\", r.line, nm, \"TXT\", f\"p= decodes\
+  \ to {len(raw)} bytes but is not an RSA public key (cut off?)\")\n    elif bits\
+  \ < 1024:\n        add(findings, \"HIGH\", \"DKIM_WEAK_KEY\", r.line, nm, \"TXT\"\
+  , f\"RSA key is {bits} bits; keys under 1024 bits are rejected by receivers (RFC\
+  \ 8301)\")\n    elif bits < 2048:\n        add(findings, \"LOW\", \"DKIM_1024_KEY\"\
+  , r.line, nm, \"TXT\", f\"RSA key is {bits} bits; 2048 is the current recommendation\"\
+  )\n\n\ndef der_read(b, i):\n    tag = b[i]; i += 1\n    ln = b[i]; i += 1\n    if\
+  \ ln & 0x80:\n        n = ln & 0x7F\n        ln = int.from_bytes(b[i:i + n], \"\
+  big\"); i += n\n    return tag, i, ln\n\n\ndef rsa_bits(raw):\n    \"\"\"Modulus\
+  \ size of an RSA SubjectPublicKeyInfo (or bare RSAPublicKey) in bits.\"\"\"\n  \
+  \  try:\n        tag, i, ln = der_read(raw, 0)\n        if tag != 0x30:\n      \
+  \      return None\n        tag, j, l2 = der_read(raw, i)\n        if tag == 0x30:\
+  \  # SubjectPublicKeyInfo: algorithm, then BIT STRING\n            j += l2\n   \
+  \         tag, j, l3 = der_read(raw, j)\n            if tag != 0x03:\n         \
+  \       return None\n            j += 1  # unused-bits byte\n            tag, j,\
+  \ l4 = der_read(raw, j)\n            if tag != 0x30:\n                return None\n\
+  \            tag, j, lm = der_read(raw, j)\n        elif tag == 0x02:\n        \
+  \    lm = l2\n        else:\n            return None\n        if tag != 0x02 or\
+  \ j + lm > len(raw):\n            return None\n        mod = raw[j:j + lm].lstrip(b\"\
+  \\x00\")\n        return len(mod) * 8 if mod else None\n    except IndexError:\n\
+  \        return None\n\n\ndef render(res, title, min_sev=\"LOW\", ignore=()):\n\
+  \    keep = [f for f in res[\"findings\"] if SEVERITIES.index(f[\"severity\"]) >=\
+  \ SEVERITIES.index(min_sev) and f[\"code\"] not in ignore]\n    cnt = {s: sum(1\
+  \ for f in keep if f[\"severity\"] == s) for s in SEVERITIES}\n    out = [f\"# DNS\
+  \ record lint: {title}\", \"\",\n           f\"Zone: {res['origin']}   Format: {res['format']}\
+  \   Records: {res['records']}   Findings: {len(keep)} (HIGH {cnt['HIGH']}, MEDIUM\
+  \ {cnt['MEDIUM']}, LOW {cnt['LOW']})\", \"\"]\n    if keep:\n        out += [\"\
+  | Sev | Code | Line | Name | Type | Problem | Fix |\", \"|---|---|---|---|---|---|---|\"\
+  ]\n        for f in keep:\n            out.append(f\"| {f['severity']} | {f['code']}\
+  \ | {f['line'] or '-'} | {f['name'] or '-'} | {f['type'] or '-'} | {f['problem']}\
+  \ | {f['fix']} |\")\n    else:\n        out.append(\"No findings.\")\n    if res[\"\
+  external_targets\"]:\n        out += [\"\", \"## Out-of-zone targets to check live\
+  \ (no network calls were made)\", \"\",\n                \"| Target | Used by |\"\
+  , \"|---|---|\"]\n        for e in res[\"external_targets\"]:\n            out.append(f\"\
+  | {e['target']} | {'; '.join(e['used_by'])} |\")\n    return \"\\n\".join(out) +\
+  \ \"\\n\", keep\n\n\ndef self_test():\n    Z = \"$ORIGIN example.com.\\n$TTL 3600\\\
+  n@ IN SOA ns1 hostmaster 1 7200 900 1209600 300\\n@ NS ns1\\n@ NS ns2.example.net.\\\
+  nns1 A 192.0.2.53\\n\"\n    MAIL = '@ MX 10 mail\\nmail A 192.0.2.25\\n@ TXT \"\
+  v=spf1 mx -all\"\\n_dmarc TXT \"v=DMARC1; p=reject; rua=mailto:d@example.com\"\\\
+  ns1._domainkey CNAME s1.dkim.example.net.\\n@ CAA 0 issue \"letsencrypt.org\"\\\
+  n'\n    k1024 = base64.b64encode(bytes.fromhex(\"30819f300d06092a864886f70d010101050003818d0030818902818100\"\
+  ) + b\"\\xc1\" + bytes(127) + bytes.fromhex(\"0203010001\")).decode()\n    k512\
+  \ = base64.b64encode(bytes.fromhex(\"305c300d06092a864886f70d0101010500034b003048024100\"\
+  ) + b\"\\xc1\" + bytes(63) + bytes.fromhex(\"0203010001\")).decode()\n\n    def\
+  \ codes(text, **kw):\n        return [f[\"code\"] for f in lint(text, **kw)[\"findings\"\
+  ]]\n\n    cases = [\n        (\"clean zone\", Z + MAIL, lambda c: c == []),\n  \
+  \      (\"cname at apex\", Z + MAIL + \"@ CNAME shop.example.net.\\n\", lambda c:\
+  \ \"CNAME_AT_APEX\" in c),\n        (\"cname with other data\", Z + MAIL + \"www\
+  \ CNAME web.example.net.\\nwww TXT \\\"x\\\"\\n\", lambda c: \"CNAME_WITH_OTHER_DATA\"\
+  \ in c),\n        (\"multiple cname\", Z + MAIL + \"www CNAME a.example.net.\\nwww\
+  \ CNAME b.example.net.\\n\", lambda c: \"MULTIPLE_CNAME\" in c),\n        (\"mx\
+  \ to cname\", Z + MAIL.replace(\"mail A 192.0.2.25\", \"mail CNAME mx.example.net.\"\
+  ), lambda c: \"MX_TO_CNAME\" in c),\n        (\"ns to cname\", Z.replace(\"ns1 A\
+  \ 192.0.2.53\", \"ns1 CNAME dns.example.net.\") + MAIL, lambda c: \"NS_TO_CNAME\"\
+  \ in c),\n        (\"mx is ip\", Z + MAIL.replace(\"MX 10 mail\", \"MX 10 192.0.2.25\"\
+  ), lambda c: \"TARGET_IS_IP\" in c),\n        (\"missing trailing dot\", Z + MAIL\
+  \ + \"www CNAME web.example.com\\nweb A 192.0.2.80\\n\", lambda c: \"MISSING_TRAILING_DOT\"\
+  \ in c),\n        (\"maybe missing dot (outside name)\", Z + MAIL + \"shop CNAME\
+  \ shops.myshopify.com\\n\", lambda c: \"MAYBE_MISSING_TRAILING_DOT\" in c),\n  \
+  \      (\"owner doubled origin\", Z + MAIL + \"www.example.com A 192.0.2.80\\n\"\
+  , lambda c: \"OWNER_DOUBLED_ORIGIN\" in c),\n        (\"relative target ok\", Z\
+  \ + MAIL + \"www CNAME web\\nweb A 192.0.2.80\\n\", lambda c: c == []),\n      \
+  \  (\"dangling target\", Z + MAIL + \"www CNAME web\\n\", lambda c: \"DANGLING_TARGET\"\
+  \ in c),\n        (\"cname chain\", Z + MAIL + \"www CNAME web\\nweb CNAME edge.example.net.\\\
+  n\", lambda c: \"CNAME_CHAIN\" in c),\n        (\"mx target no address\", Z + MAIL.replace(\"\
+  mail A 192.0.2.25\", \"mail TXT \\\"x\\\"\"), lambda c: \"MX_TARGET_NO_ADDRESS\"\
+  \ in c),\n        (\"spf missing\", Z + MAIL.replace('@ TXT \"v=spf1 mx -all\"\\\
+  n', \"\"), lambda c: \"SPF_MISSING\" in c),\n        (\"spf multiple\", Z + MAIL\
+  \ + '@ TXT \"v=spf1 include:_spf.google.com ~all\"\\n', lambda c: \"SPF_MULTIPLE\"\
+  \ in c),\n        (\"spf +all\", Z + MAIL.replace(\"mx -all\", \"mx +all\"), lambda\
+  \ c: \"SPF_PASS_ALL\" in c),\n        (\"spf ?all\", Z + MAIL.replace(\"mx -all\"\
+  , \"mx ?all\"), lambda c: \"SPF_NEUTRAL_ALL\" in c),\n        (\"spf no all\", Z\
+  \ + MAIL.replace(\"mx -all\", \"mx\"), lambda c: \"SPF_NO_ALL\" in c),\n       \
+  \ (\"spf terms after all\", Z + MAIL.replace(\"mx -all\", \"-all mx\"), lambda c:\
+  \ \"SPF_TERMS_AFTER_ALL\" in c),\n        (\"spf syntax typo\", Z + MAIL.replace(\"\
+  mx -all\", \"ipv4:192.0.2.1 -all\"), lambda c: \"SPF_SYNTAX\" in c),\n        (\"\
+  spf bad ip4\", Z + MAIL.replace(\"mx -all\", \"ip4:300.1.1.1 -all\"), lambda c:\
+  \ \"SPF_SYNTAX\" in c),\n        (\"spf too many lookups\", Z + MAIL.replace(\"\
+  mx -all\", \" \".join(f\"include:s{i}.example.net\" for i in range(11)) + \" -all\"\
+  ), lambda c: \"SPF_TOO_MANY_LOOKUPS\" in c),\n        (\"spf near limit\", Z + MAIL.replace(\"\
+  mx -all\", \" \".join(f\"include:s{i}.example.net\" for i in range(8)) + \" -all\"\
+  ), lambda c: \"SPF_LOOKUPS_NEAR_LIMIT\" in c and \"SPF_TOO_MANY_LOOKUPS\" not in\
+  \ c),\n        (\"spf ptr\", Z + MAIL.replace(\"mx -all\", \"ptr -all\"), lambda\
+  \ c: \"SPF_PTR\" in c),\n        (\"spf type99\", Z + MAIL + '@ SPF \"v=spf1 mx\
+  \ -all\"\\n', lambda c: \"SPF_TYPE99\" in c),\n        (\"split txt strings joined\"\
+  , Z + MAIL.replace('\"v=spf1 mx -all\"', '\"v=spf1 mx \" \"-all\"'), lambda c: c\
+  \ == []),\n        (\"txt string too long\", Z + MAIL + '@ TXT \"' + \"a\" * 300\
+  \ + '\"\\n', lambda c: \"TXT_STRING_TOO_LONG\" in c),\n        (\"dmarc missing\"\
+  , Z + MAIL.replace('_dmarc TXT \"v=DMARC1; p=reject; rua=mailto:d@example.com\"\\\
+  n', \"\"), lambda c: \"DMARC_MISSING\" in c),\n        (\"dmarc wrong name\", Z\
+  \ + MAIL.replace(\"_dmarc TXT\", \"dmarc TXT\"), lambda c: \"DMARC_WRONG_NAME\"\
+  \ in c and \"DMARC_MISSING\" in c),\n        (\"dmarc multiple\", Z + MAIL + '_dmarc\
+  \ TXT \"v=DMARC1; p=none\"\\n', lambda c: \"DMARC_MULTIPLE\" in c),\n        (\"\
+  dmarc no p\", Z + MAIL.replace(\"p=reject; \", \"\"), lambda c: \"DMARC_SYNTAX\"\
+  \ in c),\n        (\"dmarc none + no rua + pct\", Z + MAIL.replace(\"p=reject; rua=mailto:d@example.com\"\
+  , \"p=none; pct=50\"), lambda c: {\"DMARC_MONITOR_ONLY\", \"DMARC_NO_RUA\", \"DMARC_PARTIAL_PCT\"\
+  } <= set(c)),\n        (\"dkim not found\", Z + MAIL.replace(\"s1._domainkey CNAME\
+  \ s1.dkim.example.net.\\n\", \"\"), lambda c: \"DKIM_NOT_FOUND\" in c),\n      \
+  \  (\"dkim revoked\", Z + MAIL + 's2._domainkey TXT \"v=DKIM1; k=rsa; p=\"\\n',\
+  \ lambda c: \"DKIM_REVOKED\" in c),\n        (\"dkim bad base64\", Z + MAIL + 's2._domainkey\
+  \ TXT \"v=DKIM1; p=MIGf!!\"\\n', lambda c: \"DKIM_BAD_KEY\" in c),\n        (\"\
+  dkim 512-bit key\", Z + MAIL + f's2._domainkey TXT \"v=DKIM1; k=rsa; p={k512}\"\\\
+  n', lambda c: \"DKIM_WEAK_KEY\" in c),\n        (\"dkim 1024-bit key\", Z + MAIL\
+  \ + f's2._domainkey TXT \"v=DKIM1; k=rsa; p={k1024}\"\\n', lambda c: \"DKIM_1024_KEY\"\
+  \ in c),\n        (\"dkim wrong name\", Z + MAIL + f's2.domainkey TXT \"v=DKIM1;\
+  \ p={k1024}\"\\n', lambda c: \"DKIM_WRONG_NAME\" in c),\n        (\"null mx + spf\
+  \ -all, no mail checks\", Z + '@ MX 0 .\\n@ TXT \"v=spf1 -all\"\\n_dmarc TXT \"\
+  v=DMARC1; p=reject; rua=mailto:d@example.com\"\\n@ CAA 0 issue \"letsencrypt.org\"\
+  \\n', lambda c: c == []),\n        (\"null mx with others\", Z + MAIL + \"@ MX 0\
+  \ .\\n\", lambda c: \"NULL_MX_WITH_OTHERS\" in c),\n        (\"no mail policy\"\
+  , Z + '@ CAA 0 issue \"letsencrypt.org\"\\n', lambda c: \"NO_MAIL_POLICY\" in c),\n\
+  \        (\"ttl too low\", Z + MAIL + \"www 30 A 192.0.2.80\\n\", lambda c: \"TTL_TOO_LOW\"\
+  \ in c),\n        (\"acme ttl low ok\", Z + MAIL + '_acme-challenge 30 TXT \"token\"\
+  \\n', lambda c: c == []),\n        (\"ttl too high (units)\", Z + MAIL + \"www 2w\
+  \ A 192.0.2.80\\n\", lambda c: \"TTL_TOO_HIGH\" in c),\n        (\"no $TTL\", Z.replace(\"\
+  $TTL 3600\\n\", \"\") + MAIL, lambda c: \"NO_DEFAULT_TTL\" in c),\n        (\"soa\
+  \ rname with @\", Z.replace(\"hostmaster\", \"hostmaster@example.com.\") + MAIL,\
+  \ lambda c: \"SOA_RNAME_AT\" in c),\n        (\"soa multi-line with comments\",\
+  \ Z.replace(\"@ IN SOA ns1 hostmaster 1 7200 900 1209600 300\", \"@ IN SOA ns1 hostmaster\
+  \ (\\n 2026103001 ; serial\\n 7200 900 1209600\\n 300 ) ; min\") + MAIL, lambda\
+  \ c: c == []),\n        (\"single ns\", Z.replace(\"@ NS ns2.example.net.\\n\",\
+  \ \"\") + MAIL, lambda c: \"NS_SINGLE\" in c),\n        (\"bad address\", Z + MAIL\
+  \ + \"www A 192.0.2.300\\n\", lambda c: \"BAD_ADDRESS\" in c),\n        (\"wrong\
+  \ family\", Z + MAIL + \"www AAAA 192.0.2.80\\n\", lambda c: \"WRONG_ADDRESS_FAMILY\"\
+  \ in c),\n        (\"private address\", Z + MAIL + \"intranet A 10.0.0.5\\n\", lambda\
+  \ c: \"PRIVATE_ADDRESS\" in c),\n        (\"duplicate record\", Z + MAIL + \"www\
+  \ A 192.0.2.80\\nwww A 192.0.2.80\\n\", lambda c: \"DUPLICATE_RECORD\" in c),\n\
+  \        (\"blank owner continues\", Z + MAIL + \"www A 192.0.2.80\\n    AAAA 2001:db8::80\\\
+  n\", lambda c: c == []),\n        (\"semicolon inside quotes kept\", Z + MAIL.replace('\"\
+  v=DMARC1; p=reject; rua=mailto:d@example.com\"', '\"v=DMARC1; p=reject; rua=mailto:d@example.com\"\
+  \ ; comment'), lambda c: c == []),\n        (\"caa missing\", Z + MAIL.replace('@\
+  \ CAA 0 issue \"letsencrypt.org\"\\n', \"\"), lambda c: c == [\"CAA_MISSING\"]),\n\
+  \        (\"csv input\", None, None),\n        (\"unterminated quote is input error\"\
+  , None, None),\n    ]\n    passed = 0\n    for name, text, check in cases:\n   \
+  \     try:\n            if name == \"csv input\":\n                csvt = (\"name,type,value,ttl,priority\\\
+  n@,MX,mail.example.com,3600,10\\nmail,A,192.0.2.25,3600,\\n\"\n                \
+  \        \"@,TXT,v=spf1 include:_spf.google.com ~all,3600,\\n@,TXT,v=spf1 mx -all,3600,\\\
+  n\"\n                        \"www.example.com,CNAME,example.com,300,\\n@,CNAME,shop.example.net,300,\\\
+  n\")\n                res = lint(csvt, origin=\"example.com\", fmt=\"csv\")\n  \
+  \              c = [f[\"code\"] for f in res[\"findings\"]]\n                ok\
+  \ = {\"SPF_MULTIPLE\", \"CNAME_AT_APEX\", \"DMARC_MISSING\", \"DKIM_NOT_FOUND\"\
+  } <= set(c) and \"MISSING_TRAILING_DOT\" not in c and \"MX_TO_CNAME\" not in c\n\
+  \            elif name == \"unterminated quote is input error\":\n             \
+  \   try:\n                    lint(Z + '@ TXT \"v=spf1 -all\\n')\n             \
+  \       ok, c = False, \"no error\"\n                except InputError as e:\n \
+  \                   ok, c = True, str(e)\n            else:\n                c =\
+  \ codes(text)\n                ok = check(c)\n        except Exception as e:  #\
+  \ noqa\n            ok, c = False, f\"exception {e!r}\"\n        passed += ok\n\
+  \        print((\"PASS \" if ok else \"FAIL \") + name + (\"\" if ok else f\"  got\
+  \ {c}\"))\n    print(f\"{passed}/{len(cases)} passed\")\n    return 0 if passed\
+  \ == len(cases) else 1\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser(description=\"\
+  Lint a DNS zone file or record list (offline)\")\n    ap.add_argument(\"file\",\
+  \ nargs=\"?\")\n    ap.add_argument(\"--origin\", help=\"zone name, e.g. example.com\
+  \ (default: $ORIGIN or the file name)\")\n    ap.add_argument(\"--format\", choices=[\"\
+  zone\", \"csv\"], help=\"input format (default: by extension/content)\")\n    ap.add_argument(\"\
+  --json\", action=\"store_true\")\n    ap.add_argument(\"--min-severity\", default=\"\
+  LOW\", choices=SEVERITIES)\n    ap.add_argument(\"--ignore\", default=\"\", help=\"\
+  comma-separated finding codes to skip\")\n    ap.add_argument(\"--self-test\", action=\"\
+  store_true\")\n    a = ap.parse_args(argv)\n    if a.self_test:\n        return\
+  \ self_test()\n    if not a.file:\n        ap.error(\"give a zone file or CSV, or\
+  \ --self-test\")\n    try:\n        with open(a.file, encoding=\"utf-8\") as fh:\n\
+  \            text = fh.read()\n        res = lint(text, origin=a.origin, fmt=a.format,\
+  \ filename=a.file)\n    except (OSError, InputError, UnicodeDecodeError) as e:\n\
+  \        print(f\"error: {e}\", file=sys.stderr)\n        return 2\n    ignore =\
+  \ {c.strip().upper() for c in a.ignore.split(\",\") if c.strip()}\n    md, keep\
+  \ = render(res, os.path.basename(a.file), a.min_severity, ignore)\n    if a.json:\n\
+  \        print(json.dumps({**res, \"findings\": keep}, indent=2))\n    else:\n \
+  \       sys.stdout.write(md)\n    return 1 if any(f[\"severity\"] == \"HIGH\" for\
+  \ f in keep) else 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
