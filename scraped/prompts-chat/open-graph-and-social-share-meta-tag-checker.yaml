@@ -1,0 +1,762 @@
+slug: open-graph-and-social-share-meta-tag-checker
+title: Open Graph and Social Share Meta Tag Checker
+description: Imported from Prompts Chat
+prompt: "---\nname: open-graph-and-social-share-meta-tag-checker\ndescription: Checks\
+  \ a page's HTML source for the tags link previews are built from - title and description\
+  \ length, rel=canonical, og:title/description/type/url/site_name/locale, og:image\
+  \ size, aspect, alt and SVG, twitter:card and handles. Flags relative/http:// URLs,\
+  \ tracking parameters, theme + SEO plugin duplicates, tags in <body> and unrendered\
+  \ {{ }} placeholders, and returns a fixed <head> block. Includes an offline stdlib\
+  \ Python checker with --self-test.\n---\n\n# Open Graph and Social Share Meta Tag\
+  \ Checker\n\nYou make shared links look right on Facebook, LinkedIn, X, Slack, Discord,\
+  \ WhatsApp and iMessage. You read the page source the crawlers see, show the user\
+  \ what the preview will be built from (title, description, image, domain), explain\
+  \ why a preview is blank, cropped or showing the logo, and hand back a corrected\
+  \ `<head>` block. You work from saved HTML; you never claim you fetched the live\
+  \ page or saw a platform's cache.\n\n## Files in this skill\n\n- `scripts/og_meta_check.py`\
+  \ - parses HTML with `html.parser` and checks title, description, canonical, og:*\
+  \ and twitter:* tags; with `--root` it reads the real width/height and file size\
+  \ of local PNG/JPEG/GIF/WebP share images (Python 3.8+ standard library only)\n\
+  - `references/tag-rules.md` - each tag, the values crawlers accept, lengths, image\
+  \ sizes and fallbacks\n- `references/platform-notes.md` - how Facebook, LinkedIn,\
+  \ X, Slack, Discord, WhatsApp and iMessage build previews, cache them and how to\
+  \ refresh\n- `templates/share-meta-review.md` - the review to hand back (preview,\
+  \ fix table, fixed head block, refresh steps)\n- `examples/product-page.html` -\
+  \ a product page whose theme and SEO plugin both write tags, with mistakes on purpose\n\
+  - `examples/product-page-fixed.html` - the same page with a correct head (checks\
+  \ clean)\n- `examples/meta-report.md` - the real output of the checker on the broken\
+  \ example\n\n## Workflow\n\n### 1. Get the HTML the crawlers see\nAsk for the page\
+  \ URL and the server-rendered source, not the DevTools Elements view (that shows\
+  \ tags added by JavaScript, which most crawlers never run):\n```\ncurl -sL -A \"\
+  facebookexternalhit/1.1\" https://example.com/page -o page.html\ncurl -sL -A \"\
+  Twitterbot/1.0\" https://example.com/page -o page-x.html\n```\nFor a static site\
+  \ or a build folder, point the checker at the folder and pass `--root` so share\
+  \ images are measured from disk. Ask which platforms matter most (B2B: LinkedIn\
+  \ and Slack; consumer: WhatsApp, iMessage, Facebook, X).\n\n### 2. Run the checker\n\
+  ```\npython3 scripts/og_meta_check.py examples/product-page.html --url https://shop.example.com/shoes/trail-grip\n\
+  python3 scripts/og_meta_check.py dist/ --root dist/ --min-severity MEDIUM\npython3\
+  \ scripts/og_meta_check.py page.html --url https://example.com/blog/post --json\n\
+  python3 scripts/og_meta_check.py --self-test\n```\nGive `--url` for a single page\
+  \ so relative links are resolved and canonical/og:url compared. Exit 0 = no HIGH,\
+  \ 1 = HIGH findings, 2 = bad input. If you cannot run code, walk through `references/tag-rules.md`\
+  \ in the same order.\n\n### 3. Explain the preview\n- Start with the preview table:\
+  \ that is what people will see. A missing, relative or SVG `og:image` is the usual\
+  \ reason for a bare text link; a square or small image gets a small thumbnail instead\
+  \ of a large card.\n- **HIGH** breaks the preview (no or relative og:image, image\
+  \ under 200x200, no title, several canonicals). **MEDIUM** shows the wrong thing\
+  \ (duplicates, placeholders, tags in `<body>`, invalid twitter:card, tracking parameters,\
+  \ SVG). **LOW** is polish (lengths, alt text, locale format, site_name).\n- Duplicates\
+  \ usually come from two systems (theme plus SEO plugin, framework default plus page\
+  \ component). Say which one to switch off rather than adding a third set.\n\n###\
+  \ 4. Deliver\nFill `templates/share-meta-review.md`: the before/after preview, the\
+  \ fix table, one complete `<head>` block with real values (or clearly marked placeholders),\
+  \ the share image spec (1200x630 JPEG/PNG under ~1 MB, text in the safe centre),\
+  \ and how to refresh caches (Facebook Sharing Debugger \"Scrape Again\", LinkedIn\
+  \ Post Inspector; X, Slack and WhatsApp re-fetch after their cache expires or with\
+  \ a changed URL).\n\n## Example result\nOn `examples/product-page.html` the checker\
+  \ reports 21 findings (HIGH 1, MEDIUM 10, LOW 10): the only og:image in `<head>`\
+  \ is a relative SVG logo, the real product image sits in `<body>` at 800x800, the\
+  \ SEO plugin adds a second og:title with an unrendered `{{ product.name }}`, og:url\
+  \ carries `?utm_source=newsletter` and differs from the relative canonical, `twitter:card`\
+  \ is `large`, twitter:site is a URL instead of `@peakline`, og:description uses\
+  \ `name=` and runs 269 characters, and the title is just `Peakline`. `examples/product-page-fixed.html`\
+  \ checks clean (exit 0).\n\n## Rules\n\n- Judge the server-rendered HTML; say plainly\
+  \ when tags exist only after JavaScript runs.\n- Never invent product facts, prices\
+  \ or brand handles for the fixed tags; use the page's own copy or mark `<placeholder>`.\n\
+  - One value per single-value tag; remove the duplicate source instead of overriding\
+  \ it.\n- All URLs in og:url, og:image, twitter:image and canonical must be absolute\
+  \ https:// URLs without tracking parameters.\n- Do not promise how a platform will\
+  \ crop or when it refreshes; give the documented sizes and the refresh tool, and\
+  \ mark the rest \"to verify\" in the platform's debugger.\n- Keep og:title free\
+  \ of the site-name suffix (og:site_name carries the brand) unless the user wants\
+  \ it.\n\x1FFILE:references/tag-rules.md\x1E\n# Tag rules\n\nReview order: title\
+  \ and description -> canonical -> og core tags -> og:image -> twitter:* -> placement,\
+  \ duplicates and placeholders.\n\n## Basic head tags\n| Tag | Rule | Checker range\
+  \ |\n|---|---|---|\n| `<meta charset=\"utf-8\">` | first in `<head>`, so non-ASCII\
+  \ text in previews is decoded | LOW if missing |\n| `<title>` | one per page, specific,\
+  \ brand at the end | 15-60 characters (LOW outside) |\n| `<meta name=\"description\"\
+  >` | one, plain sentence(s), no keyword lists | 50-160 characters (LOW outside)\
+  \ |\n| `<link rel=\"canonical\">` | one, absolute https URL, no tracking parameters,\
+  \ in `<head>` | MEDIUM missing/relative, HIGH several |\n\n## Open Graph (ogp.me)\n\
+  - Use `property=\"og:...\"` and `content=\"...\"`. `name=\"og:...\"` works on some\
+  \ platforms only; `value=` or text content is ignored.\n- `og:title` - the headline\
+  \ without the site suffix, up to ~70 characters shown fully (checker warns over\
+  \ 90).\n- `og:description` - 1-2 sentences, ~200 characters max shown.\n- `og:type`\
+  \ - `website` for home and landing pages, `article` for posts (add `article:published_time`),\
+  \ `product` for shop pages.\n- `og:url` - the canonical URL, so likes and shares\
+  \ of `?utm=` variants merge into one object.\n- `og:site_name` - the brand; LinkedIn\
+  \ and Slack show it above the title.\n- `og:locale` - `language_TERRITORY` with\
+  \ an underscore: `en_US`, `de_DE`, `pt_BR`; alternates with `og:locale:alternate`.\n\
+  - Single-value tags (`og:title`, `og:description`, `og:type`, `og:url`, `og:site_name`,\
+  \ `og:locale`) must appear once. `og:image` may repeat (several images); the first\
+  \ is usually used.\n\n## og:image\n- Absolute https URL that returns 200 to crawlers\
+  \ without login, cookies or hotlink protection, `Content-Type: image/jpeg|png|webp|gif`.\n\
+  - Size: at least 200x200 (Facebook minimum, HIGH below), 1200x630 recommended for\
+  \ large cards (MEDIUM below), 1.91:1 aspect for `summary_large_image` (LOW if outside\
+  \ 1.75-2.05). `summary` cards use a square crop.\n- File size: under ~1 MB loads\
+  \ reliably; X rejects images over 5 MB, Facebook over 8 MB.\n- SVG is not rendered\
+  \ by the major platforms (MEDIUM). Animated GIFs show the first frame.\n- Add `og:image:width`\
+  \ and `og:image:height` (whole numbers, pixels) so Facebook renders the first share\
+  \ before it has downloaded the image; with `--root` the checker compares them with\
+  \ the file.\n- `og:image:alt` - a sentence describing the image (used by X and LinkedIn\
+  \ for screen readers).\n- Change the image URL (e.g. `share-v2.jpg`) when you replace\
+  \ an image; platforms cache by URL.\n\n## X (Twitter) cards\n- `twitter:card`: `summary`,\
+  \ `summary_large_image`, `app` or `player`. Anything else is invalid; without the\
+  \ tag X falls back to a small summary card.\n- X reads `og:title`, `og:description`\
+  \ and `og:image` when `twitter:title/description/image` are absent, so only add\
+  \ those to show different text on X.\n- `twitter:site` (the brand) and `twitter:creator`\
+  \ (the author) are `@handles`, not URLs.\n\n## Placement, duplicates, placeholders\n\
+  - Crawlers read `<head>` only. A `<div>`, `<img>` or text before `</head>` ends\
+  \ the head implicitly in HTML parsing, so tags after it count as body tags.\n- Theme\
+  \ + SEO plugin (WordPress, Shopify), framework default + page component (Next.js\
+  \ `metadata`, Nuxt `useHead`) are the usual sources of duplicates. Keep one source.\n\
+  - Unrendered template text (`{{ product.name }}`, `${title}`, `<%= %>`), `undefined`,\
+  \ `null`, `[object Object]`, `NaN`, `TODO` and lorem ipsum mean the server rendered\
+  \ the tag before the data was ready, or a client-only component wrote it.\n- Tracking\
+  \ parameters (`utm_*`, `fbclid`, `gclid`, `ref`, `mc_cid`) never belong in canonical\
+  \ or og:url.\n\n## Fixed head block (shape)\n```\n<meta charset=\"utf-8\">\n<title>{Page\
+  \ headline} | {Brand}</title>\n<meta name=\"description\" content=\"{50-160 characters}\"\
+  >\n<link rel=\"canonical\" href=\"https://{host}/{clean-path}\">\n<meta property=\"\
+  og:type\" content=\"website\">\n<meta property=\"og:site_name\" content=\"{Brand}\"\
+  >\n<meta property=\"og:title\" content=\"{Headline}\">\n<meta property=\"og:description\"\
+  \ content=\"{1-2 sentences}\">\n<meta property=\"og:url\" content=\"https://{host}/{clean-path}\"\
+  >\n<meta property=\"og:image\" content=\"https://{host}/img/{name}-1200x630.jpg\"\
+  >\n<meta property=\"og:image:width\" content=\"1200\">\n<meta property=\"og:image:height\"\
+  \ content=\"630\">\n<meta property=\"og:image:alt\" content=\"{What the image shows}\"\
+  >\n<meta property=\"og:locale\" content=\"en_US\">\n<meta name=\"twitter:card\"\
+  \ content=\"summary_large_image\">\n<meta name=\"twitter:site\" content=\"@{brand}\"\
+  >\n```\n\x1FFILE:references/platform-notes.md\x1E\n# Platform notes\n\nWhat each\
+  \ app reads, how long it caches, and how to refresh. Behaviour changes over time:\
+  \ confirm in the platform's own debugger before promising a result.\n\n| Platform\
+  \ | Crawler user agent | Reads | Image used | Cache / refresh |\n|---|---|---|---|---|\n\
+  | Facebook, Messenger | `facebookexternalhit/1.1` | og:*, then title/description\
+  \ | og:image, 1200x630 large card, 200x200 minimum | ~30 days; Sharing Debugger\
+  \ -> \"Scrape Again\" |\n| Instagram (link stickers, DMs) | Facebook crawler | og:*\
+  \ | og:image | as Facebook |\n| LinkedIn | `LinkedInBot/1.0` | og:* (title, description,\
+  \ image, site_name) | og:image, 1200x627, min 200 px wide | ~7 days; Post Inspector\
+  \ re-scrapes |\n| X | `Twitterbot/1.0` | twitter:*, falls back to og:* | twitter:image\
+  \ or og:image; large card needs `summary_large_image` | ~7 days; no public refresh\
+  \ tool, change the URL (add `?v=2` to the shared link, not to canonical) |\n| Slack\
+  \ | `Slackbot-LinkExpanding 1.0` | og:*, twitter:*, oEmbed | og:image (large when\
+  \ 1.91:1) | ~30 min per workspace; re-post after the fix |\n| Discord | `Discordbot/2.0`\
+  \ | og:*, twitter:card, `theme-color` for the side bar | large image with `summary_large_image`\
+  \ | cached; append a query string to re-test |\n| WhatsApp | `WhatsApp/2.x` | og:title,\
+  \ og:description, og:image | og:image; small files (a few hundred KB) give the most\
+  \ reliable thumbnails | per device; new link or new image URL |\n| iMessage | Apple's\
+  \ link preview fetcher (runs on the sender's device) | og:title, og:image, favicon\
+  \ | og:image or apple-touch-icon | on device |\n| Telegram | `TelegramBot` | og:*\
+  \ | og:image | @WebpageBot to refresh |\n\n## Common reasons a preview is wrong\n\
+  - **No preview at all:** crawler blocked by robots.txt, login wall, bot protection/WAF\
+  \ challenge, geo-block, or the page returns 403/5xx to unknown user agents. Test\
+  \ with `curl -sI -A \"facebookexternalhit/1.1\" URL`.\n- **Old title or image:**\
+  \ the platform cache. Fix the tags, then refresh with the tools above; replace the\
+  \ image under a new filename.\n- **Logo instead of the product image:** og:image\
+  \ points at the logo, or the right tag sits in `<body>` and is ignored.\n- **Cropped\
+  \ text on the image:** keep important text inside the centre ~80% of a 1200x630\
+  \ canvas; LinkedIn and X crop the edges differently.\n- **Wrong language or mojibake:**\
+  \ missing `<meta charset=\"utf-8\">` or the server sends a different `Content-Type`\
+  \ charset.\n- **Single-page apps:** tags set by client-side JavaScript are not seen\
+  \ by Facebook, LinkedIn, Slack or WhatsApp. Pre-render or render the head on the\
+  \ server.\n\n## Testing checklist\n1. `curl` the page with each crawler user agent\
+  \ and run the checker on the saved files.\n2. `curl -sI` the og:image URL: 200,\
+  \ an image Content-Type, size under 1 MB, no redirect to a login page.\n3. Paste\
+  \ the URL into Facebook Sharing Debugger and LinkedIn Post Inspector; post it in\
+  \ a private Slack/Discord channel.\n4. Record the before/after screenshots in the\
+  \ review.\n\x1FFILE:templates/share-meta-review.md\x1E\n# Share preview review:\
+  \ <page URL>\n\n**Source:** <curl -A facebookexternalhit, saved <date>>   **Platforms\
+  \ that matter:** <LinkedIn, Slack, WhatsApp>\n**Result:** <HIGH n, MEDIUM n, LOW\
+  \ n> - <one-sentence verdict, e.g. \"shares show the logo and a template placeholder;\
+  \ fix the SEO plugin output\">\n\n## Preview now vs after the fix\n| Field | Now\
+  \ | After |\n|---|---|---|\n| Title | <{{ product.name }} / Peakline> | <Trail Grip\
+  \ - the trail shoe for wet rock> |\n| Description | <269 characters, cut mid-sentence>\
+  \ | <Grippy, light trail shoes tested on wet granite and mud. ...> |\n| Image |\
+  \ </img/logo.svg (relative SVG)> | <https://shop.example.com/img/trail-grip-share-1200x630.jpg>\
+  \ |\n| Card on X | <invalid \"large\"> | <summary_large_image> |\n\n## Fix list\n\
+  | # | Sev | Tag | Problem | Fix | Where |\n|---|---|---|---|---|---|\n| 1 | <HIGH>\
+  \ | <og:image> | <relative SVG logo> | <absolute 1200x630 JPEG> | <theme header.liquid>\
+  \ |\n| 2 | <MEDIUM> | <og:title> | <duplicate from SEO plugin, unrendered> | <disable\
+  \ theme OG output, keep plugin> | <plugin settings> |\n\n## Fixed head block\n```\n\
+  <paste the complete corrected tags here, in this order: charset, title, description,\
+  \ canonical, og:*, twitter:*>\n```\n\n## Share image spec\n- <1200x630 JPEG or PNG,\
+  \ under ~1 MB, new filename; text and logo inside the centre 80%>\n- <alt text:\
+  \ \"...\">\n\n## After deploying\n1. <curl -sL -A \"facebookexternalhit/1.1\" <URL>\
+  \ | grep -E 'og:|twitter:|canonical'>\n2. <Facebook Sharing Debugger: Scrape Again;\
+  \ LinkedIn Post Inspector: Inspect>\n3. <post in a private Slack channel; check\
+  \ X with a fresh share>\n\n**To verify (not checked offline):** <image URL returns\
+  \ 200 to crawlers; robots.txt/WAF does not block the user agents; tags present without\
+  \ JavaScript>\n**Open questions:** <which system should own the tags - theme or\
+  \ SEO plugin? per-product share images available?>\n\x1FFILE:examples/product-page.html\x1E\
+  \n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta http-equiv=\"X-UA-Compatible\"\
+  \ content=\"IE=edge\">\n  <title>Peakline</title>\n  <meta name=\"viewport\" content=\"\
+  width=device-width, initial-scale=1\">\n  <meta name=\"description\" content=\"\
+  Shoes.\">\n  <link rel=\"canonical\" href=\"/shoes/trail-grip\">\n  <!-- theme defaults\
+  \ -->\n  <meta property=\"og:type\" content=\"website\">\n  <meta property=\"og:title\"\
+  \ content=\"Peakline Shop\">\n  <meta property=\"og:url\" content=\"https://shop.example.com/shoes/trail-grip?utm_source=newsletter\"\
+  >\n  <meta property=\"og:image\" content=\"/img/logo.svg\">\n  <meta property=\"\
+  og:locale\" content=\"en-us\">\n  <!-- SEO plugin -->\n  <meta property=\"og:title\"\
+  \ content=\"{{ product.name }} | Peakline\">\n  <meta name=\"og:description\" content=\"\
+  Grippy, light trail running shoes tested on wet granite, roots and mud. Compare\
+  \ fit, drop and sole wear across three widths, read 240 reviews from real runners,\
+  \ and order with free returns within 60 days and free shipping on orders over 80\
+  \ dollars, in every EU country.\">\n  <meta name=\"twitter:card\" content=\"large\"\
+  >\n  <meta name=\"twitter:site\" content=\"https://x.com/peakline\">\n  <link rel=\"\
+  stylesheet\" href=\"/css/site.css\">\n</head>\n<body>\n  <header><a href=\"/\">Peakline</a></header>\n\
+  \  <main>\n    <h1>Trail Grip - wet rock trail shoe</h1>\n    <meta property=\"\
+  og:image\" content=\"https://shop.example.com/img/trail-grip-800.jpg\">\n    <meta\
+  \ property=\"og:image:width\" content=\"800\">\n    <meta property=\"og:image:height\"\
+  \ content=\"800\">\n    <p>Grippy, light trail shoes tested on wet granite and mud.</p>\n\
+  \  </main>\n</body>\n</html>\n\x1FFILE:examples/product-page-fixed.html\x1E\n<!DOCTYPE\
+  \ html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"\
+  viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Trail Grip\
+  \ Running Shoes for Wet Rock | Peakline</title>\n  <meta name=\"description\" content=\"\
+  Grippy, light trail shoes tested on wet granite and mud. Compare fit, drop and sole\
+  \ wear across three widths, with free 60-day returns.\">\n  <link rel=\"canonical\"\
+  \ href=\"https://shop.example.com/shoes/trail-grip\">\n  <meta property=\"og:type\"\
+  \ content=\"product\">\n  <meta property=\"og:site_name\" content=\"Peakline\">\n\
+  \  <meta property=\"og:title\" content=\"Trail Grip - the trail shoe for wet rock\"\
+  >\n  <meta property=\"og:description\" content=\"Grippy, light trail shoes tested\
+  \ on wet granite and mud. Three widths, free 60-day returns.\">\n  <meta property=\"\
+  og:url\" content=\"https://shop.example.com/shoes/trail-grip\">\n  <meta property=\"\
+  og:image\" content=\"https://shop.example.com/img/trail-grip-share-1200x630.jpg\"\
+  >\n  <meta property=\"og:image:width\" content=\"1200\">\n  <meta property=\"og:image:height\"\
+  \ content=\"630\">\n  <meta property=\"og:image:alt\" content=\"Blue Trail Grip\
+  \ shoe gripping a wet granite slab\">\n  <meta property=\"og:locale\" content=\"\
+  en_US\">\n  <meta name=\"twitter:card\" content=\"summary_large_image\">\n  <meta\
+  \ name=\"twitter:site\" content=\"@peakline\">\n  <link rel=\"stylesheet\" href=\"\
+  /css/site.css\">\n</head>\n<body>\n  <header><a href=\"/\">Peakline</a></header>\n\
+  \  <main>\n    <h1>Trail Grip - wet rock trail shoe</h1>\n    <p>Grippy, light trail\
+  \ shoes tested on wet granite and mud.</p>\n  </main>\n</body>\n</html>\n\x1FFILE:examples/meta-report.md\x1E\
+  \n# Social share meta check\n\nPages: 1   Findings: 21 (HIGH 1, MEDIUM 10, LOW 10)\
+  \   Page URL: https://shop.example.com/shoes/trail-grip\n\n## product-page.html\n\
+  \nPreview as built from the tags (card: large)\n\n| Field | Shown |\n|---|---|\n\
+  | Domain | shop.example.com |\n| Title | Peakline Shop |\n| Description | Grippy,\
+  \ light trail running shoes tested on wet granite, roots and mud. Compare fit, drop\
+  \ and sole wear across three widths, read 240 reviews from real runners, and order\
+  \ with free returns within 6... |\n| Image | /img/logo.svg |\n\n| Sev | Code | Tag\
+  \ | Line | Problem | Fix |\n|---|---|---|---|---|---|\n| HIGH | RELATIVE_URL | og:image\
+  \ | 13 | og:image is relative (/img/logo.svg); crawlers need an absolute URL - would\
+  \ mean https://shop.example.com/img/logo.svg | write the full URL, e.g. https://shop.example.com/img/logo.svg\
+  \ |\n| MEDIUM | RELATIVE_URL | canonical | 8 | canonical is relative (/shoes/trail-grip);\
+  \ crawlers need an absolute URL - would mean https://shop.example.com/shoes/trail-grip\
+  \ | write the full URL, e.g. https://shop.example.com/shoes/trail-grip |\n| MEDIUM\
+  \ | TRACKING_PARAMS | og:url | 12 | og:url carries tracking parameters (utm_source=newsletter);\
+  \ every share then counts the campaign | use the clean URL without ?utm_/fbclid/gclid\
+  \ |\n| MEDIUM | IMAGE_SVG | og:image | 13 | SVG images are not rendered by Facebook,\
+  \ X, LinkedIn or Slack | export a PNG or JPEG |\n| MEDIUM | IMAGE_SMALL | og:image\
+  \ | 13 | image is 800x800 (declared); large previews need at least 1200x630 (shown\
+  \ small or blurry) | use 1200x630 (2400x1260 for sharp retina) |\n| MEDIUM | PLACEHOLDER_VALUE\
+  \ | og:title | 16 | og:title looks like an unrendered template or placeholder: '{{\
+  \ product.name }} / Peakline' | fix the template variable |\n| MEDIUM | DUPLICATE_TAG\
+  \ | og:title | 16 | 2 different og:title values; apps pick the first or last unpredictably\
+  \ | keep one (often a theme and an SEO plugin both add tags) |\n| MEDIUM | TWITTER_CARD_INVALID\
+  \ | twitter:card | 18 | twitter:card 'large' is not one of summary, summary_large_image,\
+  \ app, player | use summary_large_image (or summary) |\n| MEDIUM | TAG_OUTSIDE_HEAD\
+  \ | og:image | 26 | og:image is inside `<body>`; Facebook and LinkedIn read only\
+  \ `<head>` | move into `<head>` |\n| MEDIUM | TAG_OUTSIDE_HEAD | og:image:width\
+  \ | 27 | og:image:width is inside `<body>`; Facebook and LinkedIn read only `<head>`\
+  \ | move into `<head>` |\n| MEDIUM | TAG_OUTSIDE_HEAD | og:image:height | 28 | og:image:height\
+  \ is inside `<body>`; Facebook and LinkedIn read only `<head>` | move into `<head>`\
+  \ |\n| LOW | OG_MISSING | og:site_name | - | og:site_name missing: LinkedIn and\
+  \ Slack show the bare domain instead of your brand | `<meta property=\"og:site_name\"\
+  \ content=\"Brand\">` |\n| LOW | CHARSET_MISSING | meta charset | - | no `<meta\
+  \ charset>`; non-ASCII titles can show as mojibake in previews | `<meta charset=\"\
+  utf-8\">` first in `<head>` |\n| LOW | TITLE_LENGTH | `<title>` | 5 | title is 8\
+  \ characters (aim for 15-60): 'Peakline' | front-load the key words; search results\
+  \ cut around 60 characters |\n| LOW | DESCRIPTION_LENGTH | meta description | 7\
+  \ | description is 6 characters (aim for 50-160) | rewrite to one or two sentences\
+  \ with the key benefit first |\n| LOW | CANONICAL_OG_URL_MISMATCH | og:url | 12\
+  \ | og:url (https://shop.example.com/shoes/trail-grip?utm_source=newsletter) differs\
+  \ from canonical (/shoes/trail-grip) | use the canonical URL in og:url |\n| LOW\
+  \ | IMAGE_ALT_MISSING | og:image:alt | 13 | no og:image:alt (screen readers on X/LinkedIn\
+  \ get nothing) | describe the image in one sentence |\n| LOW | OG_LOCALE_FORMAT\
+  \ | og:locale | 14 | og:locale 'en-us' should look like en_US (underscore, region\
+  \ in capitals) | e.g. en_US, de_DE, pt_BR |\n| LOW | OG_DESCRIPTION_LONG | og:description\
+  \ | 17 | og:description is 269 characters; most apps show ~2-3 lines | keep under\
+  \ ~200 characters |\n| LOW | OG_USES_NAME_ATTR | og:description | 17 | og:description\
+  \ uses name= instead of property= (Open Graph spec; some parsers skip it) | `<meta\
+  \ property=\"og:description\" ...>` |\n| LOW | TWITTER_HANDLE_FORMAT | twitter:site\
+  \ | 19 | twitter:site 'https://x.com/peakline' should be an @handle | e.g. @brand\
+  \ |\n\nOffline check of the saved HTML only: tags injected by JavaScript after load\
+  \ are invisible to most crawlers too, but redirects, robots rules, the live image\
+  \ URL and each platform's preview cache were not tested.\n\x1FFILE:scripts/og_meta_check.py\x1E\
+  \n#!/usr/bin/env python3\n\"\"\"Open Graph and social share meta tag checker (Python\
+  \ 3.8+ standard library only).\n\nReads saved HTML (a file, several files, or a\
+  \ folder of *.html) and checks what link\npreviews on Facebook, LinkedIn, X, Slack,\
+  \ Discord, WhatsApp and iMessage will be built from:\n<title>, meta description,\
+  \ rel=canonical, og:* (title, description, type, url, image,\nimage:width/height/alt/type,\
+  \ site_name, locale) and twitter:* card tags.\n\nIt flags missing and duplicate\
+  \ tags, relative or http:// URLs, canonical vs og:url\nmismatches, title/description\
+  \ length, image size hints (declared or, with --root, read\nfrom local PNG/JPEG/GIF/WebP\
+  \ files), SVG images, wrong attributes (name= vs property=),\ntags outside <head>,\
+  \ and template placeholders ({{ }}, TODO, undefined).\n\nUsage:\n  python3 og_meta_check.py\
+  \ page.html [more.html | folder/] [--url https://example.com/page]\n           \
+  \                [--root public/] [--min-severity LOW|MEDIUM|HIGH] [--ignore CODE,..]\
+  \ [--json]\n  python3 og_meta_check.py --self-test\n\n--url   the page's public\
+  \ URL (used to resolve relative links and compare canonical/og:url)\n--root  local\
+  \ folder that maps to the site root, so /img/share.png is read from root/img/share.png\n\
+  \nExit codes: 0 = no HIGH findings, 1 = HIGH findings, 2 = bad input. No network\
+  \ calls are made.\n\"\"\"\nimport argparse\nimport json\nimport os\nimport re\n\
+  import struct\nimport sys\nfrom html.parser import HTMLParser\nfrom urllib.parse\
+  \ import urljoin, urlsplit\n\nSEV_ORDER = {\"LOW\": 1, \"MEDIUM\": 2, \"HIGH\":\
+  \ 3}\nTWITTER_CARDS = (\"summary\", \"summary_large_image\", \"app\", \"player\"\
+  )\nSINGLE_OG = (\"og:title\", \"og:description\", \"og:type\", \"og:url\", \"og:site_name\"\
+  , \"og:locale\")\nPLACEHOLDER_RE = re.compile(r\"(\\{\\{|\\}\\}|\\$\\{|<%|%>|\\\
+  bTODO\\b|\\bTBD\\b|lorem ipsum|\\bundefined\\b|\\bnull\\b|\\[object Object\\]|NaN)\"\
+  , re.I)\nTITLE_RANGE = (15, 60)       # search results show roughly 50-60 characters\n\
+  DESC_RANGE = (50, 160)\nOG_TITLE_MAX = 90            # Facebook/LinkedIn cut long\
+  \ titles around 2 lines\nOG_DESC_MAX = 200\nIMG_MIN = (200, 200)         # Facebook\
+  \ minimum\nIMG_LARGE = (1200, 630)      # recommended 1.91:1\nIMG_MAX_BYTES = 5\
+  \ * 1024 * 1024   # X limit 5 MB; Facebook 8 MB\n\n\nclass Meta:\n    def __init__(self,\
+  \ key, attr, content, line, in_head):\n        self.key, self.attr, self.content,\
+  \ self.line, self.in_head = key, attr, content, line, in_head\n\n\nclass PageParser(HTMLParser):\n\
+  \    def __init__(self):\n        super().__init__(convert_charrefs=True)\n    \
+  \    self.metas, self.links, self.titles = [], [], []\n        self.in_head = True\
+  \       # before <body> starts, tags count as head (HTML parsing rules)\n      \
+  \  self.seen_head = False\n        self._in_title, self._title_buf, self._title_line\
+  \ = False, [], 0\n        self.charset = None\n        self.lang = None\n\n    def\
+  \ handle_starttag(self, tag, attrs):\n        a = {k.lower(): (v if v is not None\
+  \ else \"\") for k, v in attrs}\n        line = self.getpos()[0]\n        if tag\
+  \ == \"html\":\n            self.lang = a.get(\"lang\")\n        elif tag == \"\
+  head\":\n            self.seen_head = True\n            self.in_head = True\n  \
+  \      elif tag == \"body\":\n            self.in_head = False\n        elif tag\
+  \ == \"title\":\n            self._in_title, self._title_buf, self._title_line =\
+  \ True, [], line\n        elif tag == \"meta\":\n            if \"charset\" in a:\n\
+  \                self.charset = a[\"charset\"]\n            for attr in (\"property\"\
+  , \"name\", \"itemprop\"):\n                if a.get(attr):\n                  \
+  \  self.metas.append(Meta(a[attr].strip().lower(), attr, a.get(\"content\", None),\
+  \ line, self.in_head))\n                    break\n        elif tag == \"link\"\
+  :\n            rel = a.get(\"rel\", \"\").lower().split()\n            self.links.append({\"\
+  rel\": rel, \"href\": a.get(\"href\", \"\"), \"line\": line, \"in_head\": self.in_head,\n\
+  \                               \"sizes\": a.get(\"sizes\", \"\")})\n        if\
+  \ tag in (\"div\", \"p\", \"main\", \"article\", \"section\", \"h1\", \"img\", \"\
+  span\", \"header\", \"nav\") and self.in_head and self.seen_head:\n            self.in_head\
+  \ = False  # implied <body>\n\n    def handle_startendtag(self, tag, attrs):\n \
+  \       self.handle_starttag(tag, attrs)\n\n    def handle_endtag(self, tag):\n\
+  \        if tag == \"head\":\n            self.in_head = False\n        elif tag\
+  \ == \"title\" and self._in_title:\n            self._in_title = False\n       \
+  \     self.titles.append((\" \".join(\"\".join(self._title_buf).split()), self._title_line))\n\
+  \n    def handle_data(self, data):\n        if self._in_title:\n            self._title_buf.append(data)\n\
+  \n\ndef image_size(path):\n    \"\"\"Return (width, height, format) for PNG, GIF,\
+  \ JPEG or WebP, else None.\"\"\"\n    with open(path, \"rb\") as fh:\n        head\
+  \ = fh.read(32)\n        if head[:8] == b\"\\x89PNG\\r\\n\\x1a\\n\":\n         \
+  \   w, h = struct.unpack(\">II\", head[16:24])\n            return w, h, \"png\"\
+  \n        if head[:6] in (b\"GIF87a\", b\"GIF89a\"):\n            w, h = struct.unpack(\"\
+  <HH\", head[6:10])\n            return w, h, \"gif\"\n        if head[:4] == b\"\
+  RIFF\" and head[8:12] == b\"WEBP\":\n            fh.seek(12)\n            chunk\
+  \ = fh.read(30)\n            kind = chunk[:4]\n            if kind == b\"VP8X\"\
+  :\n                w = int.from_bytes(chunk[12:15], \"little\") + 1\n          \
+  \      h = int.from_bytes(chunk[15:18], \"little\") + 1\n                return\
+  \ w, h, \"webp\"\n            if kind == b\"VP8 \":\n                w, h = struct.unpack(\"\
+  <HH\", chunk[14:18])\n                return w & 0x3FFF, h & 0x3FFF, \"webp\"\n\
+  \            if kind == b\"VP8L\":\n                b = chunk[9:13]\n          \
+  \      bits = int.from_bytes(b, \"little\")\n                return (bits & 0x3FFF)\
+  \ + 1, ((bits >> 14) & 0x3FFF) + 1, \"webp\"\n            return None\n        if\
+  \ head[:2] == b\"\\xff\\xd8\":\n            fh.seek(2)\n            while True:\n\
+  \                m = fh.read(2)\n                if len(m) < 2 or m[0] != 0xFF:\n\
+  \                    return None\n                marker = m[1]\n              \
+  \  if marker in (0xD8, 0x01) or 0xD0 <= marker <= 0xD7:\n                    continue\n\
+  \                seg = fh.read(2)\n                if len(seg) < 2:\n          \
+  \          return None\n                length = struct.unpack(\">H\", seg)[0]\n\
+  \                if marker in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA,\
+  \ 0xCB, 0xCD, 0xCE, 0xCF):\n                    data = fh.read(5)\n            \
+  \        h, w = struct.unpack(\">HH\", data[1:5])\n                    return w,\
+  \ h, \"jpeg\"\n                fh.seek(length - 2, 1)\n    return None\n\n\ndef\
+  \ analyze(html, page_url=\"\", root=None, name=\"page.html\"):\n    p = PageParser()\n\
+  \    p.feed(html)\n    p.close()\n    f = []\n\n    def add(sev, code, tag, problem,\
+  \ fix, line=0):\n        f.append({\"severity\": sev, \"code\": code, \"tag\": tag,\
+  \ \"problem\": problem, \"fix\": fix, \"line\": line, \"file\": name})\n\n    metas\
+  \ = {}\n    for m in p.metas:\n        metas.setdefault(m.key, []).append(m)\n\n\
+  \    def first(key):\n        v = metas.get(key)\n        return v[0] if v else\
+  \ None\n\n    def val(key):\n        m = first(key)\n        return (m.content or\
+  \ \"\").strip() if m and m.content is not None else None\n\n    page_https = page_url.lower().startswith(\"\
+  https://\")\n\n    def check_abs(tag, url, line, sev_rel=\"HIGH\"):\n        if\
+  \ not url:\n            return\n        s = urlsplit(url)\n        if not s.scheme:\n\
+  \            resolved = urljoin(page_url, url) if page_url else None\n         \
+  \   add(sev_rel, \"RELATIVE_URL\", tag, \"%s is relative (%s); crawlers need an\
+  \ absolute URL%s\" %\n                (tag, url, (\" - would mean \" + resolved)\
+  \ if resolved else \"\"),\n                \"write the full URL, e.g. %s\" % (resolved\
+  \ or \"https://example.com\" + (\"\" if url.startswith(\"/\") else \"/\") + url),\
+  \ line)\n        elif s.scheme == \"http\" and (page_https or tag.startswith((\"\
+  og:image\", \"twitter:image\"))):\n            add(\"MEDIUM\", \"HTTP_URL\", tag,\
+  \ \"%s uses http:// (%s); some apps skip insecure images or mix up the canonical\"\
+  \ % (tag, url),\n                \"use https://\", line)\n\n    # ---- title / description\n\
+  \    titles = p.titles\n    if not titles or not titles[0][0]:\n        add(\"HIGH\"\
+  , \"TITLE_MISSING\", \"<title>\", \"no <title>; search results and many previews\
+  \ fall back to the URL\",\n            \"add a specific <title> of 15-60 characters\"\
+  )\n    else:\n        t, line = titles[0]\n        if len(titles) > 1:\n       \
+  \     add(\"MEDIUM\", \"TITLE_MULTIPLE\", \"<title>\", \"%d <title> elements; only\
+  \ the first is used\" % len(titles), \"keep one\", titles[1][1])\n        if len(t)\
+  \ < TITLE_RANGE[0] or len(t) > TITLE_RANGE[1]:\n            add(\"LOW\", \"TITLE_LENGTH\"\
+  , \"<title>\", \"title is %d characters (aim for %d-%d): %r\" % (len(t), TITLE_RANGE[0],\
+  \ TITLE_RANGE[1], t),\n                \"front-load the key words; search results\
+  \ cut around 60 characters\", line)\n    desc = val(\"description\")\n    if desc\
+  \ is None or desc == \"\":\n        add(\"MEDIUM\", \"DESCRIPTION_MISSING\", \"\
+  meta description\", \"no meta description; previews and search snippets pick random\
+  \ page text\",\n            \"add <meta name=\\\"description\\\" content=\\\"...\\\
+  \"> of 50-160 characters\")\n    elif len(desc) < DESC_RANGE[0] or len(desc) > DESC_RANGE[1]:\n\
+  \        add(\"LOW\", \"DESCRIPTION_LENGTH\", \"meta description\", \"description\
+  \ is %d characters (aim for %d-%d)\" % (len(desc), DESC_RANGE[0], DESC_RANGE[1]),\n\
+  \            \"rewrite to one or two sentences with the key benefit first\", first(\"\
+  description\").line)\n    if len(metas.get(\"description\", [])) > 1:\n        add(\"\
+  MEDIUM\", \"DUPLICATE_TAG\", \"meta description\", \"%d meta descriptions; the first\
+  \ is used\" % len(metas[\"description\"]), \"keep one\",\n            metas[\"description\"\
+  ][1].line)\n\n    # ---- canonical\n    canon = [l for l in p.links if \"canonical\"\
+  \ in l[\"rel\"]]\n    canon_url = None\n    if not canon:\n        add(\"MEDIUM\"\
+  , \"CANONICAL_MISSING\", \"link rel=canonical\", \"no canonical URL; shares with\
+  \ ?utm= or ?ref= parameters count as separate pages\",\n            \"<link rel=\\\
+  \"canonical\\\" href=\\\"https://example.com/clean-path\\\">\")\n    else:\n   \
+  \     if len(set(l[\"href\"] for l in canon)) > 1:\n            add(\"HIGH\", \"\
+  CANONICAL_MULTIPLE\", \"link rel=canonical\", \"%d different canonical URLs; search\
+  \ engines may ignore all of them\" % len(canon),\n                \"keep exactly\
+  \ one\", canon[1][\"line\"])\n        canon_url = canon[0][\"href\"].strip()\n \
+  \       if not canon_url:\n            add(\"HIGH\", \"CANONICAL_EMPTY\", \"link\
+  \ rel=canonical\", \"canonical href is empty\", \"set the full URL\", canon[0][\"\
+  line\"])\n        else:\n            check_abs(\"canonical\", canon_url, canon[0][\"\
+  line\"], \"MEDIUM\")\n            if not canon[0][\"in_head\"]:\n              \
+  \  add(\"MEDIUM\", \"TAG_OUTSIDE_HEAD\", \"link rel=canonical\", \"canonical is\
+  \ in <body>; search engines ignore it there\", \"move into <head>\", canon[0][\"\
+  line\"])\n            if page_url and urlsplit(canon_url).scheme and urlsplit(canon_url).netloc\
+  \ != urlsplit(page_url).netloc:\n                add(\"LOW\", \"CANONICAL_OTHER_HOST\"\
+  , \"link rel=canonical\", \"canonical points to another host (%s)\" % urlsplit(canon_url).netloc,\n\
+  \                    \"fine for syndicated copies; otherwise use this page's own\
+  \ URL\", canon[0][\"line\"])\n\n    # ---- Open Graph core\n    for key, sev, why,\
+  \ fix in (\n            (\"og:title\", \"MEDIUM\", \"previews fall back to <title>\
+  \ (often with the site name suffix)\", \"<meta property=\\\"og:title\\\" content=\\\
+  \"...\\\">\"),\n            (\"og:description\", \"LOW\", \"previews fall back to\
+  \ the meta description or page text\", \"<meta property=\\\"og:description\\\" content=\\\
+  \"...\\\">\"),\n            (\"og:type\", \"LOW\", \"defaults to website; use article\
+  \ or product where it fits\", \"<meta property=\\\"og:type\\\" content=\\\"website\\\
+  \">\"),\n            (\"og:url\", \"LOW\", \"shares are not merged onto one canonical\
+  \ URL (like counts split)\", \"<meta property=\\\"og:url\\\" content=\\\"<canonical\
+  \ URL>\\\">\"),\n            (\"og:site_name\", \"LOW\", \"LinkedIn and Slack show\
+  \ the bare domain instead of your brand\", \"<meta property=\\\"og:site_name\\\"\
+  \ content=\\\"Brand\\\">\")):\n        if first(key) is None:\n            add(sev,\
+  \ \"OG_MISSING\", key, \"%s missing: %s\" % (key, why), fix)\n        elif not val(key):\n\
+  \            add(\"MEDIUM\", \"EMPTY_CONTENT\", key, \"%s has an empty content attribute\"\
+  \ % key, \"fill it or remove the tag\", first(key).line)\n    ogt = val(\"og:title\"\
+  )\n    if ogt and len(ogt) > OG_TITLE_MAX:\n        add(\"LOW\", \"OG_TITLE_LONG\"\
+  , \"og:title\", \"og:title is %d characters; previews cut it after ~2 lines\" %\
+  \ len(ogt), \"keep under ~70-90 characters\", first(\"og:title\").line)\n    ogd\
+  \ = val(\"og:description\")\n    if ogd and len(ogd) > OG_DESC_MAX:\n        add(\"\
+  LOW\", \"OG_DESCRIPTION_LONG\", \"og:description\", \"og:description is %d characters;\
+  \ most apps show ~2-3 lines\" % len(ogd), \"keep under ~200 characters\", first(\"\
+  og:description\").line)\n    if first(\"og:url\") and val(\"og:url\"):\n       \
+  \ check_abs(\"og:url\", val(\"og:url\"), first(\"og:url\").line)\n        canon_abs\
+  \ = urljoin(page_url, canon_url) if canon_url and page_url else canon_url\n    \
+  \    if canon_abs and urlsplit(canon_abs).scheme and val(\"og:url\").rstrip(\"/\"\
+  ) != canon_abs.rstrip(\"/\"):\n            add(\"LOW\", \"CANONICAL_OG_URL_MISMATCH\"\
+  , \"og:url\", \"og:url (%s) differs from canonical (%s)\" % (val(\"og:url\"), canon_url),\n\
+  \                \"use the canonical URL in og:url\", first(\"og:url\").line)\n\
+  \    for key, u, ln in ((\"og:url\", val(\"og:url\"), first(\"og:url\").line if\
+  \ first(\"og:url\") else 0),\n                       (\"canonical\", canon_url,\
+  \ canon[0][\"line\"] if canon else 0)):\n        if u and re.search(r\"[?&](utm_[a-z]+|fbclid|gclid|ref|mc_cid)=\"\
+  , u, re.I):\n            add(\"MEDIUM\", \"TRACKING_PARAMS\", key, \"%s carries\
+  \ tracking parameters (%s); every share then counts the campaign\" % (key, urlsplit(u).query),\n\
+  \                \"use the clean URL without ?utm_/fbclid/gclid\", ln)\n    loc\
+  \ = val(\"og:locale\")\n    if loc and not re.match(r\"^[a-z]{2,3}_[A-Z]{2}$\",\
+  \ loc):\n        add(\"LOW\", \"OG_LOCALE_FORMAT\", \"og:locale\", \"og:locale %r\
+  \ should look like en_US (underscore, region in capitals)\" % loc,\n           \
+  \ \"e.g. en_US, de_DE, pt_BR\", first(\"og:locale\").line)\n    ogtype = val(\"\
+  og:type\")\n    if ogtype and ogtype not in (\"website\", \"article\", \"book\"\
+  , \"profile\", \"product\", \"music.song\", \"music.album\",\n                 \
+  \                \"music.playlist\", \"music.radio_station\", \"video.movie\", \"\
+  video.episode\",\n                                 \"video.tv_show\", \"video.other\"\
+  , \"og:product\", \"product.item\", \"business.business\",\n                   \
+  \              \"restaurant.restaurant\", \"place\"):\n        add(\"LOW\", \"OG_TYPE_UNKNOWN\"\
+  , \"og:type\", \"og:type %r is not a standard type\" % ogtype, \"website, article,\
+  \ product, profile...\", first(\"og:type\").line)\n\n    # ---- image\n    img_meta\
+  \ = first(\"og:image\") or first(\"og:image:url\") or first(\"og:image:secure_url\"\
+  )\n    img = (img_meta.content or \"\").strip() if img_meta and img_meta.content\
+  \ else \"\"\n    tw_img = val(\"twitter:image\") or val(\"twitter:image:src\")\n\
+  \    if not img:\n        add(\"HIGH\", \"OG_IMAGE_MISSING\", \"og:image\", \"no\
+  \ og:image: shares show a plain text link or a random page image\",\n          \
+  \  \"add a 1200x630 image: <meta property=\\\"og:image\\\" content=\\\"https://.../share.png\\\
+  \">\")\n    else:\n        check_abs(\"og:image\", img, img_meta.line)\n       \
+  \ if re.search(r\"\\.svg(\\?|#|$)\", img, re.I):\n            add(\"MEDIUM\", \"\
+  IMAGE_SVG\", \"og:image\", \"SVG images are not rendered by Facebook, X, LinkedIn\
+  \ or Slack\", \"export a PNG or JPEG\", img_meta.line)\n        w, h = val(\"og:image:width\"\
+  ), val(\"og:image:height\")\n        size, source = None, \"\"\n        if w and\
+  \ h and w.isdigit() and h.isdigit():\n            size, source = (int(w), int(h)),\
+  \ \"declared\"\n        elif w or h:\n            add(\"LOW\", \"IMAGE_DIMENSIONS_INVALID\"\
+  , \"og:image:width/height\", \"width/height must both be whole numbers (got %r x\
+  \ %r)\" % (w, h),\n                \"e.g. 1200 and 630\", img_meta.line)\n     \
+  \   if root:\n            local = _local_path(img, page_url, root)\n           \
+  \ if local and os.path.isfile(local):\n                real = image_size(local)\n\
+  \                nbytes = os.path.getsize(local)\n                if real:\n   \
+  \                 if size and (size[0], size[1]) != (real[0], real[1]):\n      \
+  \                  add(\"MEDIUM\", \"IMAGE_DIMENSIONS_WRONG\", \"og:image:width/height\"\
+  ,\n                            \"declared %dx%d but the file is %dx%d\" % (size[0],\
+  \ size[1], real[0], real[1]),\n                            \"declare the real size\"\
+  , img_meta.line)\n                    size, source = (real[0], real[1]), \"file\
+  \ %s\" % os.path.relpath(local, root)\n                if nbytes > IMG_MAX_BYTES:\n\
+  \                    add(\"MEDIUM\", \"IMAGE_TOO_HEAVY\", \"og:image\", \"image\
+  \ file is %.1f MB (X rejects over 5 MB, previews time out)\" % (nbytes / 1048576.0),\n\
+  \                        \"compress to under ~1 MB (JPEG/WebP quality 80)\", img_meta.line)\n\
+  \            elif local:\n                add(\"MEDIUM\", \"IMAGE_NOT_FOUND\", \"\
+  og:image\", \"image not found under --root: %s\" % local, \"check the path and deploy\
+  \ the file\", img_meta.line)\n        if size is None:\n            add(\"LOW\"\
+  , \"IMAGE_DIMENSIONS_MISSING\", \"og:image:width/height\",\n                \"no\
+  \ og:image:width/height; Facebook cannot render the image on the very first share\"\
+  ,\n                \"add og:image:width 1200 and og:image:height 630\", img_meta.line)\n\
+  \        else:\n            iw, ih = size\n            if iw < IMG_MIN[0] or ih\
+  \ < IMG_MIN[1]:\n                add(\"HIGH\", \"IMAGE_TOO_SMALL\", \"og:image\"\
+  , \"image is %dx%d (%s); below 200x200 Facebook ignores it\" % (iw, ih, source),\n\
+  \                    \"use 1200x630\", img_meta.line)\n            elif iw < IMG_LARGE[0]\
+  \ or ih < IMG_LARGE[1]:\n                add(\"MEDIUM\", \"IMAGE_SMALL\", \"og:image\"\
+  , \"image is %dx%d (%s); large previews need at least 1200x630 (shown small or blurry)\"\
+  \ % (iw, ih, source),\n                    \"use 1200x630 (2400x1260 for sharp retina)\"\
+  , img_meta.line)\n            ratio = iw / float(ih)\n            card = val(\"\
+  twitter:card\") or \"\"\n            if card == \"summary_large_image\" or not card:\n\
+  \                if not (1.75 <= ratio <= 2.05):\n                    add(\"LOW\"\
+  , \"IMAGE_ASPECT\", \"og:image\", \"aspect ratio %.2f:1 will be cropped in large\
+  \ cards (aim for 1.91:1)\" % ratio,\n                        \"1200x630, keep text\
+  \ inside the centre 80%\", img_meta.line)\n        if not val(\"og:image:alt\"):\n\
+  \            add(\"LOW\", \"IMAGE_ALT_MISSING\", \"og:image:alt\", \"no og:image:alt\
+  \ (screen readers on X/LinkedIn get nothing)\",\n                \"describe the\
+  \ image in one sentence\", img_meta.line)\n    if tw_img:\n        check_abs(\"\
+  twitter:image\", tw_img, first(\"twitter:image\").line if first(\"twitter:image\"\
+  ) else 0)\n\n    # ---- twitter / X card\n    card = val(\"twitter:card\")\n   \
+  \ if card is None:\n        add(\"LOW\" if img else \"MEDIUM\", \"TWITTER_CARD_MISSING\"\
+  , \"twitter:card\",\n            \"no twitter:card; X shows a small summary card\
+  \ at best\", \"<meta name=\\\"twitter:card\\\" content=\\\"summary_large_image\\\
+  \">\")\n    elif card not in TWITTER_CARDS:\n        add(\"MEDIUM\", \"TWITTER_CARD_INVALID\"\
+  , \"twitter:card\", \"twitter:card %r is not one of %s\" % (card, \", \".join(TWITTER_CARDS)),\n\
+  \            \"use summary_large_image (or summary)\", first(\"twitter:card\").line)\n\
+  \    elif card == \"summary_large_image\" and not (img or tw_img):\n        add(\"\
+  MEDIUM\", \"TWITTER_CARD_NO_IMAGE\", \"twitter:card\", \"summary_large_image without\
+  \ any image\", \"add og:image or twitter:image\", first(\"twitter:card\").line)\n\
+  \    for key in (\"twitter:site\", \"twitter:creator\"):\n        v = val(key)\n\
+  \        if v and not re.match(r\"^@\\w{1,15}$\", v):\n            add(\"LOW\",\
+  \ \"TWITTER_HANDLE_FORMAT\", key, \"%s %r should be an @handle\" % (key, v), \"\
+  e.g. @brand\", first(key).line)\n\n    # ---- attribute and placement problems,\
+  \ duplicates, placeholders\n    for m in p.metas:\n        if m.key.startswith(\"\
+  og:\") and m.attr == \"name\":\n            add(\"LOW\", \"OG_USES_NAME_ATTR\",\
+  \ m.key, \"%s uses name= instead of property= (Open Graph spec; some parsers skip\
+  \ it)\" % m.key,\n                \"<meta property=\\\"%s\\\" ...>\" % m.key, m.line)\n\
+  \        if (m.key.startswith((\"og:\", \"twitter:\")) or m.key == \"description\"\
+  ) and not m.in_head:\n            add(\"MEDIUM\", \"TAG_OUTSIDE_HEAD\", m.key, \"\
+  %s is inside <body>; Facebook and LinkedIn read only <head>\" % m.key, \"move into\
+  \ <head>\", m.line)\n        if m.content is None and (m.key.startswith((\"og:\"\
+  , \"twitter:\")) or m.key == \"description\"):\n            add(\"MEDIUM\", \"NO_CONTENT_ATTR\"\
+  , m.key, \"%s has no content attribute (value=/text= are ignored)\" % m.key, \"\
+  use content=\\\"...\\\"\", m.line)\n        if m.content and PLACEHOLDER_RE.search(m.content)\
+  \ and (m.key.startswith((\"og:\", \"twitter:\")) or m.key == \"description\"):\n\
+  \            add(\"MEDIUM\", \"PLACEHOLDER_VALUE\", m.key, \"%s looks like an unrendered\
+  \ template or placeholder: %r\" % (m.key, m.content[:60]),\n                \"fix\
+  \ the template variable\", m.line)\n    for key in SINGLE_OG + (\"twitter:card\"\
+  , \"twitter:title\", \"twitter:description\"):\n        ms = metas.get(key, [])\n\
+  \        if len(ms) > 1 and len(set((m.content or \"\") for m in ms)) > 1:\n   \
+  \         add(\"MEDIUM\", \"DUPLICATE_TAG\", key, \"%d different %s values; apps\
+  \ pick the first or last unpredictably\" % (len(ms), key),\n                \"keep\
+  \ one (often a theme and an SEO plugin both add tags)\", ms[1].line)\n    if titles\
+  \ and titles[0][0] and PLACEHOLDER_RE.search(titles[0][0]):\n        add(\"MEDIUM\"\
+  , \"PLACEHOLDER_VALUE\", \"<title>\", \"title looks like a placeholder: %r\" % titles[0][0],\
+  \ \"fix the template\", titles[0][1])\n    if not p.charset:\n        add(\"LOW\"\
+  , \"CHARSET_MISSING\", \"meta charset\", \"no <meta charset>; non-ASCII titles can\
+  \ show as mojibake in previews\", \"<meta charset=\\\"utf-8\\\"> first in <head>\"\
+  )\n\n    preview = {\n        \"title\": _cut(ogt or (titles[0][0] if titles else\
+  \ \"\") or \"\", OG_TITLE_MAX),\n        \"description\": _cut(ogd or desc or \"\
+  \", OG_DESC_MAX),\n        \"image\": img or tw_img or \"\",\n        \"domain\"\
+  : urlsplit(val(\"og:url\") or canon_url or page_url or \"\").netloc,\n        \"\
+  card\": card or (\"summary\" if img else \"none\"),\n    }\n    return f, preview\n\
+  \n\ndef _cut(text, n):\n    return text if len(text) <= n else text[:n - 3].rstrip()\
+  \ + \"...\"\n\n\ndef _code(text):\n    \"\"\"Wrap <tags> in backticks so markdown\
+  \ shows them instead of swallowing them as HTML.\"\"\"\n    return re.sub(r\"(<[^<>]+>)\"\
+  , r\"`\\1`\", text.replace(\"|\", \"/\"))\n\n\ndef _local_path(url, page_url, root):\n\
+  \    s = urlsplit(url)\n    if s.scheme and page_url and s.netloc and s.netloc !=\
+  \ urlsplit(page_url).netloc:\n        return None  # image on another host (CDN):\
+  \ cannot check locally\n    path = urlsplit(urljoin(page_url or \"https://local.invalid/\"\
+  , url)).path\n    return os.path.join(root, path.lstrip(\"/\"))\n\n\ndef run_files(paths,\
+  \ page_url, root, min_sev, ignore):\n    results = []\n    files = []\n    for p\
+  \ in paths:\n        if os.path.isdir(p):\n            for dp, _, fns in os.walk(p):\n\
+  \                files += [os.path.join(dp, fn) for fn in sorted(fns) if fn.lower().endswith((\"\
+  .html\", \".htm\"))]\n        else:\n            files.append(p)\n    if not files:\n\
+  \        raise ValueError(\"no HTML files found\")\n    for fp in files:\n     \
+  \   with open(fp, encoding=\"utf-8\", errors=\"replace\") as fh:\n            html\
+  \ = fh.read()\n        if not re.search(r\"<(html|head|meta|title|link)\\b\", html,\
+  \ re.I):\n            raise ValueError(\"%s does not look like HTML\" % fp)\n  \
+  \      fs, prev = analyze(html, page_url if len(files) == 1 else \"\", root, os.path.basename(fp))\n\
+  \        fs = [x for x in fs if SEV_ORDER[x[\"severity\"]] >= SEV_ORDER[min_sev]\
+  \ and x[\"code\"] not in ignore]\n        fs.sort(key=lambda x: (-SEV_ORDER[x[\"\
+  severity\"]], x[\"line\"]))\n        results.append((fp, fs, prev))\n    return\
+  \ results\n\n\ndef render_md(results, page_url):\n    allf = [x for _, fs, _ in\
+  \ results for x in fs]\n    c = {k: sum(1 for x in allf if x[\"severity\"] == k)\
+  \ for k in (\"HIGH\", \"MEDIUM\", \"LOW\")}\n    o = [\"# Social share meta check\"\
+  , \"\",\n         \"Pages: %d   Findings: %d (HIGH %d, MEDIUM %d, LOW %d)%s\" %\
+  \ (len(results), len(allf), c[\"HIGH\"], c[\"MEDIUM\"], c[\"LOW\"],\n          \
+  \                                                           (\"   Page URL: \" +\
+  \ page_url) if page_url and len(results) == 1 else \"\")]\n    for fp, fs, prev\
+  \ in results:\n        o += [\"\", \"## %s\" % os.path.basename(fp), \"\",\n   \
+  \           \"Preview as built from the tags (card: %s)\" % prev[\"card\"], \"\"\
+  ,\n              \"| Field | Shown |\", \"|---|---|\",\n              \"| Domain\
+  \ | %s |\" % (prev[\"domain\"] or \"(unknown)\"),\n              \"| Title | %s\
+  \ |\" % (prev[\"title\"].replace(\"|\", \"/\") or \"(none)\"),\n              \"\
+  | Description | %s |\" % (prev[\"description\"].replace(\"|\", \"/\") or \"(none)\"\
+  ),\n              \"| Image | %s |\" % (prev[\"image\"] or \"(none)\"), \"\"]\n\
+  \        if not fs:\n            o.append(\"No findings.\")\n            continue\n\
+  \        o += [\"| Sev | Code | Tag | Line | Problem | Fix |\", \"|---|---|---|---|---|---|\"\
+  ]\n        for x in fs:\n            o.append(\"| %s | %s | %s | %s | %s | %s |\"\
+  \ % (x[\"severity\"], x[\"code\"], _code(x[\"tag\"]), x[\"line\"] or \"-\",\n  \
+  \                                                       _code(x[\"problem\"]), _code(x[\"\
+  fix\"])))\n    o += [\"\", \"Offline check of the saved HTML only: tags injected\
+  \ by JavaScript after load are invisible to most crawlers too, \"\n          \"\
+  but redirects, robots rules, the live image URL and each platform's preview cache\
+  \ were not tested.\"]\n    return \"\\n\".join(o) + \"\\n\"\n\n\n# -----------------------------------------------------------------------------\
+  \ self-test\n\nGOOD = \"\"\"<!doctype html><html lang=\"en\"><head><meta charset=\"\
+  utf-8\">\n<title>Trail Running Shoes for Wet Rocks | Peakline</title>\n<meta name=\"\
+  description\" content=\"Grippy, light trail shoes tested on wet granite and mud.\
+  \ Compare fit, drop and sole wear, then pick your size.\">\n<link rel=\"canonical\"\
+  \ href=\"https://shop.example.com/shoes/trail-grip\">\n<meta property=\"og:type\"\
+  \ content=\"product\"><meta property=\"og:site_name\" content=\"Peakline\">\n<meta\
+  \ property=\"og:title\" content=\"Trail Running Shoes for Wet Rocks\">\n<meta property=\"\
+  og:description\" content=\"Grippy, light trail shoes tested on wet granite and mud.\"\
+  >\n<meta property=\"og:url\" content=\"https://shop.example.com/shoes/trail-grip\"\
+  >\n<meta property=\"og:image\" content=\"https://shop.example.com/img/trail-grip-share.jpg\"\
+  >\n<meta property=\"og:image:width\" content=\"1200\"><meta property=\"og:image:height\"\
+  \ content=\"630\">\n<meta property=\"og:image:alt\" content=\"Blue trail shoe on\
+  \ a wet granite slab\">\n<meta property=\"og:locale\" content=\"en_US\">\n<meta\
+  \ name=\"twitter:card\" content=\"summary_large_image\"><meta name=\"twitter:site\"\
+  \ content=\"@peakline\">\n</head><body><h1>Trail Grip</h1></body></html>\"\"\"\n\
+  \n\ndef self_test():\n    import tempfile\n    cases = []\n\n    def codes(html,\
+  \ url=\"https://shop.example.com/shoes/trail-grip\", root=None):\n        return\
+  \ [x[\"code\"] for x in analyze(html, url, root)[0]]\n\n    def case(name, fn):\n\
+  \        try:\n            ok, err = bool(fn()), \"\"\n        except Exception\
+  \ as e:  # noqa\n            ok, err = False, repr(e)\n        cases.append((name,\
+  \ ok, err))\n\n    def sub(a, b):\n        assert a in GOOD, a\n        return GOOD.replace(a,\
+  \ b)\n\n    case(\"good page is clean\", lambda: codes(GOOD) == [])\n    case(\"\
+  missing title\", lambda: \"TITLE_MISSING\" in codes(sub(\"<title>Trail Running Shoes\
+  \ for Wet Rocks | Peakline</title>\", \"\")))\n    case(\"two titles\", lambda:\
+  \ \"TITLE_MULTIPLE\" in codes(sub(\"</head>\", \"<title>Other</title></head>\")))\n\
+  \    case(\"title too long\", lambda: \"TITLE_LENGTH\" in codes(sub(\"Trail Running\
+  \ Shoes for Wet Rocks | Peakline\", \"x\" * 75)))\n    case(\"description missing\"\
+  , lambda: \"DESCRIPTION_MISSING\" in codes(re.sub(r'<meta name=\"description\"[^>]*>',\
+  \ \"\", GOOD)))\n    case(\"description short\", lambda: \"DESCRIPTION_LENGTH\"\
+  \ in codes(re.sub(r'(<meta name=\"description\" content=\")[^\"]*', r\"\\1Shoes.\"\
+  , GOOD)))\n    case(\"canonical missing\", lambda: \"CANONICAL_MISSING\" in codes(re.sub(r'<link\
+  \ rel=\"canonical\"[^>]*>', \"\", GOOD)))\n    case(\"canonical relative\", lambda:\
+  \ \"RELATIVE_URL\" in codes(sub('href=\"https://shop.example.com/shoes/trail-grip\"\
+  ', 'href=\"/shoes/trail-grip\"')))\n    case(\"two canonicals\", lambda: \"CANONICAL_MULTIPLE\"\
+  \ in codes(sub(\"</head>\", '<link rel=\"canonical\" href=\"https://shop.example.com/x\"\
+  ></head>')))\n    case(\"canonical vs og:url mismatch\", lambda: \"CANONICAL_OG_URL_MISMATCH\"\
+  \ in codes(sub('og:url\" content=\"https://shop.example.com/shoes/trail-grip\"',\
+  \ 'og:url\" content=\"https://shop.example.com/shoes/trail-grip?utm_source=x\"')))\n\
+  \    case(\"trailing slash difference ignored\", lambda: \"CANONICAL_OG_URL_MISMATCH\"\
+  \ not in codes(sub('og:url\" content=\"https://shop.example.com/shoes/trail-grip\"\
+  ', 'og:url\" content=\"https://shop.example.com/shoes/trail-grip/\"')))\n    case(\"\
+  og:image missing HIGH\", lambda: \"OG_IMAGE_MISSING\" in codes(re.sub(r'<meta property=\"\
+  og:image[^>]*>', \"\", GOOD)))\n    case(\"og:image relative HIGH\", lambda: [x[\"\
+  severity\"] for x in analyze(sub('content=\"https://shop.example.com/img/trail-grip-share.jpg\"\
+  ', 'content=\"/img/trail-grip-share.jpg\"'), \"https://shop.example.com/p\")[0]\
+  \ if x[\"code\"] == \"RELATIVE_URL\"] == [\"HIGH\"])\n    case(\"og:image http\"\
+  , lambda: \"HTTP_URL\" in codes(sub(\"https://shop.example.com/img/\", \"http://shop.example.com/img/\"\
+  )))\n    case(\"og:image svg\", lambda: \"IMAGE_SVG\" in codes(sub(\"trail-grip-share.jpg\"\
+  , \"logo.svg\")))\n    case(\"image dims missing\", lambda: \"IMAGE_DIMENSIONS_MISSING\"\
+  \ in codes(re.sub(r'<meta property=\"og:image:(width|height)\"[^>]*>', \"\", GOOD)))\n\
+  \    case(\"image too small HIGH\", lambda: \"IMAGE_TOO_SMALL\" in codes(sub('content=\"\
+  1200\"', 'content=\"150\"').replace('content=\"630\"', 'content=\"150\"')))\n  \
+  \  case(\"image small MEDIUM\", lambda: \"IMAGE_SMALL\" in codes(sub('content=\"\
+  1200\"', 'content=\"600\"').replace('content=\"630\"', 'content=\"315\"')))\n  \
+  \  case(\"image square aspect for large card\", lambda: \"IMAGE_ASPECT\" in codes(sub('content=\"\
+  630\"', 'content=\"1200\"')))\n    case(\"summary card allows square\", lambda:\
+  \ \"IMAGE_ASPECT\" not in codes(sub('content=\"630\"', 'content=\"1200\"').replace(\"\
+  summary_large_image\", \"summary\")))\n    case(\"image alt missing\", lambda: \"\
+  IMAGE_ALT_MISSING\" in codes(re.sub(r'<meta property=\"og:image:alt\"[^>]*>', \"\
+  \", GOOD)))\n    case(\"dims not numbers\", lambda: \"IMAGE_DIMENSIONS_INVALID\"\
+  \ in codes(sub('content=\"1200\"', 'content=\"1200px\"')))\n    case(\"og:title\
+  \ missing\", lambda: \"OG_MISSING\" in codes(re.sub(r'<meta property=\"og:title\"\
+  [^>]*>', \"\", GOOD)))\n    case(\"empty og:description\", lambda: \"EMPTY_CONTENT\"\
+  \ in codes(re.sub(r'(<meta property=\"og:description\" content=\")[^\"]*', r\"\\\
+  1\", GOOD)))\n    case(\"og:title too long\", lambda: \"OG_TITLE_LONG\" in codes(sub('og:title\"\
+  \ content=\"Trail Running Shoes for Wet Rocks\"', 'og:title\" content=\"' + \"y\"\
+  \ * 120 + '\"')))\n    case(\"tracking params in og:url\", lambda: \"TRACKING_PARAMS\"\
+  \ in codes(sub('og:url\" content=\"https://shop.example.com/shoes/trail-grip\"',\
+  \ 'og:url\" content=\"https://shop.example.com/shoes/trail-grip?utm_source=nl\"\
+  ')))\n    case(\"relative canonical compared after resolving\", lambda: \"CANONICAL_OG_URL_MISMATCH\"\
+  \ in codes(sub('href=\"https://shop.example.com/shoes/trail-grip\"', 'href=\"/shoes/other\"\
+  ')))\n    case(\"preview cut with ellipsis\", lambda: _cut(\"a\" * 300, 200).endswith(\"\
+  ...\") and len(_cut(\"a\" * 300, 200)) <= 200)\n    case(\"og:locale format\", lambda:\
+  \ \"OG_LOCALE_FORMAT\" in codes(sub(\"en_US\", \"en-us\")))\n    case(\"og:type\
+  \ unknown\", lambda: \"OG_TYPE_UNKNOWN\" in codes(sub('og:type\" content=\"product\"\
+  ', 'og:type\" content=\"shoe\"')))\n    case(\"og with name attr\", lambda: \"OG_USES_NAME_ATTR\"\
+  \ in codes(sub('property=\"og:title\"', 'name=\"og:title\"')))\n    case(\"twitter\
+  \ card missing\", lambda: \"TWITTER_CARD_MISSING\" in codes(re.sub(r'<meta name=\"\
+  twitter:card\"[^>]*>', \"\", GOOD)))\n    case(\"twitter card invalid\", lambda:\
+  \ \"TWITTER_CARD_INVALID\" in codes(sub(\"summary_large_image\", \"large\")))\n\
+  \    case(\"twitter handle format\", lambda: \"TWITTER_HANDLE_FORMAT\" in codes(sub(\"\
+  @peakline\", \"https://x.com/peakline\")))\n    case(\"large card without any image\"\
+  , lambda: \"TWITTER_CARD_NO_IMAGE\" in codes(re.sub(r'<meta property=\"og:image[^>]*>',\
+  \ \"\", GOOD)))\n    case(\"tag in body\", lambda: \"TAG_OUTSIDE_HEAD\" in codes(sub(\"\
+  <h1>Trail Grip</h1>\", '<h1>T</h1><meta property=\"og:video\" content=\"https://a/v.mp4\"\
+  >')))\n    case(\"implied body by div\", lambda: \"TAG_OUTSIDE_HEAD\" in codes(GOOD.replace(\"\
+  </head><body>\", \"<div>x</div>\").replace('<meta name=\"twitter:site\" content=\"\
+  @peakline\">', \"\").replace(\"<h1>\", '<meta name=\"twitter:site\" content=\"@peakline\"\
+  ><h1>')))\n    case(\"placeholder value\", lambda: \"PLACEHOLDER_VALUE\" in codes(sub('og:title\"\
+  \ content=\"Trail Running Shoes for Wet Rocks\"', 'og:title\" content=\"{{ product.name\
+  \ }}\"')))\n    case(\"undefined value\", lambda: \"PLACEHOLDER_VALUE\" in codes(sub(\"\
+  Blue trail shoe on a wet granite slab\", \"undefined\")))\n    case(\"duplicate\
+  \ og:title different values\", lambda: \"DUPLICATE_TAG\" in codes(sub(\"</head>\"\
+  , '<meta property=\"og:title\" content=\"Peakline Shop\"></head>')))\n    case(\"\
+  duplicate same value tolerated\", lambda: \"DUPLICATE_TAG\" not in codes(sub(\"\
+  </head>\", '<meta property=\"og:title\" content=\"Trail Running Shoes for Wet Rocks\"\
+  ></head>')))\n    case(\"no content attribute\", lambda: \"NO_CONTENT_ATTR\" in\
+  \ codes(sub('<meta property=\"og:site_name\" content=\"Peakline\">', '<meta property=\"\
+  og:site_name\" value=\"Peakline\">')))\n    case(\"charset missing\", lambda: \"\
+  CHARSET_MISSING\" in codes(sub('<meta charset=\"utf-8\">', \"\")))\n    case(\"\
+  html entities decoded in title\", lambda: analyze(re.sub(r'<meta property=\"og:title\"\
+  [^>]*>', \"\", sub(\"Wet Rocks | Peakline\", \"Wet Rocks &amp; Mud\")))[1][\"title\"\
+  ] == \"Trail Running Shoes for Wet Rocks & Mud\")\n    case(\"preview uses og values\"\
+  , lambda: analyze(GOOD, \"https://shop.example.com/shoes/trail-grip\")[1][\"domain\"\
+  ] == \"shop.example.com\")\n\n    tmp = tempfile.mkdtemp()\n    os.makedirs(os.path.join(tmp,\
+  \ \"img\"))\n    png = b\"\\x89PNG\\r\\n\\x1a\\n\" + b\"\\x00\\x00\\x00\\x0dIHDR\"\
+  \ + struct.pack(\">II\", 800, 418) + b\"\\x08\\x02\\x00\\x00\\x00\"\n    with open(os.path.join(tmp,\
+  \ \"img\", \"trail-grip-share.jpg\"), \"wb\") as fh:\n        fh.write(png)\n  \
+  \  case(\"--root reads real image size\", lambda: \"IMAGE_DIMENSIONS_WRONG\" in\
+  \ codes(GOOD, root=tmp) and \"IMAGE_SMALL\" in codes(GOOD, root=tmp))\n    case(\"\
+  --root image not found\", lambda: \"IMAGE_NOT_FOUND\" in codes(sub(\"trail-grip-share.jpg\"\
+  , \"nope.png\"), root=tmp))\n    case(\"png size parser\", lambda: image_size(os.path.join(tmp,\
+  \ \"img\", \"trail-grip-share.jpg\"))[:2] == (800, 418))\n    gif = b\"GIF89a\"\
+  \ + struct.pack(\"<HH\", 1200, 630) + b\"\\x00\" * 20\n    jpg = (b\"\\xff\\xd8\"\
+  \ + b\"\\xff\\xe0\" + struct.pack(\">H\", 16) + b\"JFIF\\x00\" + b\"\\x00\" * 9\
+  \ +\n           b\"\\xff\\xc0\" + struct.pack(\">H\", 17) + b\"\\x08\" + struct.pack(\"\
+  >HH\", 630, 1200) + b\"\\x03\" + b\"\\x00\" * 9)\n    webp = b\"RIFF\" + b\"\\x00\"\
+  \ * 4 + b\"WEBPVP8X\" + b\"\\x0a\\x00\\x00\\x00\" + b\"\\x00\" * 4 + (1199).to_bytes(3,\
+  \ \"little\") + (629).to_bytes(3, \"little\")\n    for fn, data in ((\"a.gif\",\
+  \ gif), (\"a.jpg\", jpg), (\"a.webp\", webp)):\n        with open(os.path.join(tmp,\
+  \ fn), \"wb\") as fh:\n            fh.write(data)\n    case(\"gif size parser\"\
+  , lambda: image_size(os.path.join(tmp, \"a.gif\"))[:2] == (1200, 630))\n    case(\"\
+  jpeg size parser\", lambda: image_size(os.path.join(tmp, \"a.jpg\"))[:2] == (1200,\
+  \ 630))\n    case(\"webp size parser\", lambda: image_size(os.path.join(tmp, \"\
+  a.webp\"))[:2] == (1200, 630))\n    case(\"cdn image skipped for --root\", lambda:\
+  \ _local_path(\"https://cdn.other.net/a.png\", \"https://shop.example.com/\", tmp)\
+  \ is None)\n    case(\"non-HTML file rejected\", lambda: _rejects(tmp))\n    case(\"\
+  markdown render\", lambda: \"Preview as built\" in render_md([(\"p.html\", [], analyze(GOOD)[1])],\
+  \ \"\"))\n\n    passed = sum(1 for _, ok, _ in cases if ok)\n    for name, ok, err\
+  \ in cases:\n        print((\"PASS \" if ok else \"FAIL \") + name + ((\" \" + err)\
+  \ if err else \"\"))\n    print(\"%d/%d passed\" % (passed, len(cases)))\n    return\
+  \ 0 if passed == len(cases) else 1\n\n\ndef _rejects(tmp):\n    fp = os.path.join(tmp,\
+  \ \"notes.md\")\n    with open(fp, \"w\") as fh:\n        fh.write(\"# Notes\\nuse\
+  \ <b>bold</b>\\n\")\n    try:\n        run_files([fp], \"\", None, \"LOW\", set())\n\
+  \    except ValueError:\n        return True\n    return False\n\n\ndef main(argv=None):\n\
+  \    ap = argparse.ArgumentParser(description=\"Check Open Graph / X card / canonical\
+  \ meta tags in saved HTML (offline).\")\n    ap.add_argument(\"paths\", nargs=\"\
+  *\", help=\"HTML files or folders\")\n    ap.add_argument(\"--url\", default=\"\"\
+  , help=\"public URL of the page (single file)\")\n    ap.add_argument(\"--root\"\
+  , default=None, help=\"local folder mapped to the site root, to read og:image files\"\
+  )\n    ap.add_argument(\"--min-severity\", default=\"LOW\", choices=[\"LOW\", \"\
+  MEDIUM\", \"HIGH\"])\n    ap.add_argument(\"--ignore\", default=\"\", help=\"comma-separated\
+  \ finding codes to skip\")\n    ap.add_argument(\"--json\", action=\"store_true\"\
+  )\n    ap.add_argument(\"--self-test\", action=\"store_true\")\n    a = ap.parse_args(argv)\n\
+  \    if a.self_test:\n        return self_test()\n    if not a.paths:\n        ap.error(\"\
+  give HTML files/folders or --self-test\")\n    ignore = {c.strip() for c in a.ignore.split(\"\
+  ,\") if c.strip()}\n    try:\n        results = run_files(a.paths, a.url, a.root,\
+  \ a.min_severity, ignore)\n    except (OSError, ValueError) as e:\n        print(\"\
+  error: %s\" % e, file=sys.stderr)\n        return 2\n    if a.json:\n        print(json.dumps([{\"\
+  file\": fp, \"preview\": prev, \"findings\": fs} for fp, fs, prev in results], indent=2))\n\
+  \    else:\n        sys.stdout.write(render_md(results, a.url))\n    return 1 if\
+  \ any(x[\"severity\"] == \"HIGH\" for _, fs, _ in results for x in fs) else 0\n\n\
+  \nif __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

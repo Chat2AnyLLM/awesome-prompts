@@ -1,0 +1,112 @@
+slug: from-photo-to-lego-minifigure
+title: From Photo to LEGO Minifigure 🧱
+description: Imported from Prompts Chat
+prompt: "{\n  \"prompt\": {\n    \"title\": \"Personalized LEGO Minifigure Collectible\
+  \ Generator\",\n    \"concept\": \"Transform the person in the reference image into\
+  \ a premium, highly detailed, classic LEGO minifigure collectible. The result must\
+  \ look like a professionally manufactured physical LEGO toy photographed in a high-end\
+  \ product photography studio.\",\n\n    \"reference_image_analysis\": {\n      \"\
+  instruction\": \"Analyze the reference photograph before designing the minifigure.\"\
+  ,\n      \"identify_and_preserve\": [\n        \"Distinctive facial characteristics\"\
+  ,\n        \"Face shape and proportions\",\n        \"Hair color, hairstyle, and\
+  \ hair volume\",\n        \"Eyebrows and characteristic expression\",\n        \"\
+  Glasses and eyewear\",\n        \"Facial hair, beard, and moustache\",\n       \
+  \ \"Original clothing and dominant colors\",\n        \"Logos, typography, and recognizable\
+  \ clothing graphics\",\n        \"Jewelry, watches, bags, and personal accessories\"\
+  ,\n        \"Other distinctive visual characteristics\"\n      ],\n      \"identity_priority\"\
+  : \"The resulting minifigure should be immediately recognizable as the person in\
+  \ the reference image, despite the simplified LEGO facial design.\"\n    },\n\n\
+  \    \"character_construction\": {\n      \"design_language\": \"Authentic classic\
+  \ LEGO minifigure construction with premium collectible detailing.\",\n      \"\
+  head\": {\n        \"shape\": \"Classic cylindrical LEGO minifigure head\",\n  \
+  \      \"material\": \"Glossy injection-molded plastic\",\n        \"color\": \"\
+  Traditional LEGO yellow or appropriate LEGO skin-tone color\",\n        \"face\"\
+  : \"Printed LEGO facial graphics\",\n        \"eyes\": \"Classic expressive LEGO\
+  \ eyes with black pupils and white highlights\",\n        \"eyebrows\": \"Printed\
+  \ eyebrows matching the subject\",\n        \"expression\": \"Friendly, confident,\
+  \ natural expression\",\n        \"facial_hair\": \"Precisely printed stubble, beard,\
+  \ or moustache when present\"\n      },\n\n      \"hair\": {\n        \"construction\"\
+  : \"Separate molded LEGO hairpiece\",\n        \"material\": \"Glossy ABS plastic\"\
+  ,\n        \"style\": \"Reproduce the reference hairstyle using recognizable molded\
+  \ hair geometry\",\n        \"details\": \"Individual molded hair sections, realistic\
+  \ plastic reflections, accurate hair color\"\n      },\n\n      \"eyewear\": {\n\
+  \        \"instruction\": \"Reproduce glasses and sunglasses as separate miniature\
+  \ LEGO-compatible accessories when present.\",\n        \"style\": \"Accurate frame\
+  \ shape, color, and proportions.\"\n      },\n\n      \"torso\": {\n        \"shape\"\
+  : \"Classic LEGO minifigure torso\",\n        \"clothing\": \"Reproduce the original\
+  \ outfit using clean printed graphics.\",\n        \"graphics\": \"Preserve recognizable\
+  \ logos, lettering, color combinations, pockets, collars, and clothing details.\"\
+  ,\n        \"texture\": \"Smooth plastic with printed designs. Never use realistic\
+  \ fabric textures.\",\n        \"finish\": \"Premium glossy molded plastic.\"\n\
+  \      },\n\n      \"arms\": {\n        \"shape\": \"Classic cylindrical LEGO arms\"\
+  ,\n        \"proportions\": \"Authentic minifigure dimensions\",\n        \"color\"\
+  : \"Match the reference clothing\"\n      },\n\n      \"hands\": {\n        \"shape\"\
+  : \"Traditional C-shaped LEGO hands\",\n        \"color\": \"Match the minifigure\
+  \ head color\"\n      },\n\n      \"legs\": {\n        \"shape\": \"Classic rigid\
+  \ LEGO minifigure legs\",\n        \"proportions\": \"Short, blocky, connected LEGO\
+  \ legs\",\n        \"details\": \"Printed trousers, shoes, and other recognizable\
+  \ clothing details where appropriate\"\n      },\n\n      \"accessories\": {\n \
+  \       \"instruction\": \"Recreate recognizable personal accessories as miniature\
+  \ molded LEGO elements.\",\n        \"examples\": [\n          \"Glasses\",\n  \
+  \        \"Watches\",\n          \"Headphones\",\n          \"Backpacks\",\n   \
+  \       \"Bags\",\n          \"Hats\",\n          \"Jewelry\",\n          \"Professional\
+  \ equipment\",\n          \"Personal objects\"\n        ],\n        \"rule\": \"\
+  Only include accessories supported by the reference photograph.\"\n      }\n   \
+  \ },\n\n    \"material_and_rendering\": {\n      \"material\": \"High-quality injection-molded\
+  \ ABS plastic\",\n      \"surface\": \"Smooth, polished, glossy plastic\",\n   \
+  \   \"reflections\": \"Subtle controlled studio reflections\",\n      \"edges\"\
+  : \"Precise molded edges and authentic LEGO geometry\",\n      \"printing\": \"\
+  Sharp, clean, high-resolution printed graphics\",\n      \"realism\": \"Photorealistic\
+  \ physical toy rendering\",\n      \"quality\": \"Premium collectible product visualization\"\
+  \n    },\n\n    \"composition\": {\n      \"subject_count\": 1,\n      \"position\"\
+  : \"Precisely centered in the frame\",\n      \"pose\": \"Standing upright in a\
+  \ natural neutral minifigure pose\",\n      \"orientation\": \"Front-facing with\
+  \ a subtle three-quarter angle\",\n      \"framing\": \"Complete character visible\
+  \ from hair to feet\",\n      \"scale\": \"Character occupies approximately 75 to\
+  \ 85 percent of the image height\",\n      \"symmetry\": \"Balanced composition\
+  \ with equal visual breathing room\",\n      \"camera\": \"Professional product\
+  \ photography, slightly elevated three-quarter perspective\"\n    },\n\n    \"background\"\
+  : {\n      \"type\": \"Pure white seamless studio background\",\n      \"color\"\
+  : \"#FFFFFF\",\n      \"environment\": \"No scenery, no diorama, no LEGO bricks,\
+  \ no furniture, no props\",\n      \"shadows\": \"Very subtle natural contact shadow\
+  \ beneath the character\",\n      \"distractions\": \"Absolutely none\"\n    },\n\
+  \n    \"lighting\": {\n      \"style\": \"Premium commercial studio lighting\",\n\
+  \      \"key_light\": \"Large softbox positioned at 45 degrees\",\n      \"fill_light\"\
+  : \"Soft frontal fill light\",\n      \"rim_light\": \"Subtle highlights around\
+  \ the hair and shoulders\",\n      \"shadows\": \"Soft realistic shadows\",\n  \
+  \    \"exposure\": \"Bright, balanced, clean exposure\"\n    },\n\n    \"miniature_effect\"\
+  : {\n      \"concept\": \"The character must look like a real, tiny physical collectible\
+  \ toy photographed using professional macro photography.\",\n      \"camera_style\"\
+  : \"Macro product photography\",\n      \"lens\": \"90mm to 105mm macro lens aesthetic\"\
+  ,\n      \"depth_of_field\": \"Moderately shallow depth of field, keeping the entire\
+  \ minifigure sharp.\",\n      \"focus\": \"Sharp focus on the face, hair, torso,\
+  \ and clothing details.\",\n      \"perspective\": \"Natural miniature toy photography\
+  \ perspective\",\n      \"scale_illusion\": \"Subtle optical characteristics that\
+  \ communicate physical miniature scale without distorting the character.\",\n  \
+  \    \"background_blur\": \"Not applicable to the pure white seamless background.\"\
+  \n    },\n\n    \"visual_consistency\": {\n      \"priority_1\": \"Authentic LEGO\
+  \ minifigure anatomy\",\n      \"priority_2\": \"Recognizable personal identity\"\
+  ,\n      \"priority_3\": \"Accurate clothing and accessories\",\n      \"priority_4\"\
+  : \"Premium glossy plastic materials\",\n      \"priority_5\": \"Consistent studio\
+  \ product photography\",\n      \"rule\": \"Never convert the character into a realistic\
+  \ human, action figure, Funko Pop, or generic cartoon character.\"\n    },\n\n \
+  \   \"negative_prompt\": [\n      \"Realistic human anatomy\",\n      \"Human skin\
+  \ texture\",\n      \"Photorealistic human face\",\n      \"Funko Pop proportions\"\
+  ,\n      \"Action figure anatomy\",\n      \"Soft organic body shapes\",\n     \
+  \ \"Long human-like legs\",\n      \"Realistic fabric\",\n      \"Cloth wrinkles\"\
+  ,\n      \"Oversized hands\",\n      \"Deformed LEGO parts\",\n      \"Missing accessories\"\
+  ,\n      \"Incorrect hairstyle\",\n      \"Unrecognizable facial characteristics\"\
+  ,\n      \"Extra limbs\",\n      \"Multiple characters\",\n      \"Background scenery\"\
+  ,\n      \"LEGO diorama\",\n      \"Colored background\",\n      \"Text outside\
+  \ the character\",\n      \"Watermarks\",\n      \"Packaging\",\n      \"Display\
+  \ stands\",\n      \"Cropped feet\",\n      \"Cropped hair\"\n    ],\n\n    \"output_settings\"\
+  : {\n      \"format\": \"Photorealistic 3D render\",\n      \"aspect_ratio\": \"\
+  2:3\",\n      \"resolution\": \"High resolution\",\n      \"background\": \"Pure\
+  \ white\",\n      \"subject\": \"One complete centered LEGO minifigure\",\n    \
+  \  \"presentation\": \"Premium collectible studio product photograph\"\n    }\n\
+  \  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
