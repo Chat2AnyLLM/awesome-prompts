@@ -1,0 +1,684 @@
+slug: api-rate-limit-policy-simulator
+title: API Rate Limit Policy Simulator
+description: Imported from Prompts Chat
+prompt: "---\nname: api-rate-limit-policy-simulator\ndescription: Simulates API rate\
+  \ limits before you ship them - token bucket, fixed window, sliding log and sliding\
+  \ counter, per client, endpoint, tier or global - against generated or recorded\
+  \ traffic with retrying clients. Shows who gets 429s and for how long, fixed-window\
+  \ boundary bursts, retry herds, noisy neighbours, abusive clients that still get\
+  \ through and peaks over backend capacity. Includes an offline stdlib Python simulator\
+  \ with --self-test.\n---\n\n# API Rate Limit Policy Simulator\n\nYou help backend\
+  \ and platform engineers choose rate limits with evidence instead of round numbers.\
+  \ A limit that looks safe on paper (\"300 per minute per key\") can still let 1.8x\
+  \ that through at a window boundary, throttle a mobile app whose thousands of users\
+  \ share one API key, release a herd of retries at the reset second, and do nothing\
+  \ against a scraper that stays just under it. You describe the policies and the\
+  \ traffic in a small JSON file, replay it, and read the result client by client\
+  \ and policy by policy.\n\n## Files in this skill\n\n- `scripts/rate_sim.py` - simulates\
+  \ token bucket, fixed window, sliding log and sliding counter limiters keyed by\
+  \ client, endpoint, client+endpoint or global, scoped to endpoints and client tiers;\
+  \ generates steady, Poisson or burst traffic (or replays a CSV trace), lets clients\
+  \ retry immediately, with backoff or by honouring Retry-After, and reports 429s,\
+  \ delays, failures, worst-case and observed window counts, peaks vs capacity, findings\
+  \ RL01-RL10 and a sample 429 response (Python 3.8+ standard library only)\n- `references/algorithms.md`\
+  \ - how each algorithm behaves, its worst case, memory cost and when to pick it\n\
+  - `references/policy-design.md` - choosing keys, tiers, numbers, headers and client\
+  \ retry rules; what the finding codes mean\n- `templates/rate-limit-review.md` -\
+  \ the review to hand back\n- `examples/orders-api.json` - a public orders API with\
+  \ a per-key fixed window, a login limit and a global fixed window; five clients\
+  \ including a shared mobile key, a bulk partner, a scraper and a credential stuffer\n\
+  - `examples/orders-api-report.md` - the real simulator output on that file\n- `examples/orders-api-tuned.json`\
+  \ - the same API after the fixes: per-tier token buckets, a global token bucket\
+  \ sized to capacity\n\n## Workflow\n\n### 1. Collect the inputs\nAsk for: the limits\
+  \ as configured today or as proposed (algorithm, key, numbers, which endpoints and\
+  \ which clients), where they are enforced (gateway, CDN, app, Redis), the backend\
+  \ capacity in requests per second it can sustain, and the traffic: the biggest legitimate\
+  \ clients and their shape (steady, bursty batch jobs, many users behind one key\
+  \ or one NAT IP), how each one retries, and any abuse seen in logs. Real access\
+  \ logs beat guesses: export `t,client,endpoint` for a busy 5-15 minutes and pass\
+  \ it with `--trace`.\n\n### 2. Run the simulator\n```\npython3 scripts/rate_sim.py\
+  \ examples/orders-api.json\npython3 scripts/rate_sim.py examples/orders-api-tuned.json\n\
+  python3 scripts/rate_sim.py policies.json --trace access-sample.csv\npython3 scripts/rate_sim.py\
+  \ policies.json --json\npython3 scripts/rate_sim.py --self-test\n```\nExit 0 = no\
+  \ high findings, 1 = high findings (legitimate clients throttled or admitted traffic\
+  \ over capacity), 2 = bad input. Without a shell, reason with `references/algorithms.md`:\
+  \ per key, compare the client's peak per window with the limit, the worst case (2x\
+  \ limit for fixed windows, burst + rate for buckets) with capacity, and think through\
+  \ what each client does after a 429.\n\n### 3. Read the result\n- Legit clients\
+  \ first (RL01): any failed or delayed requests, and how long they waited. One key\
+  \ shared by an app's users needs its own tier or a per-user key.\n- Capacity (RL03):\
+  \ the peak admitted second vs what the backend sustains. A global limit is the only\
+  \ thing that protects capacity; per-key limits multiply by the number of keys.\n\
+  - Shape (RL04, RL10): fixed windows let bursts through at boundaries and hand out\
+  \ a whole window at once; retries without jitter all come back in the same second.\n\
+  - Abuse (RL02): a scraper under the per-key limit is not stopped by limits; it needs\
+  \ detection, auth or a per-endpoint limit.\n- Retries (RL05): attempts per logical\
+  \ request above 1.5 means the clients amplify load when throttled.\n\n### 4. Tune\
+  \ and re-run\nChange one thing at a time and re-run with the same traffic: switch\
+  \ fixed windows to token buckets or sliding counters, add tiers with `clients` /\
+  \ `exclude_clients`, size the global bucket to capacity (rate = sustainable rps,\
+  \ burst = what the backend absorbs for a second), add endpoint limits for login\
+  \ and expensive calls, and agree pacing with batch partners. Use `references/policy-design.md`\
+  \ for the numbers.\n\n### 5. Deliver\nFill `templates/rate-limit-review.md`: verdict,\
+  \ a before/after table per client, the policy changes as config, the 429 response\
+  \ and headers, client guidance (Retry-After, backoff with jitter, max retries) and\
+  \ what to monitor after rollout.\n\n## Example result\nOn `examples/orders-api.json`\
+  \ the shared `mobile-app` key hits the 300/minute per-key window: 1,042 of its 1,839\
+  \ requests succeed only after waiting up to 60 s (RL01, high). Honouring Retry-After\
+  \ without jitter releases 289 retries in second 240, so admitted traffic peaks at\
+  \ 313 req/s against a capacity of 80 (RL03, RL10). The per-key fixed window lets\
+  \ 544 requests through in one rolling minute (1.8x, RL04), and the scraper still\
+  \ gets 45% of its calls through while its immediate retries push it to 2.67 attempts\
+  \ per request. The login limit stops the credential stuffer (40 of 480). In `examples/orders-api-tuned.json`\
+  \ (tier token buckets, global bucket 50 req/s + 30 burst, partner pacing at 2 req/s)\
+  \ legit clients see no 429s, the peak is 27 req/s and only the scraper findings\
+  \ remain.\n\n## Rules\n\n- Simulate with the traffic you actually have (or a trace),\
+  \ not an average; bursts and retries are where limits fail.\n- Never call a limit\
+  \ safe for capacity unless a global limit bounds the total.\n- Treat delayed requests\
+  \ of legitimate clients as harm, not as success.\n- Always return 429 with Retry-After,\
+  \ add jitter, and tell clients how to back off.\n- Rate limits are not abuse protection\
+  \ on their own; say when authentication, bot detection or WAF rules are needed.\n\
+  - Results are a model: confirm with gateway metrics after rollout and keep the limits\
+  \ in config, not code.\n\x1FFILE:references/algorithms.md\x1E\n# Rate limit algorithms\n\
+  \n| Algorithm | Admits | Worst case in one window | Memory per key | Good for |\n\
+  |---|---|---|---|---|\n| Token bucket (GCRA) | while tokens remain; refills at `rate`/s\
+  \ up to `burst` | burst + rate x window | 2 numbers | most APIs: smooth average,\
+  \ bounded bursts |\n| Fixed window | `limit` per calendar window, counter resets\
+  \ | 2 x limit (end of one window + start of next) | 1 counter | quotas and billing\
+  \ (\"10,000 per day\"), not capacity |\n| Sliding log | at most `limit` in any rolling\
+  \ window | limit (exact) | one timestamp per request | small limits: login, OTP,\
+  \ password reset |\n| Sliding counter | previous window weighted by overlap + current\
+  \ | about limit (assumes even spread) | 2 counters | large limits where exactness\
+  \ is not needed |\n\n## Token bucket\n- `rate` is the long-run average; `burst`\
+  \ is how many calls can arrive at once after a quiet period.\n- `limit` + `window_s`\
+  \ without a burst means rate = limit/window and burst = limit: a client can spend\
+  \ the whole minute in one second. Set the burst explicitly.\n- Retry-After = (cost\
+  \ - tokens) / rate: usually well under a second, so retries spread out by themselves.\n\
+  - GCRA (used by many gateways) stores one timestamp and gives the same admit/reject\
+  \ decisions.\n\n## Fixed window\n- Cheap (`INCR` + `EXPIRE` in Redis) and easy to\
+  \ explain, so it is everywhere.\n- A client can send `limit` in the last second\
+  \ of a window and `limit` again in the first second of the next.\n- Every throttled\
+  \ client gets Retry-After = time to the reset, so they all come back in the same\
+  \ second (retry herd).\n- Use it for quotas that match business periods; put a token\
+  \ bucket in front of it for capacity.\n\n## Sliding log\n- Exact, but stores every\
+  \ admitted timestamp for the window: 10,000/hour per key = 10,000 entries per key.\n\
+  - Retry-After = oldest relevant entry + window - now: can be long; tell the client.\n\
+  \n## Sliding counter\n- Estimate = previous count x (1 - elapsed/window) + current\
+  \ count.\n- Error comes from uneven traffic: a burst at the end of the previous\
+  \ window is under-counted later (in the simulator's self-test, 10 requests at the\
+  \ very end of one window plus an even trickle later admit 16 in one rolling minute\
+  \ for a limit of 10).\n- Good default for large per-key limits behind a token bucket.\n\
+  \n## Concurrency limits (not simulated)\nLimits on in-flight requests protect slow\
+  \ endpoints better than rate limits; combine with a rate limit for fairness.\n\x1F\
+  FILE:references/policy-design.md\x1E\n# Designing rate limit policies\n\n## Pick\
+  \ the key\n- **API key / token** for authenticated traffic. Watch for keys shared\
+  \ by many users (mobile apps, SDKs embedded in customer sites): give them a tier\
+  \ or move to per-user keys.\n- **User or account id** behind the key when the API\
+  \ knows it; fairer than the key.\n- **IP** only for anonymous endpoints; offices,\
+  \ schools, carriers and VPNs put thousands of users behind one IP (CGNAT). Use generous\
+  \ IP limits and stricter account limits.\n- **Endpoint** for expensive calls (search,\
+  \ export, bulk) and sensitive ones (login, OTP, password reset).\n- **Global** to\
+  \ protect capacity. Without it, per-key limits x number of keys is the real ceiling.\n\
+  \n## Pick the numbers\n1. Sustained rate per key: p99 of a normal busy client's\
+  \ requests per second x 2-3 headroom.\n2. Burst: the largest legitimate batch (page\
+  \ load fan-out, sync job) that must not be throttled.\n3. Global: rate = what the\
+  \ backend sustains at acceptable latency (load test), burst = what it absorbs for\
+  \ about a second.\n4. Login/OTP: 5-10 per minute per account and per IP, sliding\
+  \ log, plus lockout or CAPTCHA after repeated failures.\n5. Quotas (per day/month)\
+  \ are a product decision; keep them separate from capacity limits.\n\n## Tiers\n\
+  Scope policies with `clients` and `exclude_clients` in the simulator; in production\
+  \ map tiers to plans or key metadata (free, paid, partner, internal). Internal services\
+  \ should usually bypass public limits but stay under the global one.\n\n## Responses\
+  \ and headers\n- 429 Too Many Requests, `Retry-After` in seconds, a problem+json\
+  \ body naming the limit.\n- Advertise the policy: the IETF httpapi ratelimit-headers\
+  \ draft defines `RateLimit-Policy` and `RateLimit` fields (field syntax changed\
+  \ between drafts); many gateways still send `X-RateLimit-Limit`, `-Remaining`, `-Reset`.\
+  \ Pick one and document it.\n- Add 0-20% random jitter to Retry-After for fixed\
+  \ windows so throttled clients do not return together.\n- Use 503 + Retry-After\
+  \ for overload (global limit), 429 for per-client limits, so clients can tell them\
+  \ apart.\n\n## Client rules to publish\nHonour Retry-After; otherwise exponential\
+  \ backoff with full jitter (1, 2, 4 s ...), at most 3-5 retries, never retry non-idempotent\
+  \ calls without an idempotency key; pace batch jobs instead of bursting.\n\n## Finding\
+  \ codes (rate_sim.py)\n| Code | Meaning |\n|---|---|\n| RL01 | legit client failed\
+  \ or delayed (high above 1% of its requests) |\n| RL02 | abusive client still gets\
+  \ more than 25% through |\n| RL03 | admitted peak over capacity, or no global limit\
+  \ to bound it |\n| RL04 | fixed window let more than the limit through in a rolling\
+  \ window |\n| RL05 | client retries amplify attempts 1.5x or more |\n| RL06 | noisy\
+  \ neighbour holds most of a global limit while legit clients are rejected |\n| RL07\
+  \ | sliding log with a very large limit (memory) |\n| RL08 | reminder: 429 + Retry-After\
+  \ and documented limits |\n| RL09 | policy never triggers and is 10x above the busiest\
+  \ key |\n| RL10 | retry herd: most of the peak second are retries released together\
+  \ |\n\x1FFILE:templates/rate-limit-review.md\x1E\n# Rate limit review: <service>\n\
+  \n**Scope:** <endpoints / gateway>   **Capacity:** <80 req/s sustained>   **Traffic\
+  \ used:** <generated from ... / trace of 10 min on ...>\n**Verdict:** <ship / ship\
+  \ with changes / do not ship>\n\n## What happens today\n| Client | Kind | Requests\
+  \ | 429s | OK after retry | Failed | Max wait | Main policy |\n|---|---|---|---|---|---|---|---|\n\
+  | <mobile-app> | <legit> | <1,839> | <1,081> | <1,042> | <0> | <60 s> | <per-key\
+  \ minute> |\n\nPeak admitted: <313 req/s in second 240> vs capacity <80>.\n\n##\
+  \ Findings\n1. <HIGH RL01 - shared mobile key throttled; 57% of requests delayed\
+  \ up to 60 s>\n2. <HIGH RL03 / MEDIUM RL10 - retry herd at window reset, 4x capacity>\n\
+  3. <MEDIUM RL04 - fixed window 1.8x at boundary>\n4. <MEDIUM RL02 - scraper under\
+  \ the per-key limit>\n\n## Proposed policies\n```json\n<policies block from the\
+  \ tuned config>\n```\n\n## After the change (same traffic)\n| Client | 429s before\
+  \ | 429s after | Failed before | Failed after |\n|---|---|---|---|---|\n| <...>\
+  \ | | | | |\n\nPeak admitted after: <27 req/s>.\n\n## Response contract\n- 429 +\
+  \ Retry-After (+ jitter) for per-client limits; 503 + Retry-After for global overload\n\
+  - Headers: <RateLimit-Policy / RateLimit or X-RateLimit-*>\n- Client guidance: <honour\
+  \ Retry-After, backoff with jitter, max 3 retries, pace batch jobs>\n\n## Outside\
+  \ rate limits\n<bot detection / auth / WAF rule for the scraper; lockout or CAPTCHA\
+  \ for login>\n\n## Monitor after rollout\n<429 rate per client and policy, top throttled\
+  \ keys, p99 latency, admitted rps vs capacity; review in 2 weeks>\n\x1FFILE:examples/orders-api.json\x1E\
+  \n{\n  \"service\": \"Orders API (public v2)\",\n  \"duration_s\": 300,\n  \"capacity_rps\"\
+  : 80,\n  \"seed\": 7,\n  \"policies\": [\n    {\"name\": \"per-key minute\", \"\
+  algorithm\": \"fixed_window\", \"key\": \"client\", \"limit\": 300, \"window_s\"\
+  : 60},\n    {\"name\": \"login\", \"algorithm\": \"sliding_log\", \"key\": \"client\"\
+  , \"limit\": 10, \"window_s\": 60,\n     \"endpoints\": [\"/v2/login\"]},\n    {\"\
+  name\": \"global\", \"algorithm\": \"fixed_window\", \"key\": \"global\", \"limit\"\
+  : 3600, \"window_s\": 60}\n  ],\n  \"clients\": [\n    {\"name\": \"mobile-app\"\
+  , \"kind\": \"legit\", \"pattern\": \"poisson\", \"rps\": 6, \"endpoint\": \"/v2/orders\"\
+  ,\n     \"retry\": \"honor\"},\n    {\"name\": \"partner-erp\", \"kind\": \"legit\"\
+  , \"pattern\": \"burst\", \"burst\": 120, \"every_s\": 60, \"start\": 58,\n    \
+  \ \"endpoint\": \"/v2/orders/bulk\", \"retry\": \"backoff\"},\n    {\"name\": \"\
+  checkout-web\", \"kind\": \"legit\", \"pattern\": \"poisson\", \"rps\": 3, \"endpoint\"\
+  : \"/v2/checkout\",\n     \"retry\": \"honor\"},\n    {\"name\": \"price-scraper\"\
+  , \"kind\": \"abusive\", \"pattern\": \"steady\", \"rps\": 12, \"start\": 20,\n\
+  \     \"endpoint\": \"/v2/products\", \"retry\": \"immediate\"},\n    {\"name\"\
+  : \"cred-stuffer\", \"kind\": \"abusive\", \"pattern\": \"steady\", \"rps\": 2,\
+  \ \"start\": 60,\n     \"endpoint\": \"/v2/login\"}\n  ]\n}\n\x1FFILE:examples/orders-api-report.md\x1E\
+  \n# Rate limit simulation: Orders API (public v2)\n\nSimulated 300s, 7227 logical\
+  \ requests, 4930 admitted, peak 313 req/s admitted (second 240) vs capacity 80.\n\
+  \n**Verdict: 2 high finding(s) - fix before shipping these limits**\n\n## Clients\n\
+  \n| Client | Kind | Requests | Attempts | Allowed | 429s | OK after retry | Failed\
+  \ | Failed % | Max Retry-After | Top policy |\n|---|---|---|---|---|---|---|---|---|---|---|\n\
+  | price-scraper | abusive | 3360 | 8961 | 1503 | 7458 | 15 | 1857 | 55.3% | 35.2s\
+  \ | per-key minute |\n| mobile-app | legit | 1839 | 2920 | 1839 | 1081 | 1042 |\
+  \ 0 | 0.0% | 59.9s | per-key minute |\n| checkout-web | legit | 948 | 948 | 948\
+  \ | 0 | 0 | 0 | 0.0% | 0s | - |\n| partner-erp | legit | 600 | 600 | 600 | 0 | 0\
+  \ | 0 | 0.0% | 0s | - |\n| cred-stuffer | abusive | 480 | 480 | 40 | 440 | 0 | 440\
+  \ | 91.7% | 55s | login |\n\n## Policies\n\n| Policy | Algorithm | Key | Scope |\
+  \ Sustained | Worst case / window | Busiest key / window | Checks | Rejects |\n\
+  |---|---|---|---|---|---|---|---|---|\n| per-key minute | fixed_window | client\
+  \ | all | 5 req/s | 600 per 60s | 544 | 13909 | 8539 |\n| login | sliding_log |\
+  \ client | /v2/login | 0.167 req/s | 10 per 60s | 10 | 480 | 440 |\n| global | fixed_window\
+  \ | global | all | 60 req/s | 7200 per 60s | 1235 | 13909 | 0 |\n\n## Findings\n\
+  \n- **HIGH RL01** Legit client mobile-app is throttled on 56.7% of its requests\
+  \ (0 failed, 1042 only after retrying, waits up to 59.9s), mostly by policy 'per-key\
+  \ minute'; raise that limit or give this client its own tier.\n- **HIGH RL03** Admitted\
+  \ traffic peaks at 313 req/s (second 240) over the backend capacity of 80 req/s;\
+  \ add or lower a global limit.\n- **MEDIUM RL02** Abusive client price-scraper still\
+  \ gets 45% of its requests through (1503); tighten the per-client limit or add a\
+  \ stricter policy for its pattern.\n- **MEDIUM RL04** Fixed window 'per-key minute'\
+  \ let 544 requests through in one rolling 60s window (limit 300, 1.8x) across a\
+  \ window boundary; use sliding_counter or a token bucket if the limit protects capacity.\n\
+  - **MEDIUM RL05** Client price-scraper sends 2.67x attempts per logical request\
+  \ because it retries throttled calls; retries count against the limit and add load\
+  \ - require Retry-After or backoff with jitter.\n- **MEDIUM RL05** Client mobile-app\
+  \ sends 1.59x attempts per logical request because it retries throttled calls; retries\
+  \ count against the limit and add load - require Retry-After or backoff with jitter.\n\
+  - **MEDIUM RL10** Retry herd: 289 of the 313 requests admitted in second 240 are\
+  \ retries released by the same Retry-After / window reset; add jitter to Retry-After\
+  \ (or client backoff) and prefer a token bucket or sliding window so capacity is\
+  \ not handed out all at once.\n- **INFO RL08** Return 429 with Retry-After on every\
+  \ rejection (see the sample headers) and document the limits so clients can pace\
+  \ themselves.\n\n## Sample 429 (first rejection, t=45.0s, price-scraper /v2/products)\n\
+  \n```\nHTTP/1.1 429 Too Many Requests\nRetry-After: 15\nRateLimit-Policy: \"per-key\
+  \ minute\";q=300;w=60\nRateLimit: \"per-key minute\";r=0;t=15\nContent-Type: application/problem+json\n\
+  ```\nHeader names follow the IETF httpapi ratelimit-headers draft; older gateways\
+  \ use X-RateLimit-Limit / -Remaining / -Reset instead.\n\x1FFILE:examples/orders-api-tuned.json\x1E\
+  \n{\n  \"service\": \"Orders API (public v2, tuned)\",\n  \"notes\": \"Same traffic\
+  \ as orders-api.json except partner-erp, which agreed to pace its bulk sync at 2\
+  \ req/s instead of 120-request bursts. Token buckets per tier, a global token bucket\
+  \ sized to capacity.\",\n  \"duration_s\": 300,\n  \"capacity_rps\": 80,\n  \"seed\"\
+  : 7,\n  \"policies\": [\n    {\"name\": \"default key\", \"algorithm\": \"token_bucket\"\
+  , \"key\": \"client\", \"rate\": 4, \"burst\": 40,\n     \"exclude_clients\": [\"\
+  mobile-app\", \"partner-erp\"]},\n    {\"name\": \"mobile tier\", \"algorithm\"\
+  : \"token_bucket\", \"key\": \"client\", \"rate\": 15, \"burst\": 60,\n     \"clients\"\
+  : [\"mobile-app\"]},\n    {\"name\": \"partner tier\", \"algorithm\": \"token_bucket\"\
+  , \"key\": \"client\", \"rate\": 3, \"burst\": 20,\n     \"clients\": [\"partner-erp\"\
+  ]},\n    {\"name\": \"login\", \"algorithm\": \"sliding_log\", \"key\": \"client\"\
+  , \"limit\": 10, \"window_s\": 60,\n     \"endpoints\": [\"/v2/login\"]},\n    {\"\
+  name\": \"global\", \"algorithm\": \"token_bucket\", \"key\": \"global\", \"rate\"\
+  : 50, \"burst\": 30}\n  ],\n  \"clients\": [\n    {\"name\": \"mobile-app\", \"\
+  kind\": \"legit\", \"pattern\": \"poisson\", \"rps\": 6, \"endpoint\": \"/v2/orders\"\
+  ,\n     \"retry\": \"honor\"},\n    {\"name\": \"partner-erp\", \"kind\": \"legit\"\
+  , \"pattern\": \"steady\", \"rps\": 2, \"start\": 58,\n     \"endpoint\": \"/v2/orders/bulk\"\
+  , \"retry\": \"backoff\"},\n    {\"name\": \"checkout-web\", \"kind\": \"legit\"\
+  , \"pattern\": \"poisson\", \"rps\": 3, \"endpoint\": \"/v2/checkout\",\n     \"\
+  retry\": \"honor\"},\n    {\"name\": \"price-scraper\", \"kind\": \"abusive\", \"\
+  pattern\": \"steady\", \"rps\": 12, \"start\": 20,\n     \"endpoint\": \"/v2/products\"\
+  , \"retry\": \"immediate\"},\n    {\"name\": \"cred-stuffer\", \"kind\": \"abusive\"\
+  , \"pattern\": \"steady\", \"rps\": 2, \"start\": 60,\n     \"endpoint\": \"/v2/login\"\
+  }\n  ]\n}\n\x1FFILE:scripts/rate_sim.py\x1E\n#!/usr/bin/env python3\n\"\"\"API rate\
+  \ limit policy simulator (Python 3.8+ standard library only).\n\nReplays generated\
+  \ or recorded traffic against one or more rate limit policies and shows who\ngets\
+  \ throttled, why, for how long, and whether the policies protect the backend without\n\
+  hurting legitimate clients.\n\nAlgorithms (per policy):\n  token_bucket     rate\
+  \ (tokens/s) + burst (bucket size); or limit + window_s (rate = limit/window_s,\n\
+  \                   burst defaults to limit). GCRA behaves the same for admit/reject.\n\
+  \  fixed_window     limit requests per window_s, counter resets on window boundaries\n\
+  \                   (allows up to 2 x limit across a boundary)\n  sliding_log  \
+  \    exact: at most limit requests in any window_s (stores one timestamp per request)\n\
+  \  sliding_counter  approximation: previous window weighted by overlap + current\
+  \ window (Cloudflare /\n                   Redis style, about limit per rolling\
+  \ window, a few % error)\n\nConfig JSON:\n{\n  \"service\": \"Orders API\", \"duration_s\"\
+  : 300, \"capacity_rps\": 60, \"seed\": 7,\n  \"policies\": [\n    {\"name\": \"\
+  per-client burst\", \"algorithm\": \"token_bucket\", \"key\": \"client\", \"rate\"\
+  : 5, \"burst\": 20},\n    {\"name\": \"per-client minute\", \"algorithm\": \"fixed_window\"\
+  , \"key\": \"client\", \"limit\": 200, \"window_s\": 60},\n    {\"name\": \"login\"\
+  , \"algorithm\": \"sliding_log\", \"key\": \"client\", \"limit\": 5, \"window_s\"\
+  : 60,\n     \"endpoints\": [\"/login\"]},\n    {\"name\": \"global\", \"algorithm\"\
+  : \"sliding_counter\", \"key\": \"global\", \"limit\": 3000, \"window_s\": 60}\n\
+  \  ],\n  \"clients\": [\n    {\"name\": \"mobile-app\", \"kind\": \"legit\", \"\
+  pattern\": \"steady\", \"rps\": 2, \"endpoint\": \"/orders\"},\n    {\"name\": \"\
+  nightly-sync\", \"kind\": \"legit\", \"pattern\": \"burst\", \"burst\": 40, \"every_s\"\
+  : 60, \"start\": 5},\n    {\"name\": \"scraper\", \"kind\": \"abusive\", \"pattern\"\
+  : \"poisson\", \"rps\": 25, \"retry\": \"immediate\"}\n  ]\n}\n  key        client\
+  \ | endpoint | client+endpoint | global\n  endpoints  optional list: the policy\
+  \ applies only to these endpoints (prefix match)\n  clients / exclude_clients  \
+  \ optional lists: apply only to / skip these clients (tiers, allow lists)\n  pattern\
+  \    steady (rps) | poisson (rps, seeded) | burst (burst requests every every_s\
+  \ seconds)\n  start, duration   seconds (default 0 and duration_s); cost = tokens\
+  \ per request (default 1)\n  retry      none (default) | immediate (0.1 s later)\
+  \ | backoff (1, 2, 4 s) | honor (Retry-After);\n             max_retries default\
+  \ 3\n  kind       legit | abusive | unknown - used to judge false positives and\
+  \ leakage\n\nRecorded traffic instead of generated: --trace trace.csv with columns\
+  \ t,client[,endpoint][,cost]\n(t in seconds from start). Clients in the config then\
+  \ only add kind/retry information.\n\nUsage:\n  python3 rate_sim.py config.json\
+  \ [--trace trace.csv] [--json]\n  python3 rate_sim.py --self-test\nExit codes: 0\
+  \ = no high findings, 1 = high findings (legit clients throttled or backend over\n\
+  capacity), 2 = bad input.\n\"\"\"\nimport argparse\nimport csv\nimport heapq\nimport\
+  \ json\nimport math\nimport random\nimport sys\nfrom collections import defaultdict,\
+  \ deque\n\nALGOS = (\"token_bucket\", \"fixed_window\", \"sliding_log\", \"sliding_counter\"\
+  )\nKEYS = (\"client\", \"endpoint\", \"client+endpoint\", \"global\")\n\n\nclass\
+  \ InputError(ValueError):\n    pass\n\n\n# -----------------------------------------------------------------------------\
+  \ limiters\nclass TokenBucket:\n    def __init__(self, rate, burst):\n        self.rate,\
+  \ self.burst = float(rate), float(burst)\n        self.state = {}\n\n    def check(self,\
+  \ key, t, cost):\n        tokens, last = self.state.get(key, (self.burst, t))\n\
+  \        tokens = min(self.burst, tokens + (t - last) * self.rate)\n        self.state[key]\
+  \ = (tokens, t)\n        if tokens + 1e-9 >= cost:\n            return True, 0.0,\
+  \ tokens\n        return False, (cost - tokens) / self.rate, tokens\n\n    def consume(self,\
+  \ key, t, cost):\n        tokens, last = self.state[key]\n        self.state[key]\
+  \ = (tokens - cost, t)\n\n\nclass FixedWindow:\n    def __init__(self, limit, window):\n\
+  \        self.limit, self.window = float(limit), float(window)\n        self.state\
+  \ = {}\n\n    def check(self, key, t, cost):\n        w = math.floor(t / self.window)\n\
+  \        start, count = self.state.get(key, (w, 0.0))\n        if start != w:\n\
+  \            start, count = w, 0.0\n        self.state[key] = (start, count)\n \
+  \       if count + cost <= self.limit + 1e-9:\n            return True, 0.0, self.limit\
+  \ - count\n        return False, (w + 1) * self.window - t, self.limit - count\n\
+  \n    def consume(self, key, t, cost):\n        start, count = self.state[key]\n\
+  \        self.state[key] = (start, count + cost)\n\n\nclass SlidingLog:\n    def\
+  \ __init__(self, limit, window):\n        self.limit, self.window = float(limit),\
+  \ float(window)\n        self.state = defaultdict(deque)\n\n    def check(self,\
+  \ key, t, cost):\n        log = self.state[key]\n        while log and log[0] <=\
+  \ t - self.window:\n            log.popleft()\n        used = len(log)\n       \
+  \ if used + cost <= self.limit + 1e-9:\n            return True, 0.0, self.limit\
+  \ - used\n        need = int(used + cost - self.limit)  # entries that must expire\
+  \ first\n        idx = min(max(need - 1, 0), used - 1) if used else 0\n        wait\
+  \ = (log[idx] + self.window - t) if used else self.window\n        return False,\
+  \ max(wait, 0.001), self.limit - used\n\n    def consume(self, key, t, cost):\n\
+  \        for _ in range(int(round(cost))):\n            self.state[key].append(t)\n\
+  \n\nclass SlidingCounter:\n    def __init__(self, limit, window):\n        self.limit,\
+  \ self.window = float(limit), float(window)\n        self.state = {}\n\n    def\
+  \ _roll(self, key, t):\n        w = math.floor(t / self.window)\n        start,\
+  \ prev, curr = self.state.get(key, (w, 0.0, 0.0))\n        if w == start + 1:\n\
+  \            start, prev, curr = w, curr, 0.0\n        elif w > start + 1:\n   \
+  \         start, prev, curr = w, 0.0, 0.0\n        self.state[key] = (start, prev,\
+  \ curr)\n        return start, prev, curr\n\n    def check(self, key, t, cost):\n\
+  \        start, prev, curr = self._roll(key, t)\n        e = t - start * self.window\n\
+  \        est = prev * (1 - e / self.window) + curr\n        if est + cost <= self.limit\
+  \ + 1e-9:\n            return True, 0.0, self.limit - est\n        lim, w = self.limit,\
+  \ self.window\n        if curr + cost <= lim and prev > 0:\n            wait = w\
+  \ * (1 - (lim - curr - cost) / prev) - e\n        else:\n            x = 0.0\n \
+  \           if curr > 0 and lim - cost < curr:\n                x = w * (1 - (lim\
+  \ - cost) / curr)\n            wait = (w - e) + max(0.0, x)\n        return False,\
+  \ max(wait, 0.001), self.limit - est\n\n    def consume(self, key, t, cost):\n \
+  \       start, prev, curr = self.state[key]\n        self.state[key] = (start, prev,\
+  \ curr + cost)\n\n\ndef make_limiter(p):\n    algo = p[\"algorithm\"]\n    if algo\
+  \ == \"token_bucket\":\n        return TokenBucket(p[\"rate\"], p[\"burst\"])\n\
+  \    if algo == \"fixed_window\":\n        return FixedWindow(p[\"limit\"], p[\"\
+  window_s\"])\n    if algo == \"sliding_log\":\n        return SlidingLog(p[\"limit\"\
+  ], p[\"window_s\"])\n    return SlidingCounter(p[\"limit\"], p[\"window_s\"])\n\n\
+  \n# -----------------------------------------------------------------------------\
+  \ config\ndef num(v, what, positive=True):\n    try:\n        x = float(v)\n   \
+  \ except (TypeError, ValueError):\n        raise InputError(\"%s must be a number,\
+  \ got %r\" % (what, v))\n    if positive and x <= 0:\n        raise InputError(\"\
+  %s must be > 0, got %r\" % (what, v))\n    return x\n\n\ndef normalize(cfg):\n \
+  \   if not isinstance(cfg, dict):\n        raise InputError(\"config must be a JSON\
+  \ object\")\n    pols = cfg.get(\"policies\")\n    if not pols:\n        raise InputError(\"\
+  config needs a non-empty 'policies' list\")\n    out = []\n    for i, p in enumerate(pols,\
+  \ 1):\n        q = dict(p)\n        q.setdefault(\"name\", \"policy-%d\" % i)\n\
+  \        algo = q.get(\"algorithm\")\n        if algo not in ALGOS:\n          \
+  \  raise InputError(\"policy %r: algorithm must be one of %s\" % (q[\"name\"], \"\
+  , \".join(ALGOS)))\n        q.setdefault(\"key\", \"client\")\n        if q[\"key\"\
+  ] not in KEYS:\n            raise InputError(\"policy %r: key must be one of %s\"\
+  \ % (q[\"name\"], \", \".join(KEYS)))\n        if algo == \"token_bucket\":\n  \
+  \          if \"rate\" in q:\n                q[\"rate\"] = num(q[\"rate\"], q[\"\
+  name\"] + \".rate\")\n                q[\"burst\"] = num(q.get(\"burst\", max(1.0,\
+  \ q[\"rate\"])), q[\"name\"] + \".burst\")\n            elif \"limit\" in q:\n \
+  \               lim = num(q[\"limit\"], q[\"name\"] + \".limit\")\n            \
+  \    win = num(q.get(\"window_s\", 1), q[\"name\"] + \".window_s\")\n          \
+  \      q[\"rate\"] = lim / win\n                q[\"burst\"] = num(q.get(\"burst\"\
+  , lim), q[\"name\"] + \".burst\")\n            else:\n                raise InputError(\"\
+  policy %r: token_bucket needs rate (+burst) or limit + window_s\" % q[\"name\"])\n\
+  \            q.setdefault(\"window_s\", 1.0)\n            q[\"window_s\"] = num(q[\"\
+  window_s\"], q[\"name\"] + \".window_s\")\n        else:\n            q[\"limit\"\
+  ] = num(q.get(\"limit\"), q[\"name\"] + \".limit\")\n            q[\"window_s\"\
+  ] = num(q.get(\"window_s\"), q[\"name\"] + \".window_s\")\n        q[\"endpoints\"\
+  ] = list(q.get(\"endpoints\") or [])\n        q[\"clients\"] = list(q.get(\"clients\"\
+  ) or [])\n        q[\"exclude_clients\"] = list(q.get(\"exclude_clients\") or [])\n\
+  \        out.append(q)\n    cfg = dict(cfg)\n    cfg[\"policies\"] = out\n    cfg[\"\
+  duration_s\"] = num(cfg.get(\"duration_s\", 300), \"duration_s\")\n    if cfg.get(\"\
+  capacity_rps\") is not None:\n        cfg[\"capacity_rps\"] = num(cfg[\"capacity_rps\"\
+  ], \"capacity_rps\")\n    clients = []\n    for i, c in enumerate(cfg.get(\"clients\"\
+  ) or [], 1):\n        c = dict(c)\n        c.setdefault(\"name\", \"client-%d\"\
+  \ % i)\n        c.setdefault(\"kind\", \"unknown\")\n        c.setdefault(\"pattern\"\
+  , \"steady\")\n        c.setdefault(\"endpoint\", \"/\")\n        c.setdefault(\"\
+  retry\", \"none\")\n        if c[\"retry\"] not in (\"none\", \"immediate\", \"\
+  backoff\", \"honor\"):\n            raise InputError(\"client %r: retry must be\
+  \ none, immediate, backoff or honor\" % c[\"name\"])\n        c[\"max_retries\"\
+  ] = int(c.get(\"max_retries\", 3))\n        c[\"cost\"] = num(c.get(\"cost\", 1),\
+  \ c[\"name\"] + \".cost\")\n        c[\"start\"] = num(c.get(\"start\", 0), c[\"\
+  name\"] + \".start\", positive=False)\n        c[\"duration\"] = num(c.get(\"duration\"\
+  , cfg[\"duration_s\"] - c[\"start\"]), c[\"name\"] + \".duration\")\n        if\
+  \ c[\"pattern\"] in (\"steady\", \"poisson\"):\n            c[\"rps\"] = num(c.get(\"\
+  rps\"), c[\"name\"] + \".rps\")\n        elif c[\"pattern\"] == \"burst\":\n   \
+  \         c[\"burst\"] = int(num(c.get(\"burst\"), c[\"name\"] + \".burst\"))\n\
+  \            c[\"every_s\"] = num(c.get(\"every_s\", 60), c[\"name\"] + \".every_s\"\
+  )\n        else:\n            raise InputError(\"client %r: pattern must be steady,\
+  \ poisson or burst\" % c[\"name\"])\n        clients.append(c)\n    cfg[\"clients\"\
+  ] = clients\n    return cfg\n\n\ndef generate(cfg):\n    rng = random.Random(cfg.get(\"\
+  seed\", 1))\n    reqs = []\n    for c in cfg[\"clients\"]:\n        t0, t1 = c[\"\
+  start\"], c[\"start\"] + c[\"duration\"]\n        if c[\"pattern\"] == \"steady\"\
+  :\n            n = int(round(c[\"duration\"] * c[\"rps\"]))\n            reqs +=\
+  \ [(t0 + i / c[\"rps\"], c[\"name\"], c[\"endpoint\"], c[\"cost\"]) for i in range(n)]\n\
+  \        elif c[\"pattern\"] == \"poisson\":\n            t = t0 + rng.expovariate(c[\"\
+  rps\"])\n            while t < t1:\n                reqs.append((t, c[\"name\"],\
+  \ c[\"endpoint\"], c[\"cost\"]))\n                t += rng.expovariate(c[\"rps\"\
+  ])\n        else:\n            t = t0\n            while t < t1:\n             \
+  \   reqs += [(t + k * 0.001, c[\"name\"], c[\"endpoint\"], c[\"cost\"]) for k in\
+  \ range(c[\"burst\"])]\n                t += c[\"every_s\"]\n    return reqs\n\n\
+  \ndef read_trace(path):\n    reqs = []\n    with open(path, newline=\"\", encoding=\"\
+  utf-8\") as f:\n        for n, row in enumerate(csv.DictReader(f), 2):\n       \
+  \     try:\n                reqs.append((float(row[\"t\"]), row[\"client\"].strip(),\
+  \ (row.get(\"endpoint\") or \"/\").strip(),\n                             float(row.get(\"\
+  cost\") or 1)))\n            except (KeyError, ValueError, AttributeError):\n  \
+  \              raise InputError(\"%s line %d: need t,client[,endpoint][,cost]\"\
+  \ % (path, n))\n    return reqs\n\n\n# -----------------------------------------------------------------------------\
+  \ simulation\ndef policy_key(p, client, endpoint):\n    if p[\"endpoints\"] and\
+  \ not any(endpoint.startswith(e) for e in p[\"endpoints\"]):\n        return None\n\
+  \    if (p[\"clients\"] and client not in p[\"clients\"]) or client in p[\"exclude_clients\"\
+  ]:\n        return None\n    return {\"client\": client, \"endpoint\": endpoint,\
+  \ \"client+endpoint\": client + \" \" + endpoint,\n            \"global\": \"*\"\
+  }[p[\"key\"]]\n\n\ndef simulate(cfg, reqs):\n    pols = cfg[\"policies\"]\n    lims\
+  \ = [make_limiter(p) for p in pols]\n    cinfo = {c[\"name\"]: c for c in cfg[\"\
+  clients\"]}\n    heap = []\n    for i, (t, cl, ep, cost) in enumerate(sorted(reqs)):\n\
+  \        heapq.heappush(heap, (t, i, cl, ep, cost, 0, i))\n    seq = len(reqs)\n\
+  \    stats = defaultdict(lambda: {\"logical\": 0, \"attempts\": 0, \"allowed\":\
+  \ 0, \"rejected\": 0, \"failed\": 0, \"delayed\": 0,\n                         \
+  \        \"max_retry_after\": 0.0, \"blocked_by\": defaultdict(int), \"first_reject\"\
+  : None})\n    pstats = [{\"checks\": 0, \"rejects\": 0, \"allowed_times\": defaultdict(list),\
+  \ \"by_client\": defaultdict(int)}\n              for _ in pols]\n    admitted =\
+  \ []\n    sample = None\n    while heap:\n        t, _, cl, ep, cost, attempt, lid\
+  \ = heapq.heappop(heap)\n        s = stats[cl]\n        if attempt == 0:\n     \
+  \       s[\"logical\"] += 1\n        s[\"attempts\"] += 1\n        keys = [policy_key(p,\
+  \ cl, ep) for p in pols]\n        rejecting, wait, remain = [], 0.0, {}\n      \
+  \  for j, (lim, k) in enumerate(zip(lims, keys)):\n            if k is None:\n \
+  \               continue\n            pstats[j][\"checks\"] += 1\n            ok,\
+  \ w, rem = lim.check(k, t, cost)\n            remain[j] = rem\n            if not\
+  \ ok:\n                rejecting.append(j)\n                wait = max(wait, w)\n\
+  \        if not rejecting:\n            for j, (lim, k) in enumerate(zip(lims, keys)):\n\
+  \                if k is not None:\n                    lim.consume(k, t, cost)\n\
+  \                    pstats[j][\"allowed_times\"][k].append(t)\n            s[\"\
+  allowed\"] += 1\n            if attempt:\n                s[\"delayed\"] += 1\n\
+  \            admitted.append((t, cl, attempt))\n            continue\n        s[\"\
+  rejected\"] += 1\n        s[\"max_retry_after\"] = max(s[\"max_retry_after\"], wait)\n\
+  \        if s[\"first_reject\"] is None:\n            s[\"first_reject\"] = t\n\
+  \        s[\"blocked_by\"][pols[rejecting[0]][\"name\"]] += 1\n        for j in\
+  \ rejecting:\n            pstats[j][\"rejects\"] += 1\n            pstats[j][\"\
+  by_client\"][cl] += 1\n        if sample is None:\n            j = rejecting[0]\n\
+  \            sample = {\"t\": round(t, 3), \"client\": cl, \"endpoint\": ep, \"\
+  policy\": pols[j][\"name\"],\n                      \"retry_after\": max(1, math.ceil(wait)),\
+  \ \"quota\": pols[j].get(\"limit\", pols[j].get(\"burst\")),\n                 \
+  \     \"window_s\": pols[j][\"window_s\"]}\n        c = cinfo.get(cl, {})\n    \
+  \    mode, maxr = c.get(\"retry\", \"none\"), c.get(\"max_retries\", 3)\n      \
+  \  if mode != \"none\" and attempt < maxr:\n            delay = {\"immediate\":\
+  \ 0.1, \"backoff\": 2.0 ** attempt, \"honor\": wait + 0.05}[mode]\n            seq\
+  \ += 1\n            heapq.heappush(heap, (t + delay, seq, cl, ep, cost, attempt\
+  \ + 1, lid))\n        else:\n            s[\"failed\"] += 1\n    return stats, pstats,\
+  \ admitted, sample\n\n\ndef max_in_window(times, w):\n    best, dq = 0, deque()\n\
+  \    for t in sorted(times):\n        dq.append(t)\n        while dq[0] <= t - w:\n\
+  \            dq.popleft()\n        best = max(best, len(dq))\n    return best\n\n\
+  \ndef theoretical_max(p):\n    w = p[\"window_s\"]\n    if p[\"algorithm\"] == \"\
+  token_bucket\":\n        return p[\"burst\"] + p[\"rate\"] * w\n    if p[\"algorithm\"\
+  ] == \"fixed_window\":\n        return 2 * p[\"limit\"]\n    return p[\"limit\"\
+  ]\n\n\ndef sustained_rps(p):\n    return p[\"rate\"] if p[\"algorithm\"] == \"token_bucket\"\
+  \ else p[\"limit\"] / p[\"window_s\"]\n\n\n# -----------------------------------------------------------------------------\
+  \ analysis\ndef analyse(cfg, reqs):\n    stats, pstats, admitted, sample = simulate(cfg,\
+  \ reqs)\n    pols = cfg[\"policies\"]\n    kinds = {c[\"name\"]: c[\"kind\"] for\
+  \ c in cfg[\"clients\"]}\n    findings = []\n\n    def add(sev, code, msg):\n  \
+  \      findings.append({\"severity\": sev, \"code\": code, \"message\": msg})\n\n\
+  \    per_sec = defaultdict(int)\n    retry_sec = defaultdict(int)\n    for t, _,\
+  \ att in admitted:\n        per_sec[int(t)] += 1\n        if att:\n            retry_sec[int(t)]\
+  \ += 1\n    peak_rps = max(per_sec.values()) if per_sec else 0\n    peak_sec = max(per_sec,\
+  \ key=per_sec.get) if per_sec else 0\n\n    clients = []\n    for name in sorted(stats,\
+  \ key=lambda n: (-stats[n][\"logical\"], n)):\n        s = stats[name]\n       \
+  \ fail_pct = 100.0 * s[\"failed\"] / s[\"logical\"] if s[\"logical\"] else 0.0\n\
+  \        hurt_pct = 100.0 * (s[\"failed\"] + s[\"delayed\"]) / s[\"logical\"] if\
+  \ s[\"logical\"] else 0.0\n        top = max(s[\"blocked_by\"], key=s[\"blocked_by\"\
+  ].get) if s[\"blocked_by\"] else \"\"\n        clients.append({\"client\": name,\
+  \ \"kind\": kinds.get(name, \"unknown\"), \"logical\": s[\"logical\"],\n       \
+  \                 \"attempts\": s[\"attempts\"], \"allowed\": s[\"allowed\"], \"\
+  rejected\": s[\"rejected\"],\n                        \"failed\": s[\"failed\"],\
+  \ \"failed_pct\": round(fail_pct, 1),\n                        \"delayed\": s[\"\
+  delayed\"],\n                        \"amplification\": round(s[\"attempts\"] /\
+  \ s[\"logical\"], 2) if s[\"logical\"] else 0,\n                        \"max_retry_after_s\"\
+  : round(s[\"max_retry_after\"], 1), \"top_policy\": top,\n                     \
+  \   \"first_reject_s\": None if s[\"first_reject\"] is None else round(s[\"first_reject\"\
+  ], 1)})\n        k = kinds.get(name, \"unknown\")\n        if k == \"legit\" and\
+  \ hurt_pct > 1.0:\n            add(\"high\", \"RL01\", \"Legit client %s is throttled\
+  \ on %.1f%% of its requests (%d failed, %d only after \"\n                \"retrying,\
+  \ waits up to %.1fs), mostly by policy '%s'; raise that limit or give this client\
+  \ its own tier.\"\n                % (name, hurt_pct, s[\"failed\"], s[\"delayed\"\
+  ], s[\"max_retry_after\"], top))\n        elif k == \"legit\" and s[\"rejected\"\
+  ]:\n            add(\"low\", \"RL01\", \"Legit client %s sees %d 429s but its retries\
+  \ recover; check it handles Retry-After.\"\n                % (name, s[\"rejected\"\
+  ]))\n        if k == \"abusive\" and s[\"logical\"]:\n            share = 100.0\
+  \ * s[\"allowed\"] / s[\"logical\"]\n            if share > 25:\n              \
+  \  add(\"medium\", \"RL02\", \"Abusive client %s still gets %.0f%% of its requests\
+  \ through (%d); \"\n                    \"tighten the per-client limit or add a\
+  \ stricter policy for its pattern.\" % (name, share, s[\"allowed\"]))\n        amp\
+  \ = s[\"attempts\"] / s[\"logical\"] if s[\"logical\"] else 0\n        if amp >=\
+  \ 1.5:\n            add(\"medium\", \"RL05\", \"Client %s sends %.2fx attempts per\
+  \ logical request because it retries throttled \"\n                \"calls; retries\
+  \ count against the limit and add load - require Retry-After or backoff with jitter.\"\
+  \n                % (name, amp))\n\n    if per_sec and retry_sec.get(peak_sec, 0)\
+  \ > 0.5 * peak_rps and peak_rps >= 20:\n        add(\"medium\", \"RL10\", \"Retry\
+  \ herd: %d of the %d requests admitted in second %d are retries released by the\
+  \ same \"\n            \"Retry-After / window reset; add jitter to Retry-After (or\
+  \ client backoff) and prefer a token bucket or \"\n            \"sliding window\
+  \ so capacity is not handed out all at once.\" % (retry_sec[peak_sec], peak_rps,\
+  \ peak_sec))\n    cap = cfg.get(\"capacity_rps\")\n    if cap:\n        if peak_rps\
+  \ > cap:\n            add(\"high\", \"RL03\", \"Admitted traffic peaks at %d req/s\
+  \ (second %d) over the backend capacity of %g req/s; \"\n                \"add or\
+  \ lower a global limit.\" % (peak_rps, peak_sec, cap))\n        if not any(p[\"\
+  key\"] == \"global\" for p in pols):\n            per_client = [sustained_rps(p)\
+  \ for p in pols if p[\"key\"] in (\"client\", \"client+endpoint\")\n           \
+  \               and not p[\"endpoints\"] and not p[\"clients\"]]\n            if\
+  \ per_client:\n                n = len(stats)\n                add(\"medium\", \"\
+  RL03\", \"No global policy: %d clients x %g req/s per client = %g req/s possible\
+  \ vs capacity %g.\"\n                    % (n, min(per_client), n * min(per_client),\
+  \ cap))\n\n    policies = []\n    for p, ps in zip(pols, pstats):\n        obs =\
+  \ max((max_in_window(ts, p[\"window_s\"]) for ts in ps[\"allowed_times\"].values()),\
+  \ default=0)\n        theo = theoretical_max(p)\n        policies.append({\"name\"\
+  : p[\"name\"], \"algorithm\": p[\"algorithm\"], \"key\": p[\"key\"],\n         \
+  \                \"endpoints\": p[\"endpoints\"], \"clients\": p[\"clients\"], \"\
+  exclude_clients\": p[\"exclude_clients\"], \"checks\": ps[\"checks\"], \"rejects\"\
+  : ps[\"rejects\"],\n                         \"sustained_rps\": round(sustained_rps(p),\
+  \ 3), \"window_s\": p[\"window_s\"],\n                         \"worst_case_per_window\"\
+  : round(theo, 1), \"observed_max_per_window\": obs})\n        if p[\"algorithm\"\
+  ] == \"fixed_window\" and obs > p[\"limit\"]:\n            add(\"medium\", \"RL04\"\
+  , \"Fixed window '%s' let %d requests through in one rolling %gs window (limit %g,\
+  \ \"\n                \"%.1fx) across a window boundary; use sliding_counter or\
+  \ a token bucket if the limit protects capacity.\"\n                % (p[\"name\"\
+  ], obs, p[\"window_s\"], p[\"limit\"], obs / p[\"limit\"]))\n        if p[\"key\"\
+  ] == \"global\" and ps[\"rejects\"]:\n            allowed_by = defaultdict(int)\n\
+  \            for t, cl, _ in admitted:\n                allowed_by[cl] += 1\n  \
+  \          total = sum(allowed_by.values()) or 1\n            hog = max(allowed_by,\
+  \ key=allowed_by.get)\n            victims = [c for c in ps[\"by_client\"] if kinds.get(c)\
+  \ == \"legit\" and c != hog]\n            if allowed_by[hog] / total > 0.5 and victims:\n\
+  \                add(\"high\" if kinds.get(hog) != \"legit\" else \"medium\", \"\
+  RL06\",\n                    \"Noisy neighbour: %s holds %.0f%% of admitted traffic\
+  \ while global policy '%s' rejects %s; \"\n                    \"add a per-client\
+  \ limit below the global one.\" % (hog, 100.0 * allowed_by[hog] / total,\n     \
+  \                                                                p[\"name\"], \"\
+  , \".join(sorted(victims))))\n        if p[\"algorithm\"] == \"sliding_log\" and\
+  \ p[\"limit\"] > 1000:\n            add(\"low\", \"RL07\", \"Sliding log '%s' stores\
+  \ up to %d timestamps per key; prefer sliding_counter for large limits.\"\n    \
+  \            % (p[\"name\"], p[\"limit\"]))\n        if ps[\"checks\"] and not ps[\"\
+  rejects\"] and obs and theo > 10 * obs:\n            add(\"low\", \"RL09\", \"Policy\
+  \ '%s' never triggered; its worst case (%g per %gs) is >10x the busiest key (%d).\
+  \ \"\n                \"Fine as a safety net, but it will not stop a surge.\" %\
+  \ (p[\"name\"], theo, p[\"window_s\"], obs))\n    if sample:\n        add(\"info\"\
+  , \"RL08\", \"Return 429 with Retry-After on every rejection (see the sample headers)\
+  \ and document the \"\n            \"limits so clients can pace themselves.\")\n\
+  \    order = {\"high\": 0, \"medium\": 1, \"low\": 2, \"info\": 3}\n    findings.sort(key=lambda\
+  \ f: (order[f[\"severity\"]], f[\"code\"]))\n    return {\"service\": cfg.get(\"\
+  service\", \"API\"), \"duration_s\": cfg[\"duration_s\"], \"requests\": len(reqs),\n\
+  \            \"admitted\": len(admitted), \"peak_admitted_rps\": peak_rps, \"peak_second\"\
+  : peak_sec,\n            \"capacity_rps\": cap, \"clients\": clients, \"policies\"\
+  : policies, \"findings\": findings,\n            \"sample_429\": sample}\n\n\n#\
+  \ -----------------------------------------------------------------------------\
+  \ report\ndef fmt(x):\n    return (\"%g\" % x) if isinstance(x, float) else str(x)\n\
+  \n\ndef scope(p):\n    parts = []\n    if p[\"endpoints\"]:\n        parts.append(\"\
+  , \".join(p[\"endpoints\"]))\n    if p[\"clients\"]:\n        parts.append(\"only\
+  \ \" + \", \".join(p[\"clients\"]))\n    if p[\"exclude_clients\"]:\n        parts.append(\"\
+  not \" + \", \".join(p[\"exclude_clients\"]))\n    return \"; \".join(parts) or\
+  \ \"all\"\n\n\ndef report(r):\n    L = [\"# Rate limit simulation: %s\" % r[\"service\"\
+  ], \"\"]\n    cap = (\" vs capacity %g\" % r[\"capacity_rps\"]) if r[\"capacity_rps\"\
+  ] else \"\"\n    L.append(\"Simulated %gs, %d logical requests, %d admitted, peak\
+  \ %d req/s admitted (second %d)%s.\"\n             % (r[\"duration_s\"], r[\"requests\"\
+  ], r[\"admitted\"], r[\"peak_admitted_rps\"], r[\"peak_second\"], cap))\n    highs\
+  \ = sum(f[\"severity\"] == \"high\" for f in r[\"findings\"])\n    L += [\"\", \"\
+  **Verdict: %s**\" % (\"%d high finding(s) - fix before shipping these limits\" %\
+  \ highs if highs\n                                   else \"policies hold - no high\
+  \ findings\"), \"\"]\n    L += [\"## Clients\", \"\", \"| Client | Kind | Requests\
+  \ | Attempts | Allowed | 429s | OK after retry | Failed | Failed % | Max Retry-After\
+  \ | Top policy |\",\n          \"|---|---|---|---|---|---|---|---|---|---|---|\"\
+  ]\n    for c in r[\"clients\"]:\n        L.append(\"| %s | %s | %d | %d | %d | %d\
+  \ | %d | %d | %.1f%% | %ss | %s |\" % (\n            c[\"client\"], c[\"kind\"],\
+  \ c[\"logical\"], c[\"attempts\"], c[\"allowed\"], c[\"rejected\"], c[\"delayed\"\
+  ], c[\"failed\"],\n            c[\"failed_pct\"], fmt(c[\"max_retry_after_s\"]),\
+  \ c[\"top_policy\"] or \"-\"))\n    L += [\"\", \"## Policies\", \"\", \"| Policy\
+  \ | Algorithm | Key | Scope | Sustained | Worst case / window | Busiest key / window\
+  \ | Checks | Rejects |\",\n          \"|---|---|---|---|---|---|---|---|---|\"]\n\
+  \    for p in r[\"policies\"]:\n        L.append(\"| %s | %s | %s | %s | %s req/s\
+  \ | %s per %ss | %d | %d | %d |\" % (\n            p[\"name\"], p[\"algorithm\"\
+  ], p[\"key\"], scope(p), fmt(p[\"sustained_rps\"]),\n            fmt(p[\"worst_case_per_window\"\
+  ]), fmt(p[\"window_s\"]), p[\"observed_max_per_window\"], p[\"checks\"], p[\"rejects\"\
+  ]))\n    L += [\"\", \"## Findings\", \"\"]\n    if not r[\"findings\"]:\n     \
+  \   L.append(\"- none\")\n    for f in r[\"findings\"]:\n        L.append(\"- **%s\
+  \ %s** %s\" % (f[\"severity\"].upper(), f[\"code\"], f[\"message\"]))\n    s = r[\"\
+  sample_429\"]\n    if s:\n        L += [\"\", \"## Sample 429 (first rejection,\
+  \ t=%ss, %s %s)\" % (s[\"t\"], s[\"client\"], s[\"endpoint\"]), \"\", \"```\",\n\
+  \              \"HTTP/1.1 429 Too Many Requests\",\n              \"Retry-After:\
+  \ %d\" % s[\"retry_after\"],\n              'RateLimit-Policy: \"%s\";q=%s;w=%s'\
+  \ % (s[\"policy\"], fmt(float(s[\"quota\"])), fmt(float(s[\"window_s\"]))),\n  \
+  \            'RateLimit: \"%s\";r=0;t=%d' % (s[\"policy\"], s[\"retry_after\"]),\n\
+  \              \"Content-Type: application/problem+json\", \"```\",\n          \
+  \    \"Header names follow the IETF httpapi ratelimit-headers draft; older gateways\
+  \ use \"\n              \"X-RateLimit-Limit / -Remaining / -Reset instead.\"]\n\
+  \    return \"\\n\".join(L) + \"\\n\"\n\n\n# -----------------------------------------------------------------------------\
+  \ self-test\ndef self_test():\n    cases = []\n\n    def check(name, cond, detail=\"\
+  \"):\n        cases.append((name, bool(cond), detail))\n\n    tb = TokenBucket(rate=1,\
+  \ burst=3)\n    ok = 0\n    for i in range(5):\n        a, w, _ = tb.check(\"k\"\
+  , 0.0, 1)\n        if a:\n            tb.consume(\"k\", 0.0, 1)\n            ok\
+  \ += 1\n    check(\"token bucket burst of 3 at t=0\", ok == 3, ok)\n    a, w, _\
+  \ = tb.check(\"k\", 0.0, 1)\n    check(\"token bucket retry-after 1s\", (not a)\
+  \ and abs(w - 1.0) < 1e-6, w)\n    a, w, _ = tb.check(\"k\", 1.0, 1)\n    check(\"\
+  token bucket refills 1 token per second\", a)\n\n    fw = FixedWindow(limit=10,\
+  \ window=60)\n    times = [59.0 + i * 0.01 for i in range(10)] + [60.0 + i * 0.01\
+  \ for i in range(10)]\n    allowed = []\n    for t in times:\n        a, _, _ =\
+  \ fw.check(\"k\", t, 1)\n        if a:\n            fw.consume(\"k\", t, 1)\n  \
+  \          allowed.append(t)\n    check(\"fixed window boundary burst = 2x limit\"\
+  , max_in_window(allowed, 60) == 20, len(allowed))\n    a, w, _ = fw.check(\"k\"\
+  , 61.0, 1)\n    check(\"fixed window retry-after until reset\", (not a) and abs(w\
+  \ - 59.0) < 1e-6, w)\n\n    sl = SlidingLog(limit=10, window=60)\n    allowed =\
+  \ []\n    for t in times:\n        a, _, _ = sl.check(\"k\", t, 1)\n        if a:\n\
+  \            sl.consume(\"k\", t, 1)\n            allowed.append(t)\n    check(\"\
+  sliding log never exceeds limit\", max_in_window(allowed, 60) == 10, len(allowed))\n\
+  \    a, w, _ = sl.check(\"k\", 60.5, 1)\n    check(\"sliding log retry-after = oldest\
+  \ + window\", (not a) and abs(w - (59.0 + 60 - 60.5)) < 1e-6, w)\n\n    sc = SlidingCounter(limit=10,\
+  \ window=60)\n    allowed = []\n    for t in times + [90.0 + i for i in range(10)]:\n\
+  \        a, _, _ = sc.check(\"k\", t, 1)\n        if a:\n            sc.consume(\"\
+  k\", t, 1)\n            allowed.append(t)\n    first = [t for t in allowed if t\
+  \ < 61]\n    later = [t for t in allowed if t >= 90]\n    check(\"sliding counter\
+  \ blocks the boundary burst\", len(first) == 10, len(first))\n    check(\"sliding\
+  \ counter weights previous window (about half at mid-window)\", 4 <= len(later)\
+  \ <= 7, len(later))\n\n    cfg = normalize({\"service\": \"t\", \"duration_s\":\
+  \ 60, \"capacity_rps\": 1000, \"policies\": [\n        {\"name\": \"pc\", \"algorithm\"\
+  : \"token_bucket\", \"key\": \"client\", \"rate\": 5, \"burst\": 5}],\n        \"\
+  clients\": [{\"name\": \"good\", \"kind\": \"legit\", \"rps\": 2},\n           \
+  \         {\"name\": \"bad\", \"kind\": \"abusive\", \"rps\": 20, \"retry\": \"\
+  immediate\"}]})\n    r = analyse(cfg, generate(cfg))\n    by = {c[\"client\"]: c\
+  \ for c in r[\"clients\"]}\n    check(\"legit client under limit not throttled\"\
+  , by[\"good\"][\"rejected\"] == 0, by[\"good\"])\n    check(\"abusive client mostly\
+  \ throttled\", by[\"bad\"][\"allowed\"] <= 5 * 60 + 10, by[\"bad\"][\"allowed\"\
+  ])\n    check(\"immediate retries amplify attempts\", by[\"bad\"][\"amplification\"\
+  ] > 1.5, by[\"bad\"][\"amplification\"])\n    codes = {f[\"code\"] for f in r[\"\
+  findings\"]}\n    check(\"RL05 retry amplification finding\", \"RL05\" in codes,\
+  \ codes)\n\n    cfg2 = normalize({\"duration_s\": 30, \"capacity_rps\": 10, \"policies\"\
+  : [\n        {\"name\": \"g\", \"algorithm\": \"fixed_window\", \"key\": \"global\"\
+  , \"limit\": 600, \"window_s\": 60}],\n        \"clients\": [{\"name\": \"hog\"\
+  , \"kind\": \"abusive\", \"rps\": 30},\n                    {\"name\": \"app\",\
+  \ \"kind\": \"legit\", \"rps\": 1, \"start\": 25, \"duration\": 5}]})\n    r2 =\
+  \ analyse(cfg2, generate(cfg2))\n    codes2 = {f[\"code\"]: f[\"severity\"] for\
+  \ f in r2[\"findings\"]}\n    check(\"RL03 over capacity is high\", codes2.get(\"\
+  RL03\") == \"high\", codes2)\n    check(\"RL06 noisy neighbour on global\", \"RL06\"\
+  \ in codes2, codes2)\n    check(\"RL01 legit client starved\", codes2.get(\"RL01\"\
+  ) == \"high\", codes2)\n\n    cfg3 = normalize({\"duration_s\": 10, \"policies\"\
+  : [\n        {\"name\": \"login\", \"algorithm\": \"sliding_log\", \"key\": \"client\"\
+  , \"limit\": 2, \"window_s\": 60, \"endpoints\": [\"/login\"]}],\n        \"clients\"\
+  : [{\"name\": \"u\", \"rps\": 1, \"endpoint\": \"/orders\"}, {\"name\": \"v\", \"\
+  rps\": 1, \"endpoint\": \"/login\"}]})\n    r3 = analyse(cfg3, generate(cfg3))\n\
+  \    by3 = {c[\"client\"]: c for c in r3[\"clients\"]}\n    check(\"endpoint-scoped\
+  \ policy ignores other endpoints\", by3[\"u\"][\"rejected\"] == 0 and by3[\"v\"\
+  ][\"allowed\"] == 2,\n          (by3[\"u\"], by3[\"v\"]))\n    check(\"burst pattern\
+  \ generates bursts\", len(generate(normalize({\"duration_s\": 120, \"policies\"\
+  : cfg3[\"policies\"],\n          \"clients\": [{\"name\": \"b\", \"pattern\": \"\
+  burst\", \"burst\": 5, \"every_s\": 60}]}))) == 10)\n    cfg4 = normalize({\"duration_s\"\
+  : 10, \"policies\": [\n        {\"name\": \"default\", \"algorithm\": \"token_bucket\"\
+  , \"key\": \"client\", \"rate\": 1, \"burst\": 1, \"exclude_clients\": [\"vip\"\
+  ]},\n        {\"name\": \"vip\", \"algorithm\": \"token_bucket\", \"key\": \"client\"\
+  , \"rate\": 10, \"burst\": 10, \"clients\": [\"vip\"]}],\n        \"clients\": [{\"\
+  name\": \"vip\", \"rps\": 5}, {\"name\": \"std\", \"rps\": 5}]})\n    by4 = {c[\"\
+  client\"]: c for c in analyse(cfg4, generate(cfg4))[\"clients\"]}\n    check(\"\
+  client tiers: vip unthrottled, std limited\", by4[\"vip\"][\"rejected\"] == 0 and\
+  \ by4[\"std\"][\"allowed\"] <= 11,\n          (by4[\"vip\"], by4[\"std\"]))\n  \
+  \  try:\n        normalize({\"policies\": [{\"algorithm\": \"leaky\"}]})\n     \
+  \   check(\"bad algorithm rejected\", False)\n    except InputError:\n        check(\"\
+  bad algorithm rejected\", True)\n    rep = report(r2)\n    check(\"report has verdict\
+  \ and sample 429\", \"Verdict\" in rep and \"429 Too Many Requests\" in rep)\n\n\
+  \    for name, ok, detail in cases:\n        print(\"%s  %s%s\" % (\"PASS\" if ok\
+  \ else \"FAIL\", name, \"\" if ok else \"  -> %r\" % (detail,)))\n    passed = sum(1\
+  \ for _, ok, _ in cases if ok)\n    print(\"%d/%d passed\" % (passed, len(cases)))\n\
+  \    return 0 if passed == len(cases) else 1\n\n\ndef main(argv=None):\n    ap =\
+  \ argparse.ArgumentParser(description=\"Simulate API rate limit policies against\
+  \ traffic.\")\n    ap.add_argument(\"config\", nargs=\"?\")\n    ap.add_argument(\"\
+  --trace\", help=\"CSV with t,client[,endpoint][,cost] instead of generated traffic\"\
+  )\n    ap.add_argument(\"--json\", action=\"store_true\")\n    ap.add_argument(\"\
+  --self-test\", action=\"store_true\")\n    a = ap.parse_args(argv)\n    if a.self_test:\n\
+  \        return self_test()\n    if not a.config:\n        ap.print_usage(sys.stderr)\n\
+  \        return 2\n    try:\n        with open(a.config, encoding=\"utf-8\") as\
+  \ f:\n            cfg = normalize(json.load(f))\n        reqs = read_trace(a.trace)\
+  \ if a.trace else generate(cfg)\n        if not reqs:\n            raise InputError(\"\
+  no traffic: add clients to the config or pass --trace\")\n        r = analyse(cfg,\
+  \ reqs)\n    except (InputError, OSError, json.JSONDecodeError) as e:\n        print(\"\
+  error: %s\" % e, file=sys.stderr)\n        return 2\n    print(json.dumps(r, indent=2)\
+  \ if a.json else report(r), end=\"\" if not a.json else \"\\n\")\n    return 1 if\
+  \ any(f[\"severity\"] == \"high\" for f in r[\"findings\"]) else 0\n\n\nif __name__\
+  \ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

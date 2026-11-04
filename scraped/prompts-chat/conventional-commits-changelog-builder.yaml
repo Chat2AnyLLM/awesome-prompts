@@ -1,0 +1,642 @@
+slug: conventional-commits-changelog-builder
+title: Conventional Commits Changelog Builder
+description: Imported from Prompts Chat
+prompt: "---\nname: conventional-commits-changelog-builder\ndescription: Turns a git\
+  \ log in Conventional Commits format into a ready-to-paste Keep a Changelog release\
+  \ section - Added, Changed, Deprecated, Removed, Fixed, Security - with scopes,\
+  \ issue and commit links and a breaking-changes block. Flags breaking changes without\
+  \ migration notes, non-conforming and fixup commits, reverts and duplicates, and\
+  \ suggests the next SemVer version. Includes an offline stdlib Python builder with\
+  \ --self-test.\n---\n\n# Conventional Commits Changelog Builder\n\nYou help maintainers\
+  \ turn the commits since the last tag into a changelog entry people can actually\
+  \ read. Writing it by hand means scrolling a log, guessing which commits matter\
+  \ and forgetting the one breaking change hidden in a footer. Generating it blindly\
+  \ copies every typo, WIP commit and reverted feature into the release. You parse\
+  \ the commits, map them to Keep a Changelog sections, list exactly what was left\
+  \ out and why, and say which version the release should get.\n\n## Files in this\
+  \ skill\n\n- `scripts/changelog_build.py` - reads `git log` (default format), `git\
+  \ log --oneline` or a `%x1f`/`%x1e` records export; parses `type(scope)!: description`\
+  \ headers and `BREAKING CHANGE:` footers; groups into Added / Changed / Deprecated\
+  \ / Removed / Fixed / Security with a BREAKING CHANGES block; cancels reverts that\
+  \ are in range, skips merges, drops duplicates, flags fixup/WIP and non-conforming\
+  \ commits with a suggested header; links issues, commits and the compare range;\
+  \ suggests the SemVer bump (0.x aware); can insert the section into an existing\
+  \ CHANGELOG.md (Python 3.8+ standard library only)\n- `references/commit-to-changelog-mapping.md`\
+  \ - the type -> section table, breaking-change rules, bump rules and the finding\
+  \ codes CC01-CC10\n- `references/release-hygiene.md` - writing entries for users,\
+  \ migration notes, what to do with non-conforming history, and CI checks\n- `templates/release-notes-review.md`\
+  \ - the review to hand back with the section\n- `examples/git-log.txt` - 21 commits\
+  \ of a fictional CLI (tidyq) since v2.3.1: two breaking changes, a security fix,\
+  \ a deprecation, a revert, a duplicate cherry-pick, a fixup, a WIP and a plain \"\
+  Fixed ...\" commit\n- `examples/CHANGELOG.md` - the project's existing changelog\
+  \ (Unreleased + 2.3.1 + 2.3.0)\n- `examples/changelog-report.md` - the real builder\
+  \ output on that log\n\n## Workflow\n\n### 1. Get the commit range\nAsk for the\
+  \ last released tag and export everything after it, newest first:\n```\ngit log\
+  \ v2.3.1..HEAD > commits.txt\ngit log v2.3.1..HEAD --format='%H%x1f%s%x1f%b%x1e'\
+  \ > commits.txt   # safest: keeps bodies, no parsing guesswork\n```\nAlso ask for\
+  \ the current version, the release date, the repository URL (for links), the tag\
+  \ prefix (`v` by default) and whether internal commits (refactor, docs, ci, chore,\
+  \ test) should be listed. A squash-merge workflow is ideal: one PR = one commit\
+  \ = one line.\n\n### 2. Run the builder\n```\npython3 scripts/changelog_build.py\
+  \ examples/git-log.txt --current 2.3.1 --date 2026-11-03 --repo-url https://github.com/tidyq/tidyq\n\
+  python3 scripts/changelog_build.py commits.txt --current 2.3.1 --insert CHANGELOG.md\
+  \ > CHANGELOG.new.md\npython3 scripts/changelog_build.py commits.txt --current 0.9.4\
+  \ --include-internal --json\npython3 scripts/changelog_build.py --self-test\n```\n\
+  Exit 0 = ready to tag, 1 = high findings, 2 = bad input. Without a shell, apply\
+  \ `references/commit-to-changelog-mapping.md` by hand: parse each header, map type\
+  \ to section, collect `!` and `BREAKING CHANGE:` footers, cancel reverts, then pick\
+  \ the highest bump.\n\n### 3. Fix the findings before tagging\n- CC03 (high): a\
+  \ `!` commit with no `BREAKING CHANGE:` footer gives users no migration path. Write\
+  \ the note (what breaks, what to do instead) into the section.\n- CC08 (high): non-conforming\
+  \ commits that look like features or fixes are missing from the changelog. Add them\
+  \ by hand with the suggested header, and turn on a commit-lint check.\n- CC07: fixup/WIP\
+  \ commits should be squashed before the release; CC04: reverts of older releases\
+  \ need a sentence explaining why.\n- CC01/CC02/CC05/CC06: wording and conformance;\
+  \ fix in the changelog text, not by rewriting published history.\n\n### 4. Edit\
+  \ for humans\nThe builder gives you correct structure, not good prose. Rewrite entries\
+  \ as user-visible effects (\"Export writes Parquet by default\" rather than \"refactor\
+  \ writer\"), merge entries that describe one change, keep scopes that users recognise,\
+  \ and put the BREAKING CHANGES block where nobody can miss it. See `references/release-hygiene.md`.\n\
+  \n### 5. Deliver\nFill `templates/release-notes-review.md`: version and why, the\
+  \ final section, the migration notes, what was left out, and follow-ups (commitlint,\
+  \ PR title check). With `--insert`, hand back the updated CHANGELOG.md; the original\
+  \ file is never modified.\n\n## Example result\nOn `examples/git-log.txt` (current\
+  \ 2.3.1) the builder reads 21 commits, 85% conforming, and suggests **3.0.0**: `feat(export)!`\
+  \ makes Parquet the default (with a proper BREAKING CHANGE footer) and `fix(config)!`\
+  \ drops the INI config file without any migration note (CC03, high). \"Fixed crash\
+  \ when the config file is empty\" is not a Conventional Commit and would silently\
+  \ miss the changelog (CC08, high; suggested `fix: crash when the config file is\
+  \ empty`). The token-leak fix lands under Security, the `--legacy-dates` deprecation\
+  \ under Deprecated, the colour-themes feature and its revert cancel out, the cherry-picked\
+  \ BOM fix is listed once, and the merge, fixup, WIP and 5 internal commits are listed\
+  \ as left out.\n\n## Rules\n\n- Never invent entries: every line comes from a commit,\
+  \ and every commit is either in the section or in the \"left out\" list.\n- A breaking\
+  \ change always gets a migration note and the major bump (minor while on 0.x); never\
+  \ hide it in Changed.\n- Security fixes go under Security even when the commit type\
+  \ is `fix`.\n- Do not rewrite published history to fix commit messages; fix the\
+  \ changelog text and add a lint check for the future.\n- Keep the newest release\
+  \ on top, dates as YYYY-MM-DD and one compare link per version.\n- The version is\
+  \ a suggestion: the maintainer decides, especially for behaviour changes typed as\
+  \ `fix`.\n\x1FFILE:references/commit-to-changelog-mapping.md\x1E\n# Commit -> changelog\
+  \ mapping\n\n## Header grammar (Conventional Commits 1.0.0)\n```\n<type>[(<scope>)][!]:\
+  \ <description>\n\n[body]\n\n[footers]   e.g.  BREAKING CHANGE: <what breaks and\
+  \ how to migrate>\n                  Closes #123\n                  Refs: #98\n\
+  ```\n- `type` is a noun such as feat or fix; lower case by convention.\n- Exactly\
+  \ one space after the colon. `fix:missing space` or `fix : x` is malformed (CC01,\
+  \ with a suggested fix).\n- `!` before the colon marks a breaking change. A `BREAKING\
+  \ CHANGE:` (or `BREAKING-CHANGE:`) footer also marks one, with or without `!`.\n\
+  \n## Type -> Keep a Changelog section\n\n| Commit | Section | Bump |\n|---|---|---|\n\
+  | feat | Added | minor |\n| feat with \"deprecate\" in the description | Deprecated\
+  \ | minor |\n| feat / breaking with remove, drop, delete first | Removed | minor\
+  \ / major |\n| fix | Fixed | patch |\n| fix / deps mentioning security, CVE, vulnerability,\
+  \ XSS, CSRF, injection, leak; type security | Security | patch |\n| perf, deps |\
+  \ Changed | patch |\n| any type with `!` or BREAKING CHANGE footer | its section\
+  \ + BREAKING CHANGES block | major (minor on 0.x) |\n| refactor, docs, style, test,\
+  \ build, ci, chore | not listed (Internal with --include-internal) | none |\n| revert\
+  \ of a commit in the same range | both left out | none |\n| revert of an older commit\
+  \ | Removed (reverted feat) or Fixed | patch |\n| merge commits | left out | none\
+  \ |\n| fixup!, squash!, amend!, WIP | left out + CC07 | none |\n\nAliases accepted\
+  \ with a CC02 warning: feature/features/add -> feat, bugfix/bug/hotfix/fixes/fixed\
+  \ -> fix, doc/documentation -> docs, tests -> test, performance -> perf, refactoring\
+  \ -> refactor, cleanup/release -> chore, dep -> deps. Other unknown types are left\
+  \ out.\n\n## Bump rules\n- Highest wins: major > minor > patch. No feat/fix/perf/security/breaking\
+  \ change = no release needed (CC09).\n- 1.0.0 and later: breaking -> X+1.0.0. 0.y.z:\
+  \ breaking -> 0.y+1.0 (CC10 reminds you to plan 1.0.0).\n- Pre-release and build\
+  \ suffixes on --current are ignored for the bump; add them yourself (`3.0.0-rc.1`).\n\
+  \n## Finding codes\n| Code | Severity | Meaning |\n|---|---|---|\n| CC01 | medium\
+  \ | header is not a Conventional Commit (suggested header given) |\n| CC02 | medium\
+  \ | unknown type (alias mapped or left out) |\n| CC03 | high / info | breaking without\
+  \ BREAKING CHANGE footer (high); footer-only breaking (info) |\n| CC04 | info /\
+  \ medium | revert cancelled in range (info); revert of an older release (medium)\
+  \ |\n| CC05 | low | duplicate commit (cherry-pick) listed once |\n| CC06 | low |\
+  \ style: upper-case type, trailing period, header over 72 chars |\n| CC07 | medium\
+  \ | fixup/squash/WIP commit in the release range |\n| CC08 | high | non-conforming\
+  \ commits that look like feat/fix are missing from the changelog |\n| CC09 | info\
+  \ | no user-facing changes |\n| CC10 | info | 0.x major-zero bump rule applied |\n\
+  \x1FFILE:references/release-hygiene.md\x1E\n# Release hygiene\n\n## Writing entries\
+  \ users understand\n- Describe the effect, not the implementation: \"Export writes\
+  \ Parquet by default\" beats \"switch writer backend\".\n- Start with a verb in\
+  \ the imperative or a noun phrase, capitalise the first word, no trailing period.\
+  \ Keep one change per line.\n- Keep scopes users know (cli, export, auth). Replace\
+  \ internal module names with the feature name.\n- Merge several commits that describe\
+  \ one change into one entry and keep all links.\n- Keep links: issue numbers for\
+  \ context, commit hashes for auditors, one compare link per version at the bottom.\n\
+  \n## Migration notes for breaking changes\nA good note answers three questions in\
+  \ one or two sentences:\n1. What stops working? (\"`tidyq export` without --format\
+  \ now writes .parquet\")\n2. Who is affected? (\"scripts that expect a .csv file\"\
+  )\n3. What do they do instead? (\"pass --format csv\")\nPut every note in the BREAKING\
+  \ CHANGES block at the top of the release section and link a longer upgrade guide\
+  \ if needed.\n\n## Keep a Changelog basics\n- File `CHANGELOG.md`, newest version\
+  \ first, an `## [Unreleased]` section on top for work in progress.\n- Version headings\
+  \ `## [3.0.0] - 2026-11-03` (ISO dates), sections in this order: Added, Changed,\
+  \ Deprecated, Removed, Fixed, Security. Leave out empty sections.\n- Mark yanked\
+  \ releases `## [2.2.0] - 2026-09-01 [YANKED]`.\n\n## Non-conforming history\n- Do\
+  \ not rewrite pushed history to fix messages. Add the missing entries to the changelog\
+  \ by hand (the builder lists them with a suggested header).\n- Squash fixup!/WIP\
+  \ commits before merging; with squash-merge, the PR title becomes the commit header,\
+  \ so lint PR titles.\n- Cherry-picked commits on release branches appear twice in\
+  \ some ranges; list them once.\n\n## CI checks worth adding\n- commitlint (or a\
+  \ PR-title check) with the conventional config on every pull request.\n- A release\
+  \ job that runs the builder on `last-tag..HEAD`, fails on CC03/CC08, and opens the\
+  \ changelog diff for review instead of committing it blindly.\n- Tag only after\
+  \ the changelog PR is merged, so the tag points at a commit that contains its own\
+  \ notes.\n\x1FFILE:templates/release-notes-review.md\x1E\n# Release notes review:\
+  \ <project> <current> -> <next>\n\n**Range:** <last tag>..<commit>   **Date:** <YYYY-MM-DD>\
+  \   **Commits:** <n> (<conformance %> conforming)\n\n## Version\n<next> - <major/minor/patch>\
+  \ because <breaking change / new feature / fixes only>.\n<Any reason to deviate,\
+  \ e.g. behaviour change typed as fix, 0.x rule>\n\n## Breaking changes and migration\n\
+  | Change | Who is affected | What to do |\n|---|---|---|\n| <change> | <users/scripts/integrations>\
+  \ | <migration step> |\n\n## Changelog section (final, edited)\n```markdown\n##\
+  \ [<next>] - <date>\n...\n```\n\n## Left out on purpose\n| Commit | Subject | Why\
+  \ |\n|---|---|---|\n| <hash> | <subject> | <merge / revert / duplicate / internal\
+  \ / WIP> |\n\n## Fixed before tagging\n- [ ] Migration note written for every breaking\
+  \ change (CC03)\n- [ ] Missing user-facing commits added by hand (CC08)\n- [ ] Fixup/WIP\
+  \ commits squashed (CC07)\n\n## Follow-ups\n- <commitlint / PR title check / upgrade\
+  \ guide / announce deprecations>\n\x1FFILE:examples/git-log.txt\x1E\ncommit 9f1c2a7e4b000000000000000000000000000000\n\
+  Merge: 8e0b1d6 5b7e8a3\nAuthor: Elif Demir <elif@tidyq.dev>\nDate:   Mon Nov 2 17:42:10\
+  \ 2026 +0300\n\n    Merge pull request #212 from tidyq/feat/parquet-export\n\ncommit\
+  \ 8e0b1d6c3a000000000000000000000000000000\nAuthor: Sam Okafor <sam@tidyq.dev>\n\
+  Date:   Mon Nov 2 16:05:31 2026 +0300\n\n    feat(export)!: write Parquet by default\
+  \ for `tidyq export`\n\n    Parquet is now the default output format. CSV is still\
+  \ available.\n\n    BREAKING CHANGE: `tidyq export` without --format now writes\
+  \ .parquet instead of .csv; pass --format csv to keep the old behaviour.\n    Refs:\
+  \ #198\n\ncommit 7d9a0c5b2f000000000000000000000000000000\nAuthor: Mira Chen <mira@tidyq.dev>\n\
+  Date:   Mon Nov 2 11:20:04 2026 +0300\n\n    fixup! feat(export)!: write Parquet\
+  \ by default for `tidyq export`\n\ncommit 6c8f9b4a1e000000000000000000000000000000\n\
+  Author: Elif Demir <elif@tidyq.dev>\nDate:   Sun Nov 1 20:14:55 2026 +0300\n\n \
+  \   fix(auth): prevent API token leak in debug logs (#207)\n\n    Tokens were printed\
+  \ in full when TIDYQ_DEBUG=1. They are now masked.\n\n    Closes #205\n\ncommit\
+  \ 5b7e8a3f0d000000000000000000000000000000\nAuthor: Sam Okafor <sam@tidyq.dev>\n\
+  Date:   Sun Nov 1 15:02:13 2026 +0300\n\n    feat(query): support window functions\
+  \ in `--where` (#203)\n\ncommit 4a6d7f2e9c000000000000000000000000000000\nAuthor:\
+  \ Mira Chen <mira@tidyq.dev>\nDate:   Sat Oct 31 18:47:39 2026 +0300\n\n    perf(reader):\
+  \ stream large CSV files instead of loading them into memory\n\n    Peak memory\
+  \ on a 2 GB file drops from 2.6 GB to 180 MB.\n\n    Closes #187\n\ncommit 3f5c6e1d8b000000000000000000000000000000\n\
+  Author: Elif Demir <elif@tidyq.dev>\nDate:   Sat Oct 31 12:30:00 2026 +0300\n\n\
+  \    Fixed crash when the config file is empty\n\ncommit 2e4b5d0c7a000000000000000000000000000000\n\
+  Author: Sam Okafor <sam@tidyq.dev>\nDate:   Fri Oct 30 19:11:42 2026 +0300\n\n \
+  \   feat(cli): deprecate the --legacy-dates flag\n\n    It will be removed in 3.0.\
+  \ Use --date-format instead.\n\ncommit 1d3a4c9b6f000000000000000000000000000000\n\
+  Author: Mira Chen <mira@tidyq.dev>\nDate:   Fri Oct 30 14:25:18 2026 +0300\n\n \
+  \   Revert \"feat(ui): colour themes for table output\"\n\n    This reverts commit\
+  \ 0c2f3b8a5e000000000000000000000000000000.\n\n    Themes broke output on Windows\
+  \ terminals.\n\ncommit 0c2f3b8a5e000000000000000000000000000000\nAuthor: Elif Demir\
+  \ <elif@tidyq.dev>\nDate:   Fri Oct 30 10:03:51 2026 +0300\n\n    feat(ui): colour\
+  \ themes for table output\n\ncommit fb1e2a7d4c000000000000000000000000000000\nAuthor:\
+  \ Sam Okafor <sam@tidyq.dev>\nDate:   Thu Oct 29 21:40:07 2026 +0300\n\n    feature:\
+  \ add `tidyq doctor` command to check the environment\n\ncommit ea0d196c3b000000000000000000000000000000\n\
+  Author: Mira Chen <mira@tidyq.dev>\nDate:   Thu Oct 29 16:12:30 2026 +0300\n\n \
+  \   fix(query): quote column names that contain spaces.\n\n    Closes #199\n\ncommit\
+  \ d9fc085b2a000000000000000000000000000000\nAuthor: Elif Demir <elif@tidyq.dev>\n\
+  Date:   Thu Oct 29 09:55:02 2026 +0300\n\n    fix(config)!: drop support for the\
+  \ ~/.tidyqrc INI file\n\ncommit c8eb974a19000000000000000000000000000000\nAuthor:\
+  \ Sam Okafor <sam@tidyq.dev>\nDate:   Wed Oct 28 18:20:44 2026 +0300\n\n    docs:\
+  \ add a Parquet section to the README\n\ncommit b7da863f08000000000000000000000000000000\n\
+  Author: Mira Chen <mira@tidyq.dev>\nDate:   Wed Oct 28 13:08:19 2026 +0300\n\n \
+  \   chore(deps): bump pyarrow from 16.1.0 to 17.0.0\n\ncommit a6c9752e97000000000000000000000000000000\n\
+  Author: Elif Demir <elif@tidyq.dev>\nDate:   Tue Oct 27 17:31:26 2026 +0300\n\n\
+  \    ci: cache pip downloads in the test workflow\n\ncommit 95b8641d86000000000000000000000000000000\n\
+  Author: Sam Okafor <sam@tidyq.dev>\nDate:   Tue Oct 27 11:47:53 2026 +0300\n\n \
+  \   test(reader): cover BOM and CRLF inputs\n\ncommit 84a7530c75000000000000000000000000000000\n\
+  Author: Mira Chen <mira@tidyq.dev>\nDate:   Mon Oct 26 15:16:08 2026 +0300\n\n \
+  \   fix(reader): handle UTF-8 BOM at the start of a file (#195)\n\ncommit 7396420b64000000000000000000000000000000\n\
+  Author: Elif Demir <elif@tidyq.dev>\nDate:   Mon Oct 26 15:16:08 2026 +0300\n\n\
+  \    fix(reader): handle UTF-8 BOM at the start of a file (#195)\n\ncommit 62853f9a53000000000000000000000000000000\n\
+  Author: Sam Okafor <sam@tidyq.dev>\nDate:   Mon Oct 26 10:02:40 2026 +0300\n\n \
+  \   WIP tweak table widths\n\ncommit 5174e8f942000000000000000000000000000000\n\
+  Author: Mira Chen <mira@tidyq.dev>\nDate:   Sun Oct 25 19:44:12 2026 +0300\n\n \
+  \   refactor(query): split the parser into tokenizer and planner\n\x1FFILE:examples/CHANGELOG.md\x1E\
+  \n# Changelog\n\nAll notable changes to tidyq are documented in this file.\n\nThe\
+  \ format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),\n\
+  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\n\
+  \n## [Unreleased]\n\n## [2.3.1] - 2026-10-21\n\n### Fixed\n\n- **reader:** Detect\
+  \ semicolon-separated files exported by Excel (#181)\n\n## [2.3.0] - 2026-10-02\n\
+  \n### Added\n\n- **query:** `--limit` and `--offset` options (#170)\n\n### Fixed\n\
+  \n- **cli:** Exit with code 2 on unknown options instead of 1 (#174)\n\n[2.3.1]:\
+  \ https://github.com/tidyq/tidyq/compare/v2.3.0...v2.3.1\n[2.3.0]: https://github.com/tidyq/tidyq/compare/v2.2.0...v2.3.0\n\
+  \x1FFILE:examples/changelog-report.md\x1E\n# Changelog build: examples/git-log.txt\n\
+  \n21 commits read: 17 Conventional (85.0% of non-merge commits), 1 non-conforming,\
+  \ 1 merges, 2 fixup/WIP.\n\n**Version: 2.3.1 -> 3.0.0 (major bump, driven by breaking\
+  \ changes)**\n\n**Verdict: 2 high finding(s) - fix before tagging**\n\n## Release\
+  \ section (paste under the Unreleased heading of CHANGELOG.md)\n\n```markdown\n\
+  ## [3.0.0] - 2026-11-03\n\n### BREAKING CHANGES\n\n- **export:** Write Parquet by\
+  \ default for `tidyq export` - `tidyq export` without --format now writes .parquet\
+  \ instead of .csv; pass --format csv to keep the old behaviour.\n- **config:** Drop\
+  \ support for the ~/.tidyqrc INI file - MIGRATION NOTE MISSING\n\n### Added\n\n\
+  - **BREAKING** **export:** Write Parquet by default for `tidyq export` ([#198](https://github.com/tidyq/tidyq/issues/198),\
+  \ [8e0b1d6](https://github.com/tidyq/tidyq/commit/8e0b1d6))\n- **query:** Support\
+  \ window functions in `--where` ([#203](https://github.com/tidyq/tidyq/issues/203),\
+  \ [5b7e8a3](https://github.com/tidyq/tidyq/commit/5b7e8a3))\n- Add `tidyq doctor`\
+  \ command to check the environment ([fb1e2a7](https://github.com/tidyq/tidyq/commit/fb1e2a7))\n\
+  \n### Changed\n\n- **reader:** Stream large CSV files instead of loading them into\
+  \ memory ([#187](https://github.com/tidyq/tidyq/issues/187), [4a6d7f2](https://github.com/tidyq/tidyq/commit/4a6d7f2))\n\
+  \n### Deprecated\n\n- **cli:** Deprecate the --legacy-dates flag ([2e4b5d0](https://github.com/tidyq/tidyq/commit/2e4b5d0))\n\
+  \n### Removed\n\n- **BREAKING** **config:** Drop support for the ~/.tidyqrc INI\
+  \ file ([d9fc085](https://github.com/tidyq/tidyq/commit/d9fc085))\n\n### Fixed\n\
+  \n- **query:** Quote column names that contain spaces ([#199](https://github.com/tidyq/tidyq/issues/199),\
+  \ [ea0d196](https://github.com/tidyq/tidyq/commit/ea0d196))\n- **reader:** Handle\
+  \ UTF-8 BOM at the start of a file ([#195](https://github.com/tidyq/tidyq/issues/195),\
+  \ [84a7530](https://github.com/tidyq/tidyq/commit/84a7530))\n\n### Security\n\n\
+  - **auth:** Prevent API token leak in debug logs ([#205](https://github.com/tidyq/tidyq/issues/205),\
+  \ [#207](https://github.com/tidyq/tidyq/issues/207), [6c8f9b4](https://github.com/tidyq/tidyq/commit/6c8f9b4))\n\
+  \n[3.0.0]: https://github.com/tidyq/tidyq/compare/v2.3.1...v3.0.0\n```\n\n## Findings\n\
+  \n- **HIGH CC03** d9fc085 'fix(config)!: drop support for the ~/.tidyqrc INI file'\
+  \ is breaking (!) but has no 'BREAKING CHANGE:' footer - add a migration note\n\
+  - **HIGH CC08** 1 non-conforming commit(s) look user-facing (3f5c6e1) and are NOT\
+  \ in the changelog - reword them or add the entries by hand\n- **MEDIUM CC01** 3f5c6e1\
+  \ Fixed crash when the config file is empty: not a Conventional Commit - suggest:\
+  \ fix: crash when the config file is empty\n- **MEDIUM CC02** fb1e2a7 feature: add\
+  \ `tidyq doctor` command to check the environment: unknown type 'feature' - treated\
+  \ as 'feat'\n- **MEDIUM CC07** 7d9a0c5 'fixup! feat(export)!: write Parquet by default\
+  \ for `tidyq export`' is a fixup/WIP commit on the release branch - squash it before\
+  \ tagging\n- **MEDIUM CC07** 62853f9 'WIP tweak table widths' is a fixup/WIP commit\
+  \ on the release branch - squash it before tagging\n- **LOW CC05** 7396420 duplicates\
+  \ 84a7530 ('fix(reader): handle UTF-8 BOM at the start of a file (#195)', cherry-pick\
+  \ or re-applied?) - listed once\n- **LOW CC06** ea0d196 fix(query): quote column\
+  \ names that contain spaces.: description ends with a period\n- **INFO CC04** 1d3a4c9\
+  \ reverts 0c2f3b8 'feat(ui): colour themes for table output' in the same range -\
+  \ both left out\n\n## Not in the changelog\n\n| Commit | Subject | Why |\n|---|---|---|\n\
+  | 9f1c2a7 | Merge pull request #212 from tidyq/feat/parquet-export | merge commit\
+  \ |\n| 7d9a0c5 | fixup! feat(export)!: write Parquet by default for `tidyq export`\
+  \ | fixup/wip commit |\n| 3f5c6e1 | Fixed crash when the config file is empty |\
+  \ not a Conventional Commit |\n| 1d3a4c9 | Revert \"feat(ui): colour themes for\
+  \ table output\" | revert (cancelled) |\n| 0c2f3b8 | feat(ui): colour themes for\
+  \ table output | reverted |\n| 7396420 | fix(reader): handle UTF-8 BOM at the start\
+  \ of a file (#195) | duplicate |\n| 62853f9 | WIP tweak table widths | fixup/wip\
+  \ commit |\n| - | 5 internal commit(s): chore, ci, docs, refactor, test | internal\
+  \ type (use --include-internal to list) |\n\n\x1FFILE:scripts/changelog_build.py\x1E\
+  \n#!/usr/bin/env python3\n\"\"\"Conventional Commits -> Keep a Changelog release\
+  \ section builder (stdlib only, Python 3.8+).\n\nReads a commit list (git log default\
+  \ output, git log --oneline, or a records file made with\ngit log --format='%H%x1f%s%x1f%b%x1e'),\
+  \ parses Conventional Commits headers, groups the changes\ninto Keep a Changelog\
+  \ sections, flags breaking changes and non-conforming commits, handles\nreverts,\
+  \ merges and fixup commits, and suggests the next SemVer version.\n\nUsage:\n  changelog_build.py\
+  \ COMMITS.txt [--current 1.4.2] [--date 2026-11-03] [--repo-url URL]\n         \
+  \            [--tag-prefix v] [--include-internal] [--insert CHANGELOG.md] [--json]\n\
+  \  changelog_build.py --self-test\nExit: 0 = ok, 1 = high findings (breaking change\
+  \ without migration note, commits that would be\nlost from the changelog), 2 = bad\
+  \ input.\n\"\"\"\nimport argparse, datetime, json, re, sys\n\nHEADER = re.compile(r\"\
+  ^(?P<type>[A-Za-z][A-Za-z0-9_-]*)(?:\\((?P<scope>[^()\\s][^()]*)\\))?(?P<bang>!)?:\
+  \ (?P<desc>\\S.*)$\")\nLOOSE = re.compile(r\"^(?P<type>[A-Za-z][A-Za-z0-9_-]*)\\\
+  s*(?:\\((?P<scope>[^()]*)\\))?\\s*(?P<bang>!)?\\s*:\\s*(?P<desc>.*)$\")\nFOOTER\
+  \ = re.compile(r\"^(?P<token>BREAKING[ -]CHANGE|[A-Za-z][A-Za-z-]*)(?:: | #)(?P<value>.+)$\"\
+  )\nISSUE = re.compile(r\"(?:(?<=\\s)|^|\\()#(\\d+)\\b\")\nREVERTS = re.compile(r\"\
+  This reverts commit ([0-9a-f]{7,40})\", re.I)\nKNOWN = {\"feat\", \"fix\", \"perf\"\
+  , \"refactor\", \"docs\", \"style\", \"test\", \"build\", \"ci\", \"chore\", \"\
+  revert\", \"security\", \"deps\"}\nALIASES = {\"feature\": \"feat\", \"features\"\
+  : \"feat\", \"add\": \"feat\", \"bugfix\": \"fix\", \"bug\": \"fix\", \"hotfix\"\
+  : \"fix\",\n           \"fixes\": \"fix\", \"fixed\": \"fix\", \"doc\": \"docs\"\
+  , \"documentation\": \"docs\", \"tests\": \"test\",\n           \"performance\"\
+  : \"perf\", \"refactoring\": \"refactor\", \"cleanup\": \"chore\", \"release\":\
+  \ \"chore\", \"dep\": \"deps\"}\nINTERNAL = {\"refactor\", \"docs\", \"style\",\
+  \ \"test\", \"build\", \"ci\", \"chore\"}\nSECTIONS = [\"Added\", \"Changed\", \"\
+  Deprecated\", \"Removed\", \"Fixed\", \"Security\"]\nSEV_ORDER = {\"high\": 0, \"\
+  medium\": 1, \"low\": 2, \"info\": 3}\n\n\nclass InputError(Exception):\n    pass\n\
+  \n\n# ---------------------------------------------------------------- parsing input\n\
+  def parse_commits(text):\n    \"\"\"Return list of dicts: hash, subject, body (oldest\
+  \ last, i.e. git log order).\"\"\"\n    text = text.replace(\"\\r\\n\", \"\\n\"\
+  )\n    if \"\\x1e\" in text:\n        out = []\n        for rec in text.split(\"\
+  \\x1e\"):\n            rec = rec.strip(\"\\n\")\n            if not rec.strip():\n\
+  \                continue\n            parts = rec.split(\"\\x1f\")\n          \
+  \  if len(parts) < 2:\n                raise InputError(\"record without \\\\x1f\
+  \ separators: %r\" % rec[:60])\n            out.append({\"hash\": parts[0].strip(),\
+  \ \"subject\": parts[1].strip(),\n                        \"body\": (parts[2] if\
+  \ len(parts) > 2 else \"\").strip(\"\\n\")})\n        return out\n    lines = text.split(\"\
+  \\n\")\n    if any(re.match(r\"^commit [0-9a-f]{7,40}\\b\", l) for l in lines):\n\
+  \        out, cur, msg = [], None, []\n        def flush():\n            if cur\
+  \ is not None:\n                m = [l[4:] if l.startswith(\"    \") else l.strip()\
+  \ for l in msg]\n                while m and not m[0].strip():\n               \
+  \     m.pop(0)\n                while m and not m[-1].strip():\n               \
+  \     m.pop()\n                cur[\"subject\"] = m[0].strip() if m else \"\"\n\
+  \                cur[\"body\"] = \"\\n\".join(m[1:]).strip(\"\\n\")\n          \
+  \      out.append(cur)\n        for l in lines:\n            mm = re.match(r\"^commit\
+  \ ([0-9a-f]{7,40})\\b\", l)\n            if mm:\n                flush()\n     \
+  \           cur, msg = {\"hash\": mm.group(1), \"merge\": False}, []\n         \
+  \   elif cur is not None and not msg and re.match(r\"^(Merge|Author|AuthorDate|Commit|CommitDate|Date):\"\
+  , l):\n                if l.startswith(\"Merge:\"):\n                    cur[\"\
+  merge\"] = True\n                if l.startswith(\"Author:\"):\n               \
+  \     cur[\"author\"] = l[7:].strip()\n                if l.startswith(\"Date:\"\
+  ):\n                    cur[\"date\"] = l[5:].strip()\n            elif cur is not\
+  \ None:\n                msg.append(l)\n        flush()\n        return out\n  \
+  \  out = []\n    for l in lines:\n        if not l.strip() or l.lstrip().startswith(\"\
+  #\"):\n            continue\n        mm = re.match(r\"^\\s*(?:\\*\\s*)?([0-9a-f]{7,40})\\\
+  s+(.*)$\", l)\n        if mm:\n            out.append({\"hash\": mm.group(1), \"\
+  subject\": mm.group(2).strip(), \"body\": \"\"})\n        else:\n            out.append({\"\
+  hash\": \"\", \"subject\": l.strip(), \"body\": \"\"})\n    return out\n\n\ndef\
+  \ parse_footers(body):\n    \"\"\"Footers = trailing paragraph lines 'Token: value'\
+  \ / 'Token #value' / 'BREAKING CHANGE: ...'.\"\"\"\n    feet, breaking = [], None\n\
+  \    paras = re.split(r\"\\n\\s*\\n\", body.strip()) if body.strip() else []\n \
+  \   if paras:\n        last = paras[-1].split(\"\\n\")\n        if FOOTER.match(last[0]):\n\
+  \            cur = None\n            for l in last:\n                m = FOOTER.match(l)\n\
+  \                if m:\n                    cur = [m.group(\"token\"), m.group(\"\
+  value\").strip()]\n                    feet.append(cur)\n                elif cur:\n\
+  \                    cur[1] += \" \" + l.strip()\n    for tok, val in feet:\n  \
+  \      if tok in (\"BREAKING CHANGE\", \"BREAKING-CHANGE\"):\n            breaking\
+  \ = val\n    if breaking is None:  # BREAKING CHANGE paragraph anywhere in the body\n\
+  \        m = re.search(r\"^BREAKING[ -]CHANGE: (.+?)(?:\\n\\s*\\n|\\Z)\", body,\
+  \ re.M | re.S)\n        if m:\n            breaking = \" \".join(m.group(1).split())\n\
+  \    return feet, breaking\n\n\ndef classify(c):\n    \"\"\"Annotate one commit\
+  \ dict in place.\"\"\"\n    s = c[\"subject\"]\n    c[\"issues\"] = sorted(set(ISSUE.findall(s\
+  \ + \"\\n\" + c.get(\"body\", \"\"))), key=int)\n    c[\"problems\"] = []\n    if\
+  \ c.get(\"merge\") or re.match(r\"^Merge (pull request|branch|remote-tracking branch|tag)\
+  \ \", s):\n        c[\"kind\"] = \"merge\"; return c\n    m = re.match(r'^Revert\
+  \ \"(.+)\"$', s)\n    if m:\n        c[\"kind\"] = \"revert\"; c[\"reverted_subject\"\
+  ] = m.group(1)\n        r = REVERTS.search(c.get(\"body\", \"\")); c[\"reverted_hash\"\
+  ] = r.group(1) if r else None\n        return c\n    if re.match(r\"^(fixup|squash|amend)!\
+  \ \", s) or re.match(r\"^(wip|WIP)\\b\", s):\n        c[\"kind\"] = \"fixup\"; return\
+  \ c\n    m = HEADER.match(s)\n    feet, breaking = parse_footers(c.get(\"body\"\
+  , \"\"))\n    c[\"footers\"] = feet\n    if m:\n        t = m.group(\"type\")\n\
+  \        c.update(type=t.lower(), scope=m.group(\"scope\"), bang=bool(m.group(\"\
+  bang\")), desc=m.group(\"desc\").strip(),\n                 breaking_note=breaking,\
+  \ kind=\"cc\")\n        if t != t.lower():\n            c[\"problems\"].append((\"\
+  low\", \"CC06\", \"type '%s' should be lower case\" % t))\n        if c[\"type\"\
+  ] not in KNOWN:\n            alias = ALIASES.get(c[\"type\"])\n            c[\"\
+  problems\"].append((\"medium\", \"CC02\", \"unknown type '%s'%s\" % (t, (\" - treated\
+  \ as '%s'\" % alias) if alias else \" - left out of the changelog\")))\n       \
+  \     if alias:\n                c[\"type\"] = alias\n            else:\n      \
+  \          c[\"kind\"] = \"unknown\"\n        if c[\"type\"] == \"revert\":\n  \
+  \          c[\"kind\"] = \"revert\"; c[\"reverted_subject\"] = c[\"desc\"]\n   \
+  \         r = REVERTS.search(c.get(\"body\", \"\")); c[\"reverted_hash\"] = r.group(1)\
+  \ if r else None\n            return c\n        d = c[\"desc\"]\n        if d.endswith(\"\
+  .\"):\n            c[\"problems\"].append((\"low\", \"CC06\", \"description ends\
+  \ with a period\"))\n        if len(s) > 72:\n            c[\"problems\"].append((\"\
+  low\", \"CC06\", \"header is %d chars (keep <= 72)\" % len(s)))\n        c[\"breaking\"\
+  ] = c[\"bang\"] or breaking is not None\n        return c\n    lm = LOOSE.match(s)\n\
+  \    c[\"kind\"] = \"nonconforming\"\n    if lm and lm.group(\"desc\"):\n      \
+  \  t = lm.group(\"type\").lower(); t = ALIASES.get(t, t)\n        fixed = \"%s%s%s:\
+  \ %s\" % (t, \"(%s)\" % lm.group(\"scope\").strip() if lm.group(\"scope\") else\
+  \ \"\", \"!\" if lm.group(\"bang\") else \"\", lm.group(\"desc\").strip())\n   \
+  \     c[\"suggest\"] = fixed\n        c[\"problems\"].append((\"medium\", \"CC01\"\
+  , \"malformed header (spacing/colon) - suggest: %s\" % fixed))\n    else:\n    \
+  \    c[\"suggest\"] = guess_header(s)\n        c[\"problems\"].append((\"medium\"\
+  , \"CC01\", \"not a Conventional Commit - suggest: %s\" % c[\"suggest\"]))\n   \
+  \ return c\n\n\ndef guess_header(s):\n    low = s.lower()\n    if re.match(r\"^(fix|fixed|fixes|resolve|resolved|correct)\"\
+  , low) or \"bug\" in low or \"typo\" in low:\n        t = \"docs\" if re.search(r\"\
+  readme|docs?\\b|typo\", low) else \"fix\"\n    elif re.match(r\"^(add|added|implement|introduce|support|new)\"\
+  , low):\n        t = \"feat\"\n    elif re.match(r\"^(update|bump|upgrade)\", low)\
+  \ and re.search(r\"dep|version|package|lock\", low):\n        t = \"chore(deps)\"\
+  \n    elif re.match(r\"^(remove|delete|drop)\", low):\n        t = \"refactor\"\n\
+  \    elif re.search(r\"test\", low):\n        t = \"test\"\n    else:\n        t\
+  \ = \"chore\"\n    if t == \"fix\":\n        s = re.sub(r\"^(fixed|fixes|fix)\\\
+  s+\", \"\", s, flags=re.I)\n    d = re.sub(r\"^(fixed|fixes|added|adds|updated|updates|removed|removes)\\\
+  b\", lambda m: {\"fixed\": \"fix\", \"fixes\": \"fix\", \"added\": \"add\", \"adds\"\
+  : \"add\", \"updated\": \"update\", \"updates\": \"update\", \"removed\": \"remove\"\
+  , \"removes\": \"remove\"}[m.group(1).lower()], s, flags=re.I)\n    d = d[0].lower()\
+  \ + d[1:] if d else d\n    return \"%s: %s\" % (t, d.rstrip(\".\"))\n\n\ndef section_for(c):\n\
+  \    d = c[\"desc\"].lower()\n    if c[\"type\"] == \"security\" or (c[\"type\"\
+  ] in (\"fix\", \"deps\") and re.search(r\"\\b(cve-\\d|security|vulnerab|xss|csrf|injection|leak)\"\
+  , d)):\n        return \"Security\"\n    if re.search(r\"\\bdeprecat\", d):\n  \
+  \      return \"Deprecated\"\n    if re.match(r\"(remove|drop|delete)\\b\", d) and\
+  \ (c[\"type\"] == \"feat\" or c.get(\"breaking\")):\n        return \"Removed\"\n\
+  \    if c[\"type\"] == \"feat\":\n        return \"Added\"\n    if c[\"type\"] ==\
+  \ \"fix\":\n        return \"Fixed\"\n    if c[\"type\"] in (\"perf\", \"deps\"\
+  ):\n        return \"Changed\"\n    if c.get(\"breaking\"):\n        return \"Changed\"\
+  \n    return None\n\n\n# ----------------------------------------------------------------\
+  \ analysis\ndef bump_version(current, level):\n    m = re.match(r\"^v?(\\d+)\\.(\\\
+  d+)\\.(\\d+)(?:[-+].*)?$\", current or \"\")\n    if not m:\n        return None\n\
+  \    a, b, c = map(int, m.groups())\n    if level == \"major\":\n        return\
+  \ \"%d.0.0\" % (a + 1) if a > 0 else \"0.%d.0\" % (b + 1)\n    if level == \"minor\"\
+  :\n        return \"%d.%d.0\" % (a, b + 1)\n    if level == \"patch\":\n       \
+  \ return \"%d.%d.%d\" % (a, b, c + 1)\n    return None\n\n\ndef analyze(commits,\
+  \ current=None, include_internal=False):\n    for c in commits:\n        classify(c)\n\
+  \    findings = []\n    # reverts: cancel out when the reverted commit is in range\n\
+  \    by_hash = {c[\"hash\"][:7]: c for c in commits if c.get(\"hash\")}\n    by_subject\
+  \ = {}\n    for c in commits:\n        by_subject.setdefault(c[\"subject\"], []).append(c)\n\
+  \    for c in commits:\n        if c.get(\"kind\") != \"revert\":\n            continue\n\
+  \        tgt = None\n        if c.get(\"reverted_hash\"):\n            tgt = by_hash.get(c[\"\
+  reverted_hash\"][:7])\n        if tgt is None and c.get(\"reverted_subject\") in\
+  \ by_subject:\n            tgt = by_subject[c[\"reverted_subject\"]][-1]\n     \
+  \   if tgt is not None and tgt is not c:\n            tgt[\"reverted_by\"] = c[\"\
+  hash\"][:7] or c[\"subject\"]\n            c[\"cancels\"] = True\n            findings.append((\"\
+  info\", \"CC04\", \"%s reverts %s '%s' in the same range - both left out\" % (c[\"\
+  hash\"][:7] or \"?\", tgt[\"hash\"][:7] or \"?\", tgt[\"subject\"])))\n        else:\n\
+  \            c[\"cancels\"] = False\n            findings.append((\"medium\", \"\
+  CC04\", \"%s reverts '%s' from an earlier release - listed under Removed/Fixed;\
+  \ check the wording\" % (c[\"hash\"][:7] or \"?\", c.get(\"reverted_subject\"))))\n\
+  \    seen = {}\n    for c in commits:\n        if c.get(\"kind\") == \"cc\":\n \
+  \           key = (c[\"type\"], (c.get(\"scope\") or \"\").lower(), c[\"desc\"].lower().rstrip(\"\
+  .\"))\n            if key in seen:\n                c[\"duplicate_of\"] = seen[key]\n\
+  \                findings.append((\"low\", \"CC05\", \"%s duplicates %s ('%s', cherry-pick\
+  \ or re-applied?) - listed once\" % (c[\"hash\"][:7] or \"?\", seen[key] or \"?\"\
+  , c[\"subject\"])))\n            else:\n                seen[key] = c[\"hash\"][:7]\n\
+  \    sections = {s: [] for s in SECTIONS}\n    internal, breaking, skipped = [],\
+  \ [], []\n    level = None\n    rank = {\"patch\": 1, \"minor\": 2, \"major\": 3}\n\
+  \    def up(l):\n        nonlocal level\n        if level is None or rank[l] > rank[level]:\n\
+  \            level = l\n    for c in commits:\n        k = c.get(\"kind\")\n   \
+  \     for sev, code, msg in c[\"problems\"]:\n            findings.append((sev,\
+  \ code, \"%s %s: %s\" % (c[\"hash\"][:7] or \"-\", c[\"subject\"], msg)))\n    \
+  \    if k == \"merge\":\n            skipped.append((c, \"merge commit\")); continue\n\
+  \        if k == \"fixup\":\n            skipped.append((c, \"fixup/wip commit\"\
+  ))\n            findings.append((\"medium\", \"CC07\", \"%s '%s' is a fixup/WIP\
+  \ commit on the release branch - squash it before tagging\" % (c[\"hash\"][:7] or\
+  \ \"-\", c[\"subject\"])))\n            continue\n        if c.get(\"reverted_by\"\
+  ) or (k == \"revert\" and c.get(\"cancels\")):\n            skipped.append((c, \"\
+  reverted\" if c.get(\"reverted_by\") else \"revert (cancelled)\")); continue\n \
+  \       if c.get(\"duplicate_of\"):\n            skipped.append((c, \"duplicate\"\
+  )); continue\n        if k == \"revert\":\n            entry = {\"text\": \"Revert:\
+  \ \" + (c.get(\"reverted_subject\") or c[\"subject\"]), \"hash\": c[\"hash\"][:7],\
+  \ \"issues\": c[\"issues\"], \"scope\": None}\n            sections[\"Removed\"\
+  \ if (c.get(\"reverted_subject\") or \"\").startswith(\"feat\") else \"Fixed\"].append(entry)\n\
+  \            up(\"patch\"); continue\n        if k in (\"nonconforming\", \"unknown\"\
+  ):\n            skipped.append((c, \"not a Conventional Commit\")); continue\n \
+  \       sec = section_for(c)\n        entry = {\"text\": c[\"desc\"], \"hash\":\
+  \ c[\"hash\"][:7], \"issues\": c[\"issues\"], \"scope\": c.get(\"scope\"),\n   \
+  \              \"breaking\": c.get(\"breaking\", False), \"type\": c[\"type\"]}\n\
+  \        if c.get(\"breaking\"):\n            up(\"major\")\n            breaking.append({\"\
+  hash\": c[\"hash\"][:7], \"scope\": c.get(\"scope\"), \"desc\": c[\"desc\"], \"\
+  note\": c.get(\"breaking_note\")})\n            if not c.get(\"breaking_note\"):\n\
+  \                findings.append((\"high\", \"CC03\", \"%s '%s' is breaking (!)\
+  \ but has no 'BREAKING CHANGE:' footer - add a migration note\" % (c[\"hash\"][:7]\
+  \ or \"-\", c[\"subject\"])))\n            elif not c[\"bang\"]:\n             \
+  \   findings.append((\"info\", \"CC03\", \"%s '%s' is breaking via footer only -\
+  \ consider '!' in the header so it shows in one-line logs\" % (c[\"hash\"][:7] or\
+  \ \"-\", c[\"subject\"])))\n        if sec:\n            sections[sec].append(entry)\n\
+  \            if c[\"type\"] == \"feat\":\n                up(\"minor\")\n      \
+  \      elif c[\"type\"] in (\"fix\", \"perf\", \"security\", \"deps\"):\n      \
+  \          up(\"patch\")\n        else:\n            internal.append(entry)\n  \
+  \          if include_internal:\n                up(\"patch\")\n    lost = [c for\
+  \ c, why in skipped if why == \"not a Conventional Commit\"]\n    lost_userfacing\
+  \ = [c for c in lost if re.match(r\"^(feat|fix|perf|security)\", c.get(\"suggest\"\
+  ) or \"\")]\n    if lost_userfacing:\n        findings.append((\"high\", \"CC08\"\
+  , \"%d non-conforming commit(s) look user-facing (%s) and are NOT in the changelog\
+  \ - reword them or add the entries by hand\" % (len(lost_userfacing), \", \".join(c[\"\
+  hash\"][:7] or c[\"subject\"][:20] for c in lost_userfacing))))\n    if not any(sections.values())\
+  \ and not breaking:\n        findings.append((\"info\", \"CC09\", \"no user-facing\
+  \ changes (only internal commits) - a release is optional\"))\n    nxt = bump_version(current,\
+  \ level) if current else None\n    if current and level == \"major\" and re.match(r\"\
+  ^v?0\\.\", current):\n        findings.append((\"info\", \"CC10\", \"version is\
+  \ 0.x: breaking changes bump the minor (%s); go to 1.0.0 once the API is stable\"\
+  \ % nxt))\n    if current and not re.match(r\"^v?\\d+\\.\\d+\\.\\d+\", current):\n\
+  \        raise InputError(\"--current must look like 1.4.2, got %r\" % current)\n\
+  \    findings.sort(key=lambda f: (SEV_ORDER[f[0]], f[1]))\n    stats = {\"commits\"\
+  : len(commits),\n             \"conventional\": sum(1 for c in commits if c.get(\"\
+  kind\") in (\"cc\", \"revert\")),\n             \"nonconforming\": sum(1 for c in\
+  \ commits if c.get(\"kind\") in (\"nonconforming\", \"unknown\")),\n           \
+  \  \"merges\": sum(1 for c in commits if c.get(\"kind\") == \"merge\"),\n      \
+  \       \"fixups\": sum(1 for c in commits if c.get(\"kind\") == \"fixup\")}\n \
+  \   checkable = len(commits) - stats[\"merges\"]\n    stats[\"conformance_pct\"\
+  ] = round(100.0 * stats[\"conventional\"] / checkable, 1) if checkable else 100.0\n\
+  \    return {\"sections\": sections, \"internal\": internal, \"breaking\": breaking,\
+  \ \"skipped\": skipped,\n            \"level\": level, \"current\": current, \"\
+  next\": nxt, \"findings\": findings, \"stats\": stats, \"commits\": commits}\n\n\
+  \n# ---------------------------------------------------------------- rendering\n\
+  def clean_text(t):\n    \"\"\"Drop a trailing '(#123)' (it is linked separately)\
+  \ and a trailing period.\"\"\"\n    t = re.sub(r\"\\s*\\((?:#\\d+(?:,\\s*)?)+\\\
+  )\\s*$\", \"\", t).rstrip()\n    return t[:-1] if t.endswith(\".\") and not t.endswith(\"\
+  ..\") else t\n\n\ndef fmt_entry(e, repo_url=None):\n    t = clean_text(e[\"text\"\
+  ])\n    t = t[0].upper() + t[1:] if t else t\n    s = (\"**%s:** \" % e[\"scope\"\
+  ] if e.get(\"scope\") else \"\") + t\n    if e.get(\"breaking\"):\n        s = \"\
+  **BREAKING** \" + s\n    refs = []\n    for i in e.get(\"issues\") or []:\n    \
+  \    refs.append(\"[#%s](%s/issues/%s)\" % (i, repo_url, i) if repo_url else \"\
+  #%s\" % i)\n    if e.get(\"hash\"):\n        refs.append(\"[%s](%s/commit/%s)\"\
+  \ % (e[\"hash\"], repo_url, e[\"hash\"]) if repo_url else e[\"hash\"])\n    return\
+  \ \"- \" + s + (\" (\" + \", \".join(refs) + \")\" if refs else \"\")\n\n\ndef release_section(r,\
+  \ date=None, repo_url=None, tag_prefix=\"v\", include_internal=False):\n    ver\
+  \ = r[\"next\"] or \"Unreleased\"\n    head = \"## [%s] - %s\" % (ver, date or datetime.date.today().isoformat())\
+  \ if r[\"next\"] else \"## [Unreleased]\"\n    out = [head, \"\"]\n    if r[\"breaking\"\
+  ]:\n        out += [\"### BREAKING CHANGES\", \"\"]\n        for b in r[\"breaking\"\
+  ]:\n            d = clean_text(b[\"desc\"])\n            line = \"- \" + (\"**%s:**\
+  \ \" % b[\"scope\"] if b[\"scope\"] else \"\") + d[0].upper() + d[1:]\n        \
+  \    line += \" - \" + b[\"note\"] if b[\"note\"] else \" - MIGRATION NOTE MISSING\"\
+  \n            out.append(line)\n        out.append(\"\")\n    for s in SECTIONS:\n\
+  \        items = sorted(r[\"sections\"][s], key=lambda e: (not e.get(\"breaking\"\
+  ), (e.get(\"scope\") or \"~\").lower()))\n        if items:\n            out +=\
+  \ [\"### \" + s, \"\"] + [fmt_entry(e, repo_url) for e in items] + [\"\"]\n    if\
+  \ include_internal and r[\"internal\"]:\n        out += [\"### Internal\", \"\"\
+  ] + [fmt_entry(e, repo_url) for e in r[\"internal\"]] + [\"\"]\n    if r[\"next\"\
+  ] and repo_url and r[\"current\"]:\n        out.append(\"[%s]: %s/compare/%s%s...%s%s\"\
+  \ % (ver, repo_url, tag_prefix, r[\"current\"].lstrip(\"v\"), tag_prefix, ver))\n\
+  \        out.append(\"\")\n    return \"\\n\".join(out).rstrip() + \"\\n\"\n\n\n\
+  def insert_into(changelog_text, section, version):\n    if version and re.search(r\"\
+  ^## \\[%s\\]\" % re.escape(version), changelog_text, re.M):\n        raise InputError(\"\
+  CHANGELOG already has a section for %s\" % version)\n    lines = changelog_text.split(\"\
+  \\n\")\n    for i, l in enumerate(lines):\n        if re.match(r\"^## \\[Unreleased\\\
+  ]\", l, re.I):\n            j = i + 1\n            while j < len(lines) and not\
+  \ lines[j].startswith(\"## \"):\n                j += 1\n            leftover =\
+  \ [x for x in lines[i + 1:j] if x.strip()]\n            new = lines[:i + 1] + [\"\
+  \"] + section.rstrip(\"\\n\").split(\"\\n\") + [\"\"] + lines[j:]\n            return\
+  \ \"\\n\".join(new), leftover\n    for i, l in enumerate(lines):\n        if l.startswith(\"\
+  ## \"):\n            return \"\\n\".join(lines[:i] + section.rstrip(\"\\n\").split(\"\
+  \\n\") + [\"\"] + lines[i:]), []\n    return changelog_text.rstrip(\"\\n\") + \"\
+  \\n\\n\" + section, []\n\n\ndef report(r, args):\n    st = r[\"stats\"]\n    high\
+  \ = [f for f in r[\"findings\"] if f[0] == \"high\"]\n    out = [\"# Changelog build:\
+  \ %s\" % args.commits, \"\"]\n    out.append(\"%d commits read: %d Conventional\
+  \ (%.1f%% of non-merge commits), %d non-conforming, %d merges, %d fixup/WIP.\" %\
+  \ (\n        st[\"commits\"], st[\"conventional\"], st[\"conformance_pct\"], st[\"\
+  nonconforming\"], st[\"merges\"], st[\"fixups\"]))\n    out.append(\"\")\n    if\
+  \ r[\"current\"]:\n        out.append(\"**Version: %s -> %s (%s bump%s)**\" % (r[\"\
+  current\"], r[\"next\"] or r[\"current\"], r[\"level\"] or \"no\",\n           \
+  \        \", driven by \" + {\"major\": \"breaking changes\", \"minor\": \"new features\"\
+  , \"patch\": \"fixes/perf\"}[r[\"level\"]] if r[\"level\"] else \"\"))\n    else:\n\
+  \        out.append(\"**Suggested bump: %s** (pass --current X.Y.Z for the version\
+  \ number)\" % (r[\"level\"] or \"none\"))\n    out.append(\"\")\n    out.append(\"\
+  **Verdict: %s**\" % (\"%d high finding(s) - fix before tagging\" % len(high) if\
+  \ high else \"ready to tag\"))\n    out += [\"\", \"## Release section (paste under\
+  \ the Unreleased heading of CHANGELOG.md)\", \"\", \"```markdown\",\n          \
+  \  release_section(r, args.date, args.repo_url, args.tag_prefix, args.include_internal).rstrip(),\
+  \ \"```\", \"\"]\n    out += [\"## Findings\", \"\"]\n    if r[\"findings\"]:\n\
+  \        out += [\"- **%s %s** %s\" % (s.upper(), c, m) for s, c, m in r[\"findings\"\
+  ]]\n    else:\n        out.append(\"- none\")\n    out += [\"\", \"## Not in the\
+  \ changelog\", \"\", \"| Commit | Subject | Why |\", \"|---|---|---|\"]\n    for\
+  \ c, why in r[\"skipped\"]:\n        out.append(\"| %s | %s | %s |\" % (c[\"hash\"\
+  ][:7] or \"-\", c[\"subject\"].replace(\"|\", \"\\\\|\"), why))\n    if r[\"internal\"\
+  ] and not args.include_internal:\n        out.append(\"| - | %d internal commit(s):\
+  \ %s | internal type (use --include-internal to list) |\" % (\n            len(r[\"\
+  internal\"]), \", \".join(sorted({e[\"type\"] for e in r[\"internal\"]}))))\n  \
+  \  out.append(\"\")\n    return \"\\n\".join(out)\n\n\n# ----------------------------------------------------------------\
+  \ self-test\ndef self_test():\n    tests = []\n    def t(name, cond):\n        tests.append((name,\
+  \ bool(cond)))\n    def run(txt, cur=\"1.4.2\"):\n        return analyze(parse_commits(txt),\
+  \ cur)\n    r = run(\"a1b2c3d feat(api): add export endpoint\\nb2c3d4e fix: handle\
+  \ empty list\\n\")\n    t(\"oneline parse + feat -> minor\", r[\"next\"] == \"1.5.0\"\
+  \ and len(r[\"sections\"][\"Added\"]) == 1)\n    t(\"fix -> Fixed section\", r[\"\
+  sections\"][\"Fixed\"][0][\"text\"] == \"handle empty list\")\n    t(\"entry text\
+  \ drops trailing (#12) and period\", fmt_entry({\"text\": \"quote names. (#12)\"\
+  , \"issues\": [\"12\"], \"hash\": \"abc1234\"}) == \"- Quote names (#12, abc1234)\"\
+  )\n    r = run(\"a1b2c3d fix: x\\n\")\n    t(\"fix only -> patch\", r[\"next\"]\
+  \ == \"1.4.3\")\n    r = run(\"a1b2c3d feat!: drop node 16\\n\")\n    t(\"bang breaking\
+  \ -> major\", r[\"next\"] == \"2.0.0\" and r[\"breaking\"])\n    t(\"bang without\
+  \ footer is high CC03\", any(f[1] == \"CC03\" and f[0] == \"high\" for f in r[\"\
+  findings\"]))\n    t(\"feat removing -> Removed\", r[\"sections\"][\"Removed\"])\n\
+  \    rec = \"abc1234\\x1ffeat(cli): new flag\\x1fBody text.\\n\\nBREAKING CHANGE:\
+  \ --old is gone, use --new\\x1e\"\n    r = run(rec)\n    t(\"records format + footer\
+  \ breaking\", r[\"breaking\"] and r[\"breaking\"][0][\"note\"].startswith(\"--old\"\
+  ))\n    t(\"footer-only breaking is info not high\", not any(f[0] == \"high\" for\
+  \ f in r[\"findings\"]))\n    t(\"0.x breaking -> minor\", bump_version(\"0.9.3\"\
+  , \"major\") == \"0.10.0\")\n    r = run(\"a1b2c3d Fixed crash when saving\\nb2c3d4e\
+  \ chore: tidy\\n\")\n    t(\"non-conforming flagged CC01\", any(f[1] == \"CC01\"\
+  \ for f in r[\"findings\"]))\n    t(\"suggest drops 'Fixed' verb\", any(\"suggest:\
+  \ fix: crash when saving\" in f[2] for f in r[\"findings\"]))\n    t(\"user-facing\
+  \ non-conforming is high CC08\", any(f[1] == \"CC08\" and f[0] == \"high\" for f\
+  \ in r[\"findings\"]))\n    r = run(\"a1b2c3d feature: dark mode\\n\")\n    t(\"\
+  alias feature -> feat\", r[\"sections\"][\"Added\"] and any(f[1] == \"CC02\" for\
+  \ f in r[\"findings\"]))\n    r = run(\"a1b2c3d fix:missing space\\n\")\n    t(\"\
+  malformed spacing suggestion\", any(\"suggest: fix: missing space\" in f[2] for\
+  \ f in r[\"findings\"]))\n    log = (\"commit 1111111aaaa\\nAuthor: A <a@x>\\nDate:\
+  \   Mon\\n\\n    Revert \\\"feat: shiny\\\"\\n\\n    This reverts commit 2222222bbbb.\\\
+  n\\n\"\n           \"commit 2222222bbbb\\nAuthor: A <a@x>\\nDate:   Mon\\n\\n  \
+  \  feat: shiny\\n\")\n    r = run(log)\n    t(\"revert in range cancels both\",\
+  \ not any(r[\"sections\"].values()) and any(f[1] == \"CC04\" for f in r[\"findings\"\
+  ]))\n    r = run(\"commit 3333333\\nMerge: 1 2\\nAuthor: A\\nDate: x\\n\\n    Merge\
+  \ pull request #5 from a/b\\n\\ncommit 4444444\\nAuthor: A\\nDate: x\\n\\n    fixup!\
+  \ fix: y\\n\")\n    t(\"merge skipped, fixup flagged CC07\", r[\"stats\"][\"merges\"\
+  ] == 1 and any(f[1] == \"CC07\" for f in r[\"findings\"]))\n    r = run(\"a1b2c3d\
+  \ fix(auth): prevent token leak in logs (#41)\\n\")\n    t(\"security keyword ->\
+  \ Security + issue ref\", r[\"sections\"][\"Security\"] and r[\"sections\"][\"Security\"\
+  ][0][\"issues\"] == [\"41\"])\n    r = run(\"a1b2c3d feat(cfg): deprecate legacy\
+  \ yaml keys\\n\")\n    t(\"deprecate -> Deprecated\", r[\"sections\"][\"Deprecated\"\
+  ])\n    r = run(\"a1b2c3d docs: readme\\nb2c3d4e ci: cache\\n\")\n    t(\"internal\
+  \ only -> no bump + CC09\", r[\"level\"] is None and any(f[1] == \"CC09\" for f\
+  \ in r[\"findings\"]))\n    r = run(\"a1b2c3d fix: same\\nb2c3d4e fix: same\\n\"\
+  )\n    t(\"duplicate listed once\", len(r[\"sections\"][\"Fixed\"]) == 1)\n    sec\
+  \ = release_section(run(\"a1b2c3d feat: x\\n\"), \"2026-11-03\", \"https://github.com/o/r\"\
+  )\n    t(\"compare link + date\", \"## [1.5.0] - 2026-11-03\" in sec and \"compare/v1.4.2...v1.5.0\"\
+  \ in sec)\n    new, left = insert_into(\"# Changelog\\n\\n## [Unreleased]\\n\\n##\
+  \ [1.4.2] - 2026-10-01\\n- a\\n\", sec, \"1.5.0\")\n    t(\"insert after Unreleased\"\
+  , new.index(\"## [Unreleased]\") < new.index(\"## [1.5.0]\") < new.index(\"## [1.4.2]\"\
+  ))\n    try:\n        insert_into(\"## [1.5.0] - x\\n\", sec, \"1.5.0\"); ok = False\n\
+  \    except InputError:\n        ok = True\n    t(\"insert refuses existing version\"\
+  , ok)\n    try:\n        run(\"a fix: x\\n\", cur=\"one\"); ok = False\n    except\
+  \ InputError:\n        ok = True\n    t(\"bad --current rejected\", ok)\n    for\
+  \ name, okk in tests:\n        print((\"PASS  \" if okk else \"FAIL  \") + name)\n\
+  \    n = sum(1 for _, okk in tests if okk)\n    print(\"%d/%d passed\" % (n, len(tests)))\n\
+  \    return 0 if n == len(tests) else 1\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser(description=__doc__.split(\"\
+  \\n\")[0])\n    ap.add_argument(\"commits\", nargs=\"?\")\n    ap.add_argument(\"\
+  --current\", help=\"current released version, e.g. 1.4.2\")\n    ap.add_argument(\"\
+  --date\", help=\"release date (default today)\")\n    ap.add_argument(\"--repo-url\"\
+  , help=\"https://github.com/owner/repo for commit, issue and compare links\")\n\
+  \    ap.add_argument(\"--tag-prefix\", default=\"v\")\n    ap.add_argument(\"--include-internal\"\
+  , action=\"store_true\", help=\"also list refactor/docs/ci/chore/test commits\"\
+  )\n    ap.add_argument(\"--insert\", metavar=\"CHANGELOG.md\", help=\"print the\
+  \ changelog with the new section inserted (file is not modified)\")\n    ap.add_argument(\"\
+  --json\", action=\"store_true\")\n    ap.add_argument(\"--self-test\", action=\"\
+  store_true\")\n    a = ap.parse_args(argv)\n    if a.self_test:\n        return\
+  \ self_test()\n    if not a.commits:\n        ap.error(\"commits file required (or\
+  \ --self-test)\")\n    try:\n        if a.date and not re.match(r\"^\\d{4}-\\d{2}-\\\
+  d{2}$\", a.date):\n            raise InputError(\"--date must be YYYY-MM-DD\")\n\
+  \        try:\n            text = sys.stdin.read() if a.commits == \"-\" else open(a.commits,\
+  \ encoding=\"utf-8\").read()\n        except OSError as e:\n            raise InputError(str(e))\n\
+  \        commits = parse_commits(text)\n        if not commits:\n            raise\
+  \ InputError(\"no commits found in %s\" % a.commits)\n        r = analyze(commits,\
+  \ a.current, a.include_internal)\n        if a.insert:\n            try:\n     \
+  \           old = open(a.insert, encoding=\"utf-8\").read()\n            except\
+  \ OSError as e:\n                raise InputError(str(e))\n            new, leftover\
+  \ = insert_into(old, release_section(r, a.date, a.repo_url, a.tag_prefix, a.include_internal),\
+  \ r[\"next\"])\n            if leftover:\n                sys.stderr.write(\"note:\
+  \ %d hand-written line(s) under [Unreleased] were kept below the new section - merge\
+  \ them in\\n\" % len(leftover))\n            sys.stdout.write(new if new.endswith(\"\
+  \\n\") else new + \"\\n\")\n        elif a.json:\n            j = {k: r[k] for k\
+  \ in (\"sections\", \"internal\", \"breaking\", \"level\", \"current\", \"next\"\
+  , \"stats\")}\n            j[\"findings\"] = [{\"severity\": s, \"code\": c, \"\
+  message\": m} for s, c, m in r[\"findings\"]]\n            j[\"skipped\"] = [{\"\
+  hash\": c[\"hash\"][:7], \"subject\": c[\"subject\"], \"why\": w} for c, w in r[\"\
+  skipped\"]]\n            j[\"release_section\"] = release_section(r, a.date, a.repo_url,\
+  \ a.tag_prefix, a.include_internal)\n            print(json.dumps(j, indent=2))\n\
+  \        else:\n            print(report(r, a))\n    except InputError as e:\n \
+  \       print(\"error: %s\" % e, file=sys.stderr)\n        return 2\n    return\
+  \ 1 if any(f[0] == \"high\" for f in r[\"findings\"]) else 0\n\n\nif __name__ ==\
+  \ \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
