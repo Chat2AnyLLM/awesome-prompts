@@ -1,0 +1,684 @@
+slug: sales-commission-payout-calculator
+title: Sales Commission Payout Calculator
+description: Imported from Prompts Chat
+prompt: "---\nname: sales-commission-payout-calculator\ndescription: Calculates sales\
+  \ commission payouts for a period from your comp plan and a deals CSV - quota credit\
+  \ by deal type, split deals, tiered rates with accelerators (marginal or flat),\
+  \ credit and payout caps, SPIFFs, clawbacks for early cancellations, pay on booking\
+  \ or collection, and draws. Holds deals with bad splits, unknown reps or unapproved\
+  \ discounts and writes rep statements. Includes an offline stdlib Python calculator.\n\
+  ---\n\n# Sales Commission Payout Calculator\n\nYou help sales ops, finance and founders\
+  \ pay commissions that are right the first time. Commission runs go wrong in predictable\
+  \ ways: a split deal adds up to 90%, an accelerator is applied to the whole quarter\
+  \ instead of the credit above the threshold, a renewal is credited at full value,\
+  \ a deal with an unapproved 30% discount slips through, a customer cancelled after\
+  \ 55 days and nobody clawed the commission back, or the same deal is in the export\
+  \ twice. You turn the plan and the deal export into a payout per rep that anyone\
+  \ can recompute, with every held deal and judgement call listed.\n\nYou apply the\
+  \ plan the user gives you. You do not decide what the plan should say, whether a\
+  \ clawback or a negative balance can legally be deducted from pay, or how commission\
+  \ is taxed; say so and point to the signed comp plan, HR/payroll and local employment\
+  \ law.\n\n## Files in this skill\n\n- `scripts/commission_calc.py` - reads a plan\
+  \ JSON (period, tiers as fractions of quota, marginal or flat method, credit cap,\
+  \ max payout, credit per deal type, discount limit, SPIFFs, clawback window, pay\
+  \ on booking or collection, reps with quota and optional draw) and a deals CSV (deal\
+  \ id, close date, account, owner split, type, amount, discount, billing, status,\
+  \ cancel date, commission already paid, approval, collection); computes credit,\
+  \ tier slices per deal in close order, caps, SPIFFs, clawbacks, deferrals and draw\
+  \ top-up or recovery with Decimal arithmetic; reports findings CM01-CM11, a payout\
+  \ table, per-rep deal lines and held/excluded deals (Python 3.8+ standard library\
+  \ only)\n- `references/plan-mechanics.md` - tiers, marginal vs flat, caps, credit\
+  \ rules, splits, SPIFFs, clawbacks, draws, timing, with worked numbers\n- `references/checks-and-codes.md`\
+  \ - every finding code, its severity and what to do about it, and the input fields\n\
+  - `templates/commission-statement.md` - the statement each rep receives and signs\
+  \ off\n- `examples/comp-plan.json` - an AE plan for October 2026: 4 tiers (5/8/12/15%),\
+  \ credit cap 200%, max payout 8,000, renewals at 50% credit, 20% discount limit,\
+  \ annual-prepay SPIFF, 90-day clawback, three reps, one with a recoverable draw\n\
+  - `examples/deals.csv` - 15 rows: normal deals, a 60/40 split, a renewal, an approved\
+  \ and an unapproved big discount, a split that adds up to 90%, a deal for an unknown\
+  \ rep with a thousands separator, two cancellations (inside and outside the clawback\
+  \ window), a September deal and a duplicate row\n- `examples/payout-report.md` -\
+  \ the real calculator output on the example\n\n## Workflow\n\n### 1. Collect the\
+  \ plan and the deals\nAsk for the comp plan document (or the relevant page) and\
+  \ turn it into a plan JSON like `examples/comp-plan.json`. Confirm the details that\
+  \ change the money: are tiers marginal (each slice of credit at its own rate) or\
+  \ flat (the reached rate applies to all credit)? Is attainment measured on bookings,\
+  \ ACV or margin? How are renewals and expansions credited? Is there a credit cap\
+  \ or a payout cap? When is commission earned: at booking or when the customer pays?\
+  \ How long is the clawback window and does it cover the full commission? Then ask\
+  \ for the CRM export of closed-won deals for the period plus cancellations of earlier\
+  \ deals, with the commission already paid on those.\n\n### 2. Run the calculator\n\
+  ```\npython3 scripts/commission_calc.py examples/comp-plan.json examples/deals.csv\n\
+  python3 scripts/commission_calc.py plan.json deals.csv --rep ana\npython3 scripts/commission_calc.py\
+  \ plan.json deals.csv --json\npython3 scripts/commission_calc.py --self-test\n```\n\
+  Exit 0 = no high findings, 1 = high findings (deals held that need a decision),\
+  \ 2 = bad input. Without a shell, follow `references/plan-mechanics.md`: sort each\
+  \ rep's deals by close date, add up credit, split it at each tier threshold and\
+  \ multiply each slice by its rate.\n\n### 3. Read the result\n- High first: CM01\
+  \ (unknown rep, bad amount or date, unknown deal type) and CM02 (split not 100%).\
+  \ These deals are held - get the answer from sales ops before payroll.\n- Medium:\
+  \ CM05 (discount over the limit without approval - held), CM04 (duplicate row),\
+  \ CM08 (clawback applied - check the amount paid), CM11 (clawbacks bigger than earnings\
+  \ - negative balance).\n- Low/info: deals from other periods (CM03), cancellations\
+  \ outside the window, caps (CM06), accelerators (CM07), deferrals (CM09), draws\
+  \ (CM10).\n- Check one rep by hand against the per-deal rate slices before sending\
+  \ anything.\n\n### 4. Resolve and re-run\nFor every held deal record the decision\
+  \ (correct split, approval found, rep assignment) in the CSV and re-run. Never change\
+  \ the plan to make a number look right; if the plan is ambiguous, write the question\
+  \ down and show both results (for example with `tier_method` flat vs marginal).\n\
+  \n### 5. Deliver\nReturn the payout table for approval, a statement per rep from\
+  \ `templates/commission-statement.md` with every deal, rate slice, cap, clawback\
+  \ and draw line, the list of held deals with the open question, and notes for payroll\
+  \ (negative balances, draw balances, deferred amounts).\n\n## Example result\nOn\
+  \ the example October payouts total 9,500.00 EUR, with 3 deals held. Ana Ruiz reaches\
+  \ 158.7% of her 60,000 quota (renewal Delta Foods credited at 50%), earns 8,280.00\
+  \ on marginal tiers plus 400.00 in annual-prepay SPIFFs and is capped at the 8,000.00\
+  \ maximum. Ben Okafor earns 690.00 but the Ironclad deal cancelled 55 days after\
+  \ closing claws back 960.00, so he is paid 0 and carries -270.00 forward. Chloe\
+  \ Martin earns 1,050.00, below her 1,500.00 recoverable draw, so the draw tops up\
+  \ 450.00 and her balance rises to 1,050.00. Held: Granite Works (split 50/40 = 90%),\
+  \ Nimbus Air (rep \"dave\" not on the plan) and Fjord Outdoor (30% discount, limit\
+  \ 20%, no approval).\n\n## Rules\n\n- Follow the signed plan; when the plan and\
+  \ the data disagree, hold the deal and ask - never guess a split, a rep or an approval.\n\
+  - Show the arithmetic: every payout must be traceable to deal credit, tier slices\
+  \ and adjustments.\n- Apply tiers in close-date order and say whether the plan is\
+  \ marginal or flat.\n- Treat clawbacks and negative balances carefully: state what\
+  \ the plan allows and point to HR/payroll and local law before deducting from pay.\n\
+  - Commission data is confidential: share each rep only their own statement.\n- This\
+  \ is a calculation aid, not legal, tax or payroll advice.\n\x1FFILE:references/plan-mechanics.md\x1E\
+  \n# Plan mechanics with worked numbers\n\nAll examples: quota 10,000; tiers 5% up\
+  \ to 50% of quota, 8% up to 100%, 12% above.\n\n## Quota credit\n- Credit = deal\
+  \ amount x credit rate for the deal type (`deal_type_credit`, e.g. new 1.0, expansion\
+  \ 1.0, renewal 0.5) x the rep's split share.\n- Use the measure the plan names (bookings,\
+  \ first-year ACV, TCV, margin) and export that column as `amount`.\n- Attainment\
+  \ = total credit / quota.\n\n## Marginal tiers (default)\nEach slice of credit is\
+  \ paid at the rate of the band it falls in, in close-date order.\n- 12,000 credit:\
+  \ 5,000 x 5% = 250, 5,000 x 8% = 400, 2,000 x 12% = 240 -> 890.\n- Two deals of\
+  \ 6,000: the first earns 5,000 x 5% + 1,000 x 8% = 330, the second 4,000 x 8% +\
+  \ 2,000 x 12% = 560. The total is the same in any order; the per-deal split depends\
+  \ on close order, so keep close dates accurate.\n\n## Flat (retroactive) tiers\n\
+  The rate of the tier reached applies to all credit: 12,000 x 12% = 1,440. Flat tiers\
+  \ create big jumps at each threshold (9,999 credit earns 799.92, 10,000 earns 1,200\
+  \ under a 8%/12% flat plan) and invite deal timing games; check the plan wording\
+  \ (\"on all bookings\" vs \"on bookings above\").\n\n## Accelerators and decelerators\n\
+  - An accelerator is simply a higher rate above 100% (12-15% here). A decelerator\
+  \ is a lower rate above a cap point, modelled as a final tier with a lower rate.\n\
+  \n## Caps\n- Credit cap (`credit_cap_attainment`, e.g. 2.0): credit above 200% of\
+  \ quota earns 0%.\n- Payout cap (`max_payout`): commission + SPIFFs for the period\
+  \ cannot exceed this amount. Many plans avoid caps; if yours has one, say so in\
+  \ the statement.\n\n## Splits\n- `owner_split` like `ana:60;ben:40` must add up\
+  \ to 100%. Each rep gets their share of credit and SPIFFs. Overlay roles (SE, partner\
+  \ manager) that get credit on top of 100% need their own plan file.\n\n## SPIFFs\n\
+  - Fixed bonuses for deals matching all `when` fields (for example `type=new` and\
+  \ `billing=annual`). Split with the deal.\n\n## Discount limits\n- Deals with `discount_pct`\
+  \ above `max_discount_pct` need `approved=yes`; otherwise the credit is held (`unapproved_discount:\
+  \ hold`) or paid with a finding (`pay`).\n\n## Clawbacks\n- A deal closed in an\
+  \ earlier period and cancelled in this period within `clawback.window_days` of closing\
+  \ claws back `share` x the commission paid on it (column `commission_paid`; if missing\
+  \ it is estimated at the first tier rate and flagged).\n- Cancelled after the window:\
+  \ no clawback, noted.\n- Closed and cancelled in the same period: never credited.\n\
+  - If clawbacks exceed earnings the payout is 0 and the negative balance is carried\
+  \ forward (CM11). Whether it may be deducted from future pay depends on the plan\
+  \ and local law.\n\n## Booking vs collection\n- `pay_on: booking`: commission is\
+  \ paid in the close period.\n- `pay_on: collection`: credit counts toward attainment\
+  \ now, but commission (and SPIFF) on deals with `collected` not yes is deferred\
+  \ until the customer pays. Deferred amounts are listed; pay them in the period the\
+  \ cash arrives.\n\n## Draws\n- Recoverable draw: the rep is paid at least the draw;\
+  \ if earnings are lower, the top-up is added to the draw balance; later surpluses\
+  \ above the draw repay that balance first.\n  - Draw 1,500, balance 600, earned\
+  \ 1,050 -> paid 1,500, balance 1,050.\n  - Next month earned 2,900 -> 2,900 - 1,500\
+  \ = 1,400 available, 1,050 recovered, paid 1,850, balance 0.\n- Non-recoverable\
+  \ draw: a guaranteed minimum; no balance.\n\n## Order of operations used by the\
+  \ calculator\n1. Credit per deal (type credit x split) for won deals closed in the\
+  \ period, minus held and excluded deals.\n2. Tier slices per deal in close order\
+  \ (marginal) or the reached rate on all credit (flat), with the credit cap.\n3.\
+  \ + SPIFFs, then the payout cap.\n4. - Deferred (pay on collection), - clawbacks,\
+  \ + carry-in.\n5. Draw top-up or recovery; negative results become a carry-forward.\n\
+  \x1FFILE:references/checks-and-codes.md\x1E\n# Checks and finding codes\n\n| Code\
+  \ | Severity | Check | What to do |\n|---|---|---|---|\n| CM01 | high: unknown rep,\
+  \ missing rep, bad amount/date, deal type with no credit rate; medium: zero or negative\
+  \ amount | data needed to pay the deal | fix the CRM record or add the rep/type\
+  \ to the plan; held deals are not paid |\n| CM02 | high | owner_split shares add\
+  \ up to 100% | get the split confirmed by sales ops / the deal desk |\n| CM03 |\
+  \ low | won deal closed outside the period | make sure it was paid in its own period;\
+  \ late-booked deals need a manual adjustment |\n| CM04 | medium | the same deal_id\
+  \ appears twice | the second row is ignored; fix the export |\n| CM05 | medium |\
+  \ discount above `max_discount_pct` without `approved=yes` | find the approval or\
+  \ keep the credit on hold |\n| CM06 | info | credit cap or payout cap applied |\
+  \ mention it on the statement |\n| CM07 | info | accelerator tier reached | check\
+  \ the threshold maths once by hand |\n| CM08 | medium: clawback applied (estimated\
+  \ if commission_paid missing); low: cancelled after the window; info: closed and\
+  \ cancelled in this period | cancellations | confirm the amount paid originally\
+  \ |\n| CM09 | low | commission deferred until collection | pay it in the period\
+  \ the cash arrives |\n| CM10 | info | draw top-up or recovery, with the new balance\
+  \ | carry the balance into next period's plan file |\n| CM11 | medium | clawbacks\
+  \ exceed earnings: payout 0, negative carry-forward | check the plan and local law\
+  \ before deducting |\n\n## Verdict\n- **High findings**: deals are held; resolve\
+  \ before payroll. The payable total shown excludes held deals.\n- **Ready for approval**:\
+  \ nothing blocks the run; review medium findings with sales ops.\n\n## Plan JSON\
+  \ keys\n`plan_name, period{start, end, label}, currency, tier_method (marginal|flat),\
+  \ tiers[{up_to, rate}] (fractions; last tier without up_to), credit_cap_attainment,\
+  \ max_payout, deal_type_credit{type: rate}, max_discount_pct, unapproved_discount\
+  \ (hold|pay), spiffs[{name, when{column: value}, amount}], clawback{window_days,\
+  \ share}, pay_on (booking|collection), reps{id: {name, quota, draw{amount, recoverable,\
+  \ balance}, carry_forward}}`.\n\n## Deals CSV columns\n`deal_id, close_date, account,\
+  \ owner_split (ana or ana:60;ben:40), type, amount, discount_pct, billing, status\
+  \ (won|cancelled), cancel_date, commission_paid, approved (yes/no), collected (yes/no)`.\
+  \ Thousands separators (12,500) and decimal commas (1.234,50) are accepted. Extra\
+  \ columns can be used in SPIFF `when` conditions.\n\x1FFILE:templates/commission-statement.md\x1E\
+  \n# Commission statement: <rep name>\n\n**Period:** <October 2026>   **Plan:** <plan\
+  \ name, version/date signed>   **Quota:** <60,000.00 EUR>\n**Prepared by:** <name,\
+  \ sales ops>   **Date:** <YYYY-MM-DD>\n\n## Summary\n| | Amount |\n|---|---|\n|\
+  \ Quota credit | <95,200.00> (<158.7%> of quota) |\n| Commission (tiers) | <8,280.00>\
+  \ |\n| SPIFFs | <400.00> |\n| Cap | <-680.00> (max payout <8,000.00>) |\n| Clawbacks\
+  \ | <-0.00> |\n| Deferred to collection | <0.00> |\n| Draw top-up / recovery | <0.00>\
+  \ |\n| **Payout this period** | **<8,000.00>** |\n| Balance carried forward | <0.00>\
+  \ |\n\n## Deals\n| Deal | Account | Closed | Type | Credit | Rate slices | Commission\
+  \ | SPIFF |\n|---|---|---|---|---|---|---|---|\n| <D-1001> | <Acme Logistics> |\
+  \ <2026-10-03> | <new> | <18,000.00> | <18,000.00 x 5.0%> | <900.00> | <200.00>\
+  \ |\n\n## Adjustments\n- <Clawback D-0950 cancelled 55 days after close: -960.00>\n\
+  - <Held: D-1006 Fjord Outdoor, discount 30% awaiting approval - will be paid in\
+  \ the period it is approved>\n\n## How it was calculated\n<Marginal tiers 5% to\
+  \ 50% of quota, 8% to 100%, 12% to 150%, 15% above, applied in close-date order;\
+  \ renewals credited at 50%; credit cap 200%; max payout 8,000.>\n\nPlease review\
+  \ by <date>. Questions or disputes: <contact>. Disputes must name the deal and the\
+  \ line.\n\n*Calculated from the plan and CRM data listed above. The signed compensation\
+  \ plan governs; this statement is not tax or legal advice.*\n\x1FFILE:examples/comp-plan.json\x1E\
+  \n{\n  \"plan_name\": \"Northlake Software AE plan FY2026\",\n  \"period\": {\"\
+  start\": \"2026-10-01\", \"end\": \"2026-10-31\", \"label\": \"October 2026\"},\n\
+  \  \"currency\": \"EUR\",\n  \"tier_method\": \"marginal\",\n  \"tiers\": [\n  \
+  \  {\"up_to\": 0.5, \"rate\": 0.05},\n    {\"up_to\": 1.0, \"rate\": 0.08},\n  \
+  \  {\"up_to\": 1.5, \"rate\": 0.12},\n    {\"rate\": 0.15}\n  ],\n  \"credit_cap_attainment\"\
+  : 2.0,\n  \"max_payout\": 8000,\n  \"deal_type_credit\": {\"new\": 1.0, \"expansion\"\
+  : 1.0, \"renewal\": 0.5},\n  \"max_discount_pct\": 20,\n  \"unapproved_discount\"\
+  : \"hold\",\n  \"spiffs\": [\n    {\"name\": \"Annual prepay on new logo\", \"when\"\
+  : {\"type\": \"new\", \"billing\": \"annual\"}, \"amount\": 200}\n  ],\n  \"clawback\"\
+  : {\"window_days\": 90, \"share\": 1.0},\n  \"pay_on\": \"booking\",\n  \"reps\"\
+  : {\n    \"ana\": {\"name\": \"Ana Ruiz\", \"quota\": 60000},\n    \"ben\": {\"\
+  name\": \"Ben Okafor\", \"quota\": 50000},\n    \"chloe\": {\"name\": \"Chloe Martin\"\
+  , \"quota\": 40000, \"draw\": {\"amount\": 1500, \"recoverable\": true, \"balance\"\
+  : 600}}\n  }\n}\n\x1FFILE:examples/deals.csv\x1E\ndeal_id,close_date,account,owner_split,type,amount,discount_pct,billing,status,cancel_date,commission_paid,approved,collected\n\
+  D-1001,2026-10-03,Acme Logistics,ana,new,18000,10,annual,won,,,,yes\nD-1002,2026-10-08,Brightwave\
+  \ Media,ana:60;ben:40,expansion,12000,0,monthly,won,,,,yes\nD-1003,2026-10-14,Corvid\
+  \ Health,ana,new,30000,15,annual,won,,,,no\nD-1004,2026-10-21,Delta Foods,ana,renewal,24000,5,annual,won,,,,yes\n\
+  D-1005,2026-10-28,Evergreen Bank,ana,new,28000,25,monthly,won,,,yes,no\nD-1006,2026-10-10,Fjord\
+  \ Outdoor,ben,new,22000,30,annual,won,,,,yes\nD-1007,2026-10-17,Granite Works,ben:50;chloe:40,new,15000,10,monthly,won,,,,yes\n\
+  D-1008,2026-10-24,Harbor Clinics,ben,expansion,9000,0,monthly,won,,,,yes\nD-0950,2026-08-12,Ironclad\
+  \ Security,ben,new,16000,10,annual,cancelled,2026-10-06,960,,\nD-0871,2026-05-20,Juniper\
+  \ Retail,ben,new,14000,5,monthly,cancelled,2026-10-15,700,,\nD-1009,2026-10-09,Kestrel\
+  \ Labs,chloe,new,11000,10,annual,won,,,,yes\nD-1010,2026-10-30,Lumen Studio,chloe,new,6000,0,monthly,won,,,,no\n\
+  D-0990,2026-09-29,Meridian Travel,chloe,new,8000,5,monthly,won,,,,yes\nD-1009,2026-10-09,Kestrel\
+  \ Labs,chloe,new,11000,10,annual,won,,,,yes\nD-1012,2026-10-19,Nimbus Air,dave,new,\"\
+  12,500\",10,annual,won,,,,yes\n\x1FFILE:examples/payout-report.md\x1E\n# Commission\
+  \ payouts: Northlake Software AE plan FY2026, October 2026\n\nPeriod 2026-10-01\
+  \ to 2026-10-31, marginal tiers (5.0% up to 50.0% of quota, 8.0% up to 100.0% of\
+  \ quota, 12.0% up to 150.0% of quota, 15.0% above), pay on booking, credit cap 200.0%\
+  \ of quota, max payout 8,000.00. Source: examples/deals.csv.\n\n**Verdict: 2 high\
+  \ finding(s), 3 deal(s) held - resolve them before payroll; total payable now 9,500.00\
+  \ EUR**\n\nFindings: 2 high, 4 medium, 2 low, 3 info. Figures follow the plan file\
+  \ you provided; the signed comp plan and local pay law win if they differ.\n\n##\
+  \ Payouts\n\n| Rep | Quota | Credit | Attainment | Tier | Commission | SPIFFs |\
+  \ Cap | Clawbacks | Deferred | Draw | Payout |\n|---|---|---|---|---|---|---|---|---|---|---|---|\n\
+  | Ana Ruiz | 60,000.00 | 95,200.00 | 158.7% | 4 | 8,280.00 | 400.00 | -680.00 |\
+  \  |  |  | **8,000.00** |\n| Ben Okafor | 50,000.00 | 13,800.00 | 27.6% | 1 | 690.00\
+  \ | 0.00 |  | -960.00 |  |  | **0.00** |\n| Chloe Martin | 40,000.00 | 17,000.00\
+  \ | 42.5% | 1 | 850.00 | 200.00 |  |  |  | +450.00 | **1,500.00** |\n| **Total**\
+  \ | | | | | | | | | | | **9,500.00** |\n\n## Ana Ruiz\n\n| Deal | Account | Closed\
+  \ | Type | Amount | Share | Credit | Attainment after | Rate slices | Commission\
+  \ | SPIFF |\n|---|---|---|---|---|---|---|---|---|---|---|\n| D-1001 | Acme Logistics\
+  \ | 2026-10-03 | new | 18,000.00 | 100% | 18,000.00 | 30.0% | 18,000.00 x 5.0% |\
+  \ 900.00 | 200.00 |\n| D-1002 | Brightwave Media | 2026-10-08 | expansion | 12,000.00\
+  \ | 60% | 7,200.00 | 42.0% | 7,200.00 x 5.0% | 360.00 |  |\n| D-1003 | Corvid Health\
+  \ | 2026-10-14 | new | 30,000.00 | 100% | 30,000.00 | 92.0% | 4,800.00 x 5.0%; 25,200.00\
+  \ x 8.0% | 2,256.00 | 200.00 |\n| D-1004 | Delta Foods | 2026-10-21 | renewal |\
+  \ 24,000.00 | 100% | 12,000.00 | 112.0% | 4,800.00 x 8.0%; 7,200.00 x 12.0% | 1,248.00\
+  \ |  |\n| D-1005 | Evergreen Bank | 2026-10-28 | new | 28,000.00 | 100% | 28,000.00\
+  \ | 158.7% | 22,800.00 x 12.0%; 5,200.00 x 15.0% | 3,516.00 |  |\n\n## Ben Okafor\n\
+  \n| Deal | Account | Closed | Type | Amount | Share | Credit | Attainment after\
+  \ | Rate slices | Commission | SPIFF |\n|---|---|---|---|---|---|---|---|---|---|---|\n\
+  | D-1002 | Brightwave Media | 2026-10-08 | expansion | 12,000.00 | 40% | 4,800.00\
+  \ | 9.6% | 4,800.00 x 5.0% | 240.00 |  |\n| D-1008 | Harbor Clinics | 2026-10-24\
+  \ | expansion | 9,000.00 | 100% | 9,000.00 | 27.6% | 9,000.00 x 5.0% | 450.00 |\
+  \  |\n\n- Clawback D-0950 (Ironclad Security, cancelled 55 days after close): -960.00\n\
+  - Negative balance carried forward: -270.00\n\n## Chloe Martin\n\n| Deal | Account\
+  \ | Closed | Type | Amount | Share | Credit | Attainment after | Rate slices | Commission\
+  \ | SPIFF |\n|---|---|---|---|---|---|---|---|---|---|---|\n| D-1009 | Kestrel Labs\
+  \ | 2026-10-09 | new | 11,000.00 | 100% | 11,000.00 | 27.5% | 11,000.00 x 5.0% |\
+  \ 550.00 | 200.00 |\n| D-1010 | Lumen Studio | 2026-10-30 | new | 6,000.00 | 100%\
+  \ | 6,000.00 | 42.5% | 6,000.00 x 5.0% | 300.00 |  |\n\n- Draw: top-up 450.00, recovered\
+  \ 0.00, outstanding balance 1,050.00\n\n## Held deals (need a decision)\n\n| Deal\
+  \ | Account | Reason |\n|---|---|---|\n| D-1006 | Fjord Outdoor | discount 30% not\
+  \ approved |\n| D-1007 | Granite Works | split 90% |\n| D-1012 | Nimbus Air | unknown\
+  \ rep dave |\n\n## Not counted this period\n\n| Deal | Account | Reason |\n|---|---|---|\n\
+  | D-0871 | Juniper Retail | cancelled after clawback window |\n| D-0990 | Meridian\
+  \ Travel | closed 2026-09-29 |\n| D-1009 | Kestrel Labs | duplicate row |\n\n##\
+  \ Findings\n\n- **HIGH CM01** D-1012: unknown rep(s) dave in owner_split - deal\
+  \ held\n- **HIGH CM02** D-1007: split shares add up to 90%, not 100% - deal held\
+  \ until sales ops confirms the split\n- **MEDIUM CM04** D-1009 appears again on\
+  \ row 15 (first on row 12) - second row ignored\n- **MEDIUM CM05** D-1006: discount\
+  \ 30% over the 20% limit without approval - credit held\n- **MEDIUM CM08** D-0950\
+  \ cancelled 55 days after close (window 90): clawback 960.00\n- **MEDIUM CM11**\
+  \ Ben Okafor: clawbacks exceed earnings by 270.00 - payout 0, negative balance carried\
+  \ to next period (check your plan and local pay law before deducting)\n- **LOW CM03**\
+  \ D-0990 closed 2026-09-29, outside October 2026 - not counted here (check it was\
+  \ paid in its own period)\n- **LOW CM08** D-0871 cancelled 148 days after close\
+  \ (window 90) - no clawback\n- **INFO CM06** Ana Ruiz: commission + SPIFFs 8,680.00\
+  \ capped at max_payout 8,000.00 (-680.00)\n- **INFO CM07** Ana Ruiz at 158.7% of\
+  \ quota - tier 4 (15.0%) reached for the credit above each threshold\n- **INFO CM10**\
+  \ Chloe Martin: earned 1,050.00 is below the 1,500.00 draw - draw tops up 450.00\
+  \ (recoverable: balance now 1,050.00)\n\nRecompute check: commission per deal =\
+  \ sum of (credit in each tier band x tier rate); payout = commission + SPIFFs -\
+  \ cap - deferred - clawbacks + carry-in, then draw rules. Have sales ops and payroll\
+  \ approve before paying.\n\x1FFILE:scripts/commission_calc.py\x1E\n#!/usr/bin/env\
+  \ python3\n\"\"\"Sales commission payout calculator (stdlib only, Python 3.8+).\n\
+  \nReads a compensation plan (JSON) and a deals export (CSV) and works out each rep's\
+  \ payout for\none period: quota credit by deal type, deal splits, tiered rates with\
+  \ accelerators (marginal or\nflat/retroactive), credit and payout caps, SPIFFs,\
+  \ clawbacks for deals cancelled inside the\nclawback window, payment on booking\
+  \ or on collection, and recoverable or non-recoverable draws.\nDeals with problems\
+  \ (bad split, unknown rep, discount over the limit without approval,\nduplicates,\
+  \ wrong period) are held or excluded and listed with a finding code.\n\nUsage:\n\
+  \  commission_calc.py PLAN.json DEALS.csv [--rep ID]... [--json]\n  commission_calc.py\
+  \ --self-test\nExit: 0 = no high findings, 1 = high findings (deals held that need\
+  \ a decision), 2 = bad input.\n\"\"\"\nimport argparse, csv, datetime, io, json,\
+  \ sys\nfrom collections import OrderedDict\nfrom decimal import Decimal, ROUND_HALF_UP\n\
+  \nSEV = {\"high\": 0, \"medium\": 1, \"low\": 2, \"info\": 3}\nCENT = Decimal(\"\
+  0.01\")\nPLAN_KEYS = {\"plan_name\", \"period\", \"currency\", \"tier_method\",\
+  \ \"tiers\", \"credit_cap_attainment\", \"max_payout\",\n             \"deal_type_credit\"\
+  , \"max_discount_pct\", \"unapproved_discount\", \"spiffs\", \"clawback\", \"pay_on\"\
+  , \"reps\"}\n\n\nclass InputError(Exception):\n    pass\n\n\ndef D(x, what=\"number\"\
+  ):\n    if isinstance(x, Decimal):\n        return x\n    s = str(x).strip().replace(\"\
+  \ \", \"\")\n    if s == \"\":\n        raise InputError(\"empty %s\" % what)\n\
+  \    if \",\" in s and \".\" in s:\n        s = s.replace(\",\", \"\") if s.rfind(\"\
+  .\") > s.rfind(\",\") else s.replace(\".\", \"\").replace(\",\", \".\")\n    elif\
+  \ \",\" in s:\n        s = s.replace(\",\", \"\") if len(s.split(\",\")[-1]) ==\
+  \ 3 else s.replace(\",\", \".\")\n    try:\n        return Decimal(s)\n    except\
+  \ Exception:\n        raise InputError(\"%s is not a number: %r\" % (what, x))\n\
+  \n\ndef pdate(s, what):\n    try:\n        return datetime.date.fromisoformat(str(s).strip())\n\
+  \    except ValueError:\n        raise InputError(\"%s must be YYYY-MM-DD, got %r\"\
+  \ % (what, s))\n\n\ndef money(x):\n    return Decimal(x).quantize(CENT, rounding=ROUND_HALF_UP)\n\
+  \n\ndef fm(x):\n    x = money(x)\n    return \"{:,.2f}\".format(x)\n\n\ndef num(x):\n\
+  \    return \"{:f}\".format(Decimal(x).normalize())\n\n\ndef pct(x):\n    return\
+  \ \"%.1f%%\" % (float(x) * 100)\n\n\n# ----------------------------------------------------------------\
+  \ plan\ndef load_plan(cfg):\n    if not isinstance(cfg, dict):\n        raise InputError(\"\
+  plan must be a JSON object\")\n    bad = set(cfg) - PLAN_KEYS\n    if bad:\n   \
+  \     raise InputError(\"unknown plan key(s): %s\" % \", \".join(sorted(bad)))\n\
+  \    per = cfg.get(\"period\") or {}\n    p = {\"name\": cfg.get(\"plan_name\",\
+  \ \"Commission plan\"), \"currency\": cfg.get(\"currency\", \"\"),\n         \"\
+  start\": pdate(per.get(\"start\"), \"period.start\"), \"end\": pdate(per.get(\"\
+  end\"), \"period.end\"),\n         \"label\": per.get(\"label\") or \"%s..%s\" %\
+  \ (per.get(\"start\"), per.get(\"end\")),\n         \"method\": cfg.get(\"tier_method\"\
+  , \"marginal\"), \"pay_on\": cfg.get(\"pay_on\", \"booking\"),\n         \"cap_att\"\
+  : D(cfg[\"credit_cap_attainment\"]) if cfg.get(\"credit_cap_attainment\") is not\
+  \ None else None,\n         \"max_payout\": D(cfg[\"max_payout\"]) if cfg.get(\"\
+  max_payout\") is not None else None,\n         \"type_credit\": {k.lower(): D(v)\
+  \ for k, v in (cfg.get(\"deal_type_credit\") or {\"new\": 1}).items()},\n      \
+  \   \"max_disc\": D(cfg[\"max_discount_pct\"]) if cfg.get(\"max_discount_pct\")\
+  \ is not None else None,\n         \"unapproved\": cfg.get(\"unapproved_discount\"\
+  , \"hold\"),\n         \"spiffs\": cfg.get(\"spiffs\", []),\n         \"claw_days\"\
+  : int((cfg.get(\"clawback\") or {}).get(\"window_days\", 0)),\n         \"claw_share\"\
+  : D((cfg.get(\"clawback\") or {}).get(\"share\", 1)),\n         \"reps\": OrderedDict()}\n\
+  \    if p[\"end\"] < p[\"start\"]:\n        raise InputError(\"period ends before\
+  \ it starts\")\n    if p[\"method\"] not in (\"marginal\", \"flat\"):\n        raise\
+  \ InputError(\"tier_method must be 'marginal' or 'flat'\")\n    if p[\"pay_on\"\
+  ] not in (\"booking\", \"collection\"):\n        raise InputError(\"pay_on must\
+  \ be 'booking' or 'collection'\")\n    if p[\"unapproved\"] not in (\"hold\", \"\
+  pay\"):\n        raise InputError(\"unapproved_discount must be 'hold' or 'pay'\"\
+  )\n    tiers, prev = [], Decimal(0)\n    for i, t in enumerate(cfg.get(\"tiers\"\
+  ) or []):\n        up = D(t[\"up_to\"], \"tier up_to\") if t.get(\"up_to\") is not\
+  \ None else None\n        if up is not None and up <= prev:\n            raise InputError(\"\
+  tier %d: up_to must increase (attainment as a fraction, e.g. 1.0 = 100%%)\" % (i\
+  \ + 1))\n        if up is None and i != len(cfg[\"tiers\"]) - 1:\n            raise\
+  \ InputError(\"only the last tier may omit up_to\")\n        tiers.append((prev,\
+  \ up, D(t[\"rate\"], \"tier rate\")))\n        prev = up if up is not None else\
+  \ prev\n    if not tiers:\n        raise InputError(\"plan needs at least one tier\"\
+  )\n    if any(r > 1 for _, _, r in tiers):\n        raise InputError(\"tier rates\
+  \ are fractions (0.08 = 8%)\")\n    p[\"tiers\"] = tiers\n    for rid, r in (cfg.get(\"\
+  reps\") or {}).items():\n        dr = r.get(\"draw\")\n        p[\"reps\"][rid.lower()]\
+  \ = {\"id\": rid.lower(), \"name\": r.get(\"name\", rid), \"quota\": D(r[\"quota\"\
+  ], \"quota of %s\" % rid),\n                                  \"draw\": D(dr[\"\
+  amount\"]) if dr else Decimal(0), \"recoverable\": bool(dr and dr.get(\"recoverable\"\
+  , True)),\n                                  \"balance\": D(dr.get(\"balance\",\
+  \ 0)) if dr else Decimal(0),\n                                  \"carry\": D(r.get(\"\
+  carry_forward\", 0))}\n        if p[\"reps\"][rid.lower()][\"quota\"] <= 0:\n  \
+  \          raise InputError(\"quota of %s must be positive\" % rid)\n    if not\
+  \ p[\"reps\"]:\n        raise InputError(\"plan needs at least one rep\")\n    return\
+  \ p\n\n\ndef rate_at(p, att):\n    for lo, up, r in p[\"tiers\"]:\n        if up\
+  \ is None or att < up:\n            return r\n    return p[\"tiers\"][-1][2]\n\n\
+  \ndef tier_name(p, att):\n    for i, (lo, up, r) in enumerate(p[\"tiers\"], 1):\n\
+  \        if up is None or att < up:\n            return i\n    return len(p[\"tiers\"\
+  ])\n\n\n# ---------------------------------------------------------------- deals\n\
+  def parse_split(s, default):\n    s = (s or \"\").strip()\n    if not s:\n     \
+  \   return OrderedDict([(default, Decimal(100))]) if default else None\n    out\
+  \ = OrderedDict()\n    for part in s.replace(\"|\", \";\").split(\";\"):\n     \
+  \   part = part.strip()\n        if not part:\n            continue\n        if\
+  \ \":\" in part:\n            who, share = part.split(\":\", 1)\n            out[who.strip().lower()]\
+  \ = out.get(who.strip().lower(), Decimal(0)) + D(share.strip().rstrip(\"%\"), \"\
+  split share\")\n        else:\n            out[part.lower()] = Decimal(100)\n  \
+  \  return out\n\n\ndef yes(v):\n    return str(v or \"\").strip().lower() in (\"\
+  yes\", \"y\", \"true\", \"1\", \"x\")\n\n\ndef compute(p, deals_text, only=None):\n\
+  \    F = []\n    rows = list(csv.DictReader(io.StringIO(deals_text)))\n    if not\
+  \ rows:\n        raise InputError(\"deals CSV has no rows\")\n    need = {\"deal_id\"\
+  , \"close_date\", \"amount\"}\n    if not need <= set(rows[0]):\n        raise InputError(\"\
+  deals CSV needs columns %s (has %s)\" % (\", \".join(sorted(need)), \", \".join(rows[0])))\n\
+  \    credited = {rid: [] for rid in p[\"reps\"]}\n    held, excluded, claws, seen\
+  \ = [], [], [], {}\n    for n, r in enumerate(rows, 2):\n        did = (r.get(\"\
+  deal_id\") or \"\").strip() or \"row %d\" % n\n        acct = r.get(\"account\"\
+  , \"\")\n        try:\n            close = pdate(r.get(\"close_date\"), \"close_date\"\
+  )\n            amount = D(r.get(\"amount\"), \"amount\")\n            disc = D(r.get(\"\
+  discount_pct\") or 0, \"discount_pct\")\n        except InputError as e:\n     \
+  \       F.append((\"high\", \"CM01\", \"%s (row %d): %s - deal not counted\" % (did,\
+  \ n, e), did)); held.append((did, acct, \"bad data\")); continue\n        key =\
+  \ did.lower()\n        if key in seen:\n            F.append((\"medium\", \"CM04\"\
+  , \"%s appears again on row %d (first on row %d) - second row ignored\" % (did,\
+  \ n, seen[key]), did)); excluded.append((did, acct, \"duplicate row\")); continue\n\
+  \        seen[key] = n\n        status = (r.get(\"status\") or \"won\").strip().lower()\n\
+  \        split = parse_split(r.get(\"owner_split\") or r.get(\"rep\"), None)\n \
+  \       if not split:\n            F.append((\"high\", \"CM01\", \"%s: no rep /\
+  \ owner_split - deal not counted\" % did, did)); held.append((did, acct, \"no rep\"\
+  )); continue\n        unknown = [w for w in split if w not in p[\"reps\"]]\n   \
+  \     if status == \"cancelled\":\n            cdate = r.get(\"cancel_date\")\n\
+  \            try:\n                cdate = pdate(cdate, \"cancel_date\") if cdate\
+  \ else None\n            except InputError as e:\n                F.append((\"high\"\
+  , \"CM01\", \"%s: %s\" % (did, e), did)); continue\n            if not cdate or\
+  \ not (p[\"start\"] <= cdate <= p[\"end\"]):\n                excluded.append((did,\
+  \ acct, \"cancelled outside this period\")); continue\n            if p[\"start\"\
+  ] <= close <= p[\"end\"]:\n                F.append((\"info\", \"CM08\", \"%s closed\
+  \ and was cancelled in this period - not credited\" % did, did)); excluded.append((did,\
+  \ acct, \"cancelled in period\")); continue\n            age = (cdate - close).days\n\
+  \            if age > p[\"claw_days\"]:\n                F.append((\"low\", \"CM08\"\
+  , \"%s cancelled %d days after close (window %d) - no clawback\" % (did, age, p[\"\
+  claw_days\"]), did)); excluded.append((did, acct, \"cancelled after clawback window\"\
+  )); continue\n            paid = r.get(\"commission_paid\")\n            if paid\
+  \ and str(paid).strip():\n                base = D(paid, \"commission_paid\"); est\
+  \ = False\n            else:\n                tc = p[\"type_credit\"].get((r.get(\"\
+  type\") or \"new\").strip().lower(), Decimal(1))\n                base = amount\
+  \ * tc * p[\"tiers\"][0][2]; est = True\n            for who, share in split.items():\n\
+  \                if who in p[\"reps\"]:\n                    amt = money(base *\
+  \ p[\"claw_share\"] * share / 100)\n                    claws.append({\"rep\": who,\
+  \ \"deal\": did, \"account\": acct, \"amount\": amt, \"age\": age, \"estimated\"\
+  : est})\n            F.append((\"medium\", \"CM08\", \"%s cancelled %d days after\
+  \ close (window %d): clawback %s%s\" % (did, age, p[\"claw_days\"], fm(base * p[\"\
+  claw_share\"]), \" (estimated at the first tier rate - commission_paid missing)\"\
+  \ if est else \"\"), did))\n            continue\n        if status not in (\"won\"\
+  , \"closed_won\", \"closed won\"):\n            excluded.append((did, acct, \"status\
+  \ %s\" % status)); continue\n        if not (p[\"start\"] <= close <= p[\"end\"\
+  ]):\n            F.append((\"low\", \"CM03\", \"%s closed %s, outside %s - not counted\
+  \ here (check it was paid in its own period)\" % (did, close, p[\"label\"]), did));\
+  \ excluded.append((did, acct, \"closed %s\" % close)); continue\n        if unknown:\n\
+  \            F.append((\"high\", \"CM01\", \"%s: unknown rep(s) %s in owner_split\
+  \ - deal held\" % (did, \", \".join(unknown)), did)); held.append((did, acct, \"\
+  unknown rep %s\" % \", \".join(unknown))); continue\n        total = sum(split.values())\n\
+  \        if total != 100:\n            F.append((\"high\", \"CM02\", \"%s: split\
+  \ shares add up to %s%%, not 100%% - deal held until sales ops confirms the split\"\
+  \ % (did, num(total)), did)); held.append((did, acct, \"split %s%%\" % num(total)));\
+  \ continue\n        dtype = (r.get(\"type\") or \"new\").strip().lower()\n     \
+  \   if dtype not in p[\"type_credit\"]:\n            F.append((\"high\", \"CM01\"\
+  , \"%s: deal type '%s' has no credit rate in the plan - deal held\" % (did, dtype),\
+  \ did)); held.append((did, acct, \"unknown type %s\" % dtype)); continue\n     \
+  \   if amount <= 0:\n            F.append((\"medium\", \"CM01\", \"%s: amount %s\
+  \ is not positive - not counted (use a cancellation for reversals)\" % (did, amount),\
+  \ did)); excluded.append((did, acct, \"amount <= 0\")); continue\n        if p[\"\
+  max_disc\"] is not None and disc > p[\"max_disc\"] and not yes(r.get(\"approved\"\
+  )):\n            if p[\"unapproved\"] == \"hold\":\n                F.append((\"\
+  medium\", \"CM05\", \"%s: discount %s%% over the %s%% limit without approval - credit\
+  \ held\" % (did, num(disc), num(p[\"max_disc\"])), did)); held.append((did, acct,\
+  \ \"discount %s%% not approved\" % num(disc))); continue\n            F.append((\"\
+  medium\", \"CM05\", \"%s: discount %s%% over the %s%% limit without approval - paid\
+  \ anyway (unapproved_discount=pay)\" % (did, num(disc), num(p[\"max_disc\"])), did))\n\
+  \        credit_total = amount * p[\"type_credit\"][dtype]\n        deferred = p[\"\
+  pay_on\"] == \"collection\" and not yes(r.get(\"collected\"))\n        for who,\
+  \ share in split.items():\n            spiff = Decimal(0)\n            for s in\
+  \ p[\"spiffs\"]:\n                if all(str(r.get(k, \"\")).strip().lower() ==\
+  \ str(v).lower() for k, v in (s.get(\"when\") or {}).items()):\n               \
+  \     spiff += D(s[\"amount\"]) * share / 100\n            credited[who].append({\"\
+  deal\": did, \"account\": acct, \"close\": close, \"type\": dtype, \"amount\": amount,\
+  \ \"share\": share,\n                                  \"credit\": credit_total\
+  \ * share / 100, \"spiff\": spiff, \"deferred\": deferred})\n    # per rep\n   \
+  \ reps = []\n    for rid, rep in p[\"reps\"].items():\n        if only and rid not\
+  \ in only:\n            continue\n        ds = sorted(credited[rid], key=lambda\
+  \ d: (d[\"close\"], d[\"deal\"]))\n        q = rep[\"quota\"]\n        cap_credit\
+  \ = q * p[\"cap_att\"] if p[\"cap_att\"] is not None else None\n        cum = Decimal(0)\n\
+  \        total_credit = sum((d[\"credit\"] for d in ds), Decimal(0))\n        att\
+  \ = total_credit / q\n        flat_rate = rate_at(p, min(att, p[\"cap_att\"]) if\
+  \ p[\"cap_att\"] is not None else att)\n        for d in ds:\n            a, b =\
+  \ cum, cum + d[\"credit\"]\n            cum = b\n            comm, slices = Decimal(0),\
+  \ []\n            if p[\"method\"] == \"flat\":\n                eligible = b if\
+  \ cap_credit is None else min(b, cap_credit)\n                part = max(Decimal(0),\
+  \ eligible - a)\n                comm = part * flat_rate\n                slices.append(\"\
+  %s x %s\" % (fm(part), pct(flat_rate)))\n                if part < d[\"credit\"\
+  ]:\n                    slices.append(\"%s over the credit cap x 0%%\" % fm(d[\"\
+  credit\"] - part))\n            else:\n                for lo, up, rate in p[\"\
+  tiers\"]:\n                    lo_c, up_c = lo * q, (up * q if up is not None else\
+  \ None)\n                    if cap_credit is not None:\n                      \
+  \  up_c = cap_credit if up_c is None else min(up_c, cap_credit)\n              \
+  \          if lo_c >= cap_credit:\n                            continue\n      \
+  \              x0, x1 = max(a, lo_c), (b if up_c is None else min(b, up_c))\n  \
+  \                  if x1 > x0:\n                        comm += (x1 - x0) * rate\n\
+  \                        slices.append(\"%s x %s\" % (fm(x1 - x0), pct(rate)))\n\
+  \                if cap_credit is not None and b > cap_credit:\n               \
+  \     slices.append(\"%s over the credit cap x 0%%\" % fm(b - max(a, cap_credit)))\n\
+  \            d[\"commission\"] = money(comm)\n            d[\"slices\"] = slices\n\
+  \            d[\"att_after\"] = b / q\n        commission = sum((d[\"commission\"\
+  ] for d in ds), Decimal(0))\n        spiffs = money(sum((d[\"spiff\"] for d in ds),\
+  \ Decimal(0)))\n        earned = commission + spiffs\n        capped = Decimal(0)\n\
+  \        if p[\"max_payout\"] is not None and earned > p[\"max_payout\"]:\n    \
+  \        capped = earned - p[\"max_payout\"]\n            F.append((\"info\", \"\
+  CM06\", \"%s: commission + SPIFFs %s capped at max_payout %s (-%s)\" % (rep[\"name\"\
+  ], fm(earned), fm(p[\"max_payout\"]), fm(capped)), rid))\n            earned = p[\"\
+  max_payout\"]\n        if cap_credit is not None and total_credit > cap_credit:\n\
+  \            F.append((\"info\", \"CM06\", \"%s: credit above %s of quota (%s) earns\
+  \ no commission\" % (rep[\"name\"], pct(p[\"cap_att\"]), fm(total_credit - cap_credit)),\
+  \ rid))\n        if att >= 1:\n            F.append((\"info\", \"CM07\", \"%s at\
+  \ %s of quota - tier %d (%s) reached%s\" % (rep[\"name\"], pct(att), tier_name(p,\
+  \ att), pct(rate_at(p, att)), \" and applied to all credit (flat method)\" if p[\"\
+  method\"] == \"flat\" else \" for the credit above each threshold\"), rid))\n  \
+  \      deferred = money(sum((d[\"commission\"] + d[\"spiff\"] for d in ds if d[\"\
+  deferred\"]), Decimal(0)))\n        if deferred and capped:\n            deferred\
+  \ = money(deferred * earned / (earned + capped))\n        if deferred:\n       \
+  \     F.append((\"low\", \"CM09\", \"%s: %s deferred until the customer pays (pay_on\
+  \ collection)\" % (rep[\"name\"], fm(deferred)), rid))\n        claw = sum((c[\"\
+  amount\"] for c in claws if c[\"rep\"] == rid), Decimal(0))\n        payable = earned\
+  \ - deferred - claw + rep[\"carry\"]\n        draw_paid, recovered, bal = Decimal(0),\
+  \ Decimal(0), rep[\"balance\"]\n        if rep[\"draw\"]:\n            if payable\
+  \ < rep[\"draw\"]:\n                draw_paid = rep[\"draw\"] - max(payable, Decimal(0))\n\
+  \                if rep[\"recoverable\"]:\n                    bal += draw_paid\n\
+  \                F.append((\"info\", \"CM10\", \"%s: earned %s is below the %s draw\
+  \ - draw tops up %s%s\" % (rep[\"name\"], fm(max(payable, Decimal(0))), fm(rep[\"\
+  draw\"]), fm(draw_paid), (\" (recoverable: balance now %s)\" % fm(bal)) if rep[\"\
+  recoverable\"] else \" (non-recoverable)\"), rid))\n                payout = rep[\"\
+  draw\"]\n                if payable < 0:\n                    bal += -payable if\
+  \ rep[\"recoverable\"] else 0\n            else:\n                recovered = min(bal,\
+  \ payable - rep[\"draw\"]) if rep[\"recoverable\"] else Decimal(0)\n           \
+  \     bal -= recovered\n                payout = payable - recovered\n         \
+  \       if recovered:\n                    F.append((\"info\", \"CM10\", \"%s: %s\
+  \ of the outstanding draw recovered (balance now %s)\" % (rep[\"name\"], fm(recovered),\
+  \ fm(bal)), rid))\n        else:\n            payout = payable\n        carry_out\
+  \ = Decimal(0)\n        if payout < 0:\n            carry_out = payout\n       \
+  \     F.append((\"medium\", \"CM11\", \"%s: clawbacks exceed earnings by %s - payout\
+  \ 0, negative balance carried to next period (check your plan and local pay law\
+  \ before deducting)\" % (rep[\"name\"], fm(-payout)), rid))\n            payout\
+  \ = Decimal(0)\n        reps.append({\"id\": rid, \"name\": rep[\"name\"], \"quota\"\
+  : q, \"credit\": total_credit, \"attainment\": att,\n                     \"tier\"\
+  : tier_name(p, att), \"commission\": commission, \"spiffs\": spiffs, \"capped\"\
+  : capped,\n                     \"clawbacks\": claw, \"deferred\": deferred, \"\
+  carry_in\": rep[\"carry\"], \"draw_topup\": draw_paid,\n                     \"\
+  draw_recovered\": recovered, \"draw_balance\": bal, \"carry_out\": carry_out, \"\
+  payout\": money(payout), \"deals\": ds})\n    F.sort(key=lambda f: (SEV[f[0]], f[1],\
+  \ str(f[3])))\n    return {\"plan\": p, \"reps\": reps, \"held\": held, \"excluded\"\
+  : excluded, \"clawbacks\": claws, \"findings\": F}\n\n\n# ----------------------------------------------------------------\
+  \ report\ndef report(res, title):\n    p, F = res[\"plan\"], res[\"findings\"]\n\
+  \    c = {s: sum(1 for f in F if f[0] == s) for s in SEV}\n    cur = (\" \" + p[\"\
+  currency\"]) if p[\"currency\"] else \"\"\n    total = sum((r[\"payout\"] for r\
+  \ in res[\"reps\"]), Decimal(0))\n    L = [\"# Commission payouts: %s, %s\" % (p[\"\
+  name\"], p[\"label\"]), \"\"]\n    L.append(\"Period %s to %s, %s tiers (%s), pay\
+  \ on %s%s%s. Source: %s.\" % (\n        p[\"start\"], p[\"end\"], p[\"method\"],\
+  \ \", \".join(\"%s%s\" % (pct(r), (\" up to %s of quota\" % pct(u)) if u is not\
+  \ None else \" above\") for _, u, r in p[\"tiers\"]),\n        p[\"pay_on\"], (\"\
+  , credit cap %s of quota\" % pct(p[\"cap_att\"])) if p[\"cap_att\"] is not None\
+  \ else \"\",\n        (\", max payout %s\" % fm(p[\"max_payout\"])) if p[\"max_payout\"\
+  ] is not None else \"\", title))\n    L.append(\"\")\n    if c[\"high\"]:\n    \
+  \    L.append(\"**Verdict: %d high finding(s), %d deal(s) held - resolve them before\
+  \ payroll; total payable now %s%s**\" % (c[\"high\"], len(res[\"held\"]), fm(total),\
+  \ cur))\n    else:\n        L.append(\"**Verdict: ready for approval - total payable\
+  \ %s%s%s**\" % (fm(total), cur, \" (medium findings to review)\" if c[\"medium\"\
+  ] else \"\"))\n    L.append(\"\")\n    L.append(\"Findings: %d high, %d medium,\
+  \ %d low, %d info. Figures follow the plan file you provided; the signed comp plan\
+  \ and local pay law win if they differ.\" % (c[\"high\"], c[\"medium\"], c[\"low\"\
+  ], c[\"info\"]))\n    L += [\"\", \"## Payouts\", \"\", \"| Rep | Quota | Credit\
+  \ | Attainment | Tier | Commission | SPIFFs | Cap | Clawbacks | Deferred | Draw\
+  \ | Payout |\", \"|---|---|---|---|---|---|---|---|---|---|---|---|\"]\n    for\
+  \ r in res[\"reps\"]:\n        draw = (\"+%s\" % fm(r[\"draw_topup\"])) if r[\"\
+  draw_topup\"] else ((\"-%s recovered\" % fm(r[\"draw_recovered\"])) if r[\"draw_recovered\"\
+  ] else \"\")\n        L.append(\"| %s | %s | %s | %s | %d | %s | %s | %s | %s |\
+  \ %s | %s | **%s** |\" % (\n            r[\"name\"], fm(r[\"quota\"]), fm(r[\"credit\"\
+  ]), pct(r[\"attainment\"]), r[\"tier\"], fm(r[\"commission\"]), fm(r[\"spiffs\"\
+  ]),\n            (\"-\" + fm(r[\"capped\"])) if r[\"capped\"] else \"\", (\"-\"\
+  \ + fm(r[\"clawbacks\"])) if r[\"clawbacks\"] else \"\",\n            fm(r[\"deferred\"\
+  ]) if r[\"deferred\"] else \"\", draw, fm(r[\"payout\"])))\n    L.append(\"| **Total**\
+  \ | | | | | | | | | | | **%s** |\" % fm(total))\n    for r in res[\"reps\"]:\n \
+  \       L += [\"\", \"## %s\" % r[\"name\"], \"\"]\n        if not r[\"deals\"]:\n\
+  \            L.append(\"No credited deals this period.\")\n        else:\n     \
+  \       L += [\"| Deal | Account | Closed | Type | Amount | Share | Credit | Attainment\
+  \ after | Rate slices | Commission | SPIFF |\", \"|---|---|---|---|---|---|---|---|---|---|---|\"\
+  ]\n            for d in r[\"deals\"]:\n                L.append(\"| %s | %s | %s\
+  \ | %s | %s | %s%% | %s | %s | %s | %s | %s |\" % (\n                    d[\"deal\"\
+  ], d[\"account\"], d[\"close\"], d[\"type\"], fm(d[\"amount\"]), num(d[\"share\"\
+  ]), fm(d[\"credit\"]),\n                    pct(d[\"att_after\"]), \"; \".join(d[\"\
+  slices\"]) or \"-\", fm(d[\"commission\"]) + (\" (deferred)\" if d[\"deferred\"\
+  ] else \"\"), fm(d[\"spiff\"]) if d[\"spiff\"] else \"\"))\n        extra = []\n\
+  \        for cl in [x for x in res[\"clawbacks\"] if x[\"rep\"] == r[\"id\"]]:\n\
+  \            extra.append(\"- Clawback %s (%s, cancelled %d days after close): -%s%s\"\
+  \ % (cl[\"deal\"], cl[\"account\"], cl[\"age\"], fm(cl[\"amount\"]), \" (estimated)\"\
+  \ if cl[\"estimated\"] else \"\"))\n        if r[\"carry_in\"]:\n            extra.append(\"\
+  - Carried in from last period: %s\" % fm(r[\"carry_in\"]))\n        if r[\"draw_topup\"\
+  ] or r[\"draw_recovered\"] or r[\"draw_balance\"]:\n            extra.append(\"\
+  - Draw: top-up %s, recovered %s, outstanding balance %s\" % (fm(r[\"draw_topup\"\
+  ]), fm(r[\"draw_recovered\"]), fm(r[\"draw_balance\"])))\n        if r[\"carry_out\"\
+  ]:\n            extra.append(\"- Negative balance carried forward: %s\" % fm(r[\"\
+  carry_out\"]))\n        L += [\"\"] + extra if extra else []\n    if res[\"held\"\
+  ]:\n        L += [\"\", \"## Held deals (need a decision)\", \"\", \"| Deal | Account\
+  \ | Reason |\", \"|---|---|---|\"]\n        L += [\"| %s | %s | %s |\" % h for h\
+  \ in res[\"held\"]]\n    if res[\"excluded\"]:\n        L += [\"\", \"## Not counted\
+  \ this period\", \"\", \"| Deal | Account | Reason |\", \"|---|---|---|\"]\n   \
+  \     L += [\"| %s | %s | %s |\" % h for h in res[\"excluded\"]]\n    L += [\"\"\
+  , \"## Findings\", \"\"]\n    L += [\"- **%s %s** %s\" % (s.upper(), code, m) for\
+  \ s, code, m, _ in F] or [\"- none\"]\n    L += [\"\", \"Recompute check: commission\
+  \ per deal = sum of (credit in each tier band x tier rate); payout = commission\
+  \ + SPIFFs - cap - deferred - clawbacks + carry-in, then draw rules. Have sales\
+  \ ops and payroll approve before paying.\"]\n    return \"\\n\".join(L) + \"\\n\"\
+  \n\n\ndef to_json(res):\n    def j(x):\n        if isinstance(x, Decimal):\n   \
+  \         return float(money(x))\n        if isinstance(x, datetime.date):\n   \
+  \         return x.isoformat()\n        if isinstance(x, dict):\n            return\
+  \ {k: j(v) for k, v in x.items()}\n        if isinstance(x, (list, tuple)):\n  \
+  \          return [j(v) for v in x]\n        return x\n    out = {\"period\": res[\"\
+  plan\"][\"label\"], \"reps\": [], \"held\": [list(h) for h in res[\"held\"]], \"\
+  excluded\": [list(h) for h in res[\"excluded\"]],\n           \"clawbacks\": j(res[\"\
+  clawbacks\"]), \"findings\": [{\"severity\": s, \"code\": c, \"message\": m} for\
+  \ s, c, m, _ in res[\"findings\"]]}\n    for r in res[\"reps\"]:\n        rr = {k:\
+  \ v for k, v in r.items() if k != \"deals\"}\n        rr[\"attainment\"] = round(float(r[\"\
+  attainment\"]), 4)\n        rr = j(rr)\n        rr[\"deals\"] = [j({k: v for k,\
+  \ v in d.items() if k not in (\"att_after\",)}) for d in r[\"deals\"]]\n       \
+  \ out[\"reps\"].append(rr)\n    return out\n\n\n# ----------------------------------------------------------------\
+  \ self-test\ndef self_test():\n    tests = []\n    def t(name, cond):\n        tests.append((name,\
+  \ bool(cond)))\n    base = {\"period\": {\"start\": \"2026-10-01\", \"end\": \"\
+  2026-10-31\"}, \"tiers\": [{\"up_to\": 0.5, \"rate\": 0.05}, {\"up_to\": 1.0, \"\
+  rate\": 0.08}, {\"rate\": 0.12}],\n            \"reps\": {\"a\": {\"quota\": 10000},\
+  \ \"b\": {\"quota\": 10000}}}\n    H = \"deal_id,close_date,owner_split,type,amount,discount_pct,billing,status,cancel_date,commission_paid,approved,collected\\\
+  n\"\n    def run(rows, **over):\n        cfg = dict(base); cfg.update(over)\n  \
+  \      return compute(load_plan(cfg), H + rows)\n    def rep(res, rid):\n      \
+  \  return next(r for r in res[\"reps\"] if r[\"id\"] == rid)\n    def codes(res):\n\
+  \        return [(f[0], f[1]) for f in res[\"findings\"]]\n    r = run(\"1,2026-10-05,a,new,4000,,,won,,,,\\\
+  n\")\n    t(\"below first threshold: 4000 x 5% = 200\", rep(r, \"a\")[\"commission\"\
+  ] == Decimal(\"200.00\"))\n    r = run(\"1,2026-10-05,a,new,12000,,,won,,,,\\n\"\
+  )\n    t(\"marginal: 5000x5% + 5000x8% + 2000x12% = 890\", rep(r, \"a\")[\"commission\"\
+  ] == Decimal(\"890.00\"))\n    r = run(\"1,2026-10-05,a,new,12000,,,won,,,,\\n\"\
+  , tier_method=\"flat\")\n    t(\"flat: 12000 x 12% = 1440\", rep(r, \"a\")[\"commission\"\
+  ] == Decimal(\"1440.00\"))\n    r = run(\"1,2026-10-05,a,new,6000,,,won,,,,\\n2,2026-10-20,a,new,6000,,,won,,,,\\\
+  n\")\n    t(\"tiers follow close order across deals\", [d[\"commission\"] for d\
+  \ in rep(r, \"a\")[\"deals\"]] == [Decimal(\"330.00\"), Decimal(\"560.00\")])\n\
+  \    t(\"accelerator reached -> CM07\", (\"info\", \"CM07\") in codes(r))\n    r\
+  \ = run(\"1,2026-10-05,a,new,30000,,,won,,,,\\n\", credit_cap_attainment=2.0)\n\
+  \    t(\"credit cap at 200%: 250+400+1200 = 1850\", rep(r, \"a\")[\"commission\"\
+  ] == Decimal(\"1850.00\") and (\"info\", \"CM06\") in codes(r))\n    r = run(\"\
+  1,2026-10-05,a,new,30000,,,won,,,,\\n\", max_payout=1000)\n    t(\"max_payout caps\
+  \ the payout\", rep(r, \"a\")[\"payout\"] == Decimal(\"1000.00\"))\n    r = run(\"\
+  1,2026-10-05,a,renewal,10000,,,won,,,,\\n\", deal_type_credit={\"new\": 1, \"renewal\"\
+  : 0.5})\n    t(\"renewal credited at 50%\", rep(r, \"a\")[\"credit\"] == Decimal(\"\
+  5000\") and rep(r, \"a\")[\"commission\"] == Decimal(\"250.00\"))\n    r = run(\"\
+  1,2026-10-05,a:60;b:40,new,10000,,,won,,,,\\n\")\n    t(\"split 60/40 credits both\
+  \ reps\", rep(r, \"a\")[\"credit\"] == Decimal(\"6000\") and rep(r, \"b\")[\"credit\"\
+  ] == Decimal(\"4000\"))\n    r = run(\"1,2026-10-05,a:60;b:30,new,10000,,,won,,,,\\\
+  n\")\n    t(\"split not 100% -> CM02 high, held\", (\"high\", \"CM02\") in codes(r)\
+  \ and rep(r, \"a\")[\"credit\"] == 0 and r[\"held\"])\n    r = run(\"1,2026-10-05,zed,new,10000,,,won,,,,\\\
+  n\")\n    t(\"unknown rep -> CM01 high\", (\"high\", \"CM01\") in codes(r))\n  \
+  \  r = run(\"1,2026-10-05,a,new,10000,30,,won,,,,\\n\", max_discount_pct=20)\n \
+  \   t(\"discount over limit unapproved -> CM05 held\", (\"medium\", \"CM05\") in\
+  \ codes(r) and rep(r, \"a\")[\"credit\"] == 0)\n    r = run(\"1,2026-10-05,a,new,10000,30,,won,,,yes,\\\
+  n\", max_discount_pct=20)\n    t(\"approved discount is paid\", rep(r, \"a\")[\"\
+  credit\"] == Decimal(\"10000\"))\n    r = run(\"1,2026-09-28,a,new,10000,,,won,,,,\\\
+  n\")\n    t(\"closed outside period -> CM03, not counted\", (\"low\", \"CM03\")\
+  \ in codes(r) and rep(r, \"a\")[\"credit\"] == 0)\n    r = run(\"1,2026-10-05,a,new,4000,,,won,,,,\\\
+  n1,2026-10-05,a,new,4000,,,won,,,,\\n\")\n    t(\"duplicate deal id -> CM04, counted\
+  \ once\", (\"medium\", \"CM04\") in codes(r) and rep(r, \"a\")[\"credit\"] == Decimal(\"\
+  4000\"))\n    r = run(\"1,2026-10-05,a,new,4000,,,won,,,,\\n9,2026-08-20,a,new,8000,,,cancelled,2026-10-10,400,,\\\
+  n\", clawback={\"window_days\": 90})\n    t(\"cancelled within window -> clawback\
+  \ of paid commission\", rep(r, \"a\")[\"clawbacks\"] == Decimal(\"400.00\") and\
+  \ rep(r, \"a\")[\"payout\"] == 0 and rep(r, \"a\")[\"carry_out\"] == Decimal(\"\
+  -200.00\") and (\"medium\", \"CM11\") in codes(r))\n    r = run(\"9,2026-05-01,a,new,8000,,,cancelled,2026-10-10,400,,\\\
+  n\", clawback={\"window_days\": 90})\n    t(\"cancelled after window -> no clawback\"\
+  , rep(r, \"a\")[\"clawbacks\"] == 0 and (\"low\", \"CM08\") in codes(r))\n    r\
+  \ = run(\"9,2026-09-20,a,new,8000,,,cancelled,2026-10-10,,,\\n\", clawback={\"window_days\"\
+  : 90})\n    t(\"missing commission_paid -> estimated at first tier\", rep(r, \"\
+  a\")[\"clawbacks\"] == Decimal(\"400.00\"))\n    r = run(\"1,2026-10-05,a,new,4000,,annual,won,,,,\\\
+  n\", spiffs=[{\"name\": \"Annual\", \"when\": {\"billing\": \"annual\"}, \"amount\"\
+  : 150}])\n    t(\"SPIFF added\", rep(r, \"a\")[\"spiffs\"] == Decimal(\"150.00\"\
+  ) and rep(r, \"a\")[\"payout\"] == Decimal(\"350.00\"))\n    r = run(\"1,2026-10-05,a,new,4000,,,won,,,,no\\\
+  n\", pay_on=\"collection\")\n    t(\"pay on collection defers unpaid deals\", rep(r,\
+  \ \"a\")[\"deferred\"] == Decimal(\"200.00\") and rep(r, \"a\")[\"payout\"] == 0)\n\
+  \    cfg = dict(base, reps={\"a\": {\"quota\": 10000, \"draw\": {\"amount\": 500,\
+  \ \"recoverable\": True, \"balance\": 0}}})\n    res = compute(load_plan(cfg), H\
+  \ + \"1,2026-10-05,a,new,4000,,,won,,,,\\n\")\n    t(\"recoverable draw tops up\
+  \ and builds balance\", rep(res, \"a\")[\"payout\"] == Decimal(\"500.00\") and rep(res,\
+  \ \"a\")[\"draw_balance\"] == Decimal(\"300\"))\n    cfg = dict(base, reps={\"a\"\
+  : {\"quota\": 10000, \"draw\": {\"amount\": 500, \"recoverable\": True, \"balance\"\
+  : 300}}})\n    res = compute(load_plan(cfg), H + \"1,2026-10-05,a,new,12000,,,won,,,,\\\
+  n\")\n    t(\"surplus recovers draw balance\", rep(res, \"a\")[\"draw_recovered\"\
+  ] == Decimal(\"300\") and rep(res, \"a\")[\"payout\"] == Decimal(\"590.00\"))\n\
+  \    cfg = dict(base, reps={\"a\": {\"quota\": 10000, \"draw\": {\"amount\": 500,\
+  \ \"recoverable\": False}}})\n    res = compute(load_plan(cfg), H + \"1,2026-10-05,a,new,4000,,,won,,,,\\\
+  n\")\n    t(\"non-recoverable draw: no balance\", rep(res, \"a\")[\"payout\"] ==\
+  \ Decimal(\"500.00\") and rep(res, \"a\")[\"draw_balance\"] == 0)\n    t(\"thousands\
+  \ separator parsed\", D(\"12,000\") == Decimal(\"12000\") and D(\"1.234,50\") ==\
+  \ Decimal(\"1234.50\"))\n    for label, bad in [(\"tiers out of order\", dict(base,\
+  \ tiers=[{\"up_to\": 1, \"rate\": 0.05}, {\"up_to\": 0.5, \"rate\": 0.08}])),\n\
+  \                       (\"rate as percent\", dict(base, tiers=[{\"rate\": 8}])),\
+  \ (\"unknown key\", dict(base, quotas=1))]:\n        try:\n            load_plan(bad);\
+  \ ok = False\n        except InputError:\n            ok = True\n        t(\"bad\
+  \ plan rejected: \" + label, ok)\n    rr = run(\"1,2026-10-05,a,new,4000,,,won,,,,\\\
+  n\")\n    t(\"report has verdict and payouts table\", \"**Verdict:\" in report(rr,\
+  \ \"t\") and \"## Payouts\" in report(rr, \"t\"))\n    for name, ok in tests:\n\
+  \        print((\"PASS  \" if ok else \"FAIL  \") + name)\n    passed = sum(ok for\
+  \ _, ok in tests)\n    print(\"%d/%d passed\" % (passed, len(tests)))\n    return\
+  \ 0 if passed == len(tests) else 1\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser(description=\"\
+  Calculate sales commission payouts for one period.\")\n    ap.add_argument(\"plan\"\
+  , nargs=\"?\")\n    ap.add_argument(\"deals\", nargs=\"?\")\n    ap.add_argument(\"\
+  --rep\", action=\"append\", default=[], help=\"only show this rep id (repeatable)\"\
+  )\n    ap.add_argument(\"--json\", action=\"store_true\")\n    ap.add_argument(\"\
+  --self-test\", action=\"store_true\")\n    a = ap.parse_args(argv)\n    if a.self_test:\n\
+  \        return self_test()\n    if not a.plan or not a.deals:\n        ap.print_usage(sys.stderr)\n\
+  \        return 2\n    try:\n        try:\n            cfg = json.load(open(a.plan,\
+  \ encoding=\"utf-8\"))\n        except json.JSONDecodeError as e:\n            raise\
+  \ InputError(\"plan is not valid JSON: %s\" % e)\n        p = load_plan(cfg)\n \
+  \       res = compute(p, open(a.deals, encoding=\"utf-8-sig\").read(), [x.lower()\
+  \ for x in a.rep] or None)\n    except (OSError, InputError, KeyError) as e:\n \
+  \       print(\"error: %s\" % ((\"missing field %s\" % e) if isinstance(e, KeyError)\
+  \ else e), file=sys.stderr)\n        return 2\n    if a.json:\n        print(json.dumps(to_json(res),\
+  \ indent=2))\n    else:\n        sys.stdout.write(report(res, a.deals))\n    return\
+  \ 1 if any(f[0] == \"high\" for f in res[\"findings\"]) else 0\n\n\nif __name__\
+  \ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
