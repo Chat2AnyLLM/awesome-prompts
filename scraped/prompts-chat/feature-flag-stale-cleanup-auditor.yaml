@@ -1,0 +1,629 @@
+slug: feature-flag-stale-cleanup-auditor
+title: Feature Flag Stale Cleanup Auditor
+description: Imported from Prompts Chat
+prompt: "---\nname: feature-flag-stale-cleanup-auditor\ndescription: Audits feature\
+  \ flags against your codebase and plans their cleanup - finds release flags 100%\
+  \ on or off for weeks, rollouts stuck at a partial percentage, experiments that\
+  \ never ended, expired, archived and unreferenced flags, keys used in code but missing\
+  \ from the flag service (or misspelled), staging-production drift and flags without\
+  \ an owner. Lists every file:line to change with effort. Includes an offline stdlib\
+  \ Python scanner.\n---\n\n# Feature Flag Stale Cleanup Auditor\n\nYou help engineering\
+  \ teams pay down feature flag debt. Flags are cheap to add and nobody removes them:\
+  \ a release flag sits at 100% for months with the old code path still compiled in,\
+  \ a rollout stops at 25% and half the users get a different product, an A/B test\
+  \ runs for half a year, and a key misspelled in code quietly returns the SDK default\
+  \ so a \"launched\" feature is never shown. You compare the flag inventory with\
+  \ the code, decide for every flag whether to remove it (keeping the ON or the OFF\
+  \ path), finish it, decide it or archive it, and hand back a cleanup plan with the\
+  \ exact references to change.\n\nYou work from an exported or hand-written flag\
+  \ inventory and the source folders you are given. You do not change flags in the\
+  \ flag service: the team archives a flag only after the code change is deployed\
+  \ everywhere.\n\n## Files in this skill\n\n- `scripts/flag_audit.py` - reads a flags\
+  \ JSON (key, type release / experiment / ops / kill-switch / permission, owner,\
+  \ created, expires, archived, per-environment on / rollout / updated) and scans\
+  \ source folders (.ts .tsx .js .jsx .py .go .rb .java .kt .cs .php .swift .vue .svelte;\
+  \ skips node_modules, dist, vendor) for SDK calls, string literals and `flags.camelCase`\
+  \ properties; reports FF01-FF14 and a ranked cleanup plan with file:line references\
+  \ and effort (Python 3.8+ standard library only)\n- `references/flag-lifecycle-and-removal.md`\
+  \ - flag types and their expected lifetime, how to remove a flag safely (keep ON\
+  \ / keep OFF), exporting inventories from common flag services, and policies that\
+  \ stop flag debt coming back\n- `references/checks-and-codes.md` - every finding\
+  \ code, its severity and what to do, plus the input format\n- `templates/cleanup-ticket.md`\
+  \ - the cleanup ticket / PR description for each flag\n- `examples/flags.json` -\
+  \ nine flags of a web shop (release, experiment, kill-switch, permission, archived)\n\
+  - `examples/src/checkout.ts`, `examples/src/Header.tsx`, `examples/src/search.py`\
+  \ - code using them, including a misspelled key, a key that does not exist and a\
+  \ key built at runtime\n- `examples/cleanup-report.md` - the real scanner output\
+  \ on the example\n\n## Workflow\n\n### 1. Collect the inventory and the code\nAsk\
+  \ which flag service they use and for an export of all flags with type, owner, creation\
+  \ date, expiry or ticket, and per-environment state (on/off, rollout percentage,\
+  \ last change). Map it into a JSON like `examples/flags.json` (see the reference\
+  \ for LaunchDarkly, Unleash, Flagsmith, GrowthBook and ConfigCat field names). Ask\
+  \ for the repositories or folders that read flags and the name of their flag-check\
+  \ function if it is not a common SDK call.\n\n### 2. Run the scanner\n```\npython3\
+  \ scripts/flag_audit.py examples/flags.json examples/src\npython3 scripts/flag_audit.py\
+  \ flags.json web/src api/app --today 2026-11-05 --stale-days 21\npython3 scripts/flag_audit.py\
+  \ flags.json src --call featureOn --call can\npython3 scripts/flag_audit.py flags.json\
+  \ src --json\npython3 scripts/flag_audit.py --self-test\n```\nExit 0 = no high findings,\
+  \ 1 = high findings, 2 = bad input. Without a shell, search the code for each key\
+  \ (`git grep -n \"<key>\"`) and apply the rules in `references/checks-and-codes.md`\
+  \ by hand.\n\n### 3. Read the result\n- High first: FF01 keys in code that the flag\
+  \ service does not know (typos read the default, so the feature is effectively off)\
+  \ and FF14 archived flags still in code.\n- Medium: FF02 fully on and FF03 fully\
+  \ off for longer than the stale window, FF12 stuck rollouts, FF09 long experiments,\
+  \ FF05 expired, FF08 production ahead of staging.\n- Low/info: unreferenced flags\
+  \ (check other repos first), missing owner or expiry, long-lived flags (kill switches,\
+  \ permissions) listed but not judged stale, keys built at runtime that search cannot\
+  \ find.\n\n### 4. Plan the cleanup\nWork down the plan table: fix typos first, then\
+  \ remove flags with few references (effort S) to build momentum. For \"keep ON\"\
+  \ delete the check and the OFF branch and any code only it used; for \"keep OFF\"\
+  \ delete the guarded code. Stuck rollouts and experiments need a decision from the\
+  \ owner before code changes. Fill `templates/cleanup-ticket.md` per flag.\n\n###\
+  \ 5. Deliver\nReturn the verdict, the ranked plan with owners and file:line lists,\
+  \ the tickets, and two or three policy suggestions (expiry dates on every temporary\
+  \ flag, a monthly cleanup slot, a lint rule or CI check that fails on unknown keys).\n\
+  \n## Example result\nThree high findings: `new-checkout-flow-v3` is read in checkout.ts\
+  \ but does not exist, `recs_carousel` in search.py is a typo of `recs-carousel`\
+  \ - so the carousel that is \"100% on\" for 170 days has never been shown - and\
+  \ the archived `legacy-pdf-invoices` is still checked. `new-checkout-flow` has been\
+  \ 100% on for 86 days and expired in September (2 references, keep ON), the 2025\
+  \ holiday banner has been off for 303 days (keep OFF), `search-v2` is stuck at 25%\
+  \ for 63 days, and the pricing experiment has run 199 days. `dark-mode` is on in\
+  \ production but off in staging. Kill switch and permission flags are kept.\n\n\
+  ## Rules\n\n- Never recommend removing a kill switch, ops or permission flag because\
+  \ it is old; they are long-lived by design.\n- A flag with no references in the\
+  \ scanned folders may be used elsewhere (mobile apps, other services, config); say\
+  \ so before suggesting to archive it.\n- Remove code first, deploy, then archive\
+  \ the flag in the service - never the other way round.\n- A stuck rollout or a running\
+  \ experiment needs the owner's decision; do not pick the winner for them.\n- Treat\
+  \ `today` and the stale window as inputs; say which values you used.\n\x1FFILE:references/flag-lifecycle-and-removal.md\x1E\
+  \n# Flag lifecycle and safe removal\n\n## Flag types and expected lifetime\n| Type\
+  \ | Purpose | Expected life | Done when |\n|---|---|---|---|\n| release | hide unfinished\
+  \ work, roll out gradually | days to a few weeks after 100% | 100% everywhere and\
+  \ stable for the stale window |\n| experiment | A/B or multivariate test | the test\
+  \ duration (2-6 weeks typical) | a decision is made |\n| ops | operational switch\
+  \ (cache on/off, batch size) | long | rarely; review yearly |\n| kill-switch | turn\
+  \ off a risky dependency fast | permanent | never by age |\n| permission | entitlement,\
+  \ beta access, plan feature | permanent (or move to the billing/entitlement system)\
+  \ | product decision |\n\n## Removing a flag safely\n1. Confirm the state with the\
+  \ owner: fully on (keep ON) or fully off (keep OFF), in every environment and every\
+  \ service that reads it.\n2. Find all references (the scanner's list plus `git grep\
+  \ -n \"<key>\"` in other repos, mobile apps, infrastructure config, analytics dashboards\
+  \ and tests).\n3. Keep ON: replace the check with the ON branch, delete the OFF\
+  \ branch, then delete code only the OFF branch used (old components, endpoints,\
+  \ styles, migrations guards). Keep OFF: delete the guarded code and anything only\
+  \ it used.\n4. Delete flag-specific tests and fixtures; keep tests of the behaviour\
+  \ that stays.\n5. Deploy to every environment. Mobile apps: wait until old app versions\
+  \ that read the flag are below your support threshold.\n6. Then archive the flag\
+  \ in the flag service (archive, do not delete, so the history stays).\n7. Close\
+  \ the ticket with the PR links.\n\n## Common traps\n- Typos and renamed keys: the\
+  \ SDK returns the default for unknown keys without an error, so code reading `recs_carousel`\
+  \ never sees `recs-carousel`. A CI check that compares literal keys with the inventory\
+  \ catches this.\n- Archiving first: an archived flag returns the default everywhere\
+  \ still reading it - often the OFF path, i.e. an instant rollback of a launched\
+  \ feature.\n- Stuck rollouts: 25% for two months means two products to support and\
+  \ test; finish or roll back.\n- Experiments without an end date keep skewing metrics\
+  \ and analytics events.\n- Keys built at runtime (`\"export-format-\" + region`)\
+  \ cannot be found by search; keep a constants file listing every possible key.\n\
+  \n## Exporting the inventory\n- LaunchDarkly: REST `GET /api/v2/flags/{projectKey}?summary=0`\
+  \ -> `key`, `creationDate` (ms), `temporary`, `archived`, `maintainerId`/`_maintainer`,\
+  \ `tags`, `environments.<env>.on`, `.lastModified`, rollout weights in `fallthrough.rollout.variations`\
+  \ (weight/1000 = percent). Map `temporary: false` to `permanent: true`.\n- Unleash:\
+  \ `GET /api/admin/projects/<p>/features` -> `name`, `type` (release, experiment,\
+  \ operational, kill-switch, permission), `createdAt`, `stale`, `environments[].enabled`,\
+  \ gradual rollout strategy `parameters.rollout`.\n- Flagsmith: `/api/v1/projects/<id>/features/`\
+  \ + per-environment `featurestates` (`enabled`, `updated_at`), percentage via segment\
+  \ overrides.\n- GrowthBook: `/api/v1/features` -> `id`, `owner`, `dateCreated`,\
+  \ `archived`, `environments.<env>.enabled`, rollout rule `coverage` (0-1 -> percent).\n\
+  - ConfigCat: Management API settings + values per environment; percentage options\
+  \ give the rollout.\n- In-house config (YAML/JSON): one entry per flag; add created/owner/expires\
+  \ by hand from git blame.\n\n## Policies that keep flag debt down\n- Every temporary\
+  \ flag gets an owner, a ticket and an expiry date when it is created.\n- Cleanup\
+  \ is part of the definition of done: the removal ticket is created with the flag.\n\
+  - A monthly 30-minute flag review using this audit; a cap on active release flags\
+  \ per team.\n- CI: fail on keys not in the inventory; warn on expired flags still\
+  \ referenced.\n\x1FFILE:references/checks-and-codes.md\x1E\n# Checks and finding\
+  \ codes\n\n| Code | Severity | Check | What to do |\n|---|---|---|---|\n| FF01 |\
+  \ high | a flag-check call (isEnabled, variation, useFlag, is_enabled ...) uses\
+  \ a key that is not in the inventory; a close match is suggested (typo, `_` vs `-`)\
+  \ | fix the key or create the flag; until then the SDK returns the default value\
+  \ |\n| FF02 | medium | release flag at 100% in the primary environment for `stale_days`\
+  \ or more | remove the flag, keep the ON path |\n| FF03 | medium | release or experiment\
+  \ flag off / 0% in the primary environment for `stale_days` or more | remove the\
+  \ flag and the guarded code, or decide to launch |\n| FF04 | low | no reference\
+  \ in the scanned files | check other repos and services; archive if unused |\n|\
+  \ FF05 | medium | `expires` date passed (temporary flags) | remove or agree a new\
+  \ date |\n| FF06 | info | ops, kill-switch, permission (or `permanent: true`) flag\
+  \ - not judged stale | review yearly |\n| FF07 | low | no owner | assign one |\n\
+  | FF08 | medium | primary environment ahead of staging/qa/test/dev, or no state\
+  \ for the primary environment | align environments |\n| FF09 | medium | experiment\
+  \ older than `experiment_max_days` | decide, ship the winner, remove |\n| FF10 |\
+  \ info | flag key built at runtime (variable, concatenation, template string) |\
+  \ use literal keys or a constants file |\n| FF11 | low | temporary flag without\
+  \ `expires` | set an expiry |\n| FF12 | medium | release rollout between 1 and 99%\
+  \ unchanged for `stale_days` | finish (100%) or roll back, then remove |\n| FF13\
+  \ | medium | key defined twice in the inventory | merge |\n| FF14 | high | flag\
+  \ archived in the service but still referenced in code | remove the references |\n\
+  \n## Verdict\n- **N high finding(s)** when FF01/FF14 exist; else **N flag(s) ready\
+  \ to remove**; else **no stale flags**.\n\n## Plan actions (in this order)\nremove\
+  \ code (archived) -> remove, keep ON -> remove, keep OFF -> finish rollout -> decide\
+  \ experiment -> archive (no references). Within an action, flags with more references\
+  \ first. Effort: S 1-2 references, M 3-6, L 7+.\n\n## How references are found\n\
+  1. Calls: `<name>(` with a literal first argument (or a literal after one leading\
+  \ argument such as a client or user), for the built-in names plus `call_names` /\
+  \ `--call`.\n2. Any string literal equal to a known key (constants files, config\
+  \ maps).\n3. `flags.`, `features.`, `featureFlags.`, `toggles.` followed by the\
+  \ key or its camelCase form (`new-search` -> `flags.newSearch`).\nComments that\
+  \ contain the key in quotes are counted too - check the listed lines.\n\n## Flags\
+  \ JSON\nTop level: `today, primary_env (production), environments, stale_days (30),\
+  \ experiment_max_days (90), call_names[], flags[]`.\nFlag: `key, type (release|experiment|ops|kill-switch|permission),\
+  \ owner, created, expires, permanent, archived, description, ticket, environments{name:\
+  \ {on, rollout 0-100, updated}}`. `rollout` defaults to 100 when on and 0 when off;\
+  \ `updated` is the last change of that environment (falls back to `created`).\n\x1F\
+  FILE:templates/cleanup-ticket.md\x1E\n# Remove feature flag `<key>`\n\n**Owner:**\
+  \ <team-payments>   **Type:** <release>   **Ticket:** <PAY-412>   **Action:** <remove,\
+  \ keep ON>\n**State:** <100% on in production since 2026-08-11 (86 days), 100% in\
+  \ staging>   **Expired:** <2026-09-30>\n\n## Why\n<Fully rolled out and stable for\
+  \ 86 days; the OFF path (legacy checkout) is dead code.>\n\n## Change\n- [ ] `<examples/src/checkout.ts:4>`\
+  \ - replace the check with the ON branch (`renderOnePageCheckout`)\n- [ ] `<examples/src/checkout.ts:14>`\
+  \ - always use `oneClickButton()`\n- [ ] delete code only the OFF path used: <renderLegacyCheckout,\
+  \ classicButton, legacy checkout styles>\n- [ ] delete flag-specific tests and fixtures\n\
+  - [ ] search other repos / mobile apps: `git grep -n \"<key>\"`\n\n## Rollout\n\
+  1. Merge and deploy to staging, then production.\n2. Watch <checkout conversion,\
+  \ error rate> for <2 days>.\n3. Archive `<key>` in <flag service> (archive, not\
+  \ delete).\n\n## Risks / questions\n- <Does the mobile app read this flag? Minimum\
+  \ supported version?>\n- <Any dashboards or alerts keyed on the flag?>\n\x1FFILE:examples/flags.json\x1E\
+  \n{\n  \"today\": \"2026-11-05\",\n  \"primary_env\": \"production\",\n  \"stale_days\"\
+  : 30,\n  \"experiment_max_days\": 90,\n  \"flags\": [\n    {\"key\": \"new-checkout-flow\"\
+  , \"type\": \"release\", \"owner\": \"team-payments\", \"created\": \"2026-06-02\"\
+  , \"expires\": \"2026-09-30\", \"ticket\": \"PAY-412\",\n     \"description\": \"\
+  New one-page checkout\",\n     \"environments\": {\"production\": {\"on\": true,\
+  \ \"rollout\": 100, \"updated\": \"2026-08-11\"}, \"staging\": {\"on\": true, \"\
+  rollout\": 100, \"updated\": \"2026-07-20\"}}},\n    {\"key\": \"search-v2\", \"\
+  type\": \"release\", \"owner\": \"team-search\", \"created\": \"2026-07-15\", \"\
+  expires\": \"2026-12-31\",\n     \"description\": \"Typesense-backed search\",\n\
+  \     \"environments\": {\"production\": {\"on\": true, \"rollout\": 25, \"updated\"\
+  : \"2026-09-03\"}, \"staging\": {\"on\": true, \"rollout\": 100, \"updated\": \"\
+  2026-08-01\"}}},\n    {\"key\": \"holiday-banner-2025\", \"type\": \"release\",\
+  \ \"owner\": \"team-growth\", \"created\": \"2025-11-10\", \"expires\": \"2026-01-10\"\
+  ,\n     \"description\": \"Christmas 2025 promo banner\",\n     \"environments\"\
+  : {\"production\": {\"on\": false, \"rollout\": 0, \"updated\": \"2026-01-06\"},\
+  \ \"staging\": {\"on\": false, \"rollout\": 0, \"updated\": \"2026-01-06\"}}},\n\
+  \    {\"key\": \"pricing-page-test\", \"type\": \"experiment\", \"owner\": \"team-growth\"\
+  , \"created\": \"2026-04-20\", \"expires\": \"2026-07-01\",\n     \"description\"\
+  : \"A/B test: annual plan first\",\n     \"environments\": {\"production\": {\"\
+  on\": true, \"rollout\": 50, \"updated\": \"2026-04-22\"}, \"staging\": {\"on\"\
+  : true, \"rollout\": 50, \"updated\": \"2026-04-22\"}}},\n    {\"key\": \"dark-mode\"\
+  , \"type\": \"release\", \"owner\": \"team-web\", \"created\": \"2026-10-01\", \"\
+  expires\": \"2026-12-15\",\n     \"description\": \"Dark theme\",\n     \"environments\"\
+  : {\"production\": {\"on\": true, \"rollout\": 100, \"updated\": \"2026-10-28\"\
+  }, \"staging\": {\"on\": false, \"rollout\": 0, \"updated\": \"2026-10-02\"}}},\n\
+  \    {\"key\": \"payments-kill-switch\", \"type\": \"kill-switch\", \"owner\": \"\
+  team-payments\", \"created\": \"2025-03-01\",\n     \"description\": \"Turn off\
+  \ card payments during a PSP outage\",\n     \"environments\": {\"production\":\
+  \ {\"on\": true, \"rollout\": 100, \"updated\": \"2025-03-01\"}, \"staging\": {\"\
+  on\": true, \"rollout\": 100, \"updated\": \"2025-03-01\"}}},\n    {\"key\": \"\
+  beta-reports-export\", \"type\": \"permission\", \"owner\": \"\", \"created\": \"\
+  2025-09-12\",\n     \"description\": \"CSV export for beta customers\",\n     \"\
+  environments\": {\"production\": {\"on\": true, \"rollout\": 100, \"updated\": \"\
+  2025-09-12\"}}},\n    {\"key\": \"legacy-pdf-invoices\", \"type\": \"release\",\
+  \ \"owner\": \"team-billing\", \"created\": \"2025-05-01\", \"archived\": true,\n\
+  \     \"description\": \"Old PDF renderer\",\n     \"environments\": {\"production\"\
+  : {\"on\": false, \"rollout\": 0, \"updated\": \"2026-02-01\"}}},\n    {\"key\"\
+  : \"recs-carousel\", \"type\": \"release\", \"owner\": \"team-growth\", \"created\"\
+  : \"2026-03-03\",\n     \"description\": \"Recommendations carousel on product pages\"\
+  ,\n     \"environments\": {\"production\": {\"on\": true, \"rollout\": 100, \"updated\"\
+  : \"2026-05-19\"}, \"staging\": {\"on\": true, \"rollout\": 100, \"updated\": \"\
+  2026-05-01\"}}}\n  ]\n}\n\x1FFILE:examples/src/checkout.ts\x1E\nimport { flags }\
+  \ from \"./flags\";\n\nexport async function renderCheckout(user: User, cart: Cart)\
+  \ {\n  if (await flags.isEnabled(\"new-checkout-flow\", user)) {\n    return renderOnePageCheckout(user,\
+  \ cart);\n  }\n  return renderLegacyCheckout(user, cart);\n}\n\nexport async function\
+  \ payButton(user: User) {\n  if (await flags.isEnabled(\"payments-kill-switch\"\
+  , user)) {\n    return disabledButton(\"Card payments are paused. Please try again\
+  \ shortly.\");\n  }\n  const oneClick = await flags.isEnabled(\"new-checkout-flow\"\
+  , user);\n  return oneClick ? oneClickButton() : classicButton();\n}\n\nexport async\
+  \ function invoiceLink(order: Order) {\n  // TODO remove after PDF migration\n \
+  \ if (await flags.isEnabled(\"legacy-pdf-invoices\")) {\n    return legacyPdfUrl(order.id);\n\
+  \  }\n  return invoiceServiceUrl(order.id);\n}\n\nexport async function trackCheckoutVariant(user:\
+  \ User) {\n  const variant = await flags.variation(\"new-checkout-flow-v3\", user,\
+  \ \"control\");\n  analytics.track(\"checkout_variant\", { variant });\n}\n\x1F\
+  FILE:examples/src/Header.tsx\x1E\nimport { useFlag } from \"@acme/flags-react\"\
+  ;\n\nexport function Header() {\n  const darkMode = useFlag(\"dark-mode\");\n  const\
+  \ showBanner = useFlag(\"holiday-banner-2025\");\n  return (\n    <header className={darkMode\
+  \ ? \"header header--dark\" : \"header\"}>\n      {showBanner && <PromoBanner text=\"\
+  Holiday sale: 20% off everything\" />}\n      <SearchBox />\n    </header>\n  );\n\
+  }\n\nexport function PricingPage({ user }: { user: User }) {\n  const annualFirst\
+  \ = useFlag(\"pricing-page-test\");\n  return annualFirst ? <PlansAnnualFirst />\
+  \ : <PlansMonthlyFirst />;\n}\n\x1FFILE:examples/src/search.py\x1E\nfrom app.flags\
+  \ import flags\n\n\ndef search(query, user):\n    if flags.is_enabled(\"search-v2\"\
+  , user):\n        return typesense_search(query)\n    return postgres_search(query)\n\
+  \n\ndef export_reports(user, region):\n    if not flags.is_enabled(\"beta-reports-export\"\
+  , user):\n        raise PermissionError(\"export is in beta\")\n    # per-region\
+  \ experiment keys, e.g. \"export-format-eu\"\n    if flags.is_enabled(\"export-format-\"\
+  \ + region, user):\n        return export_parquet(user)\n    return export_csv(user)\n\
+  \n\ndef recommendations(product):\n    if flags.is_enabled(\"recs_carousel\"):\n\
+  \        return top_related(product, limit=12)\n    return []\n\x1FFILE:examples/cleanup-report.md\x1E\
+  \n# Feature flag cleanup audit\n\nToday 2026-11-05, primary environment `production`,\
+  \ stale after 30 days. 9 flag(s) in the inventory, 3 source file(s) scanned in examples/src.\n\
+  \n**Verdict: 3 high finding(s) - flags used in code that the flag service does not\
+  \ know**\n\nCleanup candidates: 6 (4 removable now, 4 reference(s) to change). Findings:\
+  \ 3 high, 9 medium, 2 low, 3 info.\n\n## Cleanup plan\n\n| # | Flag | Type | Owner\
+  \ | Primary | Action | Why | Refs (files) | Effort | Where |\n|---|---|---|---|---|---|---|---|---|---|\n\
+  | 1 | `legacy-pdf-invoices` | release | team-billing | archived | **remove code**\
+  \ | archived but still in code | 1 (1) | S | `examples/src/checkout.ts:20` |\n|\
+  \ 2 | `new-checkout-flow` | release | team-payments | 100% | **remove, keep ON**\
+  \ | 100% on for 86 days | 2 (1) | S | `examples/src/checkout.ts:4`, `examples/src/checkout.ts:14`\
+  \ |\n| 3 | `recs-carousel` | release | team-growth | 100% | **remove, keep ON**\
+  \ | 100% on for 170 days | 0 (0) | - | - |\n| 4 | `holiday-banner-2025` | release\
+  \ | team-growth | 0% | **remove, keep OFF** | off for 303 days | 1 (1) | S | `examples/src/Header.tsx:5`\
+  \ |\n| 5 | `search-v2` | release | team-search | 25% | **finish rollout** | stuck\
+  \ at 25% | 1 (1) | S | `examples/src/search.py:5` |\n| 6 | `pricing-page-test` |\
+  \ experiment | team-growth | 50% | **decide experiment** | running 199 days | 1\
+  \ (1) | S | `examples/src/Header.tsx:15` |\n\nEffort: S = 1-2 references, M = 3-6,\
+  \ L = 7 or more. \"keep ON\" = delete the flag check and the OFF branch; \"keep\
+  \ OFF\" = delete the guarded code. Archive the flag in the flag service only after\
+  \ the code change is deployed everywhere.\n\n## Findings\n\n| Sev | Code | Flag\
+  \ | Finding | Fix |\n|---|---|---|---|---|\n| high | FF01 | `new-checkout-flow-v3`\
+  \ | used in code (examples/src/checkout.ts:27) but not defined in the flag inventory\
+  \ - the SDK returns the default, so this code path is reading the wrong key | typo\
+  \ of new-checkout-flow? use the exact key |\n| high | FF01 | `recs_carousel` | used\
+  \ in code (examples/src/search.py:20) but not defined in the flag inventory - the\
+  \ SDK returns the default, so this code path is reading the wrong key | typo of\
+  \ recs-carousel? use the exact key |\n| high | FF14 | `legacy-pdf-invoices` | flag\
+  \ is archived in the flag service but still referenced in 1 place(s) - it now returns\
+  \ the default | remove the references |\n| medium | FF02 | `new-checkout-flow` |\
+  \ release flag 100% on in production for 86 days | remove the flag and keep the\
+  \ ON path; delete the OFF branch and old code |\n| medium | FF02 | `recs-carousel`\
+  \ | release flag 100% on in production for 170 days | remove the flag and keep the\
+  \ ON path; delete the OFF branch and old code |\n| medium | FF03 | `holiday-banner-2025`\
+  \ | release flag off in production for 303 days - the guarded code is dead | remove\
+  \ the flag and the guarded code (or decide to launch it) |\n| medium | FF05 | `holiday-banner-2025`\
+  \ | expired on 2026-01-10 (299 days ago) | remove it now or agree a new date with\
+  \ the owner |\n| medium | FF05 | `new-checkout-flow` | expired on 2026-09-30 (36\
+  \ days ago) | remove it now or agree a new date with the owner |\n| medium | FF05\
+  \ | `pricing-page-test` | expired on 2026-07-01 (127 days ago) | remove it now or\
+  \ agree a new date with the owner |\n| medium | FF08 | `dark-mode` | production\
+  \ is at 100% but staging at 0% - production runs a path that staging does not test\
+  \ | align staging with production |\n| medium | FF09 | `pricing-page-test` | experiment\
+  \ running for 199 days (limit 90) | call the result, ship the winner, remove the\
+  \ flag |\n| medium | FF12 | `search-v2` | rollout stuck at 25% in production for\
+  \ 63 days - users get two versions | finish the rollout (100%) or roll back to 0,\
+  \ then remove |\n| low | FF04 | `recs-carousel` | no references in 3 scanned file(s)\
+  \ | check other repos/services; if unused, archive it in the flag service |\n| low\
+  \ | FF07 | `beta-reports-export` | no owner | assign an owner team or person |\n\
+  | info | FF06 | `beta-reports-export` | permission flag - long-lived by design,\
+  \ not checked for staleness | review yearly; keep a description and owner |\n| info\
+  \ | FF06 | `payments-kill-switch` | kill-switch flag - long-lived by design, not\
+  \ checked for staleness | review yearly; keep a description and owner |\n| info\
+  \ | FF10 | `-` | flag key built at runtime at examples/src/search.py:14 - references\
+  \ to it cannot be found by search | prefer literal keys (or a constants file) so\
+  \ flags can be cleaned up |\n\n## References per flag\n\n| Flag | References |\n\
+  |---|---|\n| `beta-reports-export` | 1 |\n| `dark-mode` | 1 |\n| `holiday-banner-2025`\
+  \ | 1 |\n| `legacy-pdf-invoices` | 1 |\n| `new-checkout-flow` | 2 |\n| `payments-kill-switch`\
+  \ | 1 |\n| `pricing-page-test` | 1 |\n| `recs-carousel` | 0 |\n| `search-v2` | 1\
+  \ |\n\nSearch covers string literals, common SDK calls and `flags.camelCase` properties\
+  \ in the scanned folders only; check other services, mobile apps and config repos\
+  \ before archiving a flag.\n\x1FFILE:scripts/flag_audit.py\x1E\n#!/usr/bin/env python3\n\
+  \"\"\"Feature flag stale cleanup auditor (stdlib only, Python 3.8+).\n\nReads a\
+  \ feature flag inventory (JSON exported or written by hand from LaunchDarkly, Unleash,\n\
+  Flagsmith, GrowthBook, ConfigCat or an in-house config) and scans a source tree\
+  \ for flag\nreferences. Finds release flags that have been fully on (or off) for\
+  \ weeks and can be removed,\npartial rollouts that got stuck, expired and orphaned\
+  \ flags, experiments that never ended,\nflags used in code but missing from the\
+  \ flag service (they silently fall back to the default),\nenvironment drift and\
+  \ flags with no owner - and writes a prioritised cleanup plan with the\nexact file:line\
+  \ references to change.\n\nUsage:\n  flag_audit.py FLAGS.json SRC_DIR [SRC_DIR ...]\
+  \ [--today YYYY-MM-DD] [--stale-days N]\n                [--call NAME ...] [--json]\n\
+  \  flag_audit.py --self-test\nExit: 0 = no high findings, 1 = at least one high\
+  \ finding, 2 = bad input.\n\"\"\"\nimport argparse, datetime, difflib, json, os,\
+  \ re, sys\n\nSEV = {\"high\": 0, \"medium\": 1, \"low\": 2, \"info\": 3}\nTYPES\
+  \ = {\"release\", \"experiment\", \"ops\", \"kill-switch\", \"permission\"}\nLONG_LIVED\
+  \ = {\"ops\", \"kill-switch\", \"permission\"}\nEXTS = {\".ts\", \".tsx\", \".js\"\
+  , \".jsx\", \".mjs\", \".cjs\", \".py\", \".go\", \".rb\", \".java\", \".kt\", \"\
+  .cs\", \".php\", \".swift\", \".vue\", \".svelte\"}\nSKIP_DIRS = {\"node_modules\"\
+  , \".git\", \"dist\", \"build\", \"vendor\", \"__pycache__\", \".venv\", \"venv\"\
+  , \"coverage\"}\nCALLS = [\"isEnabled\", \"isFeatureEnabled\", \"variation\", \"\
+  boolVariation\", \"stringVariation\", \"useFlag\", \"useFeatureFlag\",\n       \
+  \  \"useFeatureIsOn\", \"getFlag\", \"getFeatureValue\", \"isOn\", \"feature_enabled\"\
+  , \"is_enabled\", \"flag_enabled\", \"enabled?\",\n         \"Enabled\", \"IsEnabled\"\
+  , \"getBooleanValue\", \"hasFeature\"]\nTOP_KEYS = {\"today\", \"stale_days\", \"\
+  experiment_max_days\", \"primary_env\", \"environments\", \"flags\", \"call_names\"\
+  , \"source\"}\nFLAG_KEYS = {\"key\", \"type\", \"owner\", \"created\", \"expires\"\
+  , \"permanent\", \"description\", \"environments\", \"archived\", \"ticket\"}\n\n\
+  \nclass InputError(Exception):\n    pass\n\n\ndef pdate(s, what):\n    try:\n  \
+  \      return datetime.date.fromisoformat(str(s).strip()[:10])\n    except ValueError:\n\
+  \        raise InputError(\"%s must be YYYY-MM-DD, got %r\" % (what, s))\n\n\ndef\
+  \ camel(k):\n    parts = re.split(r\"[-_.]\", k)\n    return parts[0] + \"\".join(p[:1].upper()\
+  \ + p[1:] for p in parts[1:])\n\n\n# ----------------------------------------------------------------\
+  \ load\ndef load_flags(cfg, today=None, stale_days=None):\n    if not isinstance(cfg,\
+  \ dict) or not isinstance(cfg.get(\"flags\"), list):\n        raise InputError(\"\
+  flags file must be a JSON object with a \\\"flags\\\" list\")\n    bad = set(cfg)\
+  \ - TOP_KEYS\n    if bad:\n        raise InputError(\"unknown top-level key(s):\
+  \ %s\" % \", \".join(sorted(bad)))\n    c = {\"today\": pdate(today or cfg.get(\"\
+  today\") or datetime.date.today().isoformat(), \"today\"),\n         \"stale\":\
+  \ int(stale_days if stale_days is not None else cfg.get(\"stale_days\", 30)),\n\
+  \         \"exp_max\": int(cfg.get(\"experiment_max_days\", 90)),\n         \"primary\"\
+  : cfg.get(\"primary_env\", \"production\"),\n         \"envs\": cfg.get(\"environments\"\
+  ) or [], \"flags\": {}, \"dups\": [], \"calls\": cfg.get(\"call_names\") or []}\n\
+  \    for i, f in enumerate(cfg[\"flags\"], 1):\n        if not isinstance(f, dict)\
+  \ or not f.get(\"key\"):\n            raise InputError(\"flag #%d has no key\" %\
+  \ i)\n        badk = set(f) - FLAG_KEYS\n        if badk:\n            raise InputError(\"\
+  flag %s: unknown key(s) %s\" % (f[\"key\"], \", \".join(sorted(badk))))\n      \
+  \  t = (f.get(\"type\") or \"release\").lower()\n        if t not in TYPES:\n  \
+  \          raise InputError(\"flag %s: type must be one of %s, got %r\" % (f[\"\
+  key\"], \", \".join(sorted(TYPES)), t))\n        envs = {}\n        for e, st in\
+  \ (f.get(\"environments\") or {}).items():\n            if not isinstance(st, dict):\n\
+  \                raise InputError(\"flag %s env %s must be an object {on, rollout,\
+  \ updated}\" % (f[\"key\"], e))\n            r = st.get(\"rollout\", 100 if st.get(\"\
+  on\") else 0)\n            if not isinstance(r, (int, float)) or not 0 <= r <= 100:\n\
+  \                raise InputError(\"flag %s env %s: rollout must be 0-100, got %r\"\
+  \ % (f[\"key\"], e, r))\n            envs[e] = {\"on\": bool(st.get(\"on\")), \"\
+  rollout\": float(r),\n                       \"updated\": pdate(st[\"updated\"],\
+  \ \"flag %s env %s updated\" % (f[\"key\"], e)) if st.get(\"updated\") else None}\n\
+  \        fl = {\"key\": f[\"key\"], \"type\": t, \"owner\": f.get(\"owner\") or\
+  \ \"\", \"ticket\": f.get(\"ticket\", \"\"),\n              \"created\": pdate(f[\"\
+  created\"], \"flag %s created\" % f[\"key\"]) if f.get(\"created\") else None,\n\
+  \              \"expires\": pdate(f[\"expires\"], \"flag %s expires\" % f[\"key\"\
+  ]) if f.get(\"expires\") else None,\n              \"permanent\": bool(f.get(\"\
+  permanent\")) or t in LONG_LIVED, \"archived\": bool(f.get(\"archived\")),\n   \
+  \           \"description\": f.get(\"description\", \"\"), \"envs\": envs}\n   \
+  \     if fl[\"key\"] in c[\"flags\"]:\n            c[\"dups\"].append(fl[\"key\"\
+  ])\n        c[\"flags\"][fl[\"key\"]] = fl\n    return c\n\n\ndef eff(st):\n   \
+  \ \"\"\"effective share of users getting the flag: 0-100\"\"\"\n    return st[\"\
+  rollout\"] if st[\"on\"] else 0.0\n\n\n# ----------------------------------------------------------------\
+  \ scan\ndef scan(dirs, keys, calls):\n    \"\"\"Return refs {key: [(path, line,\
+  \ text)]}, unknown {literal: [(path,line)]}, dynamic [(path,line,text)], files\"\
+  \"\"\n    calls = sorted(set(CALLS + list(calls)), key=len, reverse=True)\n    alt\
+  \ = \"|\".join(re.escape(c) for c in calls)\n    call_re = re.compile(r\"(?:\\b|\\\
+  .)(%s)\\s*\\(\\s*(?:\\w+\\s*,\\s*)?([\\\"'`])([^\\\"'`$]+)\\2\\s*[,)]\" % alt)\n\
+  \    dyn_re = re.compile(r\"(?:\\b|\\.)(%s)\\s*\\(\\s*(?![\\\"'`][^\\\"'`$]*[\\\"\
+  '`]\\s*[,)])([^,)]+)[,)]\" % alt)\n    lit_re = re.compile(r\"([\\\"'`])([A-Za-z0-9][A-Za-z0-9_.:-]{2,80})\\\
+  1\")\n    camels = {camel(k): k for k in keys if camel(k) != k}\n    prop_re = re.compile(r\"\
+  \\b(?:flags|features|featureFlags|toggles)\\.([A-Za-z_]\\w*)\")\n    refs, unknown,\
+  \ dynamic, nfiles = {k: [] for k in keys}, {}, [], 0\n    for d in dirs:\n     \
+  \   if not os.path.isdir(d):\n            raise InputError(\"source directory not\
+  \ found: %s\" % d)\n        for root, ds, fs in os.walk(d):\n            ds[:] =\
+  \ sorted(x for x in ds if x not in SKIP_DIRS)\n            for fn in sorted(fs):\n\
+  \                if os.path.splitext(fn)[1] not in EXTS:\n                    continue\n\
+  \                p = os.path.join(root, fn)\n                nfiles += 1\n     \
+  \           try:\n                    lines = open(p, encoding=\"utf-8\", errors=\"\
+  replace\").read().splitlines()\n                except OSError as e:\n         \
+  \           raise InputError(\"cannot read %s: %s\" % (p, e))\n                for\
+  \ i, ln in enumerate(lines, 1):\n                    seen = set()\n            \
+  \        for m in call_re.finditer(ln):\n                        lit = m.group(3)\n\
+  \                        if lit in refs:\n                            refs[lit].append((p,\
+  \ i, ln.strip())); seen.add(lit)\n                        else:\n              \
+  \              unknown.setdefault(lit, []).append((p, i, ln.strip()))\n        \
+  \                    seen.add(lit)\n                    for m in dyn_re.finditer(ln):\n\
+  \                        if m.group(2).strip() not in (\"true\", \"false\", \"None\"\
+  , \"null\", \"\"):\n                            dynamic.append((p, i, ln.strip()))\n\
+  \                    for m in lit_re.finditer(ln):\n                        lit\
+  \ = m.group(2)\n                        if lit in refs and lit not in seen:\n  \
+  \                          refs[lit].append((p, i, ln.strip())); seen.add(lit)\n\
+  \                    for m in prop_re.finditer(ln):\n                        k =\
+  \ camels.get(m.group(1)) or (m.group(1) if m.group(1) in refs else None)\n     \
+  \                   if k and k not in seen:\n                            refs[k].append((p,\
+  \ i, ln.strip())); seen.add(k)\n    return refs, unknown, dynamic, nfiles\n\n\n\
+  # ---------------------------------------------------------------- audit\ndef audit(c,\
+  \ refs, unknown, dynamic, nfiles):\n    F, plan = [], []\n    today, stale, prim\
+  \ = c[\"today\"], c[\"stale\"], c[\"primary\"]\n    add = lambda sev, code, key,\
+  \ msg, fix: F.append((sev, code, key, msg, fix))\n    for k in c[\"dups\"]:\n  \
+  \      add(\"medium\", \"FF13\", k, \"flag defined twice in the inventory (the last\
+  \ one is used)\", \"merge the two entries\")\n    keys = list(c[\"flags\"])\n  \
+  \  norm = {re.sub(r\"[-_.]\", \"\", k.lower()): k for k in keys}\n    for lit, where\
+  \ in sorted(unknown.items()):\n        close = norm.get(re.sub(r\"[-_.]\", \"\"\
+  , lit.lower())) or (difflib.get_close_matches(lit, keys, 1, 0.8) or [None])[0]\n\
+  \        locs = \", \".join(\"%s:%d\" % (p, i) for p, i, _ in where[:3])\n     \
+  \   add(\"high\", \"FF01\", lit, \"used in code (%s) but not defined in the flag\
+  \ inventory - the SDK returns the default, so this code path is %s\" %\n       \
+  \     (locs, \"probably never on\" if not close else \"reading the wrong key\"),\n\
+  \            (\"typo of %s? use the exact key\" % close) if close else \"create\
+  \ the flag or remove the check\")\n    for p, i, txt in dynamic[:20]:\n        add(\"\
+  info\", \"FF10\", \"-\", \"flag key built at runtime at %s:%d - references to it\
+  \ cannot be found by search\" % (p, i), \"prefer literal keys (or a constants file)\
+  \ so flags can be cleaned up\")\n    for k, f in c[\"flags\"].items():\n       \
+  \ r = refs.get(k, [])\n        files = sorted(set(p for p, _, _ in r))\n       \
+  \ st = f[\"envs\"].get(prim)\n        age = (today - f[\"created\"]).days if f[\"\
+  created\"] else None\n        action, why = None, \"\"\n        if not f[\"owner\"\
+  ]:\n            add(\"low\", \"FF07\", k, \"no owner\", \"assign an owner team or\
+  \ person\")\n        if f[\"archived\"]:\n            if r:\n                add(\"\
+  high\", \"FF14\", k, \"flag is archived in the flag service but still referenced\
+  \ in %d place(s) - it now returns the default\" % len(r), \"remove the references\"\
+  )\n                plan.append({\"key\": k, \"type\": f[\"type\"], \"owner\": f[\"\
+  owner\"] or \"?\", \"state\": \"archived\", \"action\": \"remove code\",\n     \
+  \                        \"why\": \"archived but still in code\", \"refs\": len(r),\
+  \ \"files\": len(files),\n                             \"locs\": [\"%s:%d\" % (p,\
+  \ i) for p, i, _ in r], \"ticket\": f[\"ticket\"]})\n            continue\n    \
+  \    if st is None and not f[\"archived\"]:\n            add(\"medium\", \"FF08\"\
+  , k, \"no state for the primary environment %r\" % prim, \"add the %s state or fix\
+  \ primary_env\" % prim)\n        if f[\"permanent\"]:\n            add(\"info\"\
+  , \"FF06\", k, \"%s flag - long-lived by design, not checked for staleness\" % f[\"\
+  type\"], \"review yearly; keep a description and owner\")\n            if not r:\n\
+  \                add(\"low\", \"FF04\", k, \"no references in %d scanned file(s)\"\
+  \ % nfiles, \"check other repos/services; if unused, archive it in the flag service\"\
+  )\n                action, why = action or \"archive\", \"no references\"\n    \
+  \    elif st is not None:\n            since = st[\"updated\"] or f[\"created\"\
+  ]\n            days = (today - since).days if since else None\n            e = eff(st)\n\
+  \            all_on = all(eff(s) == 100 for s in f[\"envs\"].values())\n       \
+  \     if f[\"expires\"] and f[\"expires\"] < today:\n                add(\"medium\"\
+  , \"FF05\", k, \"expired on %s (%d days ago)\" % (f[\"expires\"], (today - f[\"\
+  expires\"]).days), \"remove it now or agree a new date with the owner\")\n     \
+  \       if f[\"type\"] == \"release\" and e == 100 and days is not None and days\
+  \ >= stale:\n                add(\"medium\", \"FF02\", k, \"release flag 100%% on\
+  \ in %s for %d days%s\" % (prim, days, \"\" if all_on else \" (not 100% in every\
+  \ environment)\"),\n                    \"remove the flag and keep the ON path;\
+  \ delete the OFF branch and old code\")\n                action, why = \"remove,\
+  \ keep ON\", \"100%% on for %d days\" % days\n            elif e == 0 and days is\
+  \ not None and days >= stale and f[\"type\"] in (\"release\", \"experiment\"):\n\
+  \                add(\"medium\", \"FF03\", k, \"%s flag off in %s for %d days -\
+  \ the guarded code is dead\" % (f[\"type\"], prim, days),\n                    \"\
+  remove the flag and the guarded code (or decide to launch it)\")\n             \
+  \   action, why = \"remove, keep OFF\", \"off for %d days\" % days\n           \
+  \ elif 0 < e < 100 and days is not None and days >= stale and f[\"type\"] == \"\
+  release\":\n                add(\"medium\", \"FF12\", k, \"rollout stuck at %g%%\
+  \ in %s for %d days - users get two versions\" % (e, prim, days), \"finish the rollout\
+  \ (100%) or roll back to 0, then remove\")\n                action, why = \"finish\
+  \ rollout\", \"stuck at %g%%\" % e\n            if f[\"type\"] == \"experiment\"\
+  \ and age is not None and age > c[\"exp_max\"]:\n                add(\"medium\"\
+  , \"FF09\", k, \"experiment running for %d days (limit %d)\" % (age, c[\"exp_max\"\
+  ]), \"call the result, ship the winner, remove the flag\")\n                action,\
+  \ why = action or \"decide experiment\", \"running %d days\" % age\n           \
+  \ if not r:\n                add(\"low\", \"FF04\", k, \"no references in %d scanned\
+  \ file(s)\" % nfiles, \"check other repos/services; if unused, archive it in the\
+  \ flag service\")\n                action, why = action or \"archive\", why or \"\
+  no references\"\n            for en, s2 in f[\"envs\"].items():\n              \
+  \  if en != prim and eff(s2) < e and (en in (\"staging\", \"qa\", \"test\", \"dev\"\
+  , \"development\")):\n                    add(\"medium\", \"FF08\", k, \"%s is at\
+  \ %g%% but %s at %g%% - production runs a path that staging does not test\" % (prim,\
+  \ e, en, eff(s2)), \"align %s with %s\" % (en, prim))\n            if f[\"expires\"\
+  ] is None and f[\"type\"] in (\"release\", \"experiment\") and action is None:\n\
+  \                add(\"low\", \"FF11\", k, \"temporary %s flag without an expiry\
+  \ date\" % f[\"type\"], \"set expires (e.g. 30-60 days after full rollout)\")\n\
+  \        if action:\n            plan.append({\"key\": k, \"type\": f[\"type\"],\
+  \ \"owner\": f[\"owner\"] or \"?\", \"state\": (\"%g%%\" % eff(st)) if st else \"\
+  -\", \"action\": action, \"why\": why,\n                         \"refs\": len(r),\
+  \ \"files\": len(files), \"locs\": [\"%s:%d\" % (p, i) for p, i, _ in r], \"ticket\"\
+  : f[\"ticket\"]})\n    rank = {\"remove code\": 0, \"remove, keep ON\": 1, \"remove,\
+  \ keep OFF\": 2, \"finish rollout\": 3, \"decide experiment\": 4, \"archive\": 5}\n\
+  \    plan.sort(key=lambda x: (rank[x[\"action\"]], -x[\"refs\"], x[\"key\"]))\n\
+  \    F.sort(key=lambda x: (SEV[x[0]], x[1], x[2]))\n    return {\"today\": today.isoformat(),\
+  \ \"primary\": prim, \"stale_days\": stale, \"flags\": len(c[\"flags\"]), \"files\"\
+  : nfiles,\n            \"refs\": {k: len(v) for k, v in refs.items()}, \"plan\"\
+  : plan, \"findings\": F}\n\n\ndef effort(n):\n    return \"S\" if n <= 2 else \"\
+  M\" if n <= 6 else \"L\"\n\n\ndef report(r, src):\n    c = {s: 0 for s in SEV}\n\
+  \    for f in r[\"findings\"]:\n        c[f[0]] += 1\n    removable = [p for p in\
+  \ r[\"plan\"] if p[\"action\"].startswith(\"remove\")]\n    out = [\"# Feature flag\
+  \ cleanup audit\", \"\",\n           \"Today %s, primary environment `%s`, stale\
+  \ after %d days. %d flag(s) in the inventory, %d source file(s) scanned in %s.\"\
+  \ % (\n               r[\"today\"], r[\"primary\"], r[\"stale_days\"], r[\"flags\"\
+  ], r[\"files\"], \", \".join(src)), \"\"]\n    if c[\"high\"]:\n        v = \"%d\
+  \ high finding(s) - flags used in code that the flag service does not know\" % c[\"\
+  high\"]\n    elif removable:\n        v = \"%d flag(s) ready to remove\" % len(removable)\n\
+  \    else:\n        v = \"no stale flags\"\n    out += [\"**Verdict: %s**\" % v,\
+  \ \"\", \"Cleanup candidates: %d (%d removable now, %d reference(s) to change).\
+  \ Findings: %d high, %d medium, %d low, %d info.\" % (\n        len(r[\"plan\"]),\
+  \ len(removable), sum(p[\"refs\"] for p in removable), c[\"high\"], c[\"medium\"\
+  ], c[\"low\"], c[\"info\"]), \"\"]\n    out += [\"## Cleanup plan\", \"\", \"| #\
+  \ | Flag | Type | Owner | Primary | Action | Why | Refs (files) | Effort | Where\
+  \ |\", \"|---|---|---|---|---|---|---|---|---|---|\"]\n    for i, p in enumerate(r[\"\
+  plan\"], 1):\n        locs = \", \".join(\"`%s`\" % x for x in p[\"locs\"][:4])\
+  \ + (\" +%d more\" % (len(p[\"locs\"]) - 4) if len(p[\"locs\"]) > 4 else \"\")\n\
+  \        out.append(\"| %d | `%s` | %s | %s | %s | **%s** | %s | %d (%d) | %s |\
+  \ %s |\" % (i, p[\"key\"], p[\"type\"], p[\"owner\"], p[\"state\"], p[\"action\"\
+  ], p[\"why\"],\n                                                               \
+  \                 p[\"refs\"], p[\"files\"], effort(p[\"refs\"]) if p[\"refs\"]\
+  \ else \"-\", locs or \"-\"))\n    out += [\"\", \"Effort: S = 1-2 references, M\
+  \ = 3-6, L = 7 or more. \\\"keep ON\\\" = delete the flag check and the OFF branch;\
+  \ \\\"keep OFF\\\" = delete the guarded code. Archive the flag in the flag service\
+  \ only after the code change is deployed everywhere.\", \"\"]\n    out += [\"##\
+  \ Findings\", \"\", \"| Sev | Code | Flag | Finding | Fix |\", \"|---|---|---|---|---|\"\
+  ]\n    for s, code, k, msg, fix in r[\"findings\"]:\n        out.append(\"| %s |\
+  \ %s | `%s` | %s | %s |\" % (s, code, k, msg.replace(\"|\", \"\\\\|\"), fix.replace(\"\
+  |\", \"\\\\|\")))\n    out += [\"\", \"## References per flag\", \"\", \"| Flag\
+  \ | References |\", \"|---|---|\"]\n    for k, n in sorted(r[\"refs\"].items()):\n\
+  \        out.append(\"| `%s` | %d |\" % (k, n))\n    out += [\"\", \"Search covers\
+  \ string literals, common SDK calls and `flags.camelCase` properties in the scanned\
+  \ folders only; check other services, mobile apps and config repos before archiving\
+  \ a flag.\"]\n    return \"\\n\".join(out) + \"\\n\"\n\n\ndef run(flags_path, dirs,\
+  \ today=None, stale=None, calls=()):\n    try:\n        cfg = json.load(open(flags_path,\
+  \ encoding=\"utf-8\"))\n    except (OSError, ValueError) as e:\n        raise InputError(\"\
+  cannot read %s: %s\" % (flags_path, e))\n    c = load_flags(cfg, today, stale)\n\
+  \    refs, unknown, dynamic, n = scan(dirs, list(c[\"flags\"]), list(c[\"calls\"\
+  ]) + list(calls))\n    return audit(c, refs, unknown, dynamic, n)\n\n\n# ----------------------------------------------------------------\
+  \ self-test\ndef self_test():\n    import tempfile\n    tests = []\n    def t(name,\
+  \ cond):\n        tests.append((name, bool(cond)))\n    def mk(flags, files, **kw):\n\
+  \        d = tempfile.mkdtemp()\n        for name, body in files.items():\n    \
+  \        os.makedirs(os.path.dirname(os.path.join(d, name)) or d, exist_ok=True)\n\
+  \            open(os.path.join(d, name), \"w\").write(body)\n        cfg = {\"today\"\
+  : \"2026-11-05\", \"flags\": flags}\n        cfg.update(kw)\n        c = load_flags(cfg)\n\
+  \        refs, unk, dyn, n = scan([d], list(c[\"flags\"]), c[\"calls\"])\n     \
+  \   return audit(c, refs, unk, dyn, n)\n    def codes(r):\n        return [(f[0],\
+  \ f[1], f[2]) for f in r[\"findings\"]]\n    P = lambda on, r, up: {\"production\"\
+  : {\"on\": on, \"rollout\": r, \"updated\": up}}\n    rel = lambda k, on=True, r=100,\
+  \ up=\"2026-09-01\", **x: dict({\"key\": k, \"type\": \"release\", \"owner\": \"\
+  web\", \"created\": \"2026-08-01\", \"expires\": \"2027-01-01\", \"environments\"\
+  : P(on, r, up)}, **x)\n    src = {\"a.ts\": \"if (client.isEnabled('new-checkout'))\
+  \ {}\\nconst x = useFlag(\\\"dark-mode\\\")\\n\"}\n    r = mk([rel(\"new-checkout\"\
+  ), rel(\"dark-mode\", up=\"2026-10-30\")], src)\n    t(\"100% on for 65 days ->\
+  \ FF02\", (\"medium\", \"FF02\", \"new-checkout\") in codes(r))\n    t(\"100% on\
+  \ for 6 days -> not stale\", (\"medium\", \"FF02\", \"dark-mode\") not in codes(r))\n\
+  \    t(\"plan action keep ON\", [p[\"action\"] for p in r[\"plan\"] if p[\"key\"\
+  ] == \"new-checkout\"] == [\"remove, keep ON\"])\n    t(\"refs found via call\"\
+  , r[\"refs\"][\"new-checkout\"] == 1 and r[\"refs\"][\"dark-mode\"] == 1)\n    r\
+  \ = mk([rel(\"old-banner\", on=False, r=0)], {\"b.py\": \"if flags.is_enabled(\\\
+  \"old-banner\\\"):\\n    pass\\n\"})\n    t(\"off for 65 days -> FF03 keep OFF\"\
+  , (\"medium\", \"FF03\", \"old-banner\") in codes(r) and r[\"plan\"][0][\"action\"\
+  ] == \"remove, keep OFF\")\n    r = mk([rel(\"half\", r=50)], {\"c.js\": \"isEnabled('half')\"\
+  })\n    t(\"stuck rollout -> FF12\", (\"medium\", \"FF12\", \"half\") in codes(r))\n\
+  \    r = mk([rel(\"new-checkout\")], {\"a.ts\": \"isEnabled('new_checkout')\\n\"\
+  })\n    t(\"undefined key in code -> FF01 high\", (\"high\", \"FF01\", \"new_checkout\"\
+  ) in codes(r))\n    t(\"FF01 suggests the close key\", any(\"typo of new-checkout\"\
+  \ in f[4] for f in r[\"findings\"]))\n    t(\"FF01 alone means 0 refs for the real\
+  \ key -> FF04\", (\"low\", \"FF04\", \"new-checkout\") in codes(r))\n    r = mk([rel(\"\
+  ghost\")], {\"a.ts\": \"const a = 1\\n\"})\n    t(\"no refs -> FF04 + archive\"\
+  , (\"low\", \"FF04\", \"ghost\") in codes(r))\n    r = mk([rel(\"exp1\", type=\"\
+  experiment\", created=\"2026-05-01\", r=50, up=\"2026-10-20\")], {\"a.ts\": \"variation('exp1',\
+  \ false)\"})\n    t(\"experiment over 90 days -> FF09\", (\"medium\", \"FF09\",\
+  \ \"exp1\") in codes(r))\n    r = mk([rel(\"exp2\", expires=\"2026-10-01\", up=\"\
+  2026-10-30\")], {\"a.ts\": \"isEnabled('exp2')\"})\n    t(\"expired -> FF05\", (\"\
+  medium\", \"FF05\", \"exp2\") in codes(r))\n    r = mk([dict(rel(\"ks\"), type=\"\
+  kill-switch\", expires=None)], {\"a.ts\": \"isEnabled('ks')\"})\n    t(\"kill-switch\
+  \ skipped -> FF06 info only\", [x[1] for x in codes(r)] == [\"FF06\"])\n    r =\
+  \ mk([dict(rel(\"p\", up=\"2026-10-30\"), owner=\"\")], {\"a.ts\": \"isEnabled('p')\"\
+  })\n    t(\"no owner -> FF07\", (\"low\", \"FF07\", \"p\") in codes(r))\n    r =\
+  \ mk([dict(rel(\"d\", up=\"2026-10-30\"), environments={\"production\": {\"on\"\
+  : True, \"rollout\": 100, \"updated\": \"2026-10-30\"}, \"staging\": {\"on\": False}})],\
+  \ {\"a.ts\": \"isEnabled('d')\"})\n    t(\"prod ahead of staging -> FF08\", (\"\
+  medium\", \"FF08\", \"d\") in codes(r))\n    r = mk([rel(\"x\")], {\"a.ts\": \"\
+  const k = 'x' + region\\nisEnabled(flagName)\\n\"})\n    t(\"dynamic key -> FF10\
+  \ info\", (\"info\", \"FF10\", \"-\") in codes(r))\n    r = mk([rel(\"x\")], {\"\
+  a.py\": \"is_enabled('export-' + region)\\n\"})\n    t(\"literal + variable is dynamic,\
+  \ not undefined\", (\"info\", \"FF10\", \"-\") in codes(r) and not [f for f in r[\"\
+  findings\"] if f[1] == \"FF01\"])\n    r = mk([rel(\"new-search\", up=\"2026-10-30\"\
+  )], {\"s.tsx\": \"if (flags.newSearch) {}\\n\"})\n    t(\"flags.camelCase property\
+  \ counted\", r[\"refs\"][\"new-search\"] == 1)\n    r = mk([rel(\"new-search\",\
+  \ up=\"2026-10-30\")], {\"node_modules/x.js\": \"isEnabled('new-search')\", \"a.md\"\
+  : \"isEnabled('new-search')\"})\n    t(\"node_modules and non-code files skipped\"\
+  , r[\"refs\"][\"new-search\"] == 0)\n    r = mk([rel(\"t\", up=\"2026-10-30\", expires=None)],\
+  \ {\"a.ts\": \"isEnabled('t')\"})\n    t(\"no expiry -> FF11\", (\"low\", \"FF11\"\
+  , \"t\") in codes(r))\n    r = mk([rel(\"arch\", archived=True)], {\"a.ts\": \"\
+  isEnabled('arch')\"})\n    t(\"archived but referenced -> FF14 high\", (\"high\"\
+  , \"FF14\", \"arch\") in codes(r) and r[\"plan\"][0][\"action\"] == \"remove code\"\
+  )\n    r = mk([rel(\"dup\", up=\"2026-10-30\"), rel(\"dup\", up=\"2026-10-30\")],\
+  \ {\"a.ts\": \"isEnabled('dup')\"})\n    t(\"duplicate key -> FF13\", (\"medium\"\
+  , \"FF13\", \"dup\") in codes(r))\n    r = mk([rel(\"cust\", up=\"2026-10-30\")],\
+  \ {\"a.ts\": \"myFlags.check('cust')\\nmyFlags.check('nope')\\n\"}, call_names=[\"\
+  check\"])\n    t(\"custom call name finds undefined keys\", (\"high\", \"FF01\"\
+  , \"nope\") in codes(r))\n    r = mk([rel(\"stale14\", up=\"2026-10-20\")], {\"\
+  a.ts\": \"isEnabled('stale14')\"}, stale_days=14)\n    t(\"stale_days setting respected\"\
+  , (\"medium\", \"FF02\", \"stale14\") in codes(r))\n    for bad, name in (({\"flags\"\
+  : [{\"key\": \"a\", \"type\": \"temp\"}]}, \"bad type\"), ({\"flags\": [{\"key\"\
+  : \"a\", \"environments\": {\"production\": {\"on\": True, \"rollout\": 150}}}]},\
+  \ \"rollout > 100\"),\n                      ({\"flags\": [{\"key\": \"a\", \"colour\"\
+  : 1}]}, \"unknown flag key\"), ({\"flag\": []}, \"missing flags list\")):\n    \
+  \    try:\n            load_flags(bad); t(\"rejected: \" + name, False)\n      \
+  \  except InputError:\n            t(\"rejected: \" + name, True)\n    r = mk([rel(\"\
+  new-checkout\")], src)\n    t(\"report has verdict and plan\", \"**Verdict:\" in\
+  \ report(r, [\"x\"]) and \"## Cleanup plan\" in report(r, [\"x\"]))\n    for n,\
+  \ ok in tests:\n        print(\"%s  %s\" % (\"PASS\" if ok else \"FAIL\", n))\n\
+  \    p = sum(ok for _, ok in tests)\n    print(\"%d/%d passed\" % (p, len(tests)))\n\
+  \    return 0 if p == len(tests) else 1\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser(description=\"\
+  Find stale feature flags and plan their removal.\")\n    ap.add_argument(\"flags\"\
+  , nargs=\"?\")\n    ap.add_argument(\"src\", nargs=\"*\")\n    ap.add_argument(\"\
+  --today\")\n    ap.add_argument(\"--stale-days\", type=int)\n    ap.add_argument(\"\
+  --call\", action=\"append\", default=[], help=\"extra flag-check function name (repeatable)\"\
+  )\n    ap.add_argument(\"--json\", action=\"store_true\")\n    ap.add_argument(\"\
+  --self-test\", action=\"store_true\")\n    a = ap.parse_args(argv)\n    if a.self_test:\n\
+  \        return self_test()\n    if not a.flags or not a.src:\n        ap.error(\"\
+  give FLAGS.json and at least one source directory\")\n    try:\n        r = run(a.flags,\
+  \ a.src, a.today, a.stale_days, a.call)\n    except InputError as e:\n        print(\"\
+  error: %s\" % e, file=sys.stderr)\n        return 2\n    if a.json:\n        print(json.dumps({**r,\
+  \ \"findings\": [dict(zip((\"severity\", \"code\", \"flag\", \"finding\", \"fix\"\
+  ), f)) for f in r[\"findings\"]]}, indent=2))\n    else:\n        sys.stdout.write(report(r,\
+  \ a.src))\n    return 1 if any(f[0] == \"high\" for f in r[\"findings\"]) else 0\n\
+  \n\nif __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
