@@ -1,0 +1,68 @@
+slug: household-product-recall-check-and-registration-tracker-json
+title: Household Product Recall Check and Registration Tracker (JSON)
+description: Imported from Prompts Chat
+prompt: "You are a careful household product safety assistant. Help me build and maintain\
+  \ a recall check and product registration tracker for the products in my home, then\
+  \ return the result as JSON only, matching the schema below exactly.\n\nMy inputs\
+  \ (fill in what you know; leave blank if unknown):\n- Country or region: [e.g.,\
+  \ United States, United Kingdom, EU country, Canada, Australia]\n- Household notes:\
+  \ [e.g., baby or toddler at home, older adults, pets, renter or owner]\n- Product\
+  \ list, one per line: [category | brand | model name or number | approximate purchase\
+  \ date | where bought | serial or batch number if known | registered with maker?\
+  \ yes/no]\n  Example: Car seat | BrandX | Model 300 | 2025-03 | online store | SN\
+  \ unknown | no\n\nInstructions:\n1. Normalize each product: category, brand, model,\
+  \ purchase date, retailer, and which identifiers I still need to find (model number,\
+  \ serial, batch or lot code, date code). Tell me exactly where such labels usually\
+  \ are for that kind of product (base, back panel, inside the door, under the seat,\
+  \ on the battery, on the packaging).\n2. Rank each product's recall-check priority\
+  \ as high, medium or low. Treat as high: child car seats, cribs and other sleep\
+  \ products, strollers, high chairs, heaters, dehumidifiers, pressure cookers, power\
+  \ banks and e-bike or scooter batteries, smoke and carbon monoxide alarms, gas appliances,\
+  \ extension cords and vehicles. Explain the reason in one short sentence.\n3. For\
+  \ each product, list the official places to check for recalls in my region (for\
+  \ example national product safety regulator recall search, vehicle safety recall\
+  \ lookup by VIN where relevant, food or medicine regulator for consumables, and\
+  \ the manufacturer's recall or safety notice page). Name the type of source and\
+  \ the search terms to use (brand + model + \"recall\"). Never invent a recall, recall\
+  \ number, URL or date. If you are not certain whether a recall exists, set recall_status\
+  \ to \"unknown_check_needed\".\n4. Product registration: for each item say whether\
+  \ registering with the maker is commonly offered (registration card, website or\
+  \ app), why it helps (direct recall notices) and what data it normally needs. Flag\
+  \ where registration matters most (car seats, cribs, appliances with known battery\
+  \ or fire risk).\n5. If I already know of a recall for a product, build an action\
+  \ plan: stop using or keep using per the notice, the remedy type (repair, replacement,\
+  \ refund, retrofit kit), how to contact the maker, what to keep (receipt, photos\
+  \ of labels, notice) and a deadline note to confirm locally.\n6. Set a review rhythm:\
+  \ a reminder schedule (for example every 3 months for high-priority items and every\
+  \ 12 months for the rest), plus one trigger list (new purchase, secondhand purchase\
+  \ or hand-me-down, moving house, a news story about a brand).\n7. Secondhand items:\
+  \ for anything bought used or handed down, add a warning to verify the exact model\
+  \ and production date before use, because older recalled units often circulate secondhand.\n\
+  \nOutput JSON schema (return valid JSON only, no comments, no markdown):\n{\n  \"\
+  household\": {\n    \"region\": \"string\",\n    \"risk_notes\": [\"string\"]\n\
+  \  },\n  \"products\": [\n    {\n      \"id\": \"P1\",\n      \"category\": \"string\"\
+  ,\n      \"brand\": \"string\",\n      \"model\": \"string\",\n      \"purchase_date\"\
+  : \"YYYY-MM or unknown\",\n      \"retailer\": \"string\",\n      \"identifiers_needed\"\
+  : [\"string\"],\n      \"label_location_hint\": \"string\",\n      \"priority\"\
+  : \"high | medium | low\",\n      \"priority_reason\": \"string\",\n      \"where_to_check\"\
+  : [\n        {\"source_type\": \"string\", \"search_terms\": \"string\"}\n     \
+  \ ],\n      \"recall_status\": \"none_found | recall_known | unknown_check_needed\"\
+  ,\n      \"registration\": {\n        \"offered\": \"yes | no | unknown\",\n   \
+  \     \"registered\": \"yes | no\",\n        \"why_it_matters\": \"string\",\n \
+  \       \"data_needed\": [\"string\"]\n      },\n      \"secondhand_warning\": \"\
+  string or null\",\n      \"action_plan\": {\n        \"use_status\": \"stop_using\
+  \ | keep_using_per_notice | not_applicable\",\n        \"remedy\": \"repair | replacement\
+  \ | refund | retrofit_kit | unknown | not_applicable\",\n        \"steps\": [\"\
+  string\"],\n        \"keep_records\": [\"string\"],\n        \"deadline_note\":\
+  \ \"string\"\n      }\n    }\n  ],\n  \"review_schedule\": {\n    \"high_priority_every_months\"\
+  : 3,\n    \"others_every_months\": 12,\n    \"triggers\": [\"string\"]\n  },\n \
+  \ \"next_actions\": [\"string\"],\n  \"disclaimer\": \"This tracker is an organizing\
+  \ aid. Always confirm recall status and instructions with the official regulator\
+  \ and the manufacturer for your region.\"\n}\n\nKeep strings short and practical.\
+  \ If my product list is empty, return the schema with one example product marked\
+  \ clearly as an example and ask, inside next_actions, for my real list."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
