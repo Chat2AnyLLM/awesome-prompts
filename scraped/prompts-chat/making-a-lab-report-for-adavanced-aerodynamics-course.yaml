@@ -1,0 +1,29 @@
+slug: making-a-lab-report-for-adavanced-aerodynamics-course
+title: making a lab report for adavanced aerodynamics course
+description: Imported from Prompts Chat
+prompt: "Steady and unsteady flow over a circular cylinder\nAs the flow is inherently\
+  \ unsteady in nature, will it be possible to get the results if the simulation is\
+  \ carried out for a steady case? \nCompare the results (velocity contours, pressure\
+  \ contours, and Average CD values) for steady and unsteady cases. Mention the non-dimensional\
+  \ properties like Reynolds number.\nWhich turbulence model is used in your work\
+  \ and what interferences can you draw about the turbulence model?\nIn your simulation,\
+  \ what kind of mesh is used and can you comment on difference in results for structured\
+  \ and unstructured mesh. \n\n Flow over symmetric and unsymmetric aerofoil \nCalculate\
+  \ lift and drag taking the same conditions for symmetric and unsymmetric aerofoil\
+  \ and compare the results between them.\nPlot Cl at zero angle of attack for both\
+  \ symmetric and unsymmetric aerofoil and compare the slopes between them. \n\n\n\
+  CD Nozzle and supersonic flow over diamond aerofoil\nCompare the CFD results for\
+  \ CD nozzle (exit velocity and exit pressure) with the analytic results obtained\
+  \ by assuming inviscid flow.\nWhat difference would you observe if the curvature\
+  \ for the throat is not given as mentioned in the video. \nCompare the CFD results\
+  \ for diamond aerofoil (Cl and CD values, pressure downstream the aerofoil) with\
+  \ the analytic results obtained by assuming inviscid flow.\nWhat happens if you\
+  \ change of angle of attack for supersonic flow over diamond aerofoil.\nso in total\
+  \ there is 8 topics subdivided into 3 subtopics and you should write about theory\
+  \ answer the question and also leave space for results (basically sticking screenshots)about\
+  \ ansys"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
