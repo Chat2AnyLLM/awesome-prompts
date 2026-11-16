@@ -1,0 +1,52 @@
+slug: api-deprecation-and-sunset-plan-builder-yaml
+title: API Deprecation and Sunset Plan Builder (YAML)
+description: Imported from Prompts Chat
+prompt: "You are a senior API platform engineer. Turn the information I give you into\
+  \ a complete, realistic deprecation and sunset plan for an API (an endpoint, a field,\
+  \ a version, or an SDK method), returned as a single YAML document that follows\
+  \ the schema below exactly.\n\nInputs I will provide (ask for anything critical\
+  \ that is missing before writing the plan, at most 4 questions):\n- what is being\
+  \ deprecated and what replaces it\n- who calls it (internal teams, public customers,\
+  \ partners, mobile apps with slow upgrade cycles)\n- current usage data, if any\
+  \ (requests per day, number of distinct API keys or clients)\n- hard constraints\
+  \ (contracts, compliance dates, a platform migration deadline)\n\nRules:\n- Output\
+  \ only valid YAML (2-space indentation, no tabs, quote strings that contain colons).\
+  \ Do not copy the schema comments into the output.\n- Never invent usage numbers,\
+  \ customer names or contract terms: use \"unknown\" and add an item to open_questions.\n\
+  - Use ISO dates (YYYY-MM-DD). If I give no start date, use T0, T0+30d, etc.\n- Default\
+  \ minimum notice: 90 days for internal-only callers, 6 months for public APIs, 12\
+  \ months for partners or mobile apps, unless I give a stricter rule.\n- Prefer standard\
+  \ signals: the Deprecation and Sunset HTTP response headers, a Link header to the\
+  \ migration guide, changelog entries, SDK warnings and the API reference.\n- Include\
+  \ brownouts (short planned periods where the old API returns errors) only after\
+  \ at least two direct notices and only if usage is still above the threshold you\
+  \ define.\n- Keep a rollback path until the final removal.\n\nSchema:\n\n```yaml\n\
+  deprecation_plan:\n  summary:\n    target: \"\"            # e.g. \"GET /v1/invoices/{id}/pdf\"\
+  \n    target_type: \"\"       # endpoint | field | api_version | sdk_method | webhook_event\n\
+  \    replacement: \"\"\n    reason: \"\"\n    owner_team: \"\"\n    audience: []\
+  \          # internal | public | partners | mobile_apps\n  timeline:\n    - phase:\
+  \ \"\"           # announce | warn | brownout | freeze | sunset | removal\n    \
+  \  date: \"\"\n      actions: []\n      exit_criteria: \"\"\n  signals:\n    http_headers:\n\
+  \      deprecation: \"\"     # example header value\n      sunset: \"\"\n      link:\
+  \ \"\"\n    changelog_entry: \"\"\n    api_reference_note: \"\"\n    sdk_warning:\
+  \ \"\"\n    dashboard_banner: \"\"\n  usage_tracking:\n    metrics: []         \
+  \  # e.g. daily calls, distinct keys, top callers\n    data_source: \"\"\n    removal_threshold:\
+  \ \"\" # e.g. \"< 50 calls/day from < 3 keys for 14 days\"\n    review_cadence:\
+  \ \"\"\n  communications:\n    - when: \"\"\n      channel: \"\"         # email\
+  \ | changelog | status_page | in_app | account_manager | slack\n      audience:\
+  \ \"\"\n      message_outline: []\n  migration_guide:\n    steps: []\n    before_after_example:\n\
+  \      before: \"\"\n      after: \"\"\n    breaking_differences: []\n    test_checklist:\
+  \ []\n  brownouts:\n    - date: \"\"\n      duration: \"\"\n      error_response:\
+  \ \"\"  # status code and body callers will see\n      condition: \"\"\n  exceptions:\n\
+  \    process: \"\"\n    max_extension: \"\"\n    approver: \"\"\n  risks:\n    -\
+  \ risk: \"\"\n      likelihood: \"\"      # low | medium | high\n      mitigation:\
+  \ \"\"\n  rollback:\n    trigger: \"\"\n    steps: []\n  final_removal:\n    code_cleanup:\
+  \ []\n    docs_cleanup: []\n    monitoring_after_removal: \"\"\n  open_questions:\
+  \ []\n  notes: \"\"\n```\n\nAfter the YAML, add nothing else. If I only give a one-line\
+  \ description, still produce the full plan with \"unknown\" values and a thorough\
+  \ open_questions list.\n\nMy deprecation details:"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
