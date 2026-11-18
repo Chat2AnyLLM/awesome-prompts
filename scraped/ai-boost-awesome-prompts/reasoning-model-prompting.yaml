@@ -1,0 +1,152 @@
+slug: reasoning-model-prompting
+title: Reasoning Model Prompting
+description: Imported from AI Boost Awesome Prompts
+prompt: "Reasoning / Extended Thinking Model Prompting Guide & Templates\nSources:\
+  \ Anthropic Claude Prompting Best Practices (platform.claude.com, 2025-2026),\n\
+  \         OpenAI o3/o4-mini Function Calling Guide (developers.openai.com, 2025),\n\
+  \         Helicone thinking model guide, OpenAI Reasoning Best Practices docs\n\
+  ------------------------------------------------------------------\n\nWHAT MAKES\
+  \ REASONING MODELS DIFFERENT:\n\nReasoning models (o1, o3, o4-mini, Claude 3.7/Sonnet\
+  \ 4.6 adaptive thinking,\nGemini 2.0 Flash Thinking) run an internal chain-of-thought\
+  \ BEFORE producing\ntheir response. This internal CoT is hidden — you never see\
+  \ it directly.\n\nImplications:\n  - They self-plan. You do not need to tell them\
+  \ how to think.\n  - Explicit CoT instructions (\"think step by step\") interfere\
+  \ with their\n    native reasoning and degrade performance.\n  - They excel on 5+\
+  \ step problems. They are overkill for simple queries.\n  - They are slower and\
+  \ more expensive per token. Use them when it matters.\n  - Few-shot examples often\
+  \ hurt rather than help (they constrain the\n    model's natural reasoning path).\n\
+  \nMental model: treat them as a senior colleague who figures out the approach\n\
+  themselves when you clearly state the goal — not a junior who needs\nstep-by-step\
+  \ instructions.\n\n------------------------------------------------------------------\n\
+  THE GOLDEN RULES:\n\nDO:\n  - State the goal clearly and completely\n  - Provide\
+  \ all relevant context upfront (long context at TOP of prompt)\n  - Use XML tags\
+  \ or markdown sections to separate distinct inputs\n  - Set explicit output format\
+  \ constraints (what the final answer should look like)\n  - Use \"think thoroughly\"\
+  \ or \"reason carefully\" over prescribed plans\n  - For Claude: control depth via\
+  \ the effort parameter (low / medium / high / max)\n  - For o3/o4: use developer\
+  \ messages to set role + boundaries + tool rules\n  - Ask for self-verification:\
+  \ \"Before finalizing, verify your answer against [criteria]\"\n  - Break multi-shot\
+  \ problems into well-defined sub-tasks\n\nDON'T:\n  - \"Think step by step\" — redundant,\
+  \ often harmful\n  - \"Let's think about this carefully before answering\" — same\
+  \ problem\n  - \"First do X, then do Y, then do Z\" — prescribing the reasoning\
+  \ path\n  - Provide many few-shot examples — use zero-shot first\n  - Use structured\
+  \ output requests (JSON, tables) — these models perform worse;\n    use standard\
+  \ LLMs for format-heavy tasks or add strict schema enforcement\n  - Give vague goals\
+  \ and expect inference — be explicit\n  - Overload context with irrelevant detail\
+  \ — quality over quantity\n  - Use these models for tasks with fewer than 3 reasoning\
+  \ steps — wasteful\n\n------------------------------------------------------------------\n\
+  WHEN TO USE REASONING MODELS vs STANDARD MODELS:\n\nUse reasoning models for:\n\
+  \  Complex multi-step problems (5+ steps)\n  Math, logic, code debugging, legal/medical\
+  \ analysis\n  Agentic tasks with tool use across many steps\n  Problems where accuracy\
+  \ matters more than speed/cost\n  Ambiguous tasks requiring judgment about the right\
+  \ approach\n\nUse standard models (GPT-4.1, Claude Haiku, Gemini Flash) for:\n \
+  \ Simple queries (< 3 reasoning steps)\n  Structured output generation (JSON, CSV,\
+  \ templates)\n  Tasks where few-shot examples are critical\n  High-volume, latency-sensitive\
+  \ workloads\n  Basic summarization, translation, extraction\n\n------------------------------------------------------------------\n\
+  CLAUDE ADAPTIVE THINKING (Sonnet 4.6 / Opus 4.6) — SPECIFIC GUIDE:\n\nHow it works:\
+  \ Claude dynamically decides when and how much to think based on\nthe `effort` parameter\
+  \ and query complexity. On simple queries it skips thinking\nentirely. On complex\
+  \ queries it reasons deeply.\n\nAPI configuration:\n  thinking={\"type\": \"adaptive\"\
+  }\n  output_config={\"effort\": \"high\"}   # low | medium | high | max\n\nEffort\
+  \ settings:\n  low     → high-volume, latency-sensitive tasks, simple queries\n\
+  \  medium  → most production applications (recommended default)\n  high    → agentic\
+  \ coding, multi-step tool use, complex reasoning\n  max     → hardest long-horizon\
+  \ problems (cost: significant)\n\nPrompt guidance for effort calibration:\n  To\
+  \ increase thinking: \"Take your time and reason carefully about this.\"\n  To reduce\
+  \ thinking:   \"Extended thinking adds latency and should only be used\n       \
+  \                  when it meaningfully improves answer quality. When in\n     \
+  \                    doubt, respond directly.\"\n  To prevent over-exploration:\
+  \ \"Choose an approach and commit to it. Avoid\n                         revisiting\
+  \ decisions unless you encounter new\n                         information that\
+  \ directly contradicts your reasoning.\"\n\nInterleaved thinking (after tool use):\n\
+  \  \"After receiving tool results, carefully reflect on their quality and\n   determine\
+  \ optimal next steps before proceeding.\"\n\nSelf-check pattern:\n  \"Before you\
+  \ finish, verify your answer against [specific test criteria].\"\n\nNote on extended\
+  \ thinking with budget_tokens: still functional on Sonnet/Opus 4.6\nbut deprecated.\
+  \ Prefer adaptive thinking + effort parameter.\n\n------------------------------------------------------------------\n\
+  OPENAI o3 / o4-MINI — SPECIFIC GUIDE:\n\nHow it works: o-series models convert system\
+  \ prompts to \"developer messages\"\nautomatically. They reason internally before\
+  \ every response and every tool call.\nDo NOT instruct them to plan before calling\
+  \ tools — they already do this.\n\nSystem prompt → developer message (auto-converted).\
+  \ Same format, different semantic:\n  Purpose: set role, define available actions,\
+  \ establish tool-calling order,\n           set usage boundaries.\n\nDeveloper message\
+  \ structure:\n  1. Role definition + scope of available actions\n  2. Function-call\
+  \ ordering rules (if multi-step tool use)\n  3. Tool usage boundaries (when to use\
+  \ which tool, when NOT to)\n  4. Proactiveness / confirmation guidance\n\nFunction\
+  \ description rules:\n  - Clarify invocation criteria explicitly (\"Only call if\
+  \ directory exists\")\n  - Add argument construction rules upfront (\"Do not overwrite\
+  \ without using\n    file_delete or file_update first\")\n  - Use few-shot examples\
+  \ only for complex argument formats\n  - Flat argument schemas outperform deeply\
+  \ nested ones\n  - Up to ~100 tools and ~20 arguments per tool stays within training\
+  \ distribution\n\nAnti-patterns specific to o3/o4:\n  - \"Plan before calling tools\"\
+  \ → redundant, degrades performance\n  - Lazy behavior accumulation → start fresh\
+  \ conversations for unrelated topics;\n    discard irrelevant past tool calls; summarize\
+  \ instead\n  - Hallucinating future tool calls → \"Do NOT promise function calls\
+  \ later.\n    Only call a function when you are ready to execute it.\"\n\nStructured\
+  \ output enforcement: use `strict: true` in tool schema for validation.\n\nPersist\
+  \ reasoning between tool calls (Responses API):\n  include=[\"reasoning.encrypted_content\"\
+  ]\n  This maintains CoT context across calls, improving tool-selection decisions.\n\
+  \n------------------------------------------------------------------\nREUSABLE SYSTEM\
+  \ PROMPT TEMPLATE (Claude adaptive thinking):\n\n<system>\nYou are [role description].\n\
+  \n<task_scope>\n[Clear description of what you are responsible for and what is out\
+  \ of scope.]\n</task_scope>\n\n<output_requirements>\n[Exact format, length, structure\
+  \ of the expected output. Be specific.]\n</output_requirements>\n\n<constraints>\n\
+  [Hard limits: what you must never do, what data you must not access, etc.]\n</constraints>\n\
+  \n<quality_standard>\nBefore finalizing any response, verify it against:\n- [Criterion\
+  \ 1]\n- [Criterion 2]\nOnly respond when you are confident your answer meets these\
+  \ criteria.\n</quality_standard>\n</system>\n\n------------------------------------------------------------------\n\
+  REUSABLE DEVELOPER MESSAGE TEMPLATE (OpenAI o3/o4-mini):\n\nYou are [role]. You\
+  \ can help users with: [action 1], [action 2], [action 3].\n\nTool usage rules:\n\
+  - Use [tool A] for [specific purpose].\n- Use [tool B] only when [condition].\n\
+  - If both [tool A] and [tool B] could apply, prefer [tool A] for [reason].\n- Do\
+  \ NOT call any tool unless you are ready to execute it now.\n- Do NOT promise future\
+  \ tool calls.\n\nExecution order for [complex workflow]:\n1. Call [tool A] to [retrieve/validate\
+  \ X]\n2. Only if X is confirmed, call [tool B] with the result\n3. Summarize outcome\
+  \ to user\n\nWhen uncertain about user intent, ask one clarifying question before\
+  \ acting.\n\n------------------------------------------------------------------\n\
+  PROMPT PATTERNS BY TASK TYPE:\n\nComplex analysis / reasoning:\n  \"Analyze [problem].\
+  \ Consider [dimension 1], [dimension 2], [dimension 3].\n   Provide a final recommendation\
+  \ with your confidence level and the\n   main uncertainty you could not resolve.\"\
+  \n\nCode debugging (Claude):\n  \"Debug this function. After your analysis, verify\
+  \ the fix by mentally\n   tracing through [specific test case]. Only return the\
+  \ corrected code.\"\n\nMulti-step research (o3/o4):\n  \"Research [topic]. For each\
+  \ finding, note your confidence level.\n   Identify the key uncertainty that most\
+  \ affects the final answer.\n   Do not speculate beyond available evidence.\"\n\n\
+  Decision under ambiguity:\n  \"I need a decision on [X]. Constraints: [list]. If\
+  \ you need to make an\n   assumption, state it explicitly and flag it so I can correct\
+  \ it.\n   Give me your recommendation and the single most important caveat.\"\n\n\
+  Agentic coding (Claude high effort):\n  \"Complete [task]. Use tests to verify correctness\
+  \ at each step.\n   Do not remove or skip tests to make them pass — fix the implementation.\n\
+  \   After completing, summarize what you changed and why.\"\n\n------------------------------------------------------------------\n\
+  THINKING BUDGET / COST MANAGEMENT:\n\nClaude (adaptive):\n  Low effort:    fastest,\
+  \ cheapest — use for high-volume chat, simple queries\n  Medium effort: best default\
+  \ — balances quality and cost\n  High effort:   agentic coding, tool chains, complex\
+  \ reasoning\n  Max effort:    large-scale migrations, deep research, long-horizon\
+  \ agents\n\n  Prevent runaway cost:\n    \"Extended thinking should only be used\
+  \ when it meaningfully improves\n     answer quality. When in doubt, respond directly\
+  \ without extended reasoning.\"\n\nOpenAI o3/o4:\n  Use o4-mini-high for most reasoning\
+  \ tasks (cost-efficient)\n  Use o3 for the hardest problems where o4-mini falls\
+  \ short\n  Do not use reasoning models for classification, extraction, or templating\
+  \ —\n  those are standard model tasks\n\n------------------------------------------------------------------\n\
+  COMMON MISTAKES AND THEIR SYMPTOMS:\n\nMistake                         Symptom\n\
+  -------                         -------\n\"Think step by step\"            Verbose,\
+  \ constrained reasoning; worse answers\nToo many few-shot examples      Model mimics\
+  \ example format instead of reasoning\nPrescribing the reasoning path  Model gets\
+  \ locked into suboptimal approach\nUsing for simple tasks          Slow, expensive,\
+  \ often worse than GPT-4.1 / Haiku\nStructured output request       Inconsistent,\
+  \ malformed JSON/table output\nVague goal statement            Confident-sounding\
+  \ but wrong answer\nOver-prompting tool use         Tool overtriggering; irrelevant\
+  \ calls accumulate\n\"Explain your reasoning\"        Adds output tokens without\
+  \ improving answer quality\n\n------------------------------------------------------------------\n\
+  QUICK REFERENCE — DO / DON'T:\n\nDO                                        DON'T\n\
+  --                                        -----\nState goals clearly and completely\
+  \        Prescribe reasoning steps\nUse XML tags to separate input sections   Use\
+  \ \"think step by step\"\nSet explicit output format requirements   Add many few-shot\
+  \ examples\nUse effort / budget parameters            Request structured output\
+  \ (JSON)\nAsk for self-verification at the end      Use for simple < 3-step tasks\n\
+  Zero-shot first, few-shot only if needed  Over-explain the reasoning process"
+tags:
+- imported
+category: analysis
+author: AI Boost Awesome Prompts
+source: AI Boost Awesome Prompts
