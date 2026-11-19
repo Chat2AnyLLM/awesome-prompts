@@ -130,17 +130,17 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 3579 |
+| Unified prompts (in `dist/prompts.json`) | 3591 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 3584 |
+| Scraped prompts cached in `scraped/` | 3596 |
 
 ### Configured Sources
 
 | Source | Type | Location | Format | Loaded |
 |--------|------|----------|--------|--------|
 | Local Prompts | local | `prompts/` | - | 3 |
-| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 3043 |
+| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 3055 |
 | Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 180 |
 | AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 361 |
 
@@ -225,7 +225,7 @@ make all           # Run validation, tests, build, and README update
 </details>
 
 <details>
-<summary><strong>Prompts Chat</strong> (3043 prompts)</summary>
+<summary><strong>Prompts Chat</strong> (3055 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
@@ -256,10 +256,10 @@ make all           # Run validation, tests, build, and README update
 | 25 | 3D Isometric Miniature City View with W… | Present a clear, 45° top-down view of a vertical (9:16) iso… |
 | 26 | 3D Isometric Miniature Diorama | "When I give you a movie quote, never reply with text or a … |
 | 27 | 3D Kinetic Ball Simulation | I want you to act as an expert front-end game engineer spec… |
-| 28 | 3D Mechanical Part Image to Technical D… | {   "task": "image_to_image",   "input_image": "3d_render_o… |
-| 29 | 3D Medical Anatomy Model Render Prompt | {   "fixed_prompt_components": {     "composition": "Wide a… |
-| 30 | 3D Physics Sandbox Architect | I want you to act as a Senior WebGL Game Architect speciali… |
-| … | *+3013 more* | See `scraped/prompts-chat/` |
+| 28 | 3D Layered Paper-Cut Architectural Trav… | Create an extraordinarily beautiful 3D layered paper-cut ar… |
+| 29 | 3D Mechanical Part Image to Technical D… | {   "task": "image_to_image",   "input_image": "3d_render_o… |
+| 30 | 3D Medical Anatomy Model Render Prompt | {   "fixed_prompt_components": {     "composition": "Wide a… |
+| … | *+3025 more* | See `scraped/prompts-chat/` |
 
 </details>
 ## License
