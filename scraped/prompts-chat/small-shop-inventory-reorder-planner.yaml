@@ -1,0 +1,289 @@
+slug: small-shop-inventory-reorder-planner
+title: Small Shop Inventory Reorder Planner
+description: Imported from Prompts Chat
+prompt: "---\nname: small-shop-inventory-reorder-planner\ndescription: Plans reorders\
+  \ for a small shop, cafe or online store from an items CSV and a settings JSON.\
+  \ Computes safety stock, reorder points and order-up-to levels, rounds orders to\
+  \ case packs and MOQs, caps perishables to shelf life, flags stockouts before delivery,\
+  \ dead stock, overstock and negative margins, groups orders by supplier and fits\
+  \ them into a cash budget. Offline stdlib Python planner.\n---\n\n# Small Shop Inventory\
+  \ Reorder Planner\n\nYou help owners of small shops, cafes, market stalls and online\
+  \ stores decide what to order this week and how much. Running out of a best seller\
+  \ loses sales and regulars; over-ordering ties up cash and, for food, ends up in\
+  \ the bin. You take a simple items sheet and a few settings and produce a clear\
+  \ order list per supplier with the reasoning behind each number.\n\nYou do not place\
+  \ orders, contact suppliers or change the user's POS or accounting data. Numbers\
+  \ are planning estimates based on the sales averages the user provides.\n\n## Files\
+  \ in this skill\n\n- `scripts/plan_reorders.py` - reads `items.csv` and `settings.json`;\
+  \ computes safety stock, reorder point (ROP), order-up-to level and suggested order\
+  \ quantity; flags RP01-RP10 (stockout before delivery, open orders too small, at\
+  \ reorder point, MOQ overstock, perishable cap and waste risk, dead stock, overstock,\
+  \ price not above cost, assumed demand variability, cash budget deferrals); groups\
+  \ by supplier and checks supplier minimums (Python 3.8+ standard library only)\n\
+  - `references/reorder-math.md` - the formulas in plain words, service levels and\
+  \ how to get the inputs from a POS export\n- `references/practical-ordering.md`\
+  \ - perishables, MOQs, case packs, cash budgets, dead stock and supplier minimums\n\
+  - `templates/order-plan.md` - the weekly order note you hand back\n- `examples/items.csv`\
+  \ - eleven items for a fictional cafe and pantry, with several traps\n- `examples/settings.json`\
+  \ - service level, review period, cash budget and supplier minimums\n\n## Workflow\n\
+  \n### 1. Collect the data\nAsk for one row per item: `sku`, `name`, `supplier`,\
+  \ `on_hand`, `on_order`, `avg_daily_sales`, `sd_daily_sales` (optional), `lead_time_days`,\
+  \ `moq`, `case_pack`, `unit_cost`, `unit_price`, `shelf_life_days` (blank if not\
+  \ perishable). Help the user get average daily sales from the last 4-8 weeks of\
+  \ POS data (units sold divided by days open). Ask for the review rhythm (how often\
+  \ they order), a service level (0.90-0.98) and this week's cash budget.\n\n### 2.\
+  \ Run the planner\n```\npython3 scripts/plan_reorders.py examples/items.csv examples/settings.json\n\
+  python3 scripts/plan_reorders.py items.csv settings.json --json\npython3 scripts/plan_reorders.py\
+  \ --self-test\n```\nExit 0 = no high findings, 1 = at least one item will run out\
+  \ before an order can arrive, 2 = bad input. Without a shell, apply the formulas\
+  \ in `references/reorder-math.md` row by row.\n\n### 3. Read the result\n- High:\
+  \ RP01 runs out before a new order can arrive (order today, consider a faster supplier\
+  \ or a substitute), RP02 open orders are too small to cover the lead time, RP10\
+  \ when a stockout-risk item does not fit the budget.\n- Medium: RP03 at or below\
+  \ the reorder point (order now), RP04 MOQ forces more than two months of stock,\
+  \ RP05 perishable capped to shelf life or waste risk, RP08 price not above cost,\
+  \ RP10 deferred for budget.\n- Low: RP06 dead stock, RP07 overstock beyond `overstock_days`,\
+  \ RP09 demand variability assumed.\n\n### 4. Deliver\nFill `templates/order-plan.md`:\
+  \ orders grouped by supplier with totals, items deferred for cash, perishables with\
+  \ a suggested ordering rhythm, and three actions for slow or dead stock. Keep the\
+  \ language simple; owners often read this on a phone between customers.\n\n## Example\
+  \ result\nOn the sample cafe (95% service level, weekly review, $420 budget), house\
+  \ coffee beans will run out in about 4 days against a 5-day lead time (high, order\
+  \ 48 now), sourdough and cookies are capped to their 3- and 7-day shelf lives with\
+  \ advice to order more often, orange juice sells below cost and its MOQ still risks\
+  \ waste, the PackRight and Dairy orders fall below supplier minimums, logo mugs\
+  \ are dead stock and paper straws have 150 days of cover. Spend: $387.70 of $420.\n\
+  \n## Rules\n\n- Base every number on the CSV and settings; show the formula inputs\
+  \ when asked.\n- If sales history is short, seasonal or distorted by a stockout,\
+  \ say so and suggest adjusting the average manually.\n- Never invent supplier terms,\
+  \ prices or lead times; mark unknowns and ask.\n- This is a planning aid, not accounting\
+  \ or financial advice.\n\n\x1FFILE:references/reorder-math.md\x1E\n# Reorder math\
+  \ in plain words\n\nSymbols: d = average daily sales, sd = day-to-day variation\
+  \ of sales, L = lead time in days (order to shelf), R = review period in days (how\
+  \ often you place orders), z = service-level factor.\n\n| Quantity | Formula | Meaning\
+  \ |\n|---|---|---|\n| Safety stock (SS) | z x sd x sqrt(L + R) | Buffer for busier-than-average\
+  \ days while you wait |\n| Reorder point (ROP) | d x L + SS | When stock on hand\
+  \ plus on order falls to this, order |\n| Order-up-to level | d x (L + R) + SS |\
+  \ Enough to last until the next order arrives |\n| Inventory position | on hand\
+  \ + on order | What you have or will soon have |\n| Order quantity | order-up-to\
+  \ - position, then MOQ, then round up to case pack | What to buy now |\n| Days of\
+  \ cover | on hand / d | How long current stock lasts |\n\n## Service level\n- 0.90\
+  \ -> z about 1.28; 0.95 -> 1.64; 0.98 -> 2.05; 0.99 -> 2.33.\n- Use higher levels\
+  \ for best sellers and items customers come in for; lower for impulse or easily\
+  \ substituted items.\n\n## Getting the inputs\n- d: units sold in the last 28-56\
+  \ open days divided by the number of open days. Exclude days the item was out of\
+  \ stock.\n- sd: standard deviation of daily units in the same window. A spreadsheet\
+  \ STDEV over daily totals works. If unknown, the script assumes 50% of d (RP09).\n\
+  - L: from the day you place the order to the day it is on the shelf, including delivery\
+  \ days and receiving time. Use the slow end of the usual range.\n- R: 7 for weekly\
+  \ ordering, 1 for daily bread or dairy runs.\n\n## Limits\n- Averages lag behind\
+  \ trends and seasons (holidays, weather, school terms). Adjust d by hand for the\
+  \ coming period.\n- New items have no history: start with a small order and review\
+  \ after a week.\n\n\x1FFILE:references/practical-ordering.md\x1E\n# Practical ordering\
+  \ rules\n\n## Perishables (RP05)\n- Never order more than you can sell within the\
+  \ shelf life: the script caps the order at d x shelf life - position and rounds\
+  \ DOWN to the case pack.\n- If the cap keeps cutting orders, order more often (shorter\
+  \ review period) rather than accepting waste.\n- If an MOQ forces more than you\
+  \ can sell, ask the supplier for a smaller pack, share an order with a neighbour\
+  \ business, or drop the item.\n\n## MOQ and case packs (RP04)\n- Case packs round\
+  \ up for non-perishables. A big MOQ on a slow item can lock up months of cash: compare\
+  \ MOQ / d with your overstock limit.\n\n## Cash budget (RP10)\n- Items that would\
+  \ run out before delivery are funded first, then the rest by margin x daily sales\
+  \ (what earns most per day).\n- Deferred items are listed so you can decide: raise\
+  \ the budget, split the order, or accept a short gap on low-margin items.\n\n##\
+  \ Supplier minimum orders\n- If a supplier order is below their minimum, either\
+  \ add slow-moving items you will need soon from that supplier or skip this cycle\
+  \ if stock allows.\n\n## Dead stock and overstock (RP06, RP07)\n- Dead stock (no\
+  \ sales, stock on hand): bundle it with best sellers, mark it down, return it if\
+  \ terms allow, or use it as a gift with purchase.\n- Overstock (more than 90 days\
+  \ of cover): pause reorders, move it to a better shelf position, or run a small\
+  \ promotion.\n\n## Pricing (RP08)\n- An item sold at or below cost needs a price\
+  \ review, a cheaper supplier, or a deliberate decision to keep it as a traffic driver.\n\
+  \n## Weekly routine (15 minutes)\n1. Export or count on-hand stock for the order\
+  \ list.\n2. Update on_order with anything not yet received.\n3. Run the planner,\
+  \ read high flags first.\n4. Place orders per supplier, note expected delivery dates.\n\
+  5. Once a month, refresh d and sd from the POS.\n\n\x1FFILE:templates/order-plan.md\x1E\
+  \n# Weekly order plan - {{shop}}\n\nWeek of: {{date}}  |  Service level: {{service_level}}\
+  \  |  Budget: {{currency}}{{budget}}  |  Spend now: {{currency}}{{spend}}\n\n##\
+  \ Order today (stockout risk)\n| Item | On hand | Days of cover | Lead time | Order\
+  \ | Cost |\n|---|---|---|---|---|---|\n| {{item}} | {{on_hand}} | {{cover}} | {{lead_time}}\
+  \ d | {{qty}} | {{cost}} |\n\n## Orders by supplier\n### {{supplier}} - {{lines}}\
+  \ lines, {{currency}}{{total}} {{(below minimum: note)}}\n| Item | Order qty | Case\
+  \ pack | Cost | Why |\n|---|---|---|---|---|\n| {{item}} | {{qty}} | {{pack}} |\
+  \ {{cost}} | {{at reorder point / perishable cap / MOQ}} |\n\n## Deferred for cash\n\
+  - {{item}}: {{cost}} - {{decision needed: raise budget, split order, accept a short\
+  \ gap}}\n\n## Perishables\n- {{item}}: capped to {{qty}} for a {{shelf_life}}-day\
+  \ shelf life -> order every {{days}} days instead of weekly.\n\n## Slow and dead\
+  \ stock\n- {{item}}: {{days of cover or no sales}} -> {{bundle / markdown / return\
+  \ / pause}}\n\n## Price checks\n- {{item}}: price {{price}} vs cost {{cost}} ->\
+  \ {{review}}\n\nNumbers come from your items sheet and settings; check unusual weeks\
+  \ (holidays, events) before ordering.\n\n\x1FFILE:examples/items.csv\x1E\nsku,name,supplier,on_hand,on_order,avg_daily_sales,sd_daily_sales,lead_time_days,moq,case_pack,unit_cost,unit_price,shelf_life_days\n\
+  CB-250,House coffee beans 250g,Roastery North,18,0,4.2,1.8,5,24,6,5.40,12.50\nOM-1L,Oat\
+  \ milk 1L,Dairy and Plant Co,30,24,6.5,2.5,3,12,12,1.35,2.90,60\nSB-12,Sourdough\
+  \ loaf,Local Bakery,8,0,7.0,2.0,1,,1,2.10,5.00,3\nCP-12,Paper cups 12oz (sleeve\
+  \ of 50),PackRight,9,0,0.9,0.4,10,20,10,3.80,0,\nJR-HN,Wildflower honey jar 340g,Hill\
+  \ Apiary,26,0,0.6,0.5,14,48,12,4.20,9.90,720\nTB-EG,English breakfast tea 50 bags,Leaf\
+  \ Traders,40,0,1.1,0.6,7,,10,2.60,6.50,540\nCK-CH,Chocolate chip cookies 6-pack,Local\
+  \ Bakery,12,0,3.0,,2,,6,1.90,4.20,7\nGF-BR,Gluten-free brownies 4-pack,Free From\
+  \ Foods,6,12,1.4,0.7,6,24,12,3.10,6.90,21\nMG-CE,Ceramic mug with shop logo,PackRight,64,0,0,,21,,6,4.50,14.00,\n\
+  ST-PA,Paper straws (box of 250),PackRight,30,0,0.2,0.1,10,,1,6.00,0,\nOJ-1L,Fresh\
+  \ orange juice 1L,Dairy and Plant Co,10,0,2.5,1.2,2,6,6,2.30,2.20,6\n\n\x1FFILE:examples/settings.json\x1E\
+  \n{\n  \"shop\": \"Corner Mill Cafe and Pantry (fictional)\",\n  \"currency\": \"\
+  $\",\n  \"service_level\": 0.95,\n  \"review_period_days\": 7,\n  \"overstock_days\"\
+  : 90,\n  \"cash_budget\": 420,\n  \"supplier_min_order\": {\n    \"PackRight\":\
+  \ 150,\n    \"Dairy and Plant Co\": 60\n  }\n}\n\n\x1FFILE:scripts/plan_reorders.py\x1E\
+  \n#!/usr/bin/env python3\n\"\"\"Small shop inventory reorder planner (Python 3.8+\
+  \ standard library only).\n\nReads an items CSV and a settings JSON, computes safety\
+  \ stock, reorder point,\norder-up-to level and a suggested order per SKU (rounded\
+  \ to case pack and MOQ),\nflags RP01-RP10 risks, groups orders by supplier and fits\
+  \ them into a cash budget.\n\nUsage:\n  python3 scripts/plan_reorders.py examples/items.csv\
+  \ examples/settings.json\n  python3 scripts/plan_reorders.py items.csv settings.json\
+  \ --json\n  python3 scripts/plan_reorders.py --self-test\nExit codes: 0 = no high\
+  \ findings, 1 = high findings (stockout risk), 2 = bad input.\n\"\"\"\nimport argparse,\
+  \ csv, json, math, sys\nfrom statistics import NormalDist\n\nREQUIRED = [\"sku\"\
+  , \"name\", \"on_hand\", \"avg_daily_sales\", \"lead_time_days\"]\nSEV = {\"high\"\
+  : 0, \"medium\": 1, \"low\": 2}\n\n\ndef num(row, key, default=0.0):\n    v = (row.get(key)\
+  \ or \"\").strip()\n    if v == \"\":\n        return default\n    return float(v)\n\
+  \n\ndef load_items(path):\n    with open(path, newline=\"\", encoding=\"utf-8\"\
+  ) as f:\n        rows = list(csv.DictReader(f))\n    if not rows:\n        raise\
+  \ ValueError(\"items CSV is empty\")\n    missing = [c for c in REQUIRED if c not\
+  \ in rows[0]]\n    if missing:\n        raise ValueError(\"items CSV missing columns:\
+  \ %s\" % \", \".join(missing))\n    return rows\n\n\ndef plan_item(row, s):\n  \
+  \  z = NormalDist().inv_cdf(s.get(\"service_level\", 0.95))\n    R = float(s.get(\"\
+  review_period_days\", 7))\n    it = {\"sku\": row[\"sku\"].strip(), \"name\": row[\"\
+  name\"].strip(), \"supplier\": (row.get(\"supplier\") or \"unknown\").strip() or\
+  \ \"unknown\"}\n    d = num(row, \"avg_daily_sales\")\n    sd = num(row, \"sd_daily_sales\"\
+  , d * 0.5)  # assume fairly noisy demand if unknown\n    L = num(row, \"lead_time_days\"\
+  )\n    on_hand, on_order = num(row, \"on_hand\"), num(row, \"on_order\")\n    moq,\
+  \ pack = num(row, \"moq\", 0), max(1.0, num(row, \"case_pack\", 1))\n    cost, price\
+  \ = num(row, \"unit_cost\"), num(row, \"unit_price\")\n    shelf = num(row, \"shelf_life_days\"\
+  , 0)\n    ss = z * sd * math.sqrt(L + R)\n    rop = d * L + ss\n    up_to = d *\
+  \ (L + R) + ss\n    pos = on_hand + on_order\n    qty = 0.0\n    if d > 0 and pos\
+  \ <= rop:\n        qty = max(up_to - pos, 0)\n        if moq and qty < moq:\n  \
+  \          qty = moq\n        qty = math.ceil(qty / pack) * pack\n    capped = False\n\
+  \    if shelf and d > 0 and qty > 0 and pos + qty > d * shelf:\n        # perishable:\
+  \ never order more than can sell within shelf life (round DOWN to the case pack)\n\
+  \        cap = math.floor(max(d * shelf - pos, 0) / pack) * pack\n        if moq\
+  \ and cap < moq:\n            qty = min(qty, math.ceil(moq / pack) * pack)  # smallest\
+  \ allowed order; RP05 below warns about waste\n        else:\n            capped\
+  \ = qty != cap\n            qty = cap\n    it.update({\n        \"avg_daily_sales\"\
+  : d, \"lead_time_days\": L, \"on_hand\": on_hand, \"on_order\": on_order,\n    \
+  \    \"safety_stock\": round(ss, 1), \"reorder_point\": round(rop, 1), \"order_up_to\"\
+  : round(up_to, 1),\n        \"inventory_position\": pos, \"order_qty\": int(qty),\
+  \ \"order_cost\": round(qty * cost, 2),\n        \"days_of_cover\": round(on_hand\
+  \ / d, 1) if d > 0 else None,\n        \"margin_per_unit\": round(price - cost,\
+  \ 2) if price else None,\n        \"shelf_life_days\": shelf, \"flags\": [],\n \
+  \   })\n\n    def flag(code, sev, msg):\n        it[\"flags\"].append({\"code\"\
+  : code, \"severity\": sev, \"sku\": it[\"sku\"], \"message\": msg})\n\n    if d\
+  \ > 0 and on_hand < d * L and on_order == 0:\n        flag(\"RP01\", \"high\", \"\
+  will run out in about %.0f days, before a new order (lead time %.0f d) can arrive\"\
+  \ % (on_hand / d, L))\n    elif d > 0 and on_hand + on_order < d * L:\n        flag(\"\
+  RP02\", \"high\", \"stock plus open orders cover %.0f days, less than the %.0f-day\
+  \ lead time\" % (pos / d, L))\n    if qty > 0:\n        flag(\"RP03\", \"medium\"\
+  , \"at or below reorder point (%.0f <= %.0f): order %d now\" % (pos, rop, qty))\n\
+  \    if d > 0 and qty > 0 and moq and moq > (up_to - pos) * 2 and moq / d > 60:\n\
+  \        flag(\"RP04\", \"medium\", \"MOQ %d forces about %.0f days of stock; negotiate\
+  \ a smaller MOQ or share an order\" % (moq, moq / d))\n    if capped:\n        flag(\"\
+  RP05\", \"medium\", \"perishable: order capped to %d so stock sells within the %.0f-day\
+  \ shelf life; order more often than every %.0f days\" % (qty, shelf, R))\n    elif\
+  \ shelf and d > 0 and (on_hand + on_order + qty) / d > shelf:\n        flag(\"RP05\"\
+  , \"medium\", \"stock after this order lasts %.1f days but shelf life is %.0f days:\
+  \ waste risk\" % ((on_hand + on_order + qty) / d, shelf))\n    if d == 0 and on_hand\
+  \ > 0:\n        flag(\"RP06\", \"low\", \"no sales recorded but %d on hand (dead\
+  \ stock): consider bundle, markdown or return\" % on_hand)\n    elif d > 0 and on_hand\
+  \ / d > s.get(\"overstock_days\", 90):\n        flag(\"RP07\", \"low\", \"%.0f days\
+  \ of cover: overstocked, pause reorders and free up cash\" % (on_hand / d))\n  \
+  \  if price and cost and price <= cost:\n        flag(\"RP08\", \"medium\", \"unit\
+  \ price %.2f is not above unit cost %.2f\" % (price, cost))\n    if not (row.get(\"\
+  sd_daily_sales\") or \"\").strip():\n        flag(\"RP09\", \"low\", \"no demand\
+  \ variability given; assumed sd = 50% of average (check with sales history)\")\n\
+  \    return it\n\n\ndef plan(rows, s):\n    items = [plan_item(r, s) for r in rows]\n\
+  \    budget = s.get(\"cash_budget\")\n    # priority: stockout risk first, then\
+  \ reorder-point items by margin per day of cover\n    def prio(it):\n        risk\
+  \ = 0 if any(f[\"code\"] in (\"RP01\", \"RP02\") for f in it[\"flags\"]) else 1\n\
+  \        return (risk, -(it[\"margin_per_unit\"] or 0) * it[\"avg_daily_sales\"\
+  ])\n    spend, deferred = 0.0, []\n    for it in sorted([i for i in items if i[\"\
+  order_qty\"] > 0], key=prio):\n        if budget is not None and spend + it[\"order_cost\"\
+  ] > budget:\n            it[\"deferred\"] = True\n            deferred.append(it[\"\
+  sku\"])\n            it[\"flags\"].append({\"code\": \"RP10\", \"severity\": \"\
+  medium\" if prio(it)[0] else \"high\", \"sku\": it[\"sku\"],\n                 \
+  \               \"message\": \"order of %.2f does not fit the remaining cash budget;\
+  \ deferred\" % it[\"order_cost\"]})\n        else:\n            it[\"deferred\"\
+  ] = False\n            spend += it[\"order_cost\"]\n    suppliers = {}\n    for\
+  \ it in items:\n        if it[\"order_qty\"] > 0 and not it.get(\"deferred\"):\n\
+  \            sp = suppliers.setdefault(it[\"supplier\"], {\"lines\": 0, \"units\"\
+  : 0, \"cost\": 0.0})\n            sp[\"lines\"] += 1; sp[\"units\"] += it[\"order_qty\"\
+  ]; sp[\"cost\"] = round(sp[\"cost\"] + it[\"order_cost\"], 2)\n    for name, sp\
+  \ in suppliers.items():\n        mo = (s.get(\"supplier_min_order\") or {}).get(name)\n\
+  \        if mo and sp[\"cost\"] < mo:\n            sp[\"note\"] = \"below supplier\
+  \ minimum order %.2f: add slow-moving items or wait a cycle\" % mo\n    flags =\
+  \ sorted([f for it in items for f in it[\"flags\"]], key=lambda f: (SEV[f[\"severity\"\
+  ]], f[\"code\"], f[\"sku\"]))\n    return {\"items\": items, \"suppliers\": suppliers,\
+  \ \"spend\": round(spend, 2), \"budget\": budget, \"deferred\": deferred, \"flags\"\
+  : flags}\n\n\ndef report(res, s):\n    cur = s.get(\"currency\", \"\")\n    out\
+  \ = [\"Reorder plan for %s (service level %.0f%%, review every %s days)\" % (s.get(\"\
+  shop\", \"shop\"), s.get(\"service_level\", 0.95) * 100, s.get(\"review_period_days\"\
+  , 7)), \"\"]\n    out.append(\"%-8s %-24s %6s %6s %6s %6s %6s %6s %9s\" % (\"SKU\"\
+  , \"ITEM\", \"ONHAND\", \"COVER\", \"SS\", \"ROP\", \"UPTO\", \"ORDER\", \"COST\"\
+  ))\n    for it in res[\"items\"]:\n        cover = \"-\" if it[\"days_of_cover\"\
+  ] is None else \"%.0fd\" % it[\"days_of_cover\"]\n        order = (\"%d*\" % it[\"\
+  order_qty\"]) if it.get(\"deferred\") else str(it[\"order_qty\"])\n        out.append(\"\
+  %-8s %-24s %6d %6s %6.0f %6.0f %6.0f %6s %9.2f\" % (it[\"sku\"][:8], it[\"name\"\
+  ][:24], it[\"on_hand\"], cover, it[\"safety_stock\"], it[\"reorder_point\"], it[\"\
+  order_up_to\"], order, it[\"order_cost\"]))\n    out += [\"\", \"Orders by supplier:\"\
+  ]\n    for name, sp in sorted(res[\"suppliers\"].items()):\n        out.append(\"\
+  \  %-20s %d lines, %d units, %s%.2f%s\" % (name, sp[\"lines\"], sp[\"units\"], cur,\
+  \ sp[\"cost\"], (\"  (\" + sp[\"note\"] + \")\") if sp.get(\"note\") else \"\"))\n\
+  \    b = res[\"budget\"]\n    out.append(\"Total to spend now: %s%.2f%s\" % (cur,\
+  \ res[\"spend\"], \"\" if b is None else \" of %s%.2f budget\" % (cur, b)))\n  \
+  \  if res[\"deferred\"]:\n        out.append(\"Deferred (marked *): \" + \", \"\
+  .join(res[\"deferred\"]))\n    out += [\"\", \"Flags:\"]\n    for f in res[\"flags\"\
+  ]:\n        out.append(\"  [%s] %s %s: %s\" % (f[\"severity\"].upper(), f[\"code\"\
+  ], f[\"sku\"], f[\"message\"]))\n    return \"\\n\".join(out)\n\n\ndef self_test():\n\
+  \    s = {\"service_level\": 0.95, \"review_period_days\": 7}\n    def row(**kw):\n\
+  \        r = {\"sku\": \"A\", \"name\": \"a\", \"on_hand\": \"100\", \"on_order\"\
+  : \"0\", \"avg_daily_sales\": \"5\", \"sd_daily_sales\": \"2\", \"lead_time_days\"\
+  : \"7\", \"moq\": \"\", \"case_pack\": \"1\", \"unit_cost\": \"2\", \"unit_price\"\
+  : \"4\", \"shelf_life_days\": \"\"}\n        r.update({k: str(v) for k, v in kw.items()});\
+  \ return r\n    def codes(r, st=s):\n        return {f[\"code\"] for f in plan_item(r,\
+  \ st)[\"flags\"]}\n    it = plan_item(row(), s)\n    z = NormalDist().inv_cdf(0.95)\n\
+  \    cases = [\n        (\"safety stock formula\", abs(it[\"safety_stock\"] - round(z\
+  \ * 2 * math.sqrt(14), 1)) < 0.05, True),\n        (\"no order above ROP\", it[\"\
+  order_qty\"], 0),\n        (\"RP01 stockout\", \"RP01\" in codes(row(on_hand=10)),\
+  \ True),\n        (\"RP02 open order too small\", \"RP02\" in codes(row(on_hand=10,\
+  \ on_order=10)), True),\n        (\"RP03 reorder\", \"RP03\" in codes(row(on_hand=40)),\
+  \ True),\n        (\"case pack rounding\", plan_item(row(on_hand=40, case_pack=12),\
+  \ s)[\"order_qty\"] % 12, 0),\n        (\"MOQ applied\", plan_item(row(on_hand=40,\
+  \ moq=200), s)[\"order_qty\"] >= 200, True),\n        (\"RP04 big MOQ\", \"RP04\"\
+  \ in codes(row(on_hand=40, moq=400)), True),\n        (\"RP05 shelf life cap\",\
+  \ \"RP05\" in codes(row(on_hand=40, shelf_life_days=10)), True),\n        (\"perishable\
+  \ qty capped\", plan_item(row(on_hand=40, shelf_life_days=10), s)[\"order_qty\"\
+  ], 10),\n        (\"RP05 MOQ waste\", \"RP05\" in codes(row(on_hand=40, shelf_life_days=10,\
+  \ moq=100)), True),\n        (\"RP06 dead stock\", \"RP06\" in codes(row(avg_daily_sales=0,\
+  \ on_hand=30)), True),\n        (\"RP07 overstock\", \"RP07\" in codes(row(on_hand=1000)),\
+  \ True),\n        (\"RP08 negative margin\", \"RP08\" in codes(row(unit_price=1.5)),\
+  \ True),\n        (\"RP09 sd assumed\", \"RP09\" in codes(row(sd_daily_sales=\"\"\
+  )), True),\n    ]\n    rows = [row(sku=\"A\", on_hand=10), row(sku=\"B\", on_hand=40,\
+  \ unit_cost=50)]\n    res = plan(rows, dict(s, cash_budget=200))\n    cases.append((\"\
+  RP10 budget defers lower priority\", res[\"deferred\"], [\"B\"]))\n    ok = 0\n\
+  \    for name, got, want in cases:\n        p = got == want; ok += p\n        print(\"\
+  %s  %s\" % (\"PASS\" if p else \"FAIL\", name))\n    print(\"%d/%d passed\" % (ok,\
+  \ len(cases)))\n    return 0 if ok == len(cases) else 1\n\n\ndef main(argv=None):\n\
+  \    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])\n    ap.add_argument(\"\
+  items\", nargs=\"?\"); ap.add_argument(\"settings\", nargs=\"?\")\n    ap.add_argument(\"\
+  --json\", action=\"store_true\"); ap.add_argument(\"--self-test\", action=\"store_true\"\
+  )\n    a = ap.parse_args(argv)\n    if a.self_test:\n        return self_test()\n\
+  \    if not a.items:\n        ap.print_usage(); return 2\n    try:\n        s =\
+  \ {}\n        if a.settings:\n            with open(a.settings, encoding=\"utf-8\"\
+  ) as f:\n                s = json.load(f)\n        if not 0.5 <= s.get(\"service_level\"\
+  , 0.95) < 1:\n            raise ValueError(\"service_level must be between 0.5 and\
+  \ 0.999\")\n        res = plan(load_items(a.items), s)\n    except (OSError, ValueError,\
+  \ KeyError, json.JSONDecodeError) as e:\n        print(\"input error: %s\" % e,\
+  \ file=sys.stderr); return 2\n    print(json.dumps(res, indent=2) if a.json else\
+  \ report(res, s))\n    return 1 if any(f[\"severity\"] == \"high\" for f in res[\"\
+  flags\"]) else 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,0 +1,56 @@
+slug: vintage-tiled-portrait-poster-with-handwritten-sticky-notes-json-3-4
+title: Vintage Tiled Portrait Poster With Handwritten Sticky Notes (JSON, 3:4)
+description: Imported from Prompts Chat
+prompt: "{\n  \"task\": \"Transform the uploaded photograph into a cinematic, photorealistic\
+  \ vintage tiled portrait poster.\",\n\n  \"reference_image\": {\n    \"source\"\
+  : \"Use the user's uploaded photograph as the primary identity reference.\",\n \
+  \   \"identity_preservation\": \"Preserve the person's exact facial identity, facial\
+  \ structure, skin tone, hairstyle, eye shape, and recognizable features.\",\n  \
+  \  \"gender\": \"Automatically follow the uploaded subject.\",\n    \"expression\"\
+  : \"Maintain the original expression or create a subtle, confident, natural expression.\"\
+  \n  },\n\n  \"composition\": {\n    \"layout\": \"Vertical editorial poster.\",\n\
+  \    \"structure\": \"A large rectangular portrait assembled from approximately\
+  \ 4 columns and 5 rows of individual square, slightly irregular ceramic or paper\
+  \ tiles.\",\n    \"portrait\": \"The subject occupies the central majority of the\
+  \ composition, visible from the head to the upper torso.\",\n    \"tile_effect\"\
+  : \"Every tile is physically separated by thin, dark, realistic grout lines. Slight\
+  \ variations in alignment, chipped edges, worn corners, and subtle shadows create\
+  \ an authentic handmade tiled-wall appearance.\",\n    \"continuity\": \"The portrait\
+  \ must align seamlessly across all tiles, with facial features and body details\
+  \ continuing naturally across tile boundaries.\"\n  },\n\n  \"environment\": {\n\
+  \    \"background\": \"Muted dusty sage-gray textured plaster wall.\",\n    \"surface\"\
+  : \"Aged, slightly weathered surface with subtle imperfections.\",\n    \"lighting\"\
+  : \"Soft natural diffused daylight with gentle shadows.\"\n  },\n\n  \"styling\"\
+  : {\n    \"clothing\": \"Automatically create tasteful, sophisticated clothing that\
+  \ complements the subject's appearance. Prefer vintage-inspired casual or smart-casual\
+  \ styling.\",\n    \"aesthetic\": \"Understated vintage editorial photography.\"\
+  ,\n    \"color_palette\": \"Muted earthy browns, charcoal, dusty sage, warm beige\
+  \ and subtle faded tones.\"\n  },\n\n  \"personalized_details\": {\n    \"sticky_notes\"\
+  : {\n      \"placement\": \"Four small yellow handwritten sticky notes positioned\
+  \ around the outer edges of the tiled portrait.\",\n      \"messages\": [\n    \
+  \    \"Trust your instincts\",\n        \"Big decisions\",\n        \"Make it happen\"\
+  ,\n        \"Stay fearless\"\n      ],\n      \"style\": \"Authentic handwritten\
+  \ black ink, slightly imperfect lettering, naturally curled paper corners and realistic\
+  \ shadows.\"\n    },\n    \"signature\": \"A tiny handwritten 'prompt by @yourusername'\
+  \ near the bottom-left tile. Omit if no username is supplied.\"\n  },\n\n  \"photography\"\
+  : {\n    \"style\": \"Ultra-realistic photographic portrait.\",\n    \"lens\": \"\
+  50mm editorial portrait photography.\",\n    \"details\": \"Natural skin texture,\
+  \ realistic hair strands, detailed fabric textures, subtle film grain and authentic\
+  \ photographic imperfections.\",\n    \"color_grading\": \"Warm vintage film aesthetic\
+  \ with restrained contrast.\"\n  },\n\n  \"quality_control\": {\n    \"priority\"\
+  : [\n      \"Preserve the uploaded person's identity.\",\n      \"Keep the face\
+  \ realistic and anatomically accurate.\",\n      \"Ensure the tile grid is clearly\
+  \ visible.\",\n      \"Maintain seamless portrait continuity across tiles.\",\n\
+  \      \"Keep sticky notes outside the main facial area.\",\n      \"Avoid excessive\
+  \ AI beautification.\"\n    ],\n    \"avoid\": [\n      \"Changing facial identity\"\
+  ,\n      \"Plastic-looking skin\",\n      \"Artificial facial features\",\n    \
+  \  \"Broken tile alignment\",\n      \"Floating tiles\",\n      \"Excessive decorative\
+  \ elements\",\n      \"Cartoon or illustrated appearance\",\n      \"Distorted text\"\
+  ,\n      \"Watermarks\"\n    ]\n  },\n\n  \"output\": {\n    \"aspect_ratio\": \"\
+  3:4\",\n    \"resolution\": \"High resolution\",\n    \"rendering\": \"Photorealistic\
+  \ vintage editorial poster\"\n  }\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
