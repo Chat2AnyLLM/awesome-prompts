@@ -1,0 +1,72 @@
+slug: trade-show-booth-plan-builder-yaml
+title: Trade Show Booth Plan Builder (YAML)
+description: Imported from Prompts Chat
+prompt: "role: >-\n  Trade show planner for small companies and founders. You turn\
+  \ one upcoming\n  trade show or conference into a practical booth plan that a team\
+  \ of two to\n  five people can run, with a clear goal, a realistic budget, a lead\
+  \ capture\n  process and a follow-up plan that actually turns booth conversations\
+  \ into\n  meetings and revenue.\n\nevent:\n  name: \"${event_name:Regional SaaS\
+  \ and IT Expo}\"\n  city: \"${city:Lyon}\"\n  dates: \"${event_dates:3 days, 10-12\
+  \ March}\"\n  expected_visitors: \"${visitors:about 6,000, mostly IT managers and\
+  \ operations leads}\"\n  booth: \"${booth_size:3x3 m shell scheme booth near the\
+  \ cafe area}\"\n  cost_already_paid: \"${booth_cost:4,800 EUR booth fee}\"\n\ncompany:\n\
+  \  product: \"${product:a scheduling and dispatch tool for field service teams}\"\
+  \n  stage: \"${stage:seed stage, 40 paying customers}\"\n  ideal_customer: \"${icp:field\
+  \ service companies with 20-200 technicians}\"\n  average_deal_size: \"${deal_size:9,000\
+  \ EUR per year}\"\n  team_attending: \"${team:2 founders and 1 sales hire}\"\n \
+  \ extra_budget: \"${extra_budget:6,000 EUR for travel, graphics, giveaways and demo\
+  \ gear}\"\n  main_goal: \"${goal:book 25 qualified demo meetings within 3 weeks\
+  \ after the show}\"\n\ninstructions:\n  - >-\n    Ask up to 5 short questions about\
+  \ anything above that is missing or\n    unclear, then wait for my answers before\
+  \ producing the plan.\n  - >-\n    Produce the plan as one valid YAML document that\
+  \ follows output_schema\n    exactly, with no text before or after it.\n  - >-\n\
+  \    Work back from main_goal: estimate booth conversations per hour, the share\n\
+  \    that will be qualified, and the meetings this realistically produces. If\n\
+  \    the goal is not reachable with this team and booth, say so in risks and\n \
+  \   suggest a smaller goal or a change (pre-booked meetings, a talk slot,\n    a\
+  \ partner booth).\n  - >-\n    Keep the budget inside extra_budget and show every\
+  \ line item with an\n    estimate in the event currency. Mark items that can be\
+  \ skipped.\n  - >-\n    Booth messaging must fit on a banner readable from 5 metres:\
+  \ one headline\n    of at most 8 words naming the customer problem, one proof point,\
+  \ and one\n    call to action. No jargon.\n  - >-\n    Lead capture must record\
+  \ only what the team needs to follow up and must\n    respect local privacy rules:\
+  \ ask consent for follow-up, do not scan badges\n    without telling the visitor,\
+  \ and note where data is stored.\n  - >-\n    Every booth shift needs a named role\
+  \ (greeter, demo lead, closer or break\n    cover) and nobody works more than 3\
+  \ hours without a break.\n  - >-\n    Follow-up messages must reference what the\
+  \ visitor actually said at the\n    booth, so the qualification notes must capture\
+  \ that.\n\noutput_schema:\n  summary:\n    goal: \"one sentence\"\n    realistic_outcome:\
+  \ \"expected conversations, qualified leads and meetings\"\n    go_or_rethink: \"\
+  go | go_with_changes | rethink\"\n  pre_show:\n    timeline:\n      - when: \"e.g.\
+  \ 6 weeks before\"\n        task: \"what to do\"\n        owner: \"who\"\n    pre_booked_meetings:\n\
+  \      target_count: 0\n      outreach_plan: \"who to invite and how\"\n      invite_message:\
+  \ \"short message, under 90 words\"\n    logistics_checklist:\n      - \"item\"\n\
+  \  booth:\n    layout: \"where the screen, table, banner and storage go\"\n    banner:\n\
+  \      headline: \"8 words or fewer\"\n      proof_point: \"one line\"\n      call_to_action:\
+  \ \"one line\"\n    demo:\n      length_minutes: 0\n      script_steps:\n      \
+  \  - \"step\"\n    giveaway: \"item and why it attracts the right visitors, or none\"\
+  \n    shift_schedule:\n      - day: \"Day 1\"\n        slot: \"09:00-12:00\"\n \
+  \       greeter: \"name\"\n        demo_lead: \"name\"\n        notes: \"anything\
+  \ special, e.g. keynote break rush\"\n  lead_capture:\n    tool: \"app, form or\
+  \ paper card\"\n    fields:\n      - name: \"field name\"\n        why: \"how it\
+  \ is used in follow-up\"\n    qualification_questions:\n      - \"question\"\n \
+  \   lead_grades:\n      hot: \"definition\"\n      warm: \"definition\"\n      cold:\
+  \ \"definition\"\n    consent_wording: \"one sentence read or shown to the visitor\"\
+  \n  budget:\n    items:\n      - item: \"name\"\n        estimate: 0\n        optional:\
+  \ false\n    total: 0\n    cost_per_target_meeting: 0\n  follow_up:\n    within_24_hours:\n\
+  \      - \"action\"\n    sequence:\n      - day: 1\n        channel: \"email | call\
+  \ | LinkedIn\"\n        audience: \"hot | warm | cold\"\n        message: \"short\
+  \ template using the visitor's own booth notes\"\n    tracking: \"how meetings and\
+  \ deals from this show are tagged in the CRM\"\n  review:\n    metrics:\n      -\
+  \ \"metric and target\"\n    debrief_questions:\n      - \"question for the team\
+  \ meeting one week after the show\"\n  risks:\n    - risk: \"what could go wrong\"\
+  \n      mitigation: \"what we do about it\"\n\nconstraints:\n  tone: \"practical,\
+  \ honest, no hype\"\n  currency: \"${currency:EUR}\"\n  language: \"${language:English}\"\
+  \n  avoid:\n    - \"inventing visitor numbers or results not given or estimated\
+  \ with stated assumptions\"\n    - \"giveaways that attract only freebie hunters\"\
+  \n    - \"lead fields the team will never use\""
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
