@@ -130,17 +130,17 @@ make all           # Run validation, tests, build, and README update
 
 | Metric | Count |
 |--------|-------|
-| Unified prompts (in `dist/prompts.json`) | 3636 |
+| Unified prompts (in `dist/prompts.json`) | 3654 |
 | Direct prompts (from `prompts/`) | 3 |
 | Configured sources | 4 |
-| Scraped prompts cached in `scraped/` | 3641 |
+| Scraped prompts cached in `scraped/` | 3659 |
 
 ### Configured Sources
 
 | Source | Type | Location | Format | Loaded |
 |--------|------|----------|--------|--------|
 | Local Prompts | local | `prompts/` | - | 3 |
-| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 3100 |
+| Prompts Chat | github | [https://github.com/f/prompts.chat](https://github.com/f/prompts.chat) | csv | 3118 |
 | Leaked System Prompts | github | [https://github.com/jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) | md | 180 |
 | AI Boost Awesome Prompts | github | [https://github.com/ai-boost/awesome-prompts](https://github.com/ai-boost/awesome-prompts) | txt | 361 |
 
@@ -225,41 +225,41 @@ make all           # Run validation, tests, build, and README update
 </details>
 
 <details>
-<summary><strong>Prompts Chat</strong> (3100 prompts)</summary>
+<summary><strong>Prompts Chat</strong> (3118 prompts)</summary>
 
 | # | Title | Preview |
 |---|-------|---------|
 | 1 | 10-Second 3D Cartoon Story Generator | Create an original and captivating 10-second 3D cartoon sto… |
-| 2 | 12-Month AI and Computer Vision Roadmap… | {   "role": "AI and Computer Vision Specialist Coach",   "c… |
-| 3 | 1337 | "Create a detailed efficiency guide for ${game_name}.  The … |
-| 4 | 16-Bit Pixel Art Cozy Bookshop on a Rai… | A 16-bit pixel art scene of a cozy little bookshop on a rai… |
-| 5 | 1840s Salted Paper Print of a Stone Har… | An authentic 1840s salted paper print, the early calotype-e… |
-| 6 | 1910s Autochrome of an Apple Orchard in… | A 1910s Autochrome Lumière color photograph of an old apple… |
-| 7 | 1940s village life | Give a prompt for 2 minutes  i need to generate ai video ea… |
-| 8 | 1950s Diner Photo Transformation | {   "prompt": "You will perform an image edit using the per… |
-| 9 | 1980s vs Modern Café Split-Screen Video… | A cinematic, high-quality video scene in a split-screen or … |
-| 10 | 1Sentence Deck: pitch deck thesis inter… | You are running the 1Sentence Deck method from 1sentencedec… |
-| 11 | 2026 FASHION EDITORIAL | A 20-year-old adult Dutch female model with fair skin and l… |
-| 12 | 2026 Mobile Poster Creator | Act as a graphic design assistant. Your task is to create a… |
-| 13 | 2046 Puzzle Game Challenge | Act as a game developer. You are tasked with creating a tex… |
-| 14 | 21st.dev component prompt | You are given a task to integrate an existing React compone… |
-| 15 | 2D documentary script generator | Suspense full 2D documentary script generator prompt like A… |
-| 16 | 30-Day Adaptive Personal Tutor | Act as my personal tutor for a 30-day learning program. You… |
-| 17 | 30-Day Skill Mastery Challenge Prompt T… | # 30-Day Skill Mastery Challenge Prompt Template ## Goal St… |
-| 18 | 30 tweet Project | Act as a Senior Crypto Narrative Strategist & Rally.fun Alg… |
-| 19 | 3D Animated Family Short: Toddler Meets… | Create a beautiful, ultra-detailed 3D animated family short… |
-| 20 | 3D animation website of shoes | Act as an expert frontend developer specializing in Three.j… |
-| 21 | 3D Avatar Prompt | Use a user-uploaded image as the source and convert the per… |
-| 22 | 3D Cartoon Animation: Baby Bunny Advent… | Vertical 9:16, 3D cartoon-style animation of a cute baby bu… |
-| 23 | 3D Character Render In High-End Disney … | 3D character render in high-end Pixar Disney animation styl… |
-| 24 | 3D City Prompt | Hyper-realistic 3D square diorama of ${city_name:Istanbul},… |
-| 25 | 3D FACTORY | I NEED THIS FULLY INTEGRATED, IMPLEMENTED, ENFORCED, HARDEN… |
-| 26 | 3D FPS Game | Develop a first-person shooter game using Three.js and Java… |
-| 27 | 3D Isometric Miniature City View with W… | Present a clear, 45° top-down view of a vertical (9:16) iso… |
-| 28 | 3D Isometric Miniature Diorama | "When I give you a movie quote, never reply with text or a … |
-| 29 | 3D Kinetic Ball Simulation | I want you to act as an expert front-end game engineer spec… |
-| 30 | 3D Layered Paper-Cut Architectural Trav… | Create an extraordinarily beautiful 3D layered paper-cut ar… |
-| … | *+3070 more* | See `scraped/prompts-chat/` |
+| 2 | 10 seconds video | A warm, playful 20-second indoor scene in a bright living r… |
+| 3 | 12-Month AI and Computer Vision Roadmap… | {   "role": "AI and Computer Vision Specialist Coach",   "c… |
+| 4 | 1337 | "Create a detailed efficiency guide for ${game_name}.  The … |
+| 5 | 16-Bit Pixel Art Cozy Bookshop on a Rai… | A 16-bit pixel art scene of a cozy little bookshop on a rai… |
+| 6 | 1840s Salted Paper Print of a Stone Har… | An authentic 1840s salted paper print, the early calotype-e… |
+| 7 | 1910s Autochrome of an Apple Orchard in… | A 1910s Autochrome Lumière color photograph of an old apple… |
+| 8 | 1940s village life | Give a prompt for 2 minutes  i need to generate ai video ea… |
+| 9 | 1950s Diner Photo Transformation | {   "prompt": "You will perform an image edit using the per… |
+| 10 | 1980s vs Modern Café Split-Screen Video… | A cinematic, high-quality video scene in a split-screen or … |
+| 11 | 1Sentence Deck: pitch deck thesis inter… | You are running the 1Sentence Deck method from 1sentencedec… |
+| 12 | 2026 FASHION EDITORIAL | A 20-year-old adult Dutch female model with fair skin and l… |
+| 13 | 2026 Mobile Poster Creator | Act as a graphic design assistant. Your task is to create a… |
+| 14 | 2046 Puzzle Game Challenge | Act as a game developer. You are tasked with creating a tex… |
+| 15 | 21st.dev component prompt | You are given a task to integrate an existing React compone… |
+| 16 | 2D documentary script generator | Suspense full 2D documentary script generator prompt like A… |
+| 17 | 30-Day Adaptive Personal Tutor | Act as my personal tutor for a 30-day learning program. You… |
+| 18 | 30-Day Skill Mastery Challenge Prompt T… | # 30-Day Skill Mastery Challenge Prompt Template ## Goal St… |
+| 19 | 30 tweet Project | Act as a Senior Crypto Narrative Strategist & Rally.fun Alg… |
+| 20 | 3D Animated Family Short: Toddler Meets… | Create a beautiful, ultra-detailed 3D animated family short… |
+| 21 | 3D animation website of shoes | Act as an expert frontend developer specializing in Three.j… |
+| 22 | 3D Avatar Prompt | Use a user-uploaded image as the source and convert the per… |
+| 23 | 3D Cartoon Animation: Baby Bunny Advent… | Vertical 9:16, 3D cartoon-style animation of a cute baby bu… |
+| 24 | 3D Character Render In High-End Disney … | 3D character render in high-end Pixar Disney animation styl… |
+| 25 | 3D City Prompt | Hyper-realistic 3D square diorama of ${city_name:Istanbul},… |
+| 26 | 3D FACTORY | I NEED THIS FULLY INTEGRATED, IMPLEMENTED, ENFORCED, HARDEN… |
+| 27 | 3D FPS Game | Develop a first-person shooter game using Three.js and Java… |
+| 28 | 3D Isometric Miniature City View with W… | Present a clear, 45° top-down view of a vertical (9:16) iso… |
+| 29 | 3D Isometric Miniature Diorama | "When I give you a movie quote, never reply with text or a … |
+| 30 | 3D Kinetic Ball Simulation | I want you to act as an expert front-end game engineer spec… |
+| … | *+3088 more* | See `scraped/prompts-chat/` |
 
 </details>
 ## License
