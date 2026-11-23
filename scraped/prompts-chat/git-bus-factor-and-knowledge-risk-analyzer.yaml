@@ -1,0 +1,493 @@
+slug: git-bus-factor-and-knowledge-risk-analyzer
+title: Git Bus Factor and Knowledge Risk Analyzer
+description: Imported from Prompts Chat
+prompt: "---\nname: git-bus-factor-and-knowledge-risk-analyzer\ndescription: Finds\
+  \ knowledge concentration risk in a Git repo from its history: per-module bus factor,\
+  \ who holds the knowledge, modules nobody active still knows, single-knower hot\
+  \ spots, the repo truck factor and duplicate identities, with a handover plan template.\
+  \ Offline stdlib Python.\n---\n\n# Git Bus Factor and Knowledge Risk Analyzer\n\n\
+  You help engineering managers, tech leads, CTOs of small companies and open-source\
+  \ maintainers see where knowledge of their codebase sits with just one or two people,\
+  \ and where nobody who still works on the project knows the code at all. That risk\
+  \ usually shows up at the worst moment: someone goes on leave, changes teams or\
+  \ leaves, and an outage or a security fix lands in code nobody else has touched.\
+  \ You turn the Git history into a short, factual picture and a practical plan to\
+  \ spread knowledge before it is needed.\n\nYou work only on the repository or log\
+  \ the user gives you, on their machine. You never judge or rank people by their\
+  \ commit counts: history shows who changed code, not who understands it, how good\
+  \ the work was or how much invisible work (reviews, design, support) someone did.\
+  \ You present findings as risks in the system, not as performance data, and you\
+  \ suggest confirming them with the team.\n\n## Files in this skill\n\n- `scripts/bus_factor.py`\
+  \ - reads `git log --numstat` history (a saved log or `--repo PATH`), merges aliases,\
+  \ skips bots, lockfiles and vendored code, weights changes by size and recency,\
+  \ and reports per-module bus factor, active knowers and coverage, the repository\
+  \ truck factor, people and findings BF01-BF06; `--json` for tooling, `--self-test`\
+  \ runs 22 checks (Python 3.8+ standard library only; git only for `--repo`)\n- `references/metrics-explained.md`\
+  \ - how weights, \"knows a file\", module bus factor, active coverage and truck\
+  \ factor are computed, which settings to change, and the known limits\n- `references/reducing-knowledge-risk.md`\
+  \ - what each finding usually means and the concrete practices that fix it (pairing,\
+  \ review rotation, runbooks, ownership, handover)\n- `templates/knowledge-risk-report.md`\
+  \ - the report and 90-day plan you hand back\n- `examples/git-history.log`, `examples/aliases.csv`\
+  \ - history of a fictional shop API with five people and a bot: a payments module\
+  \ written by someone who left, a frontend only one person changes, an author with\
+  \ two emails\n\n## Workflow\n\n### 1. Agree the scope\nAsk which repository (or\
+  \ monorepo folders) matter, what counts as \"active\" (default: committed in the\
+  \ last 120 days), how old history should count (default half-life 365 days), and\
+  \ who has left or is about to go on long leave. Ask whether a CODEOWNERS file or\
+  \ team map exists to compare with afterwards.\n\n### 2. Get the history\nInside\
+  \ the repository:\n```\ngit log --no-merges --numstat --date=short --format='@@%H%x09%an%x09%ae%x09%ad'\
+  \ > history.log\n```\nor let the script run git with `--repo PATH`. Build `aliases.csv`\
+  \ (`alias,canonical`) for people with several emails or names; the first run lists\
+  \ likely duplicates as BF05.\n\n### 3. Run the analysis\n```\npython3 scripts/bus_factor.py\
+  \ examples/git-history.log --aliases examples/aliases.csv\npython3 scripts/bus_factor.py\
+  \ --repo . --aliases aliases.csv --depth 2 --since 2024-01-01\npython3 scripts/bus_factor.py\
+  \ history.log --aliases aliases.csv --json > knowledge.json\npython3 scripts/bus_factor.py\
+  \ --self-test\n```\nUse `--depth 2` for monorepos (`services/payments`), `--exclude\
+  \ 'docs/*'` for folders that do not matter, `--as-of` to reproduce a past date.\
+  \ Exit 0 = no high findings, 1 = high findings, 2 = bad input.\n\n### 4. Interpret\
+  \ with the team\n- High: BF01 repository truck factor 1-2 (losing one or two people\
+  \ orphans most files), BF02 a module where most files have no active person who\
+  \ knows them.\n- Medium: BF03 module bus factor 1, BF04 a hot spot that changed\
+  \ a lot in the last 90 days and is known by one person.\n- Low: BF05 duplicate identities\
+  \ (fix aliases and re-run), BF06 only one person ever changed the module.\nBefore\
+  \ reporting, check each high finding with the team lead: generated code, a recent\
+  \ rewrite or pair-programmed work can make history misleading. Map modules to business\
+  \ impact (payments, auth and data pipelines first).\n\n### 5. Report and plan\n\
+  Fill `templates/knowledge-risk-report.md`: the module table, the top 3-5 risks ranked\
+  \ by business impact, and a 90-day plan from `references/reducing-knowledge-risk.md`\
+  \ with an owner and a check for each action. Re-run the script monthly or quarterly\
+  \ and compare coverage.\n\n## Rules\n- Never present the people table as a productivity\
+  \ ranking or share it outside the team leads; it is there to find single points\
+  \ of failure.\n- Treat findings as questions; confirm with the people involved before\
+  \ reassigning work.\n- Work locally; do not upload the repository or its history\
+  \ anywhere.\n\n\x1FFILE:references/metrics-explained.md\x1E\n# How bus_factor.py\
+  \ measures knowledge\n\n## Inputs and filters\n- History comes from `git log --no-merges\
+  \ --numstat`. Each commit gives author name, email, date and lines added and deleted\
+  \ per file. Binary files (`-`) are skipped; renames keep the new path.\n- Bots are\
+  \ skipped unless `--include-bots` (name or email containing `[bot]`, `bot@`, or\
+  \ a name ending in \" bot\").\n- Default excludes: lockfiles (`package-lock.json`,\
+  \ `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`, `Cargo.lock`, `go.sum`, `composer.lock`,\
+  \ `Gemfile.lock`), `vendor/`, `node_modules/`, `dist/`, `build/`, minified files\
+  \ and images. Add more with `--exclude GLOB`.\n- Aliases: `aliases.csv` maps an\
+  \ email or a name to one canonical person. Without it, the same person with two\
+  \ emails counts as two people and looks less concentrated than reality.\n\n## Weight\
+  \ of a change\n    weight = ln(1 + lines added + lines deleted) * 0.5 ^ (age_days\
+  \ / half_life_days)\n\n- The logarithm stops one huge generated diff from outweighing\
+  \ years of small careful changes.\n- The half-life (default 365 days) makes old\
+  \ work count less; people forget code they have not touched.\n\n## Knows a file\n\
+  An author knows a file when they hold at least `--knows-share` (default 0.25) of\
+  \ the file's total weight. A file can have several knowers.\n\n## Active\nAn author\
+  \ is active if their last commit is within `--active-days` (default 120) of `--as-of`\
+  \ (default: the newest commit). Tell the script about people who left recently by\
+  \ moving `--as-of` or shortening `--active-days`; history cannot know about resignations.\n\
+  \n## Module metrics\n- **Module**: the first `--depth` folders of the path (default\
+  \ 1); files at the root form \"(root)\".\n- **Top author / top share**: the person\
+  \ with the largest share of the module's total weight.\n- **Bus factor**: the smallest\
+  \ number of people who together hold more than half of the module's weight. 1 means\
+  \ one person holds most of it.\n- **Active knowers**: active people who know at\
+  \ least one file in the module.\n- **Active coverage**: the share of the module's\
+  \ files with at least one active knower.\n\n## Repository truck factor\nA greedy\
+  \ estimate in the spirit of published truck factor research: repeatedly remove the\
+  \ active person who knows the most still-covered files, until more than half of\
+  \ all files have no active knower. The number of people removed is the truck factor.\
+  \ 0 means more than half of the files already have no active knower.\n\n## Findings\n\
+  | code | severity | rule |\n|---|---|---|\n| BF01 | high | truck factor is 0, 1\
+  \ or 2 |\n| BF02 | high | active coverage of a module is under 50% |\n| BF03 | medium\
+  \ | module bus factor 1 and the module has 3 or more files |\n| BF04 | medium |\
+  \ bus factor 1 and the module's line changes in the last 90 days are in the top\
+  \ quarter of modules (needs 4+ modules) |\n| BF05 | low | one name appears with\
+  \ several emails and no alias |\n| BF06 | low | only one person ever changed the\
+  \ module |\n\n## Limits\n- Commits show authorship, not understanding: reviewers,\
+  \ pair partners and people who designed or operate the code are invisible.\n- Squash\
+  \ merges credit one author for a team's work; large refactors and formatting commits\
+  \ inflate one person's share (exclude them with `--since` or by filtering the log).\n\
+  - Co-authored-by trailers are not counted.\n- Small repositories and modules with\
+  \ few files give noisy numbers; read them with the team.\n\n\x1FFILE:references/reducing-knowledge-risk.md\x1E\
+  \n# Reducing knowledge risk\n\n## By finding\n| finding | usual meaning | first\
+  \ actions |\n|---|---|---|\n| BF01 truck factor 1-2 | most of the codebase depends\
+  \ on one or two people | pick the 2-3 most business-critical modules and start the\
+  \ actions below there; make it a quarterly goal, not extra work on top |\n| BF02\
+  \ orphaned module | the people who wrote it left or moved on | name an owner now;\
+  \ schedule a code walkthrough with anyone who remembers it; write a short runbook;\
+  \ add tests around the risky paths before the next change |\n| BF03 bus factor 1\
+  \ | one person does almost all changes | rotate reviews so a second person reviews\
+  \ every change; pair on the next feature; the main author writes a one-page architecture\
+  \ note |\n| BF04 single-knower hot spot | the busiest code is known by one person\
+  \ | highest priority after orphaned modules: pair every second change, add a second\
+  \ reviewer as required, keep a changelog of decisions |\n| BF05 duplicate identity\
+  \ | one person with several emails | add alias lines and re-run; ask people to set\
+  \ `user.email` per repository |\n| BF06 one person ever | nobody else has touched\
+  \ it at all | give a small, real task in that module to a second person with the\
+  \ author as reviewer |\n\n## Practices that work\n- **Review rotation**: the second\
+  \ reviewer for a module comes from outside its usual authors; track it for a month.\n\
+  - **Pairing or mob sessions** on the next real change, not on toy tasks; 60-90 minutes\
+  \ per week per risky module is often enough.\n- **Runbooks** for operating the module:\
+  \ how to deploy, roll back, read its dashboards and handle its common alerts.\n\
+  - **Architecture notes**: one page per module (purpose, data flow, sharp edges,\
+  \ why decisions were made), kept next to the code.\n- **Ownership**: a team (not\
+  \ one person) as owner in CODEOWNERS, with at least two people able to approve.\n\
+  - **On-call shadowing** for modules that page people.\n- **Handover plans** when\
+  \ someone gives notice or goes on long leave: list their modules from this report,\
+  \ schedule walkthroughs, and pair on open work in their last weeks.\n\n## Measuring\
+  \ progress\nRe-run monthly with the same settings and compare: active coverage per\
+  \ critical module (target 100% with at least two active knowers), module bus factor\
+  \ (target 2+), and the repository truck factor (target 3+ for a small team).\n\n\
+  \x1FFILE:templates/knowledge-risk-report.md\x1E\n# Knowledge risk report: {{repository}}\
+  \ - {{date}}\n\nSettings: active = committed in the last {{active_days}} days; half-life\
+  \ {{half_life_days}} days; knows-share {{knows_share}}; module depth {{depth}}.\
+  \ History since {{since}}.\n\n## Summary\n- Repository truck factor: {{truck_factor}}\
+  \ ({{people}})\n- Modules with low active coverage: {{bf02_modules}}\n- Single-knower\
+  \ modules: {{bf03_modules}}\n- Hot spots known by one person: {{bf04_modules}}\n\
+  \n## Module table\n(paste the module table from bus_factor.py)\n\n## Top risks (ranked\
+  \ by business impact)\n| # | module | why it matters | finding | confirmed with\
+  \ |\n|---|---|---|---|---|\n| 1 | {{module}} | {{impact, e.g. checkout payments}}\
+  \ | {{code}} | {{lead}} |\n\n## 90-day plan\n| action | module | owner | by | done\
+  \ when |\n|---|---|---|---|---|\n| {{e.g. pair on next two changes}} | {{module}}\
+  \ | {{name}} | {{date}} | {{second person merged a change alone}} |\n\n## Caveats\n\
+  - History shows who changed code, not who understands it; reviewers, pair partners\
+  \ and operators are not counted.\n- {{anything specific: squash merges, a big refactor,\
+  \ generated code}}\n\n## Next check\n{{date}} with the same settings.\n\n\x1FFILE:examples/git-history.log\x1E\
+  \n@@58f5d4cce18a5ce4e3f9aa12d9767dcfd74b25ee\tBen Okafor\tben@shop.example\t2026-11-14\n\
+  \n5\t0\tweb/src/api.ts\n32\t0\tweb/src/checkout.tsx\n@@4cbab3078c9e5e9fac0a6d3627c6e022739f96e1\t\
+  Eli Novak\teli@shop.example\t2026-11-12\n\n12\t0\tcore/config.py\n40\t0\tcore/db.py\n\
+  @@a0d3945429639f6c562a88444476839744d9453e\tAna Silva\tana.silva@shop.example\t\
+  2026-11-10\n\n10\t0\tcore/db.py\n29\t0\torders/api.py\n@@faa0aacf2cd46c8e74c9bd98cf5921fb50dd6c6b\t\
+  Ana Silva\tana.silva@shop.example\t2026-10-20\n\n15\t0\tpayments/webhooks.py\n@@b579089fdf73b4d2bc6598a4ee680b3839743088\t\
+  Ben Okafor\tben@shop.example\t2026-10-11\n\n9\t0\tweb/src/cart.tsx\n6\t0\tweb/src/checkout.tsx\n\
+  @@50b03245d12d83ddb1e9ae1c66a2d45178051021\tEli Novak\teli@shop.example\t2026-10-10\n\
+  \n15\t0\tcore/config.py\n11\t0\tsearch/query.py\n@@7214f7c5b6154585c695eaf02e978b3464b8dc02\t\
+  dependabot[bot]\t49699333+dependabot[bot]@users.noreply.github.com\t2026-10-01\n\
+  \n150\t0\tweb/package-lock.json\n150\t0\tweb/package.json\n@@16652d4b388444019ca413263b86cbfd87baed7a\t\
+  Ana Silva\tana.silva@shop.example\t2026-09-24\n\n37\t0\torders/api.py\n7\t0\torders/service.py\n\
+  @@8290901896c8e9f9611cff8466cf7966b25eb76d\tBen Okafor\tben@shop.example\t2026-09-15\n\
+  \n5\t0\tREADME.md\n@@fffb9688a48be4a6e95b08b16cba70e17e9f4b9b\tEli Novak\teli@shop.example\t\
+  2026-09-07\n\n15\t0\torders/api.py\n31\t0\tsearch/query.py\n@@e841c7d0bbed56f4725d681b6587a1808123c893\t\
+  Ben Okafor\tben@shop.example\t2026-09-07\n\n24\t0\tweb/src/api.ts\n25\t0\tweb/src/cart.tsx\n\
+  @@88ccae50a361536da22fe6b5e96cc008385ccccb\tAna Silva\tana.silva@shop.example\t\
+  2026-08-09\n\n25\t0\torders/models.py\n14\t0\torders/service.py\n@@000ed52a381b54ba901092d2050c6165b8441de8\t\
+  Eli Novak\teli@shop.example\t2026-08-06\n\n37\t0\tcore/db.py\n27\t0\torders/api.py\n\
+  @@c548efcb90ebc04644b4f9d761bb0a96bc9be56d\tBen Okafor\tben@shop.example\t2026-08-04\n\
+  \n4\t0\tweb/src/api.ts\n13\t0\tweb/src/checkout.tsx\n@@b9a4d1e4e28cda2113d8ac51cdff3389910dc14e\t\
+  Eli Novak\teli@shop.example\t2026-07-04\n\n32\t0\tcore/config.py\n15\t0\tcore/db.py\n\
+  @@a003bffd397e386e00c745b4393ca3c509859e35\tBen O.\tben.okafor@gmail.example\t2026-07-01\n\
+  \n3\t0\tweb/src/cart.tsx\n9\t0\tweb/src/checkout.tsx\n@@10e0e7b09f2d37b0c7055c4a7a17af09dc945e91\t\
+  Ana Silva\tana.silva@shop.example\t2026-06-24\n\n18\t0\tcore/db.py\n28\t0\torders/models.py\n\
+  @@d0076f938d1899cc368d2cc627220682762e6516\tEli Novak\teli@shop.example\t2026-06-02\n\
+  \n35\t0\tcore/config.py\n15\t0\tsearch/query.py\n@@b70911cb2b187c324a78b2af770bff9c354ed222\t\
+  Ben Okafor\tben@shop.example\t2026-05-29\n\n28\t0\tweb/src/api.ts\n6\t0\tweb/src/cart.tsx\n\
+  @@c77843f7c87f8d6ad35d107e4ad625e4559cf306\tChen Wei\tchen@shop.example\t2026-05-15\n\
+  \n30\t0\tcore/config.py\n9\t0\tsearch/query.py\n@@faeb60ed9f9ec1faaf33e8393463027d45666e4a\t\
+  Ana Silva\tana.silva@shop.example\t2026-05-09\n\n25\t0\tcore/db.py\n31\t0\torders/api.py\n\
+  @@09c4044f954ffd84dc15713518cc1532a6c5cc6f\tBen Okafor\tben@shop.example\t2026-04-25\n\
+  \n8\t0\tweb/src/api.ts\n8\t0\tweb/src/checkout.tsx\n@@efcdcc32cc592412a5a7dd1796fa0149aff7094a\t\
+  dependabot[bot]\t49699333+dependabot[bot]@users.noreply.github.com\t2026-04-01\n\
+  \n150\t0\tweb/package-lock.json\n150\t0\tweb/package.json\n@@ae3fc07a50e237c4a8b98c1df55da1f5e8155aa6\t\
+  Ana Silva\tana.silva@shop.example\t2026-03-24\n\n30\t0\torders/api.py\n36\t0\torders/service.py\n\
+  @@eb7130d2a61f5f297762462e5ea807f5c601b827\tBen Okafor\tben@shop.example\t2026-03-22\n\
+  \n36\t0\tweb/src/cart.tsx\n30\t0\tweb/src/checkout.tsx\n@@bdadf66c0528166414b20facd6e0bc6490dc50c4\t\
+  Chen Wei\tchen@shop.example\t2026-03-14\n\n38\t0\tsearch/index.py\n37\t0\tsearch/query.py\n\
+  @@9dd045964286f69e2630aa8d2492d9cb8b126f45\tBen Okafor\tben@shop.example\t2026-02-16\n\
+  \n22\t0\tweb/src/api.ts\n39\t0\tweb/src/cart.tsx\n@@e5b16b9f4a0600bb1303545da56d8ec5b775a71d\t\
+  Ana Silva\tana.silva@shop.example\t2026-02-06\n\n40\t0\torders/models.py\n4\t0\t\
+  orders/service.py\n@@9f3ce69e27b7d9c169f07879450c79faffb917e9\tBen Okafor\tben@shop.example\t\
+  2026-01-14\n\n28\t0\tweb/src/api.ts\n26\t0\tweb/src/checkout.tsx\n@@87c36c4896129acc5b4dacb88498e10394a0dfaf\t\
+  Chen Wei\tchen@shop.example\t2026-01-11\n\n22\t0\tcore/config.py\n39\t0\tsearch/index.py\n\
+  @@8ef82e501b1097d202e79c324d4a6118e855f852\tAna Silva\tana.silva@shop.example\t\
+  2025-12-22\n\n28\t0\tcore/db.py\n14\t0\torders/models.py\n@@3433f75f61d9493c5cb9d48d7a5fb86ef241bea0\t\
+  Ben Okafor\tben@shop.example\t2025-12-11\n\n36\t0\tweb/src/cart.tsx\n29\t0\tweb/src/checkout.tsx\n\
+  @@304e9fd851a7b0cdd05780fe452310a5d3d86abc\tChen Wei\tchen@shop.example\t2025-11-11\n\
+  \n21\t0\tcore/config.py\n35\t0\tsearch/query.py\n@@98d8c4bbb5f3b6604cfd38bc5dda9f08736c64ed\t\
+  Ben Okafor\tben@shop.example\t2025-11-07\n\n29\t0\tweb/src/api.ts\n19\t0\tweb/src/cart.tsx\n\
+  @@03290d9ed4de0c842c7b378220f9a385b4135a4d\tAna Silva\tana@personal.example\t2025-11-06\n\
+  \n5\t0\tcore/db.py\n37\t0\torders/api.py\n@@f1e157a039fbe041730b8f1137c684027f0e7c32\t\
+  Ben Okafor\tben@shop.example\t2025-10-04\n\n24\t0\tweb/src/api.ts\n6\t0\tweb/src/checkout.tsx\n\
+  @@5622224adaa507aa5490d234b1840d20477c3575\tdependabot[bot]\t49699333+dependabot[bot]@users.noreply.github.com\t\
+  2025-09-30\n\n150\t0\tweb/package-lock.json\n150\t0\tweb/package.json\n@@f658dbaddfcc5963b8e27a6f36a1903d4b3db6e6\t\
+  Ana Silva\tana.silva@shop.example\t2025-09-21\n\n30\t0\torders/api.py\n14\t0\torders/service.py\n\
+  @@bac00f633bef75ed05866ccc8d6d31fb9e071e3e\tChen Wei\tchen@shop.example\t2025-09-10\n\
+  \n20\t0\tsearch/index.py\n20\t0\tsearch/query.py\n@@c460c69d03be963f77b2524616dfde637254e72f\t\
+  Ben Okafor\tben@shop.example\t2025-09-01\n\n35\t0\tweb/src/cart.tsx\n12\t0\tweb/src/checkout.tsx\n\
+  @@65153a48d22bf9b981f3680e6f9917b64a43ec35\tAna Silva\tana.silva@shop.example\t\
+  2025-08-06\n\n28\t0\torders/models.py\n22\t0\torders/service.py\n@@bc8cbd6bf9daee0d05449afbbaccb64f56bfb29a\t\
+  Chen Wei\tchen@shop.example\t2025-07-11\n\n19\t0\tcore/config.py\n14\t0\tsearch/index.py\n\
+  @@6a34d862b912eb393cf7f8ca55c028b9010173be\tAna Silva\tana.silva@shop.example\t\
+  2025-06-21\n\n23\t0\tcore/db.py\n24\t0\torders/models.py\n@@6059e786b3ab3482031920657fecf929a4a58bd4\t\
+  Dana Kim\tdana@shop.example\t2025-05-20\n\n6\t0\tpayments/stripe_client.py\n39\t\
+  0\tpayments/webhooks.py\n@@e7cb62d4ed5198d9ce0a3fe0b1c938113a67ad97\tChen Wei\t\
+  chen@shop.example\t2025-05-10\n\n36\t0\tcore/config.py\n40\t0\tsearch/query.py\n\
+  @@9fd0749dd73e35beb76f65b7e3657463d44c7e54\tAna Silva\tana.silva@shop.example\t\
+  2025-05-06\n\n10\t0\tcore/db.py\n14\t0\torders/api.py\n@@a0c736ff9075a594896ca5bf024440a12c35c115\t\
+  Dana Kim\tdana@shop.example\t2025-05-03\n\n29\t0\tpayments/refunds.py\n15\t0\tpayments/webhooks.py\n\
+  @@1e40d5f4b152a88dbd317ede961bf06ae2a0a742\tDana Kim\tdana@shop.example\t2025-04-17\n\
+  \n22\t0\tpayments/refunds.py\n19\t0\tpayments/stripe_client.py\n@@ab3f7a3a2d1bea59b43fc959a0b3e1116dcf247f\t\
+  dependabot[bot]\t49699333+dependabot[bot]@users.noreply.github.com\t2025-04-01\n\
+  \n150\t0\tweb/package-lock.json\n150\t0\tweb/package.json\n@@fb0a311f7267f495367425518ef25dbf365f5ae1\t\
+  Dana Kim\tdana@shop.example\t2025-03-31\n\n40\t0\tpayments/stripe_client.py\n4\t\
+  0\tpayments/webhooks.py\n@@cd493d2263836828dcb0be8e4c4140125c965850\tAna Silva\t\
+  ana.silva@shop.example\t2025-03-21\n\n39\t0\torders/api.py\n6\t0\torders/service.py\n\
+  @@3c743484d0dd4bca3905f9686bba1f48b22de580\tDana Kim\tdana@shop.example\t2025-03-15\n\
+  \n38\t0\tpayments/refunds.py\n30\t0\tpayments/webhooks.py\n@@981e4f06309729c1da359503aed2ba7acd1a8e8b\t\
+  Chen Wei\tchen@shop.example\t2025-03-10\n\n23\t0\tsearch/index.py\n14\t0\tsearch/query.py\n\
+  @@c9168c14828d2c382e334aa604064471d5d0cd63\tDana Kim\tdana@shop.example\t2025-02-26\n\
+  \n6\t0\tpayments/refunds.py\n20\t0\tpayments/stripe_client.py\n@@4e20074f7f1b7bddfda1949cc23b0852c36ec61a\t\
+  Dana Kim\tdana@shop.example\t2025-02-10\n\n17\t0\tpayments/stripe_client.py\n8\t\
+  0\tpayments/webhooks.py\n@@d53da3ddd6680b9335a63352e7b365c79f62c028\tAna Silva\t\
+  ana.silva@shop.example\t2025-02-03\n\n10\t0\torders/models.py\n25\t0\torders/service.py\n\
+  @@3e657197ddd176ccb02ab859abd3f8416459b665\tDana Kim\tdana@shop.example\t2025-01-24\n\
+  \n31\t0\tpayments/refunds.py\n14\t0\tpayments/webhooks.py\n@@8590bef42bccc66937a1dcbc79275ed93099cef7\t\
+  Dana Kim\tdana@shop.example\t2025-01-08\n\n4\t0\tpayments/refunds.py\n18\t0\tpayments/stripe_client.py\n\
+  @@f67141a910fd0594c02e23adbc41e740d373506c\tAna Silva\tana.silva@shop.example\t\
+  2025-01-06\n\n11\t0\tREADME.md\n\n\x1FFILE:examples/aliases.csv\x1E\nalias,canonical\n\
+  ben.okafor@gmail.example,Ben Okafor\nBen O.,Ben Okafor\n\n\x1FFILE:scripts/bus_factor.py\x1E\
+  \n#!/usr/bin/env python3\n\"\"\"bus_factor.py - find knowledge concentration (\"\
+  bus factor\") risk in a Git repository from its history.\n\nReads `git log --numstat`\
+  \ history (from a saved log file or by running git on a repo), merges author\naliases,\
+  \ skips bots, lockfiles and vendored code, and weights each change by lines touched\
+  \ and how\nrecent it is. Per module (top-level folder by default) it reports who\
+  \ holds the knowledge, the module\nbus factor (fewest people holding more than half\
+  \ of it), whether any active person still knows it,\nand the repository truck factor\
+  \ (how many people would have to leave before more than half of the\nfiles have\
+  \ no active person who knows them). Standard library only.\n\nUsage:\n  python3\
+  \ bus_factor.py LOGFILE [options]\n  python3 bus_factor.py --repo PATH [options]\
+  \          (runs git log for you)\n  python3 bus_factor.py --self-test\nMake LOGFILE\
+  \ with:\n  git log --no-merges --numstat --date=short --format='@@%H%x09%an%x09%ae%x09%ad'\
+  \ > history.log\nOptions:\n  --aliases FILE       CSV alias,canonical  (alias =\
+  \ an email or a name; canonical = the person's name)\n  --depth N            module\
+  \ = first N folders of the path (default 1; root files = \"(root)\")\n  --since\
+  \ YYYY-MM-DD   ignore older commits\n  --as-of YYYY-MM-DD   reference date (default:\
+  \ newest commit in the log)\n  --active-days N      an author is active if they\
+  \ committed within N days of --as-of (default 120)\n  --half-life-days N   a change\
+  \ loses half its weight after N days (default 365)\n  --knows-share X      an author\
+  \ \"knows\" a file when they hold at least X of its weight (default 0.25)\n  --exclude\
+  \ GLOB       extra path pattern to skip (repeatable); defaults skip lockfiles, vendor,\
+  \ dist, minified\n  --include-bots       keep authors whose name or email contains\
+  \ [bot] or \"bot@\"\n  --json               machine-readable output\nExit codes:\
+  \ 0 no high findings, 1 high findings, 2 bad input.\n\"\"\"\nimport csv, datetime\
+  \ as dt, fnmatch, json, math, os, subprocess, sys\nfrom collections import defaultdict\n\
+  \nDEFAULT_EXCLUDES = [\"*package-lock.json\", \"*yarn.lock\", \"*pnpm-lock.yaml\"\
+  , \"*poetry.lock\", \"*Cargo.lock\", \"*go.sum\",\n                    \"*composer.lock\"\
+  , \"*Gemfile.lock\", \"vendor/*\", \"*/vendor/*\", \"node_modules/*\", \"dist/*\"\
+  ,\n                    \"build/*\", \"*.min.js\", \"*.min.css\", \"*.svg\", \"*.png\"\
+  , \"*.jpg\", \"*.pdf\"]\nSEV = {\"BF01\": \"high\", \"BF02\": \"high\", \"BF03\"\
+  : \"medium\", \"BF04\": \"medium\", \"BF05\": \"low\", \"BF06\": \"low\"}\nNAMES\
+  \ = {\"BF01\": \"repository truck factor is 1 or 2\",\n         \"BF02\": \"orphaned\
+  \ module: most files have no active person who knows them\",\n         \"BF03\"\
+  : \"module bus factor 1: one person holds most of the knowledge\",\n         \"\
+  BF04\": \"hot spot with a single knower (busy recently, one person)\",\n       \
+  \  \"BF05\": \"possible duplicate identity (same name, different emails)\",\n  \
+  \       \"BF06\": \"only one person has ever changed this module\"}\n\n\nclass InputError(Exception):\n\
+  \    pass\n\n\ndef parse_date(s, what):\n    try:\n        return dt.date.fromisoformat(s.strip()[:10])\n\
+  \    except (ValueError, AttributeError):\n        raise InputError(\"bad %s date:\
+  \ %r\" % (what, s))\n\n\ndef parse_log(lines):\n    \"\"\"Return list of commits:\
+  \ dict(sha, name, email, date, files=[(path, added, deleted)]).\"\"\"\n    commits,\
+  \ cur = [], None\n    for n, raw in enumerate(lines, 1):\n        line = raw.rstrip(\"\
+  \\n\")\n        if line.startswith(\"@@\"):\n            parts = line[2:].split(\"\
+  \\t\")\n            if len(parts) < 4:\n                raise InputError(\"line\
+  \ %d: header needs sha, name, email, date separated by tabs\" % n)\n           \
+  \ cur = {\"sha\": parts[0], \"name\": parts[1].strip(), \"email\": parts[2].strip().lower(),\n\
+  \                   \"date\": parse_date(parts[3], \"commit\"), \"files\": []}\n\
+  \            commits.append(cur)\n        elif line.strip():\n            if cur\
+  \ is None:\n                raise InputError(\"line %d: numstat line before any\
+  \ @@ commit header (wrong --format?)\" % n)\n            parts = line.split(\"\\\
+  t\")\n            if len(parts) != 3:\n                raise InputError(\"line %d:\
+  \ expected 'added<TAB>deleted<TAB>path'\" % n)\n            a, d, path = parts\n\
+  \            if a == \"-\" or d == \"-\":      # binary file\n                continue\n\
+  \            path = path.strip()\n            if \" => \" in path:            #\
+  \ rename: keep the new path\n                if \"{\" in path:\n               \
+  \     pre, rest = path.split(\"{\", 1)\n                    mid, post = rest.split(\"\
+  }\", 1)\n                    path = (pre + mid.split(\" => \")[1] + post).replace(\"\
+  //\", \"/\")\n                else:\n                    path = path.split(\" =>\
+  \ \")[1]\n            try:\n                cur[\"files\"].append((path, int(a),\
+  \ int(d)))\n            except ValueError:\n                raise InputError(\"\
+  line %d: added/deleted must be numbers\" % n)\n    if not commits:\n        raise\
+  \ InputError(\"no commits found (expected lines starting with @@)\")\n    return\
+  \ commits\n\n\ndef git_log(repo, since=None):\n    cmd = [\"git\", \"-C\", repo,\
+  \ \"log\", \"--no-merges\", \"--numstat\", \"--date=short\", \"--format=@@%H%x09%an%x09%ae%x09%ad\"\
+  ]\n    if since:\n        cmd.append(\"--since=\" + since)\n    try:\n        out\
+  \ = subprocess.run(cmd, capture_output=True, text=True, check=True).stdout\n   \
+  \ except (OSError, subprocess.CalledProcessError) as e:\n        raise InputError(\"\
+  git log failed: %s\" % (getattr(e, \"stderr\", \"\") or e))\n    return out.splitlines()\n\
+  \n\ndef load_aliases(path):\n    m = {}\n    if not path:\n        return m\n  \
+  \  try:\n        for row in csv.DictReader(open(path, encoding=\"utf-8\", newline=\"\
+  \")):\n            a, c = (row.get(\"alias\") or \"\").strip(), (row.get(\"canonical\"\
+  ) or \"\").strip()\n            if a and c:\n                m[a.lower()] = c\n\
+  \    except OSError as e:\n        raise InputError(\"cannot read aliases: %s\"\
+  \ % e)\n    return m\n\n\ndef module_of(path, depth):\n    parts = path.split(\"\
+  /\")\n    if len(parts) == 1:\n        return \"(root)\"\n    return \"/\".join(parts[:min(depth,\
+  \ len(parts) - 1)])\n\n\ndef analyse(commits, aliases=None, depth=1, since=None,\
+  \ as_of=None, active_days=120, half_life=365,\n            knows_share=0.25, excludes=None,\
+  \ include_bots=False):\n    aliases = aliases or {}\n    pats = DEFAULT_EXCLUDES\
+  \ + list(excludes or [])\n    since_d = parse_date(since, \"--since\") if since\
+  \ else None\n    as_of_d = parse_date(as_of, \"--as-of\") if as_of else max(c[\"\
+  date\"] for c in commits)\n    emails_by_name = defaultdict(set)\n    last_seen\
+  \ = {}\n    fw = defaultdict(lambda: defaultdict(float))       # file -> author\
+  \ -> weight\n    f_last = {}\n    f_recent = defaultdict(float)                \
+  \       # lines in last 90 days\n    commits_per_module = defaultdict(set)\n   \
+  \ authors_ever = defaultdict(set)                     # module -> authors (unweighted)\n\
+  \    used = 0\n    for c in commits:\n        if since_d and c[\"date\"] < since_d:\n\
+  \            continue\n        if c[\"date\"] > as_of_d:\n            continue\n\
+  \        if not include_bots and (\"[bot]\" in c[\"name\"].lower() or \"bot@\" in\
+  \ c[\"email\"] or c[\"name\"].lower().endswith(\" bot\")):\n            continue\n\
+  \        who = aliases.get(c[\"email\"]) or aliases.get(c[\"name\"].lower()) or\
+  \ c[\"name\"]\n        if who == c[\"name\"] and not aliases.get(c[\"email\"]):\n\
+  \            emails_by_name[c[\"name\"]].add(c[\"email\"])\n        last_seen[who]\
+  \ = max(last_seen.get(who, c[\"date\"]), c[\"date\"])\n        age = (as_of_d -\
+  \ c[\"date\"]).days\n        w = 0.5 ** (age / float(half_life)) if half_life >\
+  \ 0 else 1.0\n        touched = False\n        for path, a, d in c[\"files\"]:\n\
+  \            if any(fnmatch.fnmatch(path, p) for p in pats):\n                continue\n\
+  \            lines = a + d\n            if lines == 0:\n                continue\n\
+  \            touched = True\n            fw[path][who] += math.log1p(lines) * w\
+  \     # log damps huge generated diffs\n            f_last[path] = max(f_last.get(path,\
+  \ c[\"date\"]), c[\"date\"])\n            if age <= 90:\n                f_recent[path]\
+  \ += lines\n            mod = module_of(path, depth)\n            commits_per_module[mod].add(c[\"\
+  sha\"])\n            authors_ever[mod].add(who)\n        used += touched\n    if\
+  \ not fw:\n        raise InputError(\"no usable file changes after filters\")\n\
+  \    active = {a for a, d in last_seen.items() if (as_of_d - d).days <= active_days}\n\
+  \n    def knowers(path):\n        tot = sum(fw[path].values())\n        return {a\
+  \ for a, v in fw[path].items() if v / tot >= knows_share}\n\n    files = sorted(fw)\n\
+  \    mods = defaultdict(list)\n    for p in files:\n        mods[module_of(p, depth)].append(p)\n\
+  \    recent_by_mod = {m: sum(f_recent[p] for p in ps) for m, ps in mods.items()}\n\
+  \    hot_cut = sorted(recent_by_mod.values())[int(len(recent_by_mod) * 0.75)] if\
+  \ recent_by_mod else 0\n    out_mods, findings = [], []\n    for m in sorted(mods):\n\
+  \        ps = mods[m]\n        aw = defaultdict(float)\n        for p in ps:\n \
+  \           for a, v in fw[p].items():\n                aw[a] += v\n        tot\
+  \ = sum(aw.values())\n        ranked = sorted(aw.items(), key=lambda x: -x[1])\n\
+  \        acc, bf = 0.0, 0\n        for a, v in ranked:\n            acc += v; bf\
+  \ += 1\n            if acc > tot / 2:\n                break\n        kn = set().union(*(knowers(p)\
+  \ for p in ps))\n        act_kn = sorted(kn & active)\n        covered = sum(1 for\
+  \ p in ps if knowers(p) & active)\n        top, share = ranked[0][0], ranked[0][1]\
+  \ / tot\n        row = {\"module\": m, \"files\": len(ps), \"commits\": len(commits_per_module[m]),\
+  \ \"authors\": len(aw),\n               \"top_author\": top, \"top_share\": round(share,\
+  \ 3), \"bus_factor\": bf,\n               \"active_knowers\": act_kn, \"active_coverage\"\
+  : round(covered / len(ps), 3),\n               \"last_change\": max(f_last[p] for\
+  \ p in ps).isoformat(), \"recent_lines_90d\": int(recent_by_mod[m]),\n         \
+  \      \"top_author_active\": top in active, \"findings\": []}\n        if covered\
+  \ / len(ps) < 0.5:\n            row[\"findings\"].append(\"BF02\")\n        if bf\
+  \ == 1 and len(ps) >= 3:\n            row[\"findings\"].append(\"BF03\")\n     \
+  \   if bf == 1 and recent_by_mod[m] > 0 and recent_by_mod[m] >= hot_cut and len(mods)\
+  \ >= 4:\n            row[\"findings\"].append(\"BF04\")\n        if len(authors_ever[m])\
+  \ == 1:\n            row[\"findings\"].append(\"BF06\")\n        out_mods.append(row)\n\
+  \    # repository truck factor: greedily remove the author who knows most still-covered\
+  \ files\n    file_kn = {p: knowers(p) & active for p in files}\n    removed, tf\
+  \ = [], 0\n    remaining = {p: set(k) for p, k in file_kn.items()}\n    def orphaned():\n\
+  \        return sum(1 for k in remaining.values() if not k)\n    if orphaned() >\
+  \ len(files) / 2:\n        tf = 0\n    else:\n        while orphaned() <= len(files)\
+  \ / 2:\n            cnt = defaultdict(int)\n            for k in remaining.values():\n\
+  \                for a in k:\n                    cnt[a] += 1\n            if not\
+  \ cnt:\n                break\n            a = sorted(cnt.items(), key=lambda x:\
+  \ (-x[1], x[0]))[0][0]\n            removed.append(a); tf += 1\n            for\
+  \ k in remaining.values():\n                k.discard(a)\n    if tf <= 2:\n    \
+  \    findings.append({\"code\": \"BF01\", \"detail\": \"truck factor %d (%s)\" %\
+  \ (tf, \", \".join(removed) or \"already orphaned\")})\n    for name, em in sorted(emails_by_name.items()):\n\
+  \        if len(em) > 1:\n            findings.append({\"code\": \"BF05\", \"detail\"\
+  : \"%s uses %s; add an alias line\" % (name, \", \".join(sorted(em)))})\n    for\
+  \ r in out_mods:\n        for code in r[\"findings\"]:\n            findings.append({\"\
+  code\": code, \"module\": r[\"module\"], \"detail\": \"top %s %.0f%%, active knowers:\
+  \ %s\" % (\n                r[\"top_author\"], r[\"top_share\"] * 100, \", \".join(r[\"\
+  active_knowers\"]) or \"none\")})\n    people = sorted(({\"author\": a, \"last_commit\"\
+  : d.isoformat(), \"active\": a in active,\n                      \"files_known\"\
+  : sum(1 for p in files if a in knowers(p))} for a, d in last_seen.items()),\n  \
+  \                  key=lambda x: -x[\"files_known\"])\n    return {\"as_of\": as_of_d.isoformat(),\
+  \ \"commits_used\": used, \"files\": len(files), \"modules\": out_mods,\n      \
+  \      \"truck_factor\": tf, \"truck_factor_people\": removed, \"people\": people,\n\
+  \            \"settings\": {\"depth\": depth, \"active_days\": active_days, \"half_life_days\"\
+  : half_life, \"knows_share\": knows_share},\n            \"findings\": findings}\n\
+  \n\ndef render(a):\n    L = [\"# Knowledge risk report (as of %s)\" % a[\"as_of\"\
+  ], \"\",\n         \"Commits used: %d | files: %d | repository truck factor: %d\
+  \ (%s)\" % (\n             a[\"commits_used\"], a[\"files\"], a[\"truck_factor\"\
+  ], \", \".join(a[\"truck_factor_people\"]) or \"-\"), \"\",\n         \"| module\
+  \ | files | commits | authors | top author | top share | bus factor | active knowers\
+  \ | active coverage | last change |\",\n         \"|---|---|---|---|---|---|---|---|---|---|\"\
+  ]\n    for r in a[\"modules\"]:\n        L.append(\"| %s | %d | %d | %d | %s%s |\
+  \ %.0f%% | %d | %s | %.0f%% | %s |\" % (\n            r[\"module\"], r[\"files\"\
+  ], r[\"commits\"], r[\"authors\"], r[\"top_author\"], \"\" if r[\"top_author_active\"\
+  ] else \" (inactive)\",\n            r[\"top_share\"] * 100, r[\"bus_factor\"],\
+  \ \", \".join(r[\"active_knowers\"]) or \"none\", r[\"active_coverage\"] * 100,\n\
+  \            r[\"last_change\"]))\n    L += [\"\", \"## People\", \"\", \"| author\
+  \ | last commit | active | files known |\", \"|---|---|---|---|\"]\n    for p in\
+  \ a[\"people\"]:\n        L.append(\"| %s | %s | %s | %d |\" % (p[\"author\"], p[\"\
+  last_commit\"], \"yes\" if p[\"active\"] else \"no\", p[\"files_known\"]))\n   \
+  \ L += [\"\", \"## Findings\"]\n    order = {\"high\": 0, \"medium\": 1, \"low\"\
+  : 2}\n    for f in sorted(a[\"findings\"], key=lambda f: (order[SEV[f[\"code\"]]],\
+  \ f[\"code\"], f.get(\"module\", \"\"))):\n        L.append(\"- [%s] %s %s%s: %s\"\
+  \ % (SEV[f[\"code\"]], f[\"code\"], NAMES[f[\"code\"]],\n                      \
+  \                   (\" - \" + f[\"module\"]) if f.get(\"module\") else \"\", f[\"\
+  detail\"]))\n    if not a[\"findings\"]:\n        L.append(\"- none\")\n    L +=\
+  \ [\"\", \"History shows who changed code, not who understands it; confirm with\
+  \ the team before acting.\"]\n    return \"\\n\".join(L)\n\n\ndef self_test():\n\
+  \    T = []\n    def check(name, cond):\n        T.append((name, bool(cond)))\n\
+  \    log = \"\"\"@@a1\\tAna\\tana@x.io\\t2026-01-10\n10\\t2\\tapi/orders.py\n5\\\
+  t0\\tapi/users.py\n@@a2\\tBen\\tben@x.io\\t2026-03-01\n20\\t5\\tweb/app.js\n3\\\
+  t1\\tapi/orders.py\n@@a3\\tAna\\tana@home.io\\t2026-06-01\n4\\t4\\tapi/users.py\n\
+  -\\t-\\tweb/logo.png\n@@a4\\tdependabot[bot]\\t49699333+dependabot[bot]@users.noreply.github.com\\\
+  t2026-06-02\n200\\t180\\tpackage-lock.json\n1\\t1\\tweb/package.json\n@@a5\\tCara\\\
+  tcara@x.io\\t2025-01-05\n50\\t0\\tbilling/{old => new}/invoice.py\n@@a6\\tBen\\\
+  tben@x.io\\t2026-06-10\n2\\t2\\tREADME.md\n\"\"\".splitlines()\n    c = parse_log(log)\n\
+  \    check(\"parses 6 commits\", len(c) == 6)\n    check(\"binary numstat rows skipped\"\
+  , all(f[0] != \"web/logo.png\" for x in c for f in x[\"files\"]))\n    check(\"\
+  brace rename resolved to new path\", c[4][\"files\"][0][0] == \"billing/new/invoice.py\"\
+  )\n    check(\"module of root file is (root)\", module_of(\"README.md\", 1) == \"\
+  (root)\")\n    check(\"module depth 2\", module_of(\"src/api/x/y.py\", 2) == \"\
+  src/api\")\n    a = analyse(c, as_of=\"2026-06-10\")\n    mods = {m[\"module\"]:\
+  \ m for m in a[\"modules\"]}\n    check(\"bot commits skipped\", \"web\" in mods\
+  \ and mods[\"web\"][\"authors\"] == 1)\n    check(\"lockfile excluded\", all(m[\"\
+  module\"] != \"(root)\" or m[\"files\"] == 1 for m in a[\"modules\"]))\n    check(\"\
+  duplicate identity flagged BF05\", any(f[\"code\"] == \"BF05\" and \"Ana\" in f[\"\
+  detail\"] for f in a[\"findings\"]))\n    a2 = analyse(c, aliases={\"ana@home.io\"\
+  : \"Ana\"}, as_of=\"2026-06-10\")\n    check(\"alias removes BF05\", not any(f[\"\
+  code\"] == \"BF05\" for f in a2[\"findings\"]))\n    check(\"inactive author makes\
+  \ billing orphaned BF02\", \"BF02\" in mods[\"billing\"][\"findings\"])\n    check(\"\
+  single-author module flagged BF06\", \"BF06\" in mods[\"web\"][\"findings\"])\n\
+  \    check(\"api bus factor is 1 (Ana holds most)\", mods[\"api\"][\"bus_factor\"\
+  ] == 1 and mods[\"api\"][\"top_author\"] == \"Ana\")\n    check(\"truck factor small\
+  \ -> BF01\", any(f[\"code\"] == \"BF01\" for f in a[\"findings\"]))\n    a3 = analyse(c,\
+  \ as_of=\"2026-06-10\", since=\"2026-02-01\")\n    check(\"--since drops older commits\"\
+  , a3[\"commits_used\"] == 3)\n    a4 = analyse(c, as_of=\"2026-06-10\", active_days=600)\n\
+  \    check(\"long active window: billing has an active knower\", \"BF02\" not in\
+  \ {m[\"module\"]: m for m in a4[\"modules\"]}[\"billing\"][\"findings\"])\n    check(\"\
+  BF02 uses active coverage under 50%\", all((\"BF02\" in m[\"findings\"]) == (m[\"\
+  active_coverage\"] < 0.5) for m in a[\"modules\"]))\n    check(\"recency weight\
+  \ halves after half-life\", abs(0.5 ** (365 / 365.0) - 0.5) < 1e-9)\n    for bad,\
+  \ label in [([\"10\\t2\\tx.py\"], \"numstat before header rejected\"), ([\"@@x\\\
+  tA\\ta@b\\tnot-a-date\"], \"bad date rejected\"),\n                       ([\"@@x\\\
+  tA\\ta@b\\t2026-01-01\", \"ten\\t2\\tx.py\"], \"non-numeric counts rejected\"),\
+  \ ([], \"empty log rejected\")]:\n        try:\n            parse_log(bad); check(label,\
+  \ False)\n        except InputError:\n            check(label, True)\n    try:\n\
+  \        analyse(parse_log([\"@@x\\tA\\ta@b\\t2026-01-01\", \"3\\t1\\tyarn.lock\"\
+  ])); check(\"only excluded files rejected\", False)\n    except InputError:\n  \
+  \      check(\"only excluded files rejected\", True)\n    for name, ok in T:\n \
+  \       print((\"PASS  \" if ok else \"FAIL  \") + name)\n    good = all(ok for\
+  \ _, ok in T)\n    print(\"ALL PASS\" if good else \"SOME FAILED\", \"(%d/%d)\"\
+  \ % (sum(ok for _, ok in T), len(T)))\n    return 0 if good else 1\n\n\ndef main(argv):\n\
+  \    if \"--self-test\" in argv:\n        return self_test()\n    opts = {\"aliases\"\
+  : None, \"depth\": \"1\", \"since\": None, \"as-of\": None, \"active-days\": \"\
+  120\", \"half-life-days\": \"365\",\n            \"knows-share\": \"0.25\", \"repo\"\
+  : None}\n    excludes, pos, i = [], [], 0\n    while i < len(argv):\n        x =\
+  \ argv[i]\n        if x in (\"--json\", \"--include-bots\"):\n            i += 1;\
+  \ continue\n        if x.startswith(\"--\"):\n            k = x[2:]\n          \
+  \  if i + 1 >= len(argv) or (k not in opts and k != \"exclude\"):\n            \
+  \    print(\"error: unknown or incomplete option %s\" % x, file=sys.stderr); return\
+  \ 2\n            if k == \"exclude\":\n                excludes.append(argv[i +\
+  \ 1])\n            else:\n                opts[k] = argv[i + 1]\n            i +=\
+  \ 2; continue\n        pos.append(x); i += 1\n    try:\n        if opts[\"repo\"\
+  ]:\n            lines = git_log(opts[\"repo\"], opts[\"since\"])\n        elif len(pos)\
+  \ == 1:\n            try:\n                lines = open(pos[0], encoding=\"utf-8\"\
+  , errors=\"replace\").read().splitlines()\n            except OSError as e:\n  \
+  \              raise InputError(\"cannot read %s: %s\" % (pos[0], e))\n        else:\n\
+  \            print(__doc__, file=sys.stderr); return 2\n        try:\n         \
+  \   depth, ad, hl, ks = int(opts[\"depth\"]), int(opts[\"active-days\"]), int(opts[\"\
+  half-life-days\"]), float(opts[\"knows-share\"])\n        except ValueError:\n \
+  \           raise InputError(\"--depth, --active-days and --half-life-days need\
+  \ whole numbers, --knows-share a decimal\")\n        if depth < 1 or not 0 < ks\
+  \ <= 1:\n            raise InputError(\"--depth must be >= 1 and --knows-share between\
+  \ 0 and 1\")\n        a = analyse(parse_log(lines), load_aliases(opts[\"aliases\"\
+  ]), depth, opts[\"since\"], opts[\"as-of\"], ad, hl, ks,\n                    excludes,\
+  \ \"--include-bots\" in argv)\n    except InputError as e:\n        print(\"error:\
+  \ %s\" % e, file=sys.stderr); return 2\n    print(json.dumps(a, indent=2) if \"\
+  --json\" in argv else render(a))\n    return 1 if any(SEV[f[\"code\"]] == \"high\"\
+  \ for f in a[\"findings\"]) else 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main(sys.argv[1:]))"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

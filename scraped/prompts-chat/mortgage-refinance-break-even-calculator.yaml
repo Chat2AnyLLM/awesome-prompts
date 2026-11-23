@@ -1,0 +1,397 @@
+slug: mortgage-refinance-break-even-calculator
+title: Mortgage Refinance Break-Even Calculator
+description: Imported from Prompts Chat
+prompt: "---\nname: mortgage-refinance-break-even-calculator\ndescription: Compares\
+  \ mortgage refinance offers with your current loan: new payment, monthly saving,\
+  \ simple and true break-even month, net benefit over the years you expect to stay,\
+  \ interest to payoff, points payback, and traps like term resets, rolled-in costs\
+  \ and cash-out. Offline stdlib Python.\n---\n\n# Mortgage Refinance Break-Even Calculator\n\
+  \nYou help homeowners decide whether a mortgage refinance is worth it, and which\
+  \ offer is best for how long they expect to keep the loan. Lenders and brokers usually\
+  \ quote the lower monthly payment; that number alone hides the closing costs, the\
+  \ points, a 30-year term that starts again from zero, and costs rolled into the\
+  \ new balance. You turn the current loan and a few offers into one honest comparison\
+  \ and a short list of things to ask the lender.\n\nYou work only with the numbers\
+  \ the user gives you, on their machine. You are not a financial adviser or a lender:\
+  \ you never recommend a specific lender, you never guess rates or fees, and you\
+  \ say clearly that results are estimates of principal and interest that must be\
+  \ checked against the lender's official loan estimate. Taxes, insurance, escrow,\
+  \ mortgage insurance, adjustable-rate resets and local fees are outside the script;\
+  \ you mention them when they matter.\n\n## Files in this skill\n\n- `scripts/refi_breakeven.py`\
+  \ - reads the current loan (JSON) and offers (CSV), computes payments, simple and\
+  \ true break-even, net benefit at the horizon, total interest, points payback and\
+  \ findings RF01-RF09; `--horizon-months N` to try other stay lengths, `--json` for\
+  \ tooling, `--self-test` runs 23 checks (Python 3.8+ standard library only)\n- `references/refinance-math.md`\
+  \ - the formulas, what \"true break-even\" means and why it differs from costs divided\
+  \ by savings, and a worked example you can check by hand\n- `references/decision-checklist.md`\
+  \ - questions to answer before choosing, what each finding means, and what to ask\
+  \ the lender\n- `templates/refinance-summary.md` - the one-page summary you hand\
+  \ back\n- `examples/current_loan.json`, `examples/offers.csv` - a fictional 312,000\
+  \ loan at 7.25% with seven offers (30-year with and without points, a matching-term\
+  \ offer, a no-cost offer, a 15-year, rolled costs and a cash-out)\n\n## Workflow\n\
+  \n### 1. Collect the facts\nAsk for, from the latest mortgage statement and each\
+  \ lender's loan estimate:\n- current balance, interest rate, months left and the\
+  \ principal-and-interest payment (not the total with escrow); any prepayment penalty;\n\
+  - for each offer: rate, term in months, total closing costs (lender, title, appraisal,\
+  \ recording fees), points as a share of the loan, any cash-out, and whether costs\
+  \ are paid at closing or rolled into the loan;\n- how long they expect to keep the\
+  \ home or the loan (the horizon). If unsure, run 3, 5, 7 and 10 years.\nNever fill\
+  \ in a rate or fee yourself; if a number is missing, ask or leave that offer out.\n\
+  \n### 2. Prepare the files\n- `current_loan.json`: `balance`, `annual_rate` (decimal,\
+  \ 0.0725), `remaining_months`, optional `monthly_payment`, `prepayment_penalty`,\
+  \ `currency`, `horizon_months`.\n- `offers.csv`: `name,annual_rate,term_months,closing_costs,points_pct,cash_out,roll_costs`\
+  \ with rates and points as decimals (`0.01` = 1 point) and `roll_costs` yes/no.\n\
+  \n### 3. Run the comparison\n```\npython3 scripts/refi_breakeven.py examples/current_loan.json\
+  \ examples/offers.csv\npython3 scripts/refi_breakeven.py current_loan.json offers.csv\
+  \ --horizon-months 60\npython3 scripts/refi_breakeven.py current_loan.json offers.csv\
+  \ --json > refi.json\npython3 scripts/refi_breakeven.py --self-test\n```\nExit 0\
+  \ = at least one offer pays off within the horizon and no high findings, 1 = none\
+  \ pays off or a high finding is present, 2 = bad input. Without a shell, follow\
+  \ `references/refinance-math.md` by hand for the two most promising offers.\n\n\
+  ### 4. Read the results\n- **Net at horizon** is the main number: what the offer\
+  \ saves (or costs) by the end of the horizon, counting payments, the remaining balance\
+  \ and the cash paid at closing.\n- **True break-even** is the first month the refinance\
+  \ is ahead. It can be earlier than the simple break-even (shorter terms pay the\
+  \ balance down faster) or later (rolled-in costs, longer terms).\n- **Interest to\
+  \ payoff** shows the long-run cost if they keep the loan to the end.\n- Findings:\
+  \ RF01 high (does not pay off within the horizon) and RF05 high (higher payment\
+  \ without a shorter term); RF02 term reset, RF03 more lifetime interest, RF04 rolled-in\
+  \ costs and RF07 points that do not pay back are medium; RF06 cash-out, RF08 small\
+  \ rate drop and RF09 higher payment on a shorter term are low.\nRun at least two\
+  \ horizons; if the best offer changes, say so plainly.\n\n### 5. Report\nFill `templates/refinance-summary.md`:\
+  \ the current loan, the comparison table, the best offer at each horizon, findings\
+  \ in plain language, the questions for the lender (`references/decision-checklist.md`)\
+  \ and what the numbers do not include.\n\n## Rules\n- Compare like for like: a cash-out\
+  \ offer adds new debt, so compare it with other ways to borrow that cash, not only\
+  \ with the current mortgage.\n- A lower payment on a new 30-year term is not automatically\
+  \ a saving; always show the payoff date and the interest to payoff next to it.\n\
+  - Keep personal financial documents private; work from the numbers, never upload\
+  \ statements.\n\n\x1FFILE:references/refinance-math.md\x1E\n# Refinance math used\
+  \ by refi_breakeven.py\n\n## Monthly payment (principal and interest)\nFor a loan\
+  \ amount `P`, monthly rate `r = annual_rate / 12` and `n` months:\n\n    payment\
+  \ = P * r / (1 - (1 + r)^-n)        (payment = P / n when r = 0)\n\nExample: 200,000\
+  \ at 6% for 360 months -> 1,199.10 per month.\n\n## Upfront costs\n    upfront =\
+  \ closing_costs + points_pct * new_loan + prepayment_penalty\n\n- Points are a share\
+  \ of the new loan: 1 point = 1% of the loan.\n- When `roll_costs` is yes, upfront\
+  \ costs are added to the new loan (you pay no cash at closing but pay interest on\
+  \ the costs for the life of the loan). The script solves this iteratively because\
+  \ points depend on the loan amount.\n- Cash-out is added to the new loan; the cash\
+  \ you receive counts in your favor in the net position.\n\n## Simple break-even\n\
+  \    simple_break_even = ceil(upfront / (old_payment - new_payment))\n\nShown as\
+  \ \"never\" when the payment does not go down or the result is longer than the new\
+  \ term. This is the number most calculators show, and it ignores how fast each loan\
+  \ pays down its balance.\n\n## True break-even (the one to use)\nMonth by month,\
+  \ the script runs both amortization schedules side by side and tracks:\n\n    net(m)\
+  \ = sum of (old payment - new payment) up to month m\n           + (old balance\
+  \ at m - new balance at m)\n           - cash paid at closing\n           + cash\
+  \ received (cash-out)\n\nThe true break-even is the first month where `net(m) >=\
+  \ 0`. `net(horizon)` is the \"net at horizon\" column: the money you are ahead (or\
+  \ behind) if you sell or refinance again at that point, before taxes and selling\
+  \ costs.\n\nWhy they differ:\n- A shorter or matching term pays principal down faster,\
+  \ so the true break-even comes before the simple one, even when the payment rises\
+  \ (a 15-year offer can break even in about 16 months while the \"saving\" is negative).\n\
+  - A new 30-year term on a loan that had 27 years left lowers the payment partly\
+  \ by stretching it; the slower balance paydown pushes the true break-even later.\n\
+  - Rolled-in costs show up as a higher new balance, not as cash.\n\n## Points payback\n\
+  The script assumes the common rule of thumb that 1 point buys about 0.25 percentage\
+  \ points. Points payback = points cost / (payment at rate + 0.25 pp per point -\
+  \ payment at the quoted rate). If the lender quotes the same loan with and without\
+  \ points, compare those two rows directly instead; that is more accurate than the\
+  \ rule of thumb.\n\n## Worked check (from the examples)\nCurrent: 312,000 at 7.25%\
+  \ with 324 months left -> payment 2,197.09.\n\"Bank A 30y no points\": 6.25% for\
+  \ 360 months -> payment 1,921.04, saving 276.05 per month, upfront 5,800, simple\
+  \ break-even ceil(5,800 / 276.05) = 22 months. The true break-even is month 23,\
+  \ slightly later, because the new 30-year schedule pays down principal more slowly\
+  \ than the old one with 27 years left.\n\n## Not modeled\nProperty tax, insurance\
+  \ and escrow; mortgage insurance; adjustable-rate resets; tax deductibility of interest;\
+  \ inflation and the return you could earn on the closing cost cash; selling costs.\
+  \ Mention them when they could change the decision.\n\n\x1FFILE:references/decision-checklist.md\x1E\
+  \n# Refinance decision checklist\n\n## Before choosing\n1. How long will you keep\
+  \ the home or this loan? Run the script for at least two horizons (for example 3\
+  \ and 7 years).\n2. Is the new payment comfortable even if income drops? A shorter\
+  \ term saves the most interest but raises the payment (RF09).\n3. Are you resetting\
+  \ the clock? A new 30-year loan after paying for years moves the payoff date later\
+  \ (RF02); you can keep the old payoff date by paying extra each month.\n4. Are closing\
+  \ costs paid in cash or rolled into the loan (RF04)? Rolling them in feels free\
+  \ but costs interest for years.\n5. Are you taking cash out (RF06)? Compare that\
+  \ new debt with other options and with not borrowing it at all.\n6. Do the points\
+  \ pay back before you expect to move (RF07)?\n7. Is the rate drop large enough (RF08)?\
+  \ Under about 0.5 percentage points, costs often eat the savings unless the offer\
+  \ is genuinely no-cost.\n\n## What each finding means\n| code | severity | meaning\
+  \ | what to do |\n|---|---|---|---|\n| RF01 | high | the offer is still behind at\
+  \ the horizon | skip it, or negotiate costs down and re-run |\n| RF02 | medium |\
+  \ payoff date moves later | compare interest to payoff; consider paying extra monthly\
+  \ |\n| RF03 | medium | more interest to payoff than the current loan | fine only\
+  \ if you will move or refinance well before payoff |\n| RF04 | medium | costs rolled\
+  \ into the balance | ask the price to pay them in cash; compare both |\n| RF05 |\
+  \ high | payment rises without a shorter term | usually a bad deal; check for cash-out\
+  \ or fees |\n| RF06 | low | cash-out adds debt | compare with a home equity loan\
+  \ or saving up |\n| RF07 | medium | points do not pay back within the horizon |\
+  \ ask for the same loan without points |\n| RF08 | low | small rate drop | refinance\
+  \ only if costs are very low |\n| RF09 | low | shorter term with a higher payment\
+  \ | check the budget and emergency savings |\n\n## Questions for the lender\n- Please\
+  \ send the official loan estimate for each option, including the same loan with\
+  \ zero points.\n- Which fees are lender fees, and which are third-party (title,\
+  \ appraisal, recording)? Which can be waived or shopped?\n- Is the rate locked,\
+  \ until when, and what does extending the lock cost?\n- Is there a prepayment penalty\
+  \ on the new loan?\n- If costs are rolled in, what is the exact new loan amount?\n\
+  \n## Red flags\n- Pressure to sign before you receive the loan estimate.\n- A \"\
+  no-cost\" offer whose rate is much higher than others (you pay through the rate\
+  \ instead).\n- Fees that appear for the first time at closing.\n\n\x1FFILE:templates/refinance-summary.md\x1E\
+  \n# Refinance check: {{property_or_household}} - {{date}}\n\nNumbers from: {{statement_date}}\
+  \ statement and loan estimates from {{lenders}}. Estimates of principal and interest\
+  \ only.\n\n## Current loan\n- Balance {{balance}} at {{rate}}, {{months_left}} months\
+  \ left, payment {{payment}} (P&I)\n- Interest to payoff if nothing changes: {{interest_to_payoff}}\n\
+  \n## Comparison (horizon {{horizon_years}} years)\n(paste the table from refi_breakeven.py)\n\
+  \n## Best option\n- At {{horizon_1}} years: {{best_1}} (net {{net_1}})\n- At {{horizon_2}}\
+  \ years: {{best_2}} (net {{net_2}})\n- Why: {{one or two plain sentences}}\n\n##\
+  \ Watch out\n- {{finding code, offer, plain-language meaning}}\n\n## Ask the lender\n\
+  - {{question}}\n\n## Not included\n- Taxes, insurance, escrow, mortgage insurance,\
+  \ rate resets, selling costs, the return on cash you keep.\n\n## Next step\n- {{for\
+  \ example: request the zero-point version of offer B and re-run; lock the rate by\
+  \ date}}\n\n\x1FFILE:examples/current_loan.json\x1E\n{\n  \"balance\": 312000,\n\
+  \  \"annual_rate\": 0.0725,\n  \"remaining_months\": 324,\n  \"prepayment_penalty\"\
+  : 0,\n  \"currency\": \"USD\",\n  \"horizon_months\": 84,\n  \"note\": \"fictional\
+  \ example: 30-year loan taken 3 years ago, owners expect to stay about 7 more years\"\
+  \n}\n\n\x1FFILE:examples/offers.csv\x1E\nname,annual_rate,term_months,closing_costs,points_pct,cash_out,roll_costs\n\
+  Bank A 30y no points,0.0625,360,5800,0,0,no\nBank A 30y 1 point,0.0600,360,5800,0.01,0,no\n\
+  Credit union 27y match,0.0630,324,4200,0,0,no\nOnline lender no-cost,0.0675,360,0,0,0,no\n\
+  Broker 15y,0.0575,180,6500,0,0,no\nBank B rolled costs,0.0625,360,6200,0,0,yes\n\
+  Bank B cash-out 30y,0.0650,360,6200,0,35000,no\n\n\x1FFILE:scripts/refi_breakeven.py\x1E\
+  \n#!/usr/bin/env python3\n\"\"\"refi_breakeven.py - compare refinance offers against\
+  \ your current mortgage and find the real break-even month.\n\nFor each offer it\
+  \ works out the new monthly payment (principal and interest), the monthly saving,\n\
+  the simple break-even (upfront costs / monthly saving) and the true break-even month,\
+  \ where the\ncumulative payment savings plus the difference in remaining balance\
+  \ first cover what you paid up\nfront. It also compares total cost over the time\
+  \ you expect to keep the loan, total interest to\npayoff, and flags common traps\
+  \ (term reset, costs rolled into the balance, cash-out, points that\nnever pay back,\
+  \ a prepayment penalty). Standard library only.\n\nUsage:\n  python3 refi_breakeven.py\
+  \ CURRENT.json OFFERS.csv [--horizon-months N] [--json]\n  python3 refi_breakeven.py\
+  \ --self-test\n\nCURRENT.json keys: balance, annual_rate (decimal, 0.065 = 6.5%),\
+  \ remaining_months,\n  optional: monthly_payment (P&I; computed if missing), prepayment_penalty\
+  \ (amount), currency,\n  horizon_months (how long you expect to keep the loan; default\
+  \ 84).\nOFFERS.csv columns: name,annual_rate,term_months,closing_costs,points_pct[,cash_out][,roll_costs]\n\
+  \  annual_rate decimal; points_pct as a decimal share of the new loan (0.01 = 1\
+  \ point);\n  cash_out extra cash taken (default 0); roll_costs yes/no (costs added\
+  \ to the new loan, default no).\nExit codes: 0 at least one offer breaks even within\
+  \ the horizon and no high findings,\n            1 no offer pays off within the\
+  \ horizon or high findings present, 2 bad input.\nEstimates only: taxes, insurance,\
+  \ escrow, adjustable-rate resets and fees not listed are ignored.\n\"\"\"\nimport\
+  \ csv, json, math, sys\n\nSEV = {\"RF01\": \"high\", \"RF02\": \"medium\", \"RF03\"\
+  : \"medium\", \"RF04\": \"medium\", \"RF05\": \"high\",\n       \"RF06\": \"low\"\
+  , \"RF07\": \"medium\", \"RF08\": \"low\", \"RF09\": \"low\"}\nNAMES = {\"RF01\"\
+  : \"does not break even within the horizon\",\n         \"RF02\": \"term reset:\
+  \ payoff date moves later\",\n         \"RF03\": \"more total interest to payoff\
+  \ than keeping the current loan\",\n         \"RF04\": \"costs rolled into the loan\
+  \ (you pay interest on them)\",\n         \"RF05\": \"monthly payment goes up with\
+  \ no shorter term\",\n         \"RF06\": \"cash-out increases the debt (compare\
+  \ like for like)\",\n         \"RF07\": \"points take longer to pay back than the\
+  \ horizon\",\n         \"RF08\": \"rate drop under 0.5 percentage points\",\n  \
+  \       \"RF09\": \"shorter term with a higher payment: check it fits your budget\"\
+  }\nPOINT_RATE_CUT = 0.0025  # rule of thumb: 1 point (1% of the loan) buys about\
+  \ 0.25 percentage points\n\n\nclass InputError(Exception):\n    pass\n\n\ndef payment(principal,\
+  \ annual_rate, months):\n    if months <= 0:\n        raise InputError(\"months\
+  \ must be positive\")\n    r = annual_rate / 12.0\n    if r == 0:\n        return\
+  \ principal / months\n    return principal * r / (1 - (1 + r) ** -months)\n\n\n\
+  def schedule(principal, annual_rate, months, pay):\n    \"\"\"Yield (month, interest,\
+  \ principal_paid, balance) until paid off or months reached.\"\"\"\n    r = annual_rate\
+  \ / 12.0\n    bal = principal\n    for m in range(1, months + 1):\n        interest\
+  \ = bal * r\n        princ = min(pay - interest, bal)\n        bal = bal - princ\n\
+  \        if bal < 0.005:\n            bal = 0.0\n        yield m, interest, princ,\
+  \ bal\n        if bal == 0.0:\n            break\n\n\ndef balance_after(principal,\
+  \ annual_rate, pay, m):\n    b = principal\n    for mm, _, _, bal in schedule(principal,\
+  \ annual_rate, 10 ** 6, pay):\n        b = bal\n        if mm >= m or bal == 0:\n\
+  \            break\n    return b if m > 0 else principal\n\n\ndef total_interest(principal,\
+  \ annual_rate, months, pay):\n    return sum(i for _, i, _, _ in schedule(principal,\
+  \ annual_rate, months, pay))\n\n\ndef to_float(row, key, default=None, lo=None,\
+  \ hi=None):\n    v = row.get(key)\n    if v is None or str(v).strip() == \"\":\n\
+  \        if default is None:\n            raise InputError(\"missing %s\" % key)\n\
+  \        return default\n    try:\n        f = float(str(v).replace(\",\", \"\"\
+  ).strip())\n    except ValueError:\n        raise InputError(\"%s is not a number:\
+  \ %r\" % (key, v))\n    if lo is not None and f < lo or hi is not None and f > hi:\n\
+  \        raise InputError(\"%s out of range: %r\" % (key, v))\n    return f\n\n\n\
+  def load_current(path):\n    try:\n        d = json.load(open(path, encoding=\"\
+  utf-8\"))\n    except (OSError, ValueError) as e:\n        raise InputError(\"cannot\
+  \ read %s: %s\" % (path, e))\n    cur = {\"balance\": to_float(d, \"balance\", lo=1),\n\
+  \           \"annual_rate\": to_float(d, \"annual_rate\", lo=0, hi=0.5),\n     \
+  \      \"remaining_months\": int(to_float(d, \"remaining_months\", lo=1, hi=600)),\n\
+  \           \"prepayment_penalty\": to_float(d, \"prepayment_penalty\", 0.0, lo=0),\n\
+  \           \"currency\": d.get(\"currency\", \"\"),\n           \"horizon_months\"\
+  : int(to_float(d, \"horizon_months\", 84, lo=1, hi=600))}\n    if cur[\"annual_rate\"\
+  ] > 0.3:\n        raise InputError(\"annual_rate looks like a percent; use a decimal\
+  \ such as 0.065\")\n    calc = payment(cur[\"balance\"], cur[\"annual_rate\"], cur[\"\
+  remaining_months\"])\n    cur[\"monthly_payment\"] = to_float(d, \"monthly_payment\"\
+  , calc, lo=0.01)\n    if cur[\"monthly_payment\"] <= cur[\"balance\"] * cur[\"annual_rate\"\
+  ] / 12:\n        raise InputError(\"monthly_payment does not cover the interest\"\
+  )\n    return cur\n\n\ndef load_offers(path):\n    try:\n        rows = list(csv.DictReader(open(path,\
+  \ encoding=\"utf-8\", newline=\"\")))\n    except OSError as e:\n        raise InputError(\"\
+  cannot read %s: %s\" % (path, e))\n    if not rows:\n        raise InputError(\"\
+  no offers in %s\" % path)\n    out = []\n    for n, r in enumerate(rows, 2):\n \
+  \       try:\n            rate = to_float(r, \"annual_rate\", lo=0, hi=0.5)\n  \
+  \          if rate > 0.3:\n                raise InputError(\"annual_rate looks\
+  \ like a percent; use a decimal\")\n            pts = to_float(r, \"points_pct\"\
+  , 0.0, lo=0, hi=0.1)\n            out.append({\"name\": (r.get(\"name\") or \"offer\
+  \ %d\" % (n - 1)).strip(), \"annual_rate\": rate,\n                        \"term_months\"\
+  : int(to_float(r, \"term_months\", lo=12, hi=600)),\n                        \"\
+  closing_costs\": to_float(r, \"closing_costs\", 0.0, lo=0), \"points_pct\": pts,\n\
+  \                        \"cash_out\": to_float(r, \"cash_out\", 0.0, lo=0),\n \
+  \                       \"roll_costs\": (r.get(\"roll_costs\") or \"no\").strip().lower()\
+  \ in (\"yes\", \"y\", \"true\", \"1\")})\n        except InputError as e:\n    \
+  \        raise InputError(\"offers line %d: %s\" % (n, e))\n    return out\n\n\n\
+  def analyse(cur, offers, horizon=None):\n    H = horizon or cur[\"horizon_months\"\
+  ]\n    bal, rate, rem, pay = cur[\"balance\"], cur[\"annual_rate\"], cur[\"remaining_months\"\
+  ], cur[\"monthly_payment\"]\n    cur_interest = total_interest(bal, rate, 10 **\
+  \ 6, pay)\n    cur_months = sum(1 for _ in schedule(bal, rate, 10 ** 6, pay))\n\
+  \    cur_cost_h = pay * min(H, cur_months) + balance_after(bal, rate, pay, H)\n\
+  \    results = []\n    for o in offers:\n        base = bal + o[\"cash_out\"]\n\
+  \        # points are charged on the new loan amount; solve iteratively when costs\
+  \ are rolled in\n        loan = base\n        for _ in range(20):\n            upfront\
+  \ = o[\"closing_costs\"] + o[\"points_pct\"] * loan + cur[\"prepayment_penalty\"\
+  ]\n            new_loan = base + (upfront if o[\"roll_costs\"] else 0.0)\n     \
+  \       if abs(new_loan - loan) < 0.01:\n                break\n            loan\
+  \ = new_loan\n        loan = new_loan\n        cash_paid = 0.0 if o[\"roll_costs\"\
+  ] else upfront\n        npay = payment(loan, o[\"annual_rate\"], o[\"term_months\"\
+  ])\n        saving = pay - npay\n        simple = math.ceil(upfront / saving) if\
+  \ saving > 0 else None\n        if simple is not None and simple > o[\"term_months\"\
+  ]:\n            simple = None\n        # true break-even: cumulative (old - new\
+  \ payments) + (old balance - new balance) - cash paid - cash_out adj >= 0\n    \
+  \    true_be = None\n        horizon_net = None\n        cum = 0.0\n        ob,\
+  \ nb = bal, loan\n        oi = schedule(bal, rate, 10 ** 6, pay)\n        ni = schedule(loan,\
+  \ o[\"annual_rate\"], o[\"term_months\"], npay)\n        for m in range(1, max(cur_months,\
+  \ o[\"term_months\"]) + 1):\n            op = np_ = 0.0\n            try:\n    \
+  \            _, i1, p1, ob = next(oi); op = i1 + p1\n            except StopIteration:\n\
+  \                pass\n            try:\n                _, i2, p2, nb = next(ni);\
+  \ np_ = i2 + p2\n            except StopIteration:\n                pass\n     \
+  \       cum += op - np_\n            net = cum + (ob - nb) - cash_paid + o[\"cash_out\"\
+  ]\n            if m == H:\n                horizon_net = net\n            if true_be\
+  \ is None and net >= 0 and m >= 1:\n                true_be = m\n        if horizon_net\
+  \ is None:\n            horizon_net = net\n        new_interest = total_interest(loan,\
+  \ o[\"annual_rate\"], o[\"term_months\"], npay)\n        r = {\"name\": o[\"name\"\
+  ], \"new_loan\": round(loan, 2), \"annual_rate\": o[\"annual_rate\"], \"term_months\"\
+  : o[\"term_months\"],\n             \"upfront_costs\": round(upfront, 2), \"cash_paid_at_closing\"\
+  : round(cash_paid, 2), \"new_payment\": round(npay, 2),\n             \"monthly_saving\"\
+  : round(saving, 2), \"simple_break_even_months\": simple, \"true_break_even_month\"\
+  : true_be,\n             \"net_benefit_at_horizon\": round(horizon_net, 2), \"total_interest_new\"\
+  : round(new_interest, 2),\n             \"total_interest_current\": round(cur_interest,\
+  \ 2), \"payoff_shift_months\": o[\"term_months\"] - cur_months,\n             \"\
+  findings\": []}\n        f = r[\"findings\"]\n        if true_be is None or true_be\
+  \ > H:\n            f.append(\"RF01\")\n        if o[\"term_months\"] > cur_months\
+  \ + 6:\n            f.append(\"RF02\")\n        if new_interest > cur_interest:\n\
+  \            f.append(\"RF03\")\n        if o[\"roll_costs\"] and upfront > 0:\n\
+  \            f.append(\"RF04\")\n        if saving < 0 and o[\"term_months\"] >=\
+  \ cur_months:\n            f.append(\"RF05\")\n        if o[\"cash_out\"] > 0:\n\
+  \            f.append(\"RF06\")\n        pts_payback = None\n        if o[\"points_pct\"\
+  ] > 0:\n            pts_cost = o[\"points_pct\"] * loan\n            no_pts_rate\
+  \ = o[\"annual_rate\"] + o[\"points_pct\"] / 0.01 * POINT_RATE_CUT\n           \
+  \ pts_saving = payment(loan, no_pts_rate, o[\"term_months\"]) - npay\n         \
+  \   pts_payback = math.ceil(pts_cost / pts_saving) if pts_saving > 0 else None\n\
+  \            if pts_payback is None or pts_payback > H:\n                f.append(\"\
+  RF07\")\n        r[\"points_payback_months\"] = pts_payback\n        if saving <\
+  \ 0 and o[\"term_months\"] < cur_months:\n            f.append(\"RF09\")\n     \
+  \   if 0 <= rate - o[\"annual_rate\"] < 0.005:\n            f.append(\"RF08\")\n\
+  \        results.append(r)\n    best = max(results, key=lambda x: x[\"net_benefit_at_horizon\"\
+  ])\n    return {\"current\": {\"balance\": bal, \"annual_rate\": rate, \"remaining_months\"\
+  : rem, \"monthly_payment\": round(pay, 2),\n                        \"months_to_payoff\"\
+  : cur_months, \"total_interest_to_payoff\": round(cur_interest, 2),\n          \
+  \              \"cost_over_horizon_incl_balance\": round(cur_cost_h, 2)},\n    \
+  \        \"horizon_months\": H, \"currency\": cur[\"currency\"], \"offers\": results,\n\
+  \            \"best_at_horizon\": best[\"name\"] if best[\"net_benefit_at_horizon\"\
+  ] > 0 else None}\n\n\ndef money(x, cur=\"\"):\n    return (\"%s%s\" % (cur + \"\
+  \ \" if cur else \"\", \"{:,.2f}\".format(x)))\n\n\ndef render(a):\n    c, cur =\
+  \ a[\"current\"], a[\"currency\"]\n    L = [\"# Refinance check (horizon %d months\
+  \ = %.1f years)\" % (a[\"horizon_months\"], a[\"horizon_months\"] / 12), \"\",\n\
+  \         \"Current loan: balance %s at %.3f%%, %d months left, payment %s (P&I),\
+  \ interest to payoff %s\" % (\n             money(c[\"balance\"], cur), c[\"annual_rate\"\
+  ] * 100, c[\"months_to_payoff\"], money(c[\"monthly_payment\"], cur),\n        \
+  \     money(c[\"total_interest_to_payoff\"], cur)), \"\",\n         \"| offer |\
+  \ rate | term | new loan | upfront | new payment | saving/mo | simple BE | true\
+  \ BE | net at horizon | interest to payoff |\",\n         \"|---|---|---|---|---|---|---|---|---|---|---|\"\
+  ]\n    for r in a[\"offers\"]:\n        L.append(\"| %s | %.3f%% | %d | %s | %s\
+  \ | %s | %s | %s | %s | %s | %s |\" % (\n            r[\"name\"], r[\"annual_rate\"\
+  ] * 100, r[\"term_months\"], money(r[\"new_loan\"]), money(r[\"upfront_costs\"]),\n\
+  \            money(r[\"new_payment\"]), money(r[\"monthly_saving\"]),\n        \
+  \    (\"%d mo\" % r[\"simple_break_even_months\"]) if r[\"simple_break_even_months\"\
+  ] is not None else \"never\",\n            (\"%d mo\" % r[\"true_break_even_month\"\
+  ]) if r[\"true_break_even_month\"] is not None else \"never\",\n            money(r[\"\
+  net_benefit_at_horizon\"]), money(r[\"total_interest_new\"])))\n    L += [\"\",\
+  \ \"Best at the horizon: %s\" % (a[\"best_at_horizon\"] or \"none - keeping the\
+  \ current loan costs least\"), \"\", \"## Findings\"]\n    n = 0\n    for r in a[\"\
+  offers\"]:\n        for code in r[\"findings\"]:\n            n += 1\n         \
+  \   L.append(\"- [%s] %s %s: %s\" % (SEV[code], code, r[\"name\"], NAMES[code]))\n\
+  \    if not n:\n        L.append(\"- none\")\n    L += [\"\", \"Estimates of principal\
+  \ and interest only; confirm with the lender's official loan estimate.\"]\n    return\
+  \ \"\\n\".join(L)\n\n\ndef exit_code(a):\n    high = any(SEV[c] == \"high\" for\
+  \ r in a[\"offers\"] for c in r[\"findings\"])\n    ok = any(r[\"true_break_even_month\"\
+  ] is not None and r[\"true_break_even_month\"] <= a[\"horizon_months\"] for r in\
+  \ a[\"offers\"])\n    return 0 if ok and not high else 1\n\n\ndef self_test():\n\
+  \    T = []\n    def check(name, cond):\n        T.append((name, bool(cond)))\n\
+  \    check(\"payment 200k 6% 360m = 1199.10\", abs(payment(200000, 0.06, 360) -\
+  \ 1199.10) < 0.01)\n    check(\"zero-rate payment = principal / months\", payment(12000,\
+  \ 0, 120) == 100)\n    check(\"schedule pays off to zero\", list(schedule(10000,\
+  \ 0.05, 60, payment(10000, 0.05, 60)))[-1][3] == 0)\n    check(\"balance after 0\
+  \ months = principal\", balance_after(1000, 0.05, 100, 0) == 1000)\n    cur = {\"\
+  balance\": 300000, \"annual_rate\": 0.07, \"remaining_months\": 300, \"prepayment_penalty\"\
+  : 0, \"currency\": \"\",\n           \"horizon_months\": 84}\n    cur[\"monthly_payment\"\
+  ] = payment(300000, 0.07, 300)\n    same = analyse(cur, [{\"name\": \"same\", \"\
+  annual_rate\": 0.07, \"term_months\": 300, \"closing_costs\": 0, \"points_pct\"\
+  : 0,\n                          \"cash_out\": 0, \"roll_costs\": False}])[\"offers\"\
+  ][0]\n    check(\"identical free offer saves nothing\", abs(same[\"monthly_saving\"\
+  ]) < 0.01 and abs(same[\"net_benefit_at_horizon\"]) < 0.5)\n    o = {\"name\": \"\
+  cut\", \"annual_rate\": 0.055, \"term_months\": 300, \"closing_costs\": 6000, \"\
+  points_pct\": 0, \"cash_out\": 0,\n         \"roll_costs\": False}\n    r = analyse(cur,\
+  \ [o])[\"offers\"][0]\n    check(\"lower rate same term saves money each month\"\
+  , r[\"monthly_saving\"] > 0)\n    check(\"simple break-even = ceil(costs / saving)\"\
+  , r[\"simple_break_even_months\"] == math.ceil(6000 / r[\"monthly_saving\"]))\n\
+  \    check(\"true break-even exists and <= simple\", r[\"true_break_even_month\"\
+  ] and r[\"true_break_even_month\"] <= r[\"simple_break_even_months\"])\n    check(\"\
+  no term reset finding at same term\", \"RF02\" not in r[\"findings\"])\n    o2 =\
+  \ dict(o, name=\"reset\", term_months=360)\n    r2 = analyse(cur, [o2])[\"offers\"\
+  ][0]\n    check(\"30-year reset flagged RF02\", \"RF02\" in r2[\"findings\"])\n\
+  \    o3 = dict(o, name=\"tiny\", annual_rate=0.068, closing_costs=8000)\n    r3\
+  \ = analyse(cur, [o3])[\"offers\"][0]\n    check(\"tiny rate drop flagged RF08\"\
+  , \"RF08\" in r3[\"findings\"])\n    check(\"tiny drop with big costs flagged RF01\"\
+  , \"RF01\" in r3[\"findings\"])\n    o4 = dict(o, name=\"rolled\", roll_costs=True)\n\
+  \    r4 = analyse(cur, [o4])[\"offers\"][0]\n    check(\"rolled costs raise the\
+  \ loan by the costs\", abs(r4[\"new_loan\"] - 306000) < 0.01)\n    check(\"rolled\
+  \ costs flagged RF04 and no cash at closing\", \"RF04\" in r4[\"findings\"] and\
+  \ r4[\"cash_paid_at_closing\"] == 0)\n    o5 = dict(o, name=\"points\", points_pct=0.01)\n\
+  \    r5 = analyse(cur, [o5])[\"offers\"][0]\n    check(\"1 point adds 1% of the\
+  \ loan to upfront\", abs(r5[\"upfront_costs\"] - 9000) < 0.01)\n    o6 = dict(o,\
+  \ name=\"cash\", cash_out=40000)\n    r6 = analyse(cur, [o6])[\"offers\"][0]\n \
+  \   check(\"cash-out flagged RF06 and loan includes it\", \"RF06\" in r6[\"findings\"\
+  ] and abs(r6[\"new_loan\"] - 340000) < 0.01)\n    o7 = dict(o, name=\"higher\",\
+  \ annual_rate=0.08)\n    check(\"higher payment, same term flagged RF05\", \"RF05\"\
+  \ in analyse(cur, [o7])[\"offers\"][0][\"findings\"])\n    o8 = dict(o, name=\"\
+  15y\", annual_rate=0.052, term_months=180, closing_costs=5000)\n    r8 = analyse(cur,\
+  \ [o8])[\"offers\"][0]\n    check(\"15-year offer cuts total interest\", r8[\"total_interest_new\"\
+  ] < r8[\"total_interest_current\"])\n    check(\"15-year higher payment flagged\
+  \ RF09, not RF05\", \"RF09\" in r8[\"findings\"] and \"RF05\" not in r8[\"findings\"\
+  ])\n    check(\"points payback uses 0.25 pp per point\", r5[\"points_payback_months\"\
+  ] and r5[\"points_payback_months\"] > 0)\n    o9 = dict(o, name=\"free\", closing_costs=0)\n\
+  \    r9 = analyse(cur, [o9])[\"offers\"][0]\n    check(\"no-cost offer: simple break-even\
+  \ 0 months\", r9[\"simple_break_even_months\"] == 0 and r9[\"true_break_even_month\"\
+  ] == 1)\n    for bad, label in [({\"balance\": 0, \"annual_rate\": 0.05, \"remaining_months\"\
+  : 100}, \"zero balance rejected\"),\n                       ({\"balance\": 1000,\
+  \ \"annual_rate\": 6.5, \"remaining_months\": 100}, \"percent rate rejected\")]:\n\
+  \        try:\n            to_float(bad, \"balance\", lo=1); r_ = to_float(bad,\
+  \ \"annual_rate\", lo=0, hi=0.5)\n            check(label, False)\n        except\
+  \ InputError:\n            check(label, True)\n    for name, ok in T:\n        print((\"\
+  PASS  \" if ok else \"FAIL  \") + name)\n    good = all(ok for _, ok in T)\n   \
+  \ print(\"ALL PASS\" if good else \"SOME FAILED\", \"(%d/%d)\" % (sum(ok for _,\
+  \ ok in T), len(T)))\n    return 0 if good else 1\n\n\ndef main(argv):\n    if \"\
+  --self-test\" in argv:\n        return self_test()\n    args = [a for a in argv\
+  \ if not a.startswith(\"--\")]\n    horizon = None\n    if \"--horizon-months\"\
+  \ in argv:\n        try:\n            horizon = int(argv[argv.index(\"--horizon-months\"\
+  ) + 1])\n            args.remove(str(horizon))\n        except (IndexError, ValueError):\n\
+  \            print(\"error: --horizon-months needs a whole number\", file=sys.stderr);\
+  \ return 2\n    if len(args) != 2:\n        print(__doc__, file=sys.stderr); return\
+  \ 2\n    try:\n        a = analyse(load_current(args[0]), load_offers(args[1]),\
+  \ horizon)\n    except InputError as e:\n        print(\"error: %s\" % e, file=sys.stderr);\
+  \ return 2\n    print(json.dumps(a, indent=2) if \"--json\" in argv else render(a))\n\
+  \    return exit_code(a)\n\n\nif __name__ == \"__main__\":\n    sys.exit(main(sys.argv[1:]))"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

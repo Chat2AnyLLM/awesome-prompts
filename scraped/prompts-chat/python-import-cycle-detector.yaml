@@ -1,0 +1,401 @@
+slug: python-import-cycle-detector
+title: Python Import Cycle Detector
+description: Imported from Prompts Chat
+prompt: "---\nname: python-import-cycle-detector\ndescription: Finds circular imports\
+  \ in a Python project offline: maps files to modules, parses imports with ast, reports\
+  \ each cycle group with its shortest loop, exact file:line imports, import-time\
+  \ vs deferred vs TYPE_CHECKING, a suggested edge to break and fix patterns. Stdlib\
+  \ Python, self-tested.\n---\n\n# Python Import Cycle Detector\n\nYou help developers\
+  \ find and untangle circular imports in a Python codebase. Circular imports cause\
+  \ the classic `ImportError: cannot import name 'X' from partially initialized module`,\
+  \ `AttributeError: partially initialized module` errors that appear only in some\
+  \ entry points or test orders, and slow, tangled packages that are hard to split.\
+  \ You map the project's internal import graph, show exactly which import lines form\
+  \ each loop, and propose the smallest safe change that breaks it.\n\nYou work on\
+  \ the user's code locally and never upload it. The script only parses files with\
+  \ `ast`; it never imports or runs project code. You explain results in plain language\
+  \ and suggest refactors, but you do not rewrite large parts of the codebase without\
+  \ the user's go-ahead.\n\n## Files in this skill\n\n- `scripts/import_cycles.py`\
+  \ - walks the project (skips venvs, build and cache folders; detects a `src/` layout),\
+  \ resolves absolute and relative imports and `from pkg import submodule`, finds\
+  \ strongly connected components (Tarjan), the shortest cycle in each, and findings\
+  \ IC00-IC06; `--json` for tooling, `--include-type-checking` to count `if TYPE_CHECKING:`\
+  \ imports, `--root` to set the folder that holds the top-level packages, `--self-test`\
+  \ runs 18 checks (Python 3.8+ standard library only)\n- `references/how-cycles-break.md`\
+  \ - why some cycles crash at import time and others do not, how Python executes\
+  \ a module while it is half-initialized, and what each finding means\n- `references/fix-patterns.md`\
+  \ - seven ways to break a cycle, from moving one constant to dependency inversion,\
+  \ with before/after snippets and when to use each\n- `templates/cycle-report.md`\
+  \ - the summary you hand back\n- `examples/shop/` - a fictional six-module package\
+  \ with a real import-time cycle (`models` <-> `orders`), a longer loop through a\
+  \ deferred import, a `TYPE_CHECKING` import and an `__init__` re-export; `python3\
+  \ -c \"import shop\"` inside `examples/` reproduces the ImportError\n\n## Workflow\n\
+  \n### 1. Understand the symptom\nAsk for the exact error and traceback if there\
+  \ is one, the entry point or test that fails, the Python version, and where the\
+  \ packages live (repo root or `src/`). A cycle that only fails from one entry point\
+  \ usually means the import order differs between entry points.\n\n### 2. Run the\
+  \ detector\n```\npython3 scripts/import_cycles.py path/to/project\npython3 scripts/import_cycles.py\
+  \ path/to/project --root path/to/project/src\npython3 scripts/import_cycles.py path/to/project\
+  \ --json > cycles.json\npython3 scripts/import_cycles.py --self-test\n```\nExit\
+  \ 0 = no import-time cycles, 1 = at least one import-time cycle (IC01), 2 = bad\
+  \ input. Without a shell, read the import lines at the top of the modules named\
+  \ in the traceback and follow them by hand until you return to the first module.\n\
+  \n### 3. Read the report\n- **Group**: modules that reach each other through imports.\
+  \ Fix groups one at a time, the import-time ones (IC01) first.\n- **Shortest cycle**:\
+  \ the smallest loop with file and line for every import; usually the best place\
+  \ to start.\n- **Kind**: `top` runs when the module is imported; `deferred` runs\
+  \ inside a function (IC02: works today but breaks when someone moves it to the top);\
+  \ `type_checking` never runs (IC06, ignored unless `--include-type-checking`).\n\
+  - **Suggested place to break**: a top-level edge in the shortest cycle that imports\
+  \ the fewest names. It is a starting point, not a verdict: prefer the edge whose\
+  \ direction is \"wrong\" for the architecture (a low-level module such as `models`\
+  \ importing a high-level one such as `orders`).\n- IC03 marks tangles of 5+ modules\
+  \ (plan a layered refactor), IC04 an `__init__.py` re-export that pulls the package\
+  \ into the loop, IC05 a star import inside a cycle, IC00 files that could not be\
+  \ parsed.\n\n### 4. Choose a fix\nUse `references/fix-patterns.md`. Default order:\
+  \ move the shared constant or type to a lower module; import the module instead\
+  \ of a name (`from shop import orders` then `orders.ORDER_STATUSES`) only as a stopgap;\
+  \ use a `TYPE_CHECKING` import plus string annotations for type-only use; move logic\
+  \ to the module that owns it; invert the dependency with a parameter, callback or\
+  \ registry. Avoid hiding the cycle with function-level imports unless it is a deliberate,\
+  \ commented exception.\n\n### 5. Verify\nRe-run the detector until the group is\
+  \ gone or only documented deferred edges remain, then import every top-level module\
+  \ in a fresh interpreter (`python3 -c \"import pkg.module\"`) and run the test suite.\
+  \ Suggest adding the detector to CI with exit code 1 failing the build.\n\n### 6.\
+  \ Report\nFill `templates/cycle-report.md`: groups found, the fix for each, the\
+  \ changed files, and what was verified.\n\n## Rules\n- Never execute or import the\
+  \ user's project to analyze it; the parser is enough.\n- Keep changes small and\
+  \ reviewable: one cycle per commit, no behavior change.\n- Dynamic imports (`importlib.import_module`,\
+  \ plugins, `__import__`) are invisible to static analysis; say so when the project\
+  \ uses them.\n\n\x1FFILE:references/how-cycles-break.md\x1E\n# How circular imports\
+  \ break (and when they don't)\n\n## What Python does on `import a`\n1. Looks in\
+  \ `sys.modules`. If `a` is there, even half-finished, it returns it immediately.\n\
+  2. Otherwise it creates an empty module object, puts it in `sys.modules[\"a\"]`,\
+  \ and runs `a.py` from top to bottom.\n3. Names exist in `a` only after the line\
+  \ that defines them has run.\n\nSo in a cycle `a -> b -> a`:\n- `import a` starts\
+  \ running `a.py`, which reaches `import b`.\n- `b.py` runs and reaches `import a`;\
+  \ `a` is already in `sys.modules` (half-initialized), so it is returned at once.\n\
+  - If `b` then does `from a import X` (or uses `a.X` at top level) before `a` has\
+  \ defined `X`, you get\n  `ImportError: cannot import name 'X' from partially initialized\
+  \ module 'a'` or\n  `AttributeError: partially initialized module 'a' has no attribute\
+  \ 'X'`.\n\nWhether it crashes depends on **which module is imported first** and\
+  \ **what each side touches at import time**. That is why a cycle can pass the test\
+  \ suite and crash in production from a different entry point.\n\n## Kinds of edges\
+  \ the script reports\n| kind | where the import is | runs when | risk |\n|---|---|---|---|\n\
+  | `top` | module level (also inside `if`, `try`, `class` bodies) | the module is\
+  \ imported | can crash at import time |\n| `deferred` | inside a function or method\
+  \ | the function is called | works if the other module has finished by then; fragile\
+  \ |\n| `type_checking` | inside `if TYPE_CHECKING:` | never at runtime | no runtime\
+  \ effect; ignored by default |\n\n## Findings\n| code | severity | meaning | first\
+  \ move |\n|---|---|---|---|\n| IC00 | low | a file could not be parsed (syntax error,\
+  \ encoding) | fix or exclude the file, re-run |\n| IC01 | high | cycle made only\
+  \ of import-time edges somewhere in the group | fix now; see fix-patterns.md 1-5\
+  \ |\n| IC02 | medium | every loop includes at least one deferred import | document\
+  \ it or remove the cycle properly |\n| IC03 | medium | group of 5+ modules | draw\
+  \ the intended layers; fix edges that point upward |\n| IC04 | medium | an `__init__.py`\
+  \ re-export sits in the shortest cycle | stop re-exporting, or import submodules\
+  \ directly |\n| IC05 | medium | `from x import *` inside a cycle | replace with\
+  \ explicit names |\n| IC06 | info | TYPE_CHECKING-only imports were ignored | nothing;\
+  \ use `--include-type-checking` to see them |\n\n## How modules are resolved\n-\
+  \ File `pkg/sub/mod.py` under the root becomes `pkg.sub.mod`; `pkg/__init__.py`\
+  \ becomes `pkg`.\n- The root is `<project>/src` if it exists, otherwise `<project>`;\
+  \ override with `--root`.\n- `from pkg import name` maps to `pkg.name` when that\
+  \ is a module, otherwise to `pkg`.\n- `from . import x` and `from ..core import\
+  \ y` are resolved against the importing module's package.\n- Third-party and standard\
+  \ library imports are ignored (they are not files under the root).\n- Limitation:\
+  \ `import a.b` also runs `a/__init__.py`; the script records only the edge to `a.b`.\
+  \ If a package `__init__` imports heavily, check it by hand.\n\n## Worked example\
+  \ (examples/shop)\n`shop.orders` line 3 imports `Customer` from `shop.models`; `shop.models`\
+  \ line 3 imports `ORDER_STATUSES` from `shop.orders`. Importing `shop` runs `__init__`\
+  \ -> `orders` -> `models`, and `models` asks for `ORDER_STATUSES` before `orders`\
+  \ has defined it, so `python3 -c \"import shop\"` fails with the ImportError. The\
+  \ longer loop `orders -> payments -> notifications -> orders` survives only because\
+  \ `notifications` imports `orders` inside `send_receipt()`.\n\n\x1FFILE:references/fix-patterns.md\x1E\
+  \n# Fix patterns for circular imports\n\nPick the smallest change that makes dependencies\
+  \ point one way: from high-level modules (services, views, CLI) down to low-level\
+  \ ones (models, constants, utilities).\n\n## 1. Move the shared piece down\nWhen\
+  \ two modules share a constant, enum, exception or small type, move it to a lower\
+  \ module that imports neither.\n```python\n# before: models.py -> orders.py for\
+  \ ORDER_STATUSES, orders.py -> models.py for Customer\n# after: shop/constants.py\n\
+  ORDER_STATUSES = [\"new\", \"paid\", \"shipped\", \"cancelled\"]\n# models.py and\
+  \ orders.py both: from shop.constants import ORDER_STATUSES\n```\nBest first choice:\
+  \ no behavior change, easy to review.\n\n## 2. Type-only imports\nIf one side needs\
+  \ the other only for annotations:\n```python\nfrom __future__ import annotations\n\
+  from typing import TYPE_CHECKING\nif TYPE_CHECKING:\n    from shop.models import\
+  \ Customer\ndef greet(customer: Customer) -> str: ...\n```\nThe import never runs,\
+  \ so the runtime cycle disappears.\n\n## 3. Move the function to its owner\nA helper\
+  \ in `orders.py` that only works on customers belongs in `models.py` (or a `customers.py`).\
+  \ Cycles often show that one function lives in the wrong module.\n\n## 4. Dependency\
+  \ inversion\nThe low-level module should not call the high-level one. Pass what\
+  \ it needs instead:\n```python\n# payments.py\ndef charge(order, on_success=None):\n\
+  \    ...\n    if on_success:\n        on_success(order)\n# orders.py\npayments.charge(order,\
+  \ on_success=notifications.send_receipt)\n```\nAlternatives: a small registry or\
+  \ signal (`events.subscribe(\"order_paid\", send_receipt)`), or a protocol/ABC in\
+  \ a lower module.\n\n## 5. Split a module that does two jobs\nIf `utils.py` imports\
+  \ half the project and half the project imports `utils.py`, split it by topic (`utils/text.py`,\
+  \ `utils/money.py`) so each part depends on less.\n\n## 6. Import the module, not\
+  \ the name (stopgap)\n`from shop import orders` and use `orders.ORDER_STATUSES`\
+  \ inside functions. Attribute lookup happens later, so some cycles stop crashing.\
+  \ It hides the design problem; leave a TODO and plan pattern 1-5.\n\n## 7. Deferred\
+  \ import (last resort)\n```python\ndef send_receipt(order):\n    from shop.orders\
+  \ import ORDER_STATUSES  # deliberate: breaks cycle orders -> payments -> notifications\n\
+  ```\nAcceptable for rarely used paths or optional heavy dependencies. Always add\
+  \ a comment naming the cycle; the detector keeps reporting it as IC02.\n\n## Package\
+  \ `__init__.py` re-exports (IC04)\n`from .orders import Order` in `__init__.py`\
+  \ makes `import shop.models` run `orders.py` first. Options: keep `__init__.py`\
+  \ light, re-export only leaf modules, or use a lazy `__getattr__` (PEP 562) for\
+  \ convenience names.\n\n## After every fix\n1. `python3 scripts/import_cycles.py\
+  \ <project>` - the group should be gone or smaller.\n2. `python3 -c \"import <each\
+  \ top-level module>\"` in a fresh interpreter.\n3. Run the tests, including any\
+  \ that import modules in a different order.\n4. Add the detector to CI: a non-zero\
+  \ exit fails the build.\n\n\x1FFILE:templates/cycle-report.md\x1E\n# Import cycle\
+  \ report - {{project}} ({{date}})\n\n**Scope:** {{modules}} modules under `{{root}}`,\
+  \ {{edges}} internal imports. Command: `python3 scripts/import_cycles.py {{project}}`\n\
+  **Symptom:** {{error_or_reason}}\n\n## Summary\n- Cycle groups: {{group_count}}\
+  \ ({{import_time_count}} break at import time, {{deferred_count}} deferred only)\n\
+  - Status after fixes: {{status}}\n\n## Groups\n| # | modules | shortest cycle |\
+  \ kind | fix chosen | status |\n|---|---|---|---|---|---|\n| 1 | {{modules_1}} |\
+  \ {{cycle_1}} | {{kind_1}} | {{fix_1}} | {{status_1}} |\n\n## Changes\n| file |\
+  \ change | pattern (fix-patterns.md) |\n|---|---|---|\n| {{file}} | {{change}} |\
+  \ {{pattern}} |\n\n## Verification\n- Detector re-run: {{detector_result}}\n- Fresh-interpreter\
+  \ imports: {{import_check}}\n- Tests: {{tests}}\n\n## Remaining and notes\n- Documented\
+  \ deferred imports (IC02): {{deferred_notes}}\n- Dynamic imports not covered by\
+  \ static analysis: {{dynamic_imports}}\n- Suggested CI step: `python3 scripts/import_cycles.py\
+  \ . || exit 1`\n\n\x1FFILE:examples/shop/__init__.py\x1E\n\"\"\"Fictional demo package\
+  \ for the import cycle detector (not a real shop).\"\"\"\nfrom .orders import Order,\
+  \ place_order\n\n__all__ = [\"Order\", \"place_order\"]\n\n\x1FFILE:examples/shop/models.py\x1E\
+  \nfrom dataclasses import dataclass\n\nfrom shop.orders import ORDER_STATUSES\n\n\
+  \n@dataclass\nclass Customer:\n    id: int\n    email: str\n    status: str = ORDER_STATUSES[0]\n\
+  \n\x1FFILE:examples/shop/orders.py\x1E\nfrom dataclasses import dataclass, field\n\
+  \nfrom shop.models import Customer\nfrom shop import payments\n\nORDER_STATUSES\
+  \ = [\"new\", \"paid\", \"shipped\", \"cancelled\"]\n\n\n@dataclass\nclass Order:\n\
+  \    id: int\n    customer: Customer\n    total_cents: int\n    status: str = \"\
+  new\"\n    lines: list = field(default_factory=list)\n\n\ndef place_order(order):\n\
+  \    payments.charge(order)\n    order.status = \"paid\"\n    return order\n\n\x1F\
+  FILE:examples/shop/payments.py\x1E\nfrom shop.notifications import send_receipt\n\
+  \n\ndef charge(order):\n    # pretend to call a payment provider here\n    send_receipt(order)\n\
+  \    return True\n\n\x1FFILE:examples/shop/notifications.py\x1E\nfrom typing import\
+  \ TYPE_CHECKING\n\nif TYPE_CHECKING:\n    from shop.models import Customer\n\n\n\
+  def send_receipt(order):\n    from shop.orders import ORDER_STATUSES  # deferred\
+  \ import, runs only when called\n    return \"Receipt for order %s (%s)\" % (order.id,\
+  \ ORDER_STATUSES[1])\n\n\ndef greet(customer: \"Customer\"):\n    return \"Hello\
+  \ \" + customer.email\n\n\x1FFILE:examples/shop/utils.py\x1E\ndef cents_to_text(cents):\n\
+  \    return \"%d.%02d\" % divmod(cents, 100)\n\n\x1FFILE:scripts/import_cycles.py\x1E\
+  \n#!/usr/bin/env python3\n\"\"\"import_cycles.py - find circular imports in a Python\
+  \ project (stdlib only, Python 3.8+).\n\nUsage:\n  python3 scripts/import_cycles.py\
+  \ <project_dir> [--root PKG_PARENT] [--json] [--include-type-checking]\n  python3\
+  \ scripts/import_cycles.py --self-test\n\nReads every .py file under <project_dir>\
+  \ (skipping venvs, build and cache folders), maps files to\nmodule names, parses\
+  \ imports with ast (absolute, relative, `from pkg import submodule`), builds the\n\
+  import graph between project modules and reports each strongly connected component\
+  \ (a group of\nmodules that import each other directly or indirectly) with its shortest\
+  \ cycle, the exact import\nlines, whether each import runs at import time (top level)\
+  \ or later (inside a function), and a\nsuggested edge to break. Findings IC01-IC06.\
+  \ Exit 0 = no import-time cycles, 1 = import-time\ncycle or other high finding,\
+  \ 2 = bad input.\n\"\"\"\nimport argparse, ast, json, os, sys\nfrom collections\
+  \ import deque\n\nSKIP_DIRS = {\".git\", \".hg\", \".venv\", \"venv\", \"env\",\
+  \ \"__pycache__\", \"build\", \"dist\", \"node_modules\",\n             \".tox\"\
+  , \".nox\", \".mypy_cache\", \".pytest_cache\", \"site-packages\", \".eggs\"}\n\n\
+  \ndef module_name(path, root):\n    rel = os.path.relpath(path, root)[:-3].replace(os.sep,\
+  \ \".\")\n    if rel.endswith(\".__init__\"):\n        rel = rel[: -len(\".__init__\"\
+  )]\n    return rel\n\n\ndef find_root(project):\n    \"\"\"Use project/src if it\
+  \ exists (src layout), else the project dir itself.\"\"\"\n    src = os.path.join(project,\
+  \ \"src\")\n    return src if os.path.isdir(src) else project\n\n\ndef collect_files(root):\n\
+  \    out = []\n    for dirpath, dirnames, filenames in os.walk(root):\n        dirnames[:]\
+  \ = sorted(d for d in dirnames if d not in SKIP_DIRS and not d.endswith(\".egg-info\"\
+  ))\n        for f in sorted(filenames):\n            if f.endswith(\".py\"):\n \
+  \               out.append(os.path.join(dirpath, f))\n    return out\n\n\nclass\
+  \ ImportVisitor(ast.NodeVisitor):\n    \"\"\"Collect (target, line, kind, names)\
+  \ where kind is top, deferred or type_checking.\"\"\"\n\n    def __init__(self,\
+  \ modname, is_pkg):\n        self.mod, self.is_pkg, self.depth, self.tc = modname,\
+  \ is_pkg, 0, 0\n        self.found = []\n\n    def _kind(self):\n        if self.tc:\n\
+  \            return \"type_checking\"\n        return \"deferred\" if self.depth\
+  \ else \"top\"\n\n    def visit_FunctionDef(self, node):\n        self.depth +=\
+  \ 1; self.generic_visit(node); self.depth -= 1\n    visit_AsyncFunctionDef = visit_FunctionDef\n\
+  \    visit_Lambda = visit_FunctionDef\n\n    def visit_If(self, node):\n       \
+  \ t = node.test\n        is_tc = (isinstance(t, ast.Name) and t.id == \"TYPE_CHECKING\"\
+  ) or \\\n                (isinstance(t, ast.Attribute) and t.attr == \"TYPE_CHECKING\"\
+  )\n        if is_tc:\n            self.tc += 1\n            for n in node.body:\n\
+  \                self.visit(n)\n            self.tc -= 1\n            for n in node.orelse:\n\
+  \                self.visit(n)\n        else:\n            self.generic_visit(node)\n\
+  \n    def visit_Import(self, node):\n        for a in node.names:\n            self.found.append((a.name,\
+  \ node.lineno, self._kind(), []))\n\n    def visit_ImportFrom(self, node):\n   \
+  \     if node.level:\n            parts = self.mod.split(\".\")\n            base\
+  \ = parts if self.is_pkg else parts[:-1]\n            up = node.level - 1\n    \
+  \        if up > len(base):\n                return\n            base = base[: len(base)\
+  \ - up] if up else base\n            target = \".\".join(base + ([node.module] if\
+  \ node.module else []))\n        else:\n            target = node.module or \"\"\
+  \n        names = [a.name for a in node.names]\n        self.found.append((target,\
+  \ node.lineno, self._kind(), names))\n\n\ndef resolve(target, names, modules):\n\
+  \    \"\"\"Map an import target to project modules: the deepest existing module,\
+  \ plus submodules named in `from x import y`.\"\"\"\n    hits = []\n    if names:\n\
+  \        for n in names:\n            sub = target + \".\" + n if target else n\n\
+  \            if sub in modules:\n                hits.append(sub)\n    if len(hits)\
+  \ < len(names) or not names:\n        t = target\n        while t and t not in modules:\n\
+  \            t = t.rpartition(\".\")[0]\n        if t:\n            hits.append(t)\n\
+  \    return sorted(set(hits))\n\n\ndef build_graph(project, root=None):\n    root\
+  \ = root or find_root(project)\n    files = collect_files(root)\n    if not files:\n\
+  \        raise ValueError(\"no .py files under \" + root)\n    modules = {module_name(f,\
+  \ root): f for f in files}\n    edges, errors = {}, []\n    for mod, path in modules.items():\n\
+  \        try:\n            tree = ast.parse(open(path, encoding=\"utf-8\").read(),\
+  \ filename=path)\n        except (SyntaxError, UnicodeDecodeError) as e:\n     \
+  \       errors.append((mod, str(e).splitlines()[0])); continue\n        v = ImportVisitor(mod,\
+  \ path.endswith(\"__init__.py\")); v.visit(tree)\n        for target, line, kind,\
+  \ names in v.found:\n            for dst in resolve(target, names, modules):\n \
+  \               if dst == mod:\n                    continue\n                key\
+  \ = (mod, dst)\n                rank = {\"top\": 0, \"deferred\": 1, \"type_checking\"\
+  : 2}\n                old = edges.get(key)\n                if old is None or rank[kind]\
+  \ < rank[old[\"kind\"]]:\n                    edges[key] = {\"line\": line, \"kind\"\
+  : kind, \"names\": names, \"file\": os.path.relpath(path, project)}\n    return\
+  \ root, modules, edges, errors\n\n\ndef sccs(nodes, adj):\n    \"\"\"Tarjan's algorithm,\
+  \ iterative.\"\"\"\n    index, low, onstack, stack, out, counter = {}, {}, set(),\
+  \ [], [], [0]\n    for start in sorted(nodes):\n        if start in index:\n   \
+  \         continue\n        work = [(start, iter(sorted(adj.get(start, ()))))]\n\
+  \        index[start] = low[start] = counter[0]; counter[0] += 1; stack.append(start);\
+  \ onstack.add(start)\n        while work:\n            v, it = work[-1]\n      \
+  \      for w in it:\n                if w not in index:\n                    index[w]\
+  \ = low[w] = counter[0]; counter[0] += 1; stack.append(w); onstack.add(w)\n    \
+  \                work.append((w, iter(sorted(adj.get(w, ())))))\n              \
+  \      break\n                if w in onstack:\n                    low[v] = min(low[v],\
+  \ index[w])\n            else:\n                work.pop()\n                if work:\n\
+  \                    low[work[-1][0]] = min(low[work[-1][0]], low[v])\n        \
+  \        if low[v] == index[v]:\n                    comp = []\n               \
+  \     while True:\n                        w = stack.pop(); onstack.discard(w);\
+  \ comp.append(w)\n                        if w == v:\n                         \
+  \   break\n                    if len(comp) > 1:\n                        out.append(sorted(comp))\n\
+  \    return out\n\n\ndef shortest_cycle(comp, adj):\n    best = None\n    cs = set(comp)\n\
+  \    for s in comp:\n        prev, q = {s: None}, deque([s])\n        while q:\n\
+  \            v = q.popleft()\n            for w in sorted(adj.get(v, ())):\n   \
+  \             if w not in cs:\n                    continue\n                if\
+  \ w == s:\n                    path = [v]\n                    while prev[path[-1]]\
+  \ is not None:\n                        path.append(prev[path[-1]])\n          \
+  \          cyc = list(reversed(path)) + [s]\n                    if best is None\
+  \ or len(cyc) < len(best):\n                        best = cyc\n               \
+  \     q.clear(); break\n                if w not in prev:\n                    prev[w]\
+  \ = v; q.append(w)\n    return best\n\n\ndef analyze(project, root=None, include_tc=False):\n\
+  \    root, modules, edges, errors = build_graph(project, root)\n    use = {k: v\
+  \ for k, v in edges.items() if include_tc or v[\"kind\"] != \"type_checking\"}\n\
+  \    top = {k: v for k, v in use.items() if v[\"kind\"] == \"top\"}\n    def adj_of(es):\n\
+  \        a = {}\n        for (s, d) in es:\n            a.setdefault(s, set()).add(d)\n\
+  \        return a\n    adj_all, adj_top = adj_of(use), adj_of(top)\n    groups,\
+  \ findings = [], []\n    top_sccs = [set(c) for c in sccs(modules, adj_top)]\n \
+  \   for comp in sccs(modules, adj_all):\n        cyc = shortest_cycle(comp, adj_all)\n\
+  \        cyc_edges = [dict(src=a, dst=b, **use[(a, b)]) for a, b in zip(cyc, cyc[1:])]\n\
+  \        import_time = any(set(comp) & t for t in top_sccs)\n        inner = [dict(src=s,\
+  \ dst=d, **e) for (s, d), e in use.items() if s in comp and d in comp]\n       \
+  \ # break candidate: top-level edge in the shortest cycle importing the fewest names,\
+  \ prefer non-__init__ sources\n        cands = [e for e in cyc_edges if e[\"kind\"\
+  ] == \"top\"] or cyc_edges\n        brk = min(cands, key=lambda e: (len(e[\"names\"\
+  ]) or 1, e[\"file\"].endswith(\"__init__.py\"), e[\"src\"]))\n        g = dict(modules=comp,\
+  \ size=len(comp), shortest_cycle=cyc, cycle_edges=cyc_edges,\n                 import_time=import_time,\
+  \ edges_inside=len(inner), other_edges=[e for e in sorted(inner, key=lambda e: (e[\"\
+  src\"], e[\"dst\"])) if (e[\"src\"], e[\"dst\"]) not in set(zip(cyc, cyc[1:]))],\
+  \ break_candidate=brk)\n        groups.append(g)\n        label = \" -> \".join(cyc)\n\
+  \        if import_time:\n            findings.append((\"high\", \"IC01\", \"import-time\
+  \ cycle: \" + label))\n        else:\n            findings.append((\"medium\", \"\
+  IC02\", \"cycle only through imports inside functions (works, but fragile): \" +\
+  \ label))\n        if len(comp) >= 5:\n            findings.append((\"medium\",\
+  \ \"IC03\", \"large tangle of %d modules: %s\" % (len(comp), \", \".join(comp))))\n\
+  \        for e in cyc_edges:\n            if e[\"file\"].endswith(\"__init__.py\"\
+  ) and e[\"kind\"] == \"top\":\n                findings.append((\"medium\", \"IC04\"\
+  , \"package __init__ re-exports into the cycle: %s line %d\" % (e[\"file\"], e[\"\
+  line\"])))\n            if e[\"kind\"] == \"top\" and e[\"names\"] == [\"*\"]:\n\
+  \                findings.append((\"medium\", \"IC05\", \"star import inside a cycle:\
+  \ %s line %d\" % (e[\"file\"], e[\"line\"])))\n    tc_only = [k for k, v in edges.items()\
+  \ if v[\"kind\"] == \"type_checking\"]\n    if tc_only and not include_tc:\n   \
+  \     findings.append((\"info\", \"IC06\", \"%d TYPE_CHECKING-only import(s) ignored\
+  \ (they never run)\" % len(tc_only)))\n    for mod, err in errors:\n        findings.append((\"\
+  low\", \"IC00\", \"could not parse %s: %s\" % (mod, err)))\n    return dict(project=project,\
+  \ root=root, modules=len(modules), edges=len(use), groups=groups,\n            \
+  \    findings=[dict(severity=s, code=c, message=m) for s, c, m in findings])\n\n\
+  \ndef render(res):\n    L = [\"# Import cycle report\", \"\",\n         \"Project:\
+  \ %s (modules from %s): %d modules, %d internal imports, %d cycle group(s)\" %\n\
+  \         (res[\"project\"], res[\"root\"], res[\"modules\"], res[\"edges\"], len(res[\"\
+  groups\"])), \"\"]\n    for i, g in enumerate(res[\"groups\"], 1):\n        L.append(\"\
+  ## Group %d: %d modules (%s)\" % (i, g[\"size\"], \"breaks at import time\" if g[\"\
+  import_time\"] else \"deferred imports only\"))\n        L.append(\"Modules: \"\
+  \ + \", \".join(g[\"modules\"]))\n        L.append(\"Shortest cycle: \" + \" ->\
+  \ \".join(g[\"shortest_cycle\"]))\n        for e in g[\"cycle_edges\"]:\n      \
+  \      L.append(\"  - %s line %d: %s imports %s%s [%s]\" % (e[\"file\"], e[\"line\"\
+  ], e[\"src\"], e[\"dst\"],\n                     (\" (\" + \", \".join(e[\"names\"\
+  ]) + \")\") if e[\"names\"] else \"\", e[\"kind\"]))\n        if g[\"other_edges\"\
+  ]:\n            L.append(\"Other imports inside this group:\")\n            for\
+  \ e in g[\"other_edges\"]:\n                L.append(\"  - %s line %d: %s imports\
+  \ %s [%s]\" % (e[\"file\"], e[\"line\"], e[\"src\"], e[\"dst\"], e[\"kind\"]))\n\
+  \        b = g[\"break_candidate\"]\n        L.append(\"Suggested place to break:\
+  \ %s line %d (%s -> %s)\" % (b[\"file\"], b[\"line\"], b[\"src\"], b[\"dst\"]))\n\
+  \        L.append(\"\")\n    if not res[\"groups\"]:\n        L += [\"No import\
+  \ cycles between project modules.\", \"\"]\n    L.append(\"## Findings\")\n    order\
+  \ = {\"high\": 0, \"medium\": 1, \"low\": 2, \"info\": 3}\n    for f in sorted(res[\"\
+  findings\"], key=lambda f: (order[f[\"severity\"]], f[\"code\"])):\n        L.append(\"\
+  - [%s] %s %s\" % (f[\"severity\"], f[\"code\"], f[\"message\"]))\n    if not res[\"\
+  findings\"]:\n        L.append(\"- none\")\n    return \"\\n\".join(L)\n\n\ndef\
+  \ self_test():\n    import tempfile\n    ok = [0, 0]\n    def check(name, cond):\n\
+  \        ok[0 if cond else 1] += 1\n        print((\"PASS  \" if cond else \"FAIL\
+  \  \") + name)\n    def proj(files):\n        d = tempfile.mkdtemp()\n        for\
+  \ rel, txt in files.items():\n            p = os.path.join(d, rel); os.makedirs(os.path.dirname(p),\
+  \ exist_ok=True)\n            open(p, \"w\").write(txt)\n        return d\n    r\
+  \ = analyze(proj({\"a.py\": \"import b\\n\", \"b.py\": \"x = 1\\n\"}))\n    check(\"\
+  no cycle in a -> b\", not r[\"groups\"])\n    r = analyze(proj({\"a.py\": \"import\
+  \ b\\n\", \"b.py\": \"import a\\n\"}))\n    check(\"direct cycle a <-> b found\"\
+  , len(r[\"groups\"]) == 1 and r[\"groups\"][0][\"size\"] == 2)\n    check(\"direct\
+  \ cycle is import-time IC01\", any(f[\"code\"] == \"IC01\" for f in r[\"findings\"\
+  ]))\n    r = analyze(proj({\"a.py\": \"import b\\n\", \"b.py\": \"import c\\n\"\
+  , \"c.py\": \"import a\\n\"}))\n    check(\"three-module cycle shortest path length\
+  \ 4\", r[\"groups\"][0][\"shortest_cycle\"] == [\"a\", \"b\", \"c\", \"a\"])\n \
+  \   r = analyze(proj({\"a.py\": \"import b\\n\", \"b.py\": \"def f():\\n    import\
+  \ a\\n\"}))\n    check(\"function-level import gives IC02 not IC01\", [f[\"code\"\
+  ] for f in r[\"findings\"]] == [\"IC02\"])\n    r = analyze(proj({\"a.py\": \"import\
+  \ b\\n\", \"b.py\": \"from typing import TYPE_CHECKING\\nif TYPE_CHECKING:\\n  \
+  \  import a\\n\"}))\n    check(\"TYPE_CHECKING import ignored by default\", not\
+  \ r[\"groups\"] and r[\"findings\"][0][\"code\"] == \"IC06\")\n    r = analyze(proj({\"\
+  a.py\": \"import b\\n\", \"b.py\": \"from typing import TYPE_CHECKING\\nif TYPE_CHECKING:\\\
+  n    import a\\n\"}), include_tc=True)\n    check(\"TYPE_CHECKING import counted\
+  \ with flag\", len(r[\"groups\"]) == 1)\n    r = analyze(proj({\"pkg/__init__.py\"\
+  : \"\", \"pkg/x.py\": \"from . import y\\n\", \"pkg/y.py\": \"from .x import thing\\\
+  n\"}))\n    check(\"relative imports resolved\", r[\"groups\"] and r[\"groups\"\
+  ][0][\"modules\"] == [\"pkg.x\", \"pkg.y\"])\n    r = analyze(proj({\"pkg/__init__.py\"\
+  : \"from .x import X\\n\", \"pkg/x.py\": \"from pkg import helpers\\nX = 1\\n\"\
+  , \"pkg/helpers.py\": \"import pkg\\n\"}))\n    check(\"__init__ re-export flagged\
+  \ IC04\", any(f[\"code\"] == \"IC04\" for f in r[\"findings\"]))\n    r = analyze(proj({\"\
+  pkg/__init__.py\": \"\", \"pkg/x.py\": \"from pkg import y\\n\", \"pkg/y.py\": \"\
+  x = 1\\n\"}))\n    check(\"from pkg import submodule maps to the submodule\", not\
+  \ r[\"groups\"])\n    r = analyze(proj({\"src/app/__init__.py\": \"\", \"src/app/a.py\"\
+  : \"from app import b\\n\", \"src/app/b.py\": \"from app.a import f\\n\"}))\n  \
+  \  check(\"src layout root detected\", r[\"root\"].endswith(\"src\") and len(r[\"\
+  groups\"]) == 1)\n    r = analyze(proj({\"a.py\": \"from b import *\\n\", \"b.py\"\
+  : \"import a\\n\"}))\n    check(\"star import in cycle flagged IC05\", any(f[\"\
+  code\"] == \"IC05\" for f in r[\"findings\"]))\n    files = {\"m%d.py\" % i: \"\
+  import m%d\\n\" % ((i + 1) % 5) for i in range(5)}\n    r = analyze(proj(files))\n\
+  \    check(\"five-module ring flagged IC03\", any(f[\"code\"] == \"IC03\" for f\
+  \ in r[\"findings\"]))\n    r = analyze(proj({\"a.py\": \"import os, json\\nimport\
+  \ b\\n\", \"b.py\": \"import sys\\n\"}))\n    check(\"stdlib imports ignored\",\
+  \ r[\"edges\"] == 1)\n    r = analyze(proj({\"a.py\": \"import b\\n\", \"b.py\"\
+  : \"def (:\\n\"}))\n    check(\"syntax error reported IC00\", any(f[\"code\"] ==\
+  \ \"IC00\" for f in r[\"findings\"]))\n    r = analyze(proj({\"venv/lib/x.py\":\
+  \ \"import y\\n\", \"venv/lib/y.py\": \"import x\\n\", \"a.py\": \"x=1\\n\"}))\n\
+  \    check(\"venv folder skipped\", r[\"modules\"] == 1)\n    r = analyze(proj({\"\
+  a.py\": \"import b\\n\", \"b.py\": \"import a\\n\"}))\n    b = r[\"groups\"][0][\"\
+  break_candidate\"]\n    check(\"break candidate is an edge of the cycle\", (b[\"\
+  src\"], b[\"dst\"]) in [(\"a\", \"b\"), (\"b\", \"a\")])\n    try:\n        analyze(proj({\"\
+  README.md\": \"x\"})); check(\"empty project rejected\", False)\n    except ValueError:\n\
+  \        check(\"empty project rejected\", True)\n    print(\"ALL PASS (%d/%d)\"\
+  \ % (ok[0], sum(ok)) if not ok[1] else \"FAILED %d of %d\" % (ok[1], sum(ok)))\n\
+  \    return 0 if not ok[1] else 1\n\n\ndef main():\n    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])\n\
+  \    ap.add_argument(\"project\", nargs=\"?\")\n    ap.add_argument(\"--root\",\
+  \ help=\"folder that contains the top-level packages (default: <project>/src if\
+  \ present, else <project>)\")\n    ap.add_argument(\"--json\", action=\"store_true\"\
+  )\n    ap.add_argument(\"--include-type-checking\", action=\"store_true\")\n   \
+  \ ap.add_argument(\"--self-test\", action=\"store_true\")\n    a = ap.parse_args()\n\
+  \    if a.self_test:\n        return self_test()\n    if not a.project or not os.path.isdir(a.project):\n\
+  \        print(\"error: give a project directory\", file=sys.stderr); return 2\n\
+  \    try:\n        res = analyze(a.project, a.root, a.include_type_checking)\n \
+  \   except ValueError as e:\n        print(\"error:\", e, file=sys.stderr); return\
+  \ 2\n    print(json.dumps(res, indent=2) if a.json else render(res))\n    return\
+  \ 1 if any(f[\"severity\"] == \"high\" for f in res[\"findings\"]) else 0\n\n\n\
+  if __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
