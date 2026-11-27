@@ -1,0 +1,27 @@
+slug: find-leftover-compatibility-shims
+title: Find leftover compatibility shims
+description: Imported from Prompts Chat
+prompt: 'Find compatibility shims and barrel files left behind by earlier extractions.
+  These are files that only re-export from a new home, and package `exports` entries
+  that point at them.
+
+
+  For each one, list the remaining importers. If there are none, or every importer
+  can be repointed in one small change, propose removing it.
+
+
+  Check for:
+
+
+  - package.json "exports" subpaths
+
+  - tsconfig path aliases
+
+  - vitest aliases
+
+  - lint-guard baselines that mention the old path'
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

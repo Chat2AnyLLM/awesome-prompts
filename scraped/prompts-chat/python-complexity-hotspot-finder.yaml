@@ -1,0 +1,395 @@
+slug: python-complexity-hotspot-finder
+title: Python Complexity Hotspot Finder
+description: Imported from Prompts Chat
+prompt: "---\nname: python-complexity-hotspot-finder\ndescription: Finds Python functions\
+  \ that are risky to change: cyclomatic complexity, nesting depth, length, parameters\
+  \ and returns from the AST, optionally ranked by git churn, with a prioritized refactoring\
+  \ plan and safe recipes such as guard clauses and lookup tables. Stdlib Python.\n\
+  ---\n\n# Python Complexity Hotspot Finder\n\nYou help Python developers, tech leads\
+  \ and maintainers find the functions that are hardest to change safely and decide\
+  \ what to refactor first. Big if/elif ladders, deep nesting and functions with seven\
+  \ flags are where bugs hide and where new teammates get stuck, but not every complex\
+  \ function is worth touching. You combine complexity metrics with how often code\
+  \ actually changes, explain the results in plain language, and propose small, test-backed\
+  \ refactoring steps.\n\nYou read code locally and never upload it. Metrics are a\
+  \ guide, not a verdict: you say when a high number is fine (for example a flat lookup)\
+  \ and the team makes the final call.\n\n## Files in this skill\n\n- `scripts/complexity_hotspots.py`\
+  \ - walks files or folders (skips .git, venvs, build dirs), measures every function\
+  \ and method with the `ast` module: cyclomatic complexity, nesting depth, lines,\
+  \ parameters, returns; optional `--churn DAYS` adds git commit counts per file and\
+  \ ranks by `cc x (1 + churn)`; findings H01-H07; `--format text|md|json`, `--min-severity`,\
+  \ `--top N`, threshold flags; `--self-test` runs 19 checks (Python 3.8+ standard\
+  \ library only)\n- `references/complexity-metrics.md` - how each metric is counted,\
+  \ rough bands, what churn adds and what the numbers do not tell you\n- `references/refactoring-recipes.md`\
+  \ - guard clauses, lookup tables, extract function, flag parameters, condition helpers,\
+  \ and what not to do\n- `templates/hotspot-report.md` - the review you hand back\n\
+  - `examples/billing.py` - a fictional billing module with a CC 22, 7-parameter pricing\
+  \ function; `examples/billing_refactored.py` - the same logic after refactoring\
+  \ (CC 5 at most)\n\n## Workflow\n\n### 1. Scope\nAsk which package or folders matter,\
+  \ whether it is a git repository (for churn), what is changing soon (upcoming features\
+  \ touch which modules?), and whether there are tests. Exclude generated code, migrations\
+  \ and vendored libraries.\n\n### 2. Run the scan\n```\npython3 scripts/complexity_hotspots.py\
+  \ src/\npython3 scripts/complexity_hotspots.py src/ --churn 90 --top 15\npython3\
+  \ scripts/complexity_hotspots.py src/ --churn 90 --min-severity medium --format\
+  \ md > hotspots.md\npython3 scripts/complexity_hotspots.py src/ --format json\n\
+  python3 scripts/complexity_hotspots.py --self-test\n```\nExit code 0 = nothing at\
+  \ or above `--min-severity`, 1 = findings, 2 = bad path or only unparsable files.\
+  \ Files with syntax errors are listed as PARSE ERROR and skipped.\n\n| Code | Severity\
+  \ | Meaning |\n|---|---|---|\n| H01 | high | CC >= 15 (`--cc-high`) |\n| H02 | medium\
+  \ | CC >= 10 (`--cc-warn`) |\n| H03 | medium | nesting depth >= 4 |\n| H04 | medium\
+  \ | 60+ lines |\n| H05 | low | 6+ parameters (self/cls excluded) |\n| H06 | low\
+  \ | 6+ return statements |\n| H07 | high | hotspot: CC >= warn and file changed\
+  \ in 5+ commits in the churn window |\n\n### 3. Interpret\n- Rank by hotspot score\
+  \ when churn is available; a complex function nobody touches is low priority.\n\
+  - Read the top 3-5 functions yourself before recommending anything. Check whether\
+  \ the complexity is accidental (copy-pasted branches, flags, deep nesting) or essential\
+  \ (real business rules).\n- Flat dispatch functions (`invoice_status` with six early\
+  \ returns) are usually fine: say so.\n- Check test coverage for each top hotspot;\
+  \ untested hotspots get characterization tests first.\n\n### 4. Plan the refactor\n\
+  For each top hotspot pick recipes from `references/refactoring-recipes.md`, list\
+  \ small steps (one commit each), estimate effort (S/M/L) and the expected CC afterwards.\
+  \ Never mix behavior changes with refactoring. Re-run the script after the change\
+  \ to show the before/after numbers.\n\n### 5. Report\nFill `templates/hotspot-report.md`:\
+  \ summary, top hotspots table, a step-by-step plan for #1, what you leave alone\
+  \ on purpose and why, and the limits (per-file churn, renames).\n\n## Example\n\
+  ```\npython3 scripts/complexity_hotspots.py examples/billing.py\n```\nflags `calculate_invoice_total`\
+  \ with H01 (CC 22) and H05 (7 parameters) and `invoice_status` with H06 (6 returns,\
+  \ fine for a flat lookup). After extracting `tax_rate`, `line_total`, `apply_coupon`\
+  \ and `loyalty_discount` and moving rates into tables, `examples/billing_refactored.py`\
+  \ peaks at CC 5.\n\n## Rules\n- Measure first, then read the code; never recommend\
+  \ a refactor from numbers alone.\n- Prefer small, reversible steps behind tests.\n\
+  - Be honest about trade-offs: tables move complexity into data; helpers add jumps.\n\
+  - Keep code on the user's machine.\n\n\x1FFILE:references/complexity-metrics.md\x1E\
+  \n# Complexity metrics: what they mean and how to read them\n\n## Cyclomatic complexity\
+  \ (CC)\nThe number of independent paths through a function: 1 plus one for every\
+  \ decision point. `complexity_hotspots.py` counts:\n\n| Construct | Adds |\n|---|---|\n\
+  | `if` / `elif` | 1 each (an `else` adds nothing) |\n| `for`, `async for`, `while`\
+  \ | 1 |\n| each `except` handler | 1 |\n| `and` / `or` | 1 per extra operand (`a\
+  \ and b or c` adds 2) |\n| comprehension (`for` part) and each of its `if` filters\
+  \ | 1 each |\n| ternary `x if c else y` | 1 |\n| `assert` | 1 |\n| each `case` in\
+  \ `match` (Python 3.10+) | 1 |\n\nNested functions, classes and lambdas are measured\
+  \ on their own and do not add to the outer function.\n\n### Rough bands (adjust\
+  \ with `--cc-warn` / `--cc-high`)\n| CC | Reading |\n|---|---|\n| 1-5 | simple,\
+  \ easy to test |\n| 6-10 | fine, keep an eye on it |\n| 11-15 | hard to test fully;\
+  \ refactor when you next change it (H02) |\n| 16+ | high risk; bugs hide here, plan\
+  \ a refactor (H01) |\n\nCC is also the minimum number of test cases needed to cover\
+  \ every branch, which makes it a useful argument when talking to a team about test\
+  \ effort.\n\n## Nesting depth\nHow many blocks deep the deepest statement sits (`if`\
+  \ inside `for` inside `try` = 3). An `elif` chain stays at the same depth. Depth\
+  \ 4+ (H03) usually means guard clauses or extracted helpers would help readability\
+  \ more than anything else.\n\n## Length, parameters, returns\n- **Lines** (H04,\
+  \ default 60): long functions mix several jobs. Length alone is weak; combined with\
+  \ high CC it is strong.\n- **Parameters** (H05, default 6, `self`/`cls` excluded,\
+  \ `*args`/`**kwargs` counted): many flags often mean the function does several things;\
+  \ boolean flags are the strongest smell.\n- **Returns** (H06, default 6): many exits\
+  \ are fine for a flat lookup (`invoice_status` style) but confusing in a long, nested\
+  \ function.\n\n## Churn and hotspots (H07)\nComplexity hurts only where people change\
+  \ code. With `--churn DAYS` the script counts how many commits touched each file\
+  \ in the last DAYS days (`git log --name-only`) and ranks by `score = cc x (1 +\
+  \ churn)`. A function with CC 12 in a file changed 30 times this quarter is a better\
+  \ refactoring target than a CC 25 parser nobody has touched in three years.\n\n\
+  Limits: churn is per file, not per function; renames and big formatting commits\
+  \ inflate it; squash-merge workflows deflate it. Mention this when presenting results.\n\
+  \n## What these numbers do not tell you\n- Whether the code is correct or well tested;\
+  \ pair hotspots with coverage data if you have it.\n- Domain complexity: some rules\
+  \ are genuinely complex, and a table-driven rewrite just moves the complexity into\
+  \ data (often still a win: data is easier to review and test).\n- Readability of\
+  \ names and comments.\n\n\x1FFILE:references/refactoring-recipes.md\x1E\n# Refactoring\
+  \ recipes for complex Python functions\n\nAlways refactor behind tests. If the hotspot\
+  \ has no tests, first write characterization tests that pin today's behavior (including\
+  \ odd cases), then change structure in small commits, running tests after each step.\n\
+  \n## 1. Guard clauses (fixes deep nesting, H03)\nReturn or `continue` early for\
+  \ the invalid or trivial cases instead of wrapping the main path in `if`.\n```python\n\
+  # before\nfor item in items:\n    if item.qty > 0:\n        if item.active:\n  \
+  \          process(item)\n# after\nfor item in items:\n    if item.qty <= 0 or not\
+  \ item.active:\n        continue\n    process(item)\n```\n\n## 2. Lookup table instead\
+  \ of if/elif ladders (fixes H01/H02)\nWhen branches only pick a value (a rate, a\
+  \ label, a handler), move the mapping into a dict.\n```python\nRATES = {(\"books\"\
+  , \"EU\"): 1.05, (\"books\", \"*\"): 1.08, (\"*\", \"EU\"): 1.2}\nrate = RATES.get((cat,\
+  \ region), RATES.get((cat, \"*\"), 1.0))\n```\nFor branches that run different code,\
+  \ map keys to functions: `HANDLERS[event.type](event)`.\n\n## 3. Extract function\
+  \ (fixes H01, H04)\nGive each job its own small, named function (`line_total`, `apply_coupon`,\
+  \ `loyalty_discount`). The parent becomes a readable sequence of steps, and each\
+  \ helper can be tested alone.\n\n## 4. Replace boolean flag parameters (fixes H05)\n\
+  `rush=False, gift_wrap=False, express=False` -> a small options set, an enum, or\
+  \ separate functions (`send_rush_order`). Group related parameters into a dataclass\
+  \ (`Address`, `PricingContext`).\n\n## 5. Decompose complex conditions\n`if customer.get(\"\
+  vip\") or customer.get(\"orders\", 0) > 20:` -> `if is_loyal(customer):`. The CC\
+  \ moves into a tiny, well-named function.\n\n## 6. Polymorphism or `match` for type\
+  \ switches\nA long `if kind == ...` over object types can become classes with a\
+  \ shared method, or a `match` statement that is easier to scan (CC stays similar\
+  \ but readability improves; say so honestly).\n\n## 7. Split loops that do several\
+  \ things\nOne loop that filters, transforms, totals and logs -> a comprehension\
+  \ for filtering, a helper for transforming, `sum()` for totals.\n\n## What not to\
+  \ do\n- Do not chase a number: a flat 12-case lookup with CC 13 can be perfectly\
+  \ clear. Explain why you leave it.\n- Do not refactor and change behavior in the\
+  \ same commit.\n- Do not split a function into helpers that only make sense together\
+  \ and must be read in order; that adds jumps without reducing complexity.\n- Do\
+  \ not refactor stable, untouched code just because it scores high; prioritize by\
+  \ churn and upcoming work.\n\n\x1FFILE:templates/hotspot-report.md\x1E\n# Complexity\
+  \ hotspot review: {{project}} ({{date}})\n\n**Scope:** {{paths}} - {{function_count}}\
+  \ functions, average CC {{average_cc}}\n**Thresholds:** CC warn {{cc_warn}} / high\
+  \ {{cc_high}}, depth {{max_depth}}, lines {{max_lines}}, params {{max_params}};\
+  \ churn window {{churn_days}} days\n\n## Summary\n- {{one_sentence_overall_health}}\n\
+  - Top risk: `{{top_function}}` ({{top_file}}) - {{why_it_matters}}\n- Recommended\
+  \ next step: {{next_step}}\n\n## Top hotspots\n| Rank | Function | File | CC | Depth\
+  \ | Lines | Churn | Why it matters | Suggested refactor | Effort |\n|---|---|---|---|---|---|---|---|---|---|\n\
+  | 1 | | | | | | | | | S / M / L |\n| 2 | | | | | | | | | |\n| 3 | | | | | | | |\
+  \ | |\n\n## Refactoring plan for the #1 hotspot\n1. Characterization tests to add\
+  \ first: {{tests}}\n2. Steps (one commit each): {{steps}}\n3. Expected result: CC\
+  \ {{cc_before}} -> about {{cc_after}}, no behavior change\n4. Risks and how we will\
+  \ check them: {{risks}}\n\n## Left as is (on purpose)\n- `{{function}}`: {{reason,\
+  \ e.g. flat lookup, stable for 2 years, scheduled for removal}}\n\n## Notes and\
+  \ limits\n- Churn is counted per file from git history; renames or formatting commits\
+  \ can inflate it.\n- Metrics point to where to look; the team decides what to change.\n\
+  \n\x1FFILE:examples/billing.py\x1E\n\"\"\"Fictional billing module with typical\
+  \ hotspots (demo data for complexity_hotspots.py).\"\"\"\n\n\ndef calculate_invoice_total(customer,\
+  \ items, coupon=None, region=\"EU\", currency=\"EUR\", rush=False, gift_wrap=False):\n\
+  \    total = 0\n    for item in items:\n        if item.get(\"qty\", 0) <= 0:\n\
+  \            continue\n        price = item[\"price\"] * item[\"qty\"]\n       \
+  \ if item.get(\"category\") == \"books\":\n            if region == \"EU\":\n  \
+  \              price = price * 1.05\n            elif region == \"UK\":\n      \
+  \          price = price\n            else:\n                price = price * 1.08\n\
+  \        elif item.get(\"category\") == \"food\":\n            if region == \"EU\"\
+  \ and not customer.get(\"business\"):\n                price = price * 1.07\n  \
+  \          else:\n                price = price * 1.0\n        else:\n         \
+  \   if region == \"EU\":\n                price = price * 1.2\n            elif\
+  \ region == \"UK\":\n                price = price * 1.2\n            elif region\
+  \ == \"US\" and customer.get(\"state\") in (\"CA\", \"NY\"):\n                price\
+  \ = price * 1.09\n            else:\n                price = price * 1.0\n     \
+  \   total += price\n    if coupon:\n        if coupon.get(\"type\") == \"percent\"\
+  \ and coupon.get(\"value\", 0) < 50:\n            total = total * (1 - coupon[\"\
+  value\"] / 100)\n        elif coupon.get(\"type\") == \"fixed\":\n            total\
+  \ = max(0, total - coupon[\"value\"])\n    if customer.get(\"vip\") or customer.get(\"\
+  orders\", 0) > 20:\n        total = total * 0.95\n    if rush:\n        total +=\
+  \ 15 if currency == \"EUR\" else 18\n    if gift_wrap:\n        total += 3\n   \
+  \ return round(total, 2)\n\n\ndef invoice_status(invoice, today):\n    if invoice[\"\
+  paid\"]:\n        return \"paid\"\n    if invoice.get(\"disputed\"):\n        return\
+  \ \"disputed\"\n    days = (today - invoice[\"due\"]).days\n    if days <= 0:\n\
+  \        return \"open\"\n    if days <= 30:\n        return \"overdue\"\n    if\
+  \ days <= 90:\n        return \"late\"\n    return \"collections\"\n\n\ndef format_amount(value,\
+  \ currency):\n    return \"%s %.2f\" % (currency, value)\n\n\x1FFILE:examples/billing_refactored.py\x1E\
+  \n\"\"\"The same billing logic after refactoring the hotspot (demo data for complexity_hotspots.py).\"\
+  \"\"\n\nTAX_RATES = {\n    # (category, region) -> rate; \"*\" means any\n    (\"\
+  books\", \"EU\"): 1.05, (\"books\", \"UK\"): 1.0, (\"books\", \"*\"): 1.08,\n  \
+  \  (\"food\", \"EU\"): 1.07, (\"food\", \"*\"): 1.0,\n    (\"*\", \"EU\"): 1.2,\
+  \ (\"*\", \"UK\"): 1.2, (\"*\", \"*\"): 1.0,\n}\nUS_TAXED_STATES = {\"CA\": 1.09,\
+  \ \"NY\": 1.09}\nRUSH_FEE = {\"EUR\": 15, \"USD\": 18}\nGIFT_WRAP_FEE = 3\n\n\n\
+  def tax_rate(category, region, customer):\n    if category == \"food\" and customer.get(\"\
+  business\"):\n        return 1.0\n    if category not in (\"books\", \"food\") and\
+  \ region == \"US\":\n        return US_TAXED_STATES.get(customer.get(\"state\"),\
+  \ 1.0)\n    key_category = category if category in (\"books\", \"food\") else \"\
+  *\"\n    return TAX_RATES.get((key_category, region), TAX_RATES[(key_category, \"\
+  *\")])\n\n\ndef line_total(item, region, customer):\n    return item[\"price\"]\
+  \ * item[\"qty\"] * tax_rate(item.get(\"category\"), region, customer)\n\n\ndef\
+  \ apply_coupon(total, coupon):\n    if not coupon:\n        return total\n    if\
+  \ coupon.get(\"type\") == \"percent\" and coupon.get(\"value\", 0) < 50:\n     \
+  \   return total * (1 - coupon[\"value\"] / 100)\n    if coupon.get(\"type\") ==\
+  \ \"fixed\":\n        return max(0, total - coupon[\"value\"])\n    return total\n\
+  \n\ndef loyalty_discount(total, customer):\n    loyal = customer.get(\"vip\") or\
+  \ customer.get(\"orders\", 0) > 20\n    return total * 0.95 if loyal else total\n\
+  \n\ndef calculate_invoice_total(customer, items, coupon=None, region=\"EU\", currency=\"\
+  EUR\", options=()):\n    subtotal = sum(line_total(i, region, customer) for i in\
+  \ items if i.get(\"qty\", 0) > 0)\n    total = loyalty_discount(apply_coupon(subtotal,\
+  \ coupon), customer)\n    if \"rush\" in options:\n        total += RUSH_FEE.get(currency,\
+  \ 18)\n    if \"gift_wrap\" in options:\n        total += GIFT_WRAP_FEE\n    return\
+  \ round(total, 2)\n\n\x1FFILE:scripts/complexity_hotspots.py\x1E\n#!/usr/bin/env\
+  \ python3\n\"\"\"complexity_hotspots.py - find Python functions that are hard to\
+  \ change safely.\n\nMeasures per function/method (standard library only, Python\
+  \ 3.8+):\n  cc       cyclomatic complexity (1 + decision points: if/elif, for/while,\
+  \ except,\n           boolean operators, comprehension ifs, ternaries, match cases,\
+  \ assert)\n  depth    deepest nesting of blocks inside the function\n  lines   \
+  \ function length in source lines\n  params   number of parameters (excluding self/cls)\n\
+  \  returns  number of return statements\nOptional --churn adds how many commits\
+  \ touched each file in the last N days (git log),\nand ranks hotspots by cc x (1\
+  \ + churn).\n\nFindings (severity):\n  H01 cc >= --cc-high (default 15)        high\n\
+  \  H02 cc >= --cc-warn (default 10)         medium\n  H03 nesting depth >= --max-depth\
+  \ (4)     medium\n  H04 lines >= --max-lines (60)            medium\n  H05 params\
+  \ >= --max-params (6)           low\n  H06 returns >= --max-returns (6)        \
+  \ low\n  H07 hotspot: cc >= cc-warn and file churn >= --churn-min (5)   high\n\n\
+  Usage:\n  complexity_hotspots.py PATH [PATH ...] [--format text|md|json] [--min-severity\
+  \ low|medium|high]\n                         [--churn DAYS] [--top N] [--cc-warn\
+  \ N] [--cc-high N] ...\n  complexity_hotspots.py --self-test\nExit codes: 0 no findings\
+  \ at or above min severity, 1 findings present, 2 usage/parse error.\n\"\"\"\nimport\
+  \ argparse, ast, json, os, subprocess, sys\n\nSEV = {\"low\": 1, \"medium\": 2,\
+  \ \"high\": 3}\nSKIP_DIRS = {\".git\", \".venv\", \"venv\", \"env\", \"__pycache__\"\
+  , \"node_modules\", \"build\", \"dist\", \".tox\", \".mypy_cache\"}\n\n\nclass FuncVisitor(ast.NodeVisitor):\n\
+  \    \"\"\"Computes metrics for one function body without descending into nested\
+  \ defs.\"\"\"\n\n    BLOCKS = (ast.If, ast.For, ast.AsyncFor, ast.While, ast.Try,\
+  \ ast.With, ast.AsyncWith)\n\n    def __init__(self):\n        self.cc = 1\n   \
+  \     self.max_depth = 0\n        self.returns = 0\n        self._depth = 0\n\n\
+  \    def generic_visit(self, node):\n        if isinstance(node, (ast.FunctionDef,\
+  \ ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)):\n            return  # nested\
+  \ definitions are measured separately (lambdas count as 0)\n        block = isinstance(node,\
+  \ self.BLOCKS) or type(node).__name__ in (\"TryStar\", \"Match\")\n        if isinstance(node,\
+  \ (ast.If, ast.For, ast.AsyncFor, ast.While, ast.IfExp, ast.Assert)):\n        \
+  \    self.cc += 1\n        elif isinstance(node, ast.ExceptHandler):\n         \
+  \   self.cc += 1\n        elif isinstance(node, ast.BoolOp):\n            self.cc\
+  \ += len(node.values) - 1\n        elif isinstance(node, ast.comprehension):\n \
+  \           self.cc += 1 + len(node.ifs)\n        elif type(node).__name__ == \"\
+  match_case\":\n            self.cc += 1\n        elif isinstance(node, ast.Return):\n\
+  \            self.returns += 1\n        if block:\n            # an elif is an If\
+  \ inside orelse; do not count it as deeper nesting\n            self._depth += 1\n\
+  \            self.max_depth = max(self.max_depth, self._depth)\n        super().generic_visit(node)\n\
+  \        if block:\n            self._depth -= 1\n\n    def visit_If(self, node):\n\
+  \        self.cc += 1\n        self.visit(node.test)\n        self._depth += 1\n\
+  \        self.max_depth = max(self.max_depth, self._depth)\n        for n in node.body:\n\
+  \            self.visit(n)\n        self._depth -= 1\n        orelse = node.orelse\n\
+  \        if len(orelse) == 1 and isinstance(orelse[0], ast.If):\n            self.visit_If(orelse[0])\
+  \  # elif chain: same depth\n        else:\n            self._depth += 1\n     \
+  \       for n in orelse:\n                self.visit(n)\n            self._depth\
+  \ -= 1\n\n\ndef measure_function(node):\n    v = FuncVisitor()\n    for stmt in\
+  \ node.body:\n        v.visit(stmt)\n    args = node.args\n    names = [a.arg for\
+  \ a in getattr(args, \"posonlyargs\", []) + args.args + args.kwonlyargs]\n    if\
+  \ args.vararg: names.append(args.vararg.arg)\n    if args.kwarg: names.append(args.kwarg.arg)\n\
+  \    params = len([n for n in names if n not in (\"self\", \"cls\")])\n    end =\
+  \ getattr(node, \"end_lineno\", node.lineno)\n    return {\"cc\": v.cc, \"depth\"\
+  : v.max_depth, \"lines\": end - node.lineno + 1, \"params\": params, \"returns\"\
+  : v.returns}\n\n\ndef analyze_source(src, filename=\"<string>\"):\n    tree = ast.parse(src,\
+  \ filename=filename)\n    out = []\n\n    def walk(node, prefix):\n        for child\
+  \ in ast.iter_child_nodes(node):\n            if isinstance(child, (ast.FunctionDef,\
+  \ ast.AsyncFunctionDef)):\n                name = prefix + child.name\n        \
+  \        m = measure_function(child)\n                m.update({\"file\": filename,\
+  \ \"function\": name, \"line\": child.lineno})\n                out.append(m)\n\
+  \                walk(child, name + \".\")\n            elif isinstance(child, ast.ClassDef):\n\
+  \                walk(child, prefix + child.name + \".\")\n            else:\n \
+  \               walk(child, prefix)\n\n    walk(tree, \"\")\n    return out\n\n\n\
+  def iter_py_files(paths):\n    for p in paths:\n        if os.path.isfile(p):\n\
+  \            if p.endswith(\".py\"): yield p\n            continue\n        for\
+  \ root, dirs, files in os.walk(p):\n            dirs[:] = sorted(d for d in dirs\
+  \ if d not in SKIP_DIRS)\n            for f in sorted(files):\n                if\
+  \ f.endswith(\".py\"):\n                    yield os.path.join(root, f)\n\n\ndef\
+  \ git_churn(path, days):\n    \"\"\"Commits per file in the last `days` days, keyed\
+  \ by absolute path. Empty dict if not a git repo.\"\"\"\n    base = path if os.path.isdir(path)\
+  \ else os.path.dirname(os.path.abspath(path)) or \".\"\n    try:\n        top =\
+  \ subprocess.run([\"git\", \"-C\", base, \"rev-parse\", \"--show-toplevel\"], capture_output=True,\
+  \ text=True, check=True).stdout.strip()\n        log = subprocess.run([\"git\",\
+  \ \"-C\", top, \"log\", \"--since=%d.days\" % days, \"--name-only\", \"--pretty=format:\"\
+  ],\n                             capture_output=True, text=True, check=True).stdout\n\
+  \    except (OSError, subprocess.CalledProcessError):\n        return {}\n    churn\
+  \ = {}\n    for line in log.splitlines():\n        line = line.strip()\n       \
+  \ if line.endswith(\".py\"):\n            k = os.path.normpath(os.path.join(top,\
+  \ line))\n            churn[k] = churn.get(k, 0) + 1\n    return churn\n\n\ndef\
+  \ findings_for(m, o):\n    f = []\n    if m[\"cc\"] >= o.cc_high: f.append((\"H01\"\
+  , \"high\", \"cyclomatic complexity %d >= %d\" % (m[\"cc\"], o.cc_high)))\n    elif\
+  \ m[\"cc\"] >= o.cc_warn: f.append((\"H02\", \"medium\", \"cyclomatic complexity\
+  \ %d >= %d\" % (m[\"cc\"], o.cc_warn)))\n    if m[\"depth\"] >= o.max_depth: f.append((\"\
+  H03\", \"medium\", \"nesting depth %d >= %d\" % (m[\"depth\"], o.max_depth)))\n\
+  \    if m[\"lines\"] >= o.max_lines: f.append((\"H04\", \"medium\", \"%d lines >=\
+  \ %d\" % (m[\"lines\"], o.max_lines)))\n    if m[\"params\"] >= o.max_params: f.append((\"\
+  H05\", \"low\", \"%d parameters >= %d\" % (m[\"params\"], o.max_params)))\n    if\
+  \ m[\"returns\"] >= o.max_returns: f.append((\"H06\", \"low\", \"%d return statements\
+  \ >= %d\" % (m[\"returns\"], o.max_returns)))\n    if m.get(\"churn\") is not None\
+  \ and m[\"cc\"] >= o.cc_warn and m[\"churn\"] >= o.churn_min:\n        f.append((\"\
+  H07\", \"high\", \"hotspot: complex (cc %d) and changed in %d commits recently\"\
+  \ % (m[\"cc\"], m[\"churn\"])))\n    return f\n\n\ndef run(paths, o):\n    results,\
+  \ errors = [], []\n    churn = {}\n    if o.churn:\n        for p in paths:\n  \
+  \          churn.update(git_churn(p, o.churn))\n    for f in iter_py_files(paths):\n\
+  \        try:\n            with open(f, encoding=\"utf-8\") as fh:\n           \
+  \     ms = analyze_source(fh.read(), f)\n        except (SyntaxError, UnicodeDecodeError)\
+  \ as e:\n            errors.append(\"%s: %s\" % (f, e)); continue\n        for m\
+  \ in ms:\n            if o.churn:\n                m[\"churn\"] = churn.get(os.path.normpath(os.path.abspath(f)),\
+  \ 0)\n            m[\"score\"] = m[\"cc\"] * (1 + m.get(\"churn\", 0))\n       \
+  \     m[\"findings\"] = [dict(code=c, severity=s, message=t) for c, s, t in findings_for(m,\
+  \ o)]\n            results.append(m)\n    results.sort(key=lambda m: (-m[\"score\"\
+  ], -m[\"cc\"], m[\"file\"], m[\"line\"]))\n    return results, errors\n\n\ndef render(results,\
+  \ errors, o):\n    minsev = SEV[o.min_severity]\n    flagged = [m for m in results\
+  \ if any(SEV[x[\"severity\"]] >= minsev for x in m[\"findings\"])]\n    top = flagged[:\
+  \ o.top] if o.top else flagged\n    n = len(results)\n    avg = sum(m[\"cc\"] for\
+  \ m in results) / n if n else 0\n    if o.format == \"json\":\n        return json.dumps({\"\
+  functions\": n, \"average_cc\": round(avg, 2), \"flagged\": len(flagged), \"errors\"\
+  : errors,\n                           \"hotspots\": top}, indent=2)\n    churn_col\
+  \ = o.churn is not None and o.churn > 0\n    if o.format == \"md\":\n        head\
+  \ = \"| Rank | Function | File:line | CC | Depth | Lines | Params |\" + (\" Churn\
+  \ |\" if churn_col else \"\") + \" Findings |\"\n        sep = \"|---|---|---|---|---|---|---|\"\
+  \ + (\"---|\" if churn_col else \"\") + \"---|\"\n        rows = [head, sep]\n \
+  \       for i, m in enumerate(top, 1):\n            fs = \"; \".join(\"%s %s\" %\
+  \ (x[\"code\"], x[\"message\"]) for x in m[\"findings\"])\n            rows.append(\"\
+  | %d | `%s` | %s:%d | %d | %d | %d | %d |%s %s |\" % (i, m[\"function\"], m[\"file\"\
+  ], m[\"line\"], m[\"cc\"], m[\"depth\"], m[\"lines\"], m[\"params\"],\n        \
+  \                (\" %d |\" % m.get(\"churn\", 0)) if churn_col else \"\", fs))\n\
+  \        rows.append(\"\")\n        rows.append(\"%d functions, average CC %.1f,\
+  \ %d flagged at %s+.\" % (n, avg, len(flagged), o.min_severity))\n        return\
+  \ \"\\n\".join(rows)\n    lines = [\"Complexity hotspots: %d functions, average\
+  \ CC %.1f, %d flagged (min severity %s)\" % (n, avg, len(flagged), o.min_severity),\
+  \ \"\"]\n    for i, m in enumerate(top, 1):\n        extra = (\" churn=%d\" % m[\"\
+  churn\"]) if \"churn\" in m else \"\"\n        lines.append(\"%2d. %s  (%s:%d) \
+  \ cc=%d depth=%d lines=%d params=%d returns=%d%s score=%d\" % (\n            i,\
+  \ m[\"function\"], m[\"file\"], m[\"line\"], m[\"cc\"], m[\"depth\"], m[\"lines\"\
+  ], m[\"params\"], m[\"returns\"], extra, m[\"score\"]))\n        for x in m[\"findings\"\
+  ]:\n            lines.append(\"      [%s] %s %s\" % (x[\"severity\"].upper(), x[\"\
+  code\"], x[\"message\"]))\n    if not top: lines.append(\"No functions above the\
+  \ thresholds.\")\n    for e in errors: lines.append(\"PARSE ERROR \" + e)\n    return\
+  \ \"\\n\".join(lines)\n\n\ndef parser():\n    p = argparse.ArgumentParser(description=\"\
+  Find complex, frequently changed Python functions.\")\n    p.add_argument(\"paths\"\
+  , nargs=\"*\")\n    p.add_argument(\"--format\", choices=[\"text\", \"md\", \"json\"\
+  ], default=\"text\")\n    p.add_argument(\"--min-severity\", choices=list(SEV),\
+  \ default=\"low\")\n    p.add_argument(\"--churn\", type=int, metavar=\"DAYS\",\
+  \ help=\"add git churn for the last DAYS days\")\n    p.add_argument(\"--churn-min\"\
+  , type=int, default=5)\n    p.add_argument(\"--top\", type=int, default=0, help=\"\
+  show only the top N flagged functions\")\n    p.add_argument(\"--cc-warn\", type=int,\
+  \ default=10)\n    p.add_argument(\"--cc-high\", type=int, default=15)\n    p.add_argument(\"\
+  --max-depth\", type=int, default=4)\n    p.add_argument(\"--max-lines\", type=int,\
+  \ default=60)\n    p.add_argument(\"--max-params\", type=int, default=6)\n    p.add_argument(\"\
+  --max-returns\", type=int, default=6)\n    p.add_argument(\"--self-test\", action=\"\
+  store_true\")\n    return p\n\n\ndef self_test():\n    o = parser().parse_args([])\n\
+  \    def cc(src):\n        return {m[\"function\"]: m for m in analyze_source(src)}\n\
+  \    checks = []\n    def check(name, cond): checks.append((name, bool(cond)))\n\
+  \    m = cc(\"def f():\\n    return 1\\n\")[\"f\"]\n    check(\"straight-line function\
+  \ has cc 1\", m[\"cc\"] == 1 and m[\"depth\"] == 0)\n    m = cc(\"def f(x):\\n \
+  \   if x:\\n        return 1\\n    return 2\\n\")[\"f\"]\n    check(\"one if gives\
+  \ cc 2\", m[\"cc\"] == 2 and m[\"returns\"] == 2)\n    m = cc(\"def f(x):\\n   \
+  \ if x == 1:\\n        a = 1\\n    elif x == 2:\\n        a = 2\\n    elif x ==\
+  \ 3:\\n        a = 3\\n    else:\\n        a = 0\\n    return a\\n\")[\"f\"]\n \
+  \   check(\"elif chain adds 1 each, depth stays 1\", m[\"cc\"] == 4 and m[\"depth\"\
+  ] == 1)\n    m = cc(\"def f(a, b, c):\\n    return a and b or c\\n\")[\"f\"]\n \
+  \   check(\"boolean operators add per operand\", m[\"cc\"] == 3)\n    m = cc(\"\
+  def f(xs):\\n    return [x for x in xs if x if x > 2]\\n\")[\"f\"]\n    check(\"\
+  comprehension and its ifs count\", m[\"cc\"] == 4)\n    m = cc(\"def f():\\n   \
+  \ try:\\n        g()\\n    except ValueError:\\n        pass\\n    except KeyError:\\\
+  n        pass\\n\")[\"f\"]\n    check(\"each except handler counts\", m[\"cc\"]\
+  \ == 3)\n    m = cc(\"def f(x):\\n    return 1 if x else 2\\n\")[\"f\"]\n    check(\"\
+  ternary counts\", m[\"cc\"] == 2)\n    m = cc(\"def f(x):\\n    while x:\\n    \
+  \    for i in x:\\n            if i:\\n                with open(i) as h:\\n   \
+  \                 pass\\n\")[\"f\"]\n    check(\"nesting depth 4\", m[\"depth\"\
+  ] == 4 and m[\"cc\"] == 4)\n    r = cc(\"def outer():\\n    def inner(x):\\n   \
+  \     if x: return 1\\n    return inner\\n\")\n    check(\"nested function measured\
+  \ separately\", r[\"outer\"][\"cc\"] == 1 and r[\"outer.inner\"][\"cc\"] == 2)\n\
+  \    r = cc(\"class A:\\n    def m(self, a, b):\\n        pass\\n\")\n    check(\"\
+  method name and self excluded from params\", r[\"A.m\"][\"params\"] == 2)\n    r\
+  \ = cc(\"def f(a, b, c, d, e, f, *args, **kw):\\n    pass\\n\")\n    check(\"varargs\
+  \ counted as params\", r[\"f\"][\"params\"] == 8)\n    m = cc(\"def f(x):\\n   \
+  \ assert x\\n    return x\\n\")[\"f\"]\n    check(\"assert counts\", m[\"cc\"] ==\
+  \ 2)\n    if sys.version_info >= (3, 10):\n        m = cc(\"def f(x):\\n    match\
+  \ x:\\n        case 1:\\n            return 1\\n        case _:\\n            return\
+  \ 0\\n\")[\"f\"]\n        check(\"match cases count\", m[\"cc\"] == 3)\n    else:\n\
+  \        check(\"match cases count (skipped < 3.10)\", True)\n    big = \"def big(x):\\\
+  n\" + \"\".join(\"    if x == %d:\\n        return %d\\n\" % (i, i) for i in range(16))\
+  \ + \"    return -1\\n\"\n    m = cc(big)[\"big\"]\n    fs = [c for c, _, _ in findings_for(m,\
+  \ o)]\n    check(\"cc 17 gives H01 and many returns H06\", m[\"cc\"] == 17 and \"\
+  H01\" in fs and \"H06\" in fs and \"H02\" not in fs)\n    m = dict(cc=11, depth=1,\
+  \ lines=10, params=1, returns=1)\n    check(\"cc 11 gives H02 only\", [c for c,\
+  \ _, _ in findings_for(m, o)] == [\"H02\"])\n    m = dict(cc=11, depth=1, lines=10,\
+  \ params=1, returns=1, churn=7)\n    check(\"complex + churn gives H07\", \"H07\"\
+  \ in [c for c, _, _ in findings_for(m, o)])\n    m = dict(cc=3, depth=1, lines=10,\
+  \ params=1, returns=1, churn=40)\n    check(\"simple + churn is not a hotspot\"\
+  , findings_for(m, o) == [])\n    m = dict(cc=2, depth=5, lines=80, params=7, returns=1)\n\
+  \    check(\"depth, length, params flagged\", [c for c, _, _ in findings_for(m,\
+  \ o)] == [\"H03\", \"H04\", \"H05\"])\n    try:\n        analyze_source(\"def broken(:\\\
+  n\")\n        check(\"syntax error raised\", False)\n    except SyntaxError:\n \
+  \       check(\"syntax error raised\", True)\n    ok = all(c for _, c in checks)\n\
+  \    for n, c in checks:\n        print((\"PASS  \" if c else \"FAIL  \") + n)\n\
+  \    print(\"%d/%d checks passed\" % (sum(c for _, c in checks), len(checks)))\n\
+  \    return 0 if ok else 1\n\n\ndef main(argv=None):\n    o = parser().parse_args(argv)\n\
+  \    if o.self_test:\n        return self_test()\n    if not o.paths:\n        parser().print_usage(sys.stderr);\
+  \ return 2\n    for p in o.paths:\n        if not os.path.exists(p):\n         \
+  \   print(\"no such path: \" + p, file=sys.stderr); return 2\n    results, errors\
+  \ = run(o.paths, o)\n    print(render(results, errors, o))\n    if errors and not\
+  \ results:\n        return 2\n    minsev = SEV[o.min_severity]\n    return 1 if\
+  \ any(SEV[x[\"severity\"]] >= minsev for m in results for x in m[\"findings\"])\
+  \ else 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

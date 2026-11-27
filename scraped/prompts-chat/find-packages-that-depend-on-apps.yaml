@@ -1,0 +1,21 @@
+slug: find-packages-that-depend-on-apps
+title: Find packages that depend on apps
+description: Imported from Prompts Chat
+prompt: "Audit the monorepo for shared packages (under packages/) that depend on an\
+  \ app or service, either directly or transitively.\n\n1. For every package.json\
+  \ under packages/, list the workspace dependencies that point to apps/*, services,\
+  \ or other non-package workspaces.\n2. Search source for imports of app modules.\
+  \ Use `git grep` with a pathspec rather than recursive grep. Search for both package-name\
+  \ imports and relative paths that escape the package.\n3. For each hit, record the\
+  \ importing file, the imported symbol, and whether it is used as a type or at runtime.\n\
+  4. Group the hits by root cause:\n    - a schema or generated types\n    - test\
+  \ support\n    - constants or headers\n    - real logic\n5. Rank the groups by how\
+  \ many consumers they unblock and how much build-graph weight they remove.\n\nMeasure\
+  \ the improvement by comparing `turbo run build --dry=json --filter=<pkg>` before\
+  \ and after. Count tasks and dependency edges. Report numbers, not estimates. Do\
+  \ not change any code."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

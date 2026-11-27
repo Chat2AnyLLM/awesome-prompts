@@ -1,0 +1,1240 @@
+slug: monorepo-doctor
+title: Monorepo Doctor
+description: Imported from Prompts Chat
+prompt: "---\nname: monorepo-doctor\ndescription: Use when a user asks for a JS/TS\
+  \ monorepo audit, or Bazel target visibility or testonly issues in a JS or Java\
+  \ workspace. Also covers Nx/Turborepo caching, affected tests, cycles and production\
+  \ test leakage. Read-only; writes Markdown and JSON reports.\n---\n\n# Monorepo\
+  \ Doctor\n\nAudit a JS/TS monorepo for five classes of problems that teams routinely\
+  \ miss,\nor run the limited Bazel target checks in a standalone Bazel workspace,\
+  \ and\nproduce an evidence-backed report. Bazel-only support does not analyze Java\n\
+  source, cycles, caching, or CI test coverage.\n\nPrerequisites: Node ≥ 22.5. The\
+  \ work dir is `$W` = `$(node -p 'require(\"os\").tmpdir()')/monorepo-doctor` (see\
+  \ detection.md).\n\n## Rules\n\n- **Read-only.** Never install dependencies, build,\
+  \ run tests, or edit project files. Allowed writes: `monorepo-doctor-report.md`,\
+  \ `monorepo-doctor-report.json` (default `${tmpdir}/monorepo-doctor-reports`, or\
+  \ a user-given dir) and `$W`.\n- Allowed commands: the snippets in the reference\
+  \ files, `npm pack --dry-run --json --ignore-scripts`, read-only `git log`, and\
+  \ the repo's own `./node_modules/.bin/{knip,publint,nx,turbo}` **only if** detection\
+  \ reports them installed (nx/turbo: graph / `--dry=json` / `boundaries` only — never\
+  \ real task runs, with read-only env vars from the references).\n- **No runtime\
+  \ downloads by default.** Don't fetch packages (`npx`, `npm exec`, `pnpm dlx`, `yarn\
+  \ dlx`, `bunx`). If a tool isn't installed, skip that sub-step and mark the check\
+  \ `partial`. Only if the user explicitly allows downloads in this request may you\
+  \ run the pinned `knip@6.41.0` / `publint@0.3.25` shown in the references — never\
+  \ other versions, other packages, or nx/turbo.\n- **Never abort a check.** If a\
+  \ tool fails, mark the check `partial` or `skipped` with a reason and continue.\n\
+  - **Every finding needs evidence** (config snippet, file:line, or command output).\
+  \ No evidence → no finding.\n- **Actionable only.** Do not emit a finding when the\
+  \ honest fix is \"keep it as-is\" — a deliberate, idiomatic or correct pattern (e.g.\
+  \ `cache: false` on a migration task, lazy ORM references). Mention it in the check's\
+  \ `reason` instead.\n- **One root cause, one finding.** If two findings share the\
+  \ same fix, merge them.\n- Use only the finding ids defined in the reference files.\n\
+  \n## Workflow\n\n1. **Detect** — follow [references/detection.md](references/detection.md).\
+  \ Stop if `NO_WORKSPACE`.\n2. **Scan** — follow [references/scan.md](references/scan.md).\
+  \ If Bazel is detected, also run the static inspection in [references/bazel.md](references/bazel.md)\
+  \ before the checks.\n3. **Check** — run all five unless the user asked for a subset\
+  \ (write `{\"status\":\"not-run\",\"reason\":\"not requested\",\"findings\":[]}`\
+  \ to `$W/findings/${check}.json` for the others):\n   - [references/boundaries.md](references/boundaries.md)\
+  \ — package split & public API, including Bazel visibility\n   - [references/circular-deps.md](references/circular-deps.md)\
+  \ — package and file cycles\n   - [references/caching.md](references/caching.md)\
+  \ — Nx / Turborepo cache correctness\n   - [references/ci-coverage.md](references/ci-coverage.md)\
+  \ — tests that silently don't run in CI\n   - [references/prod-leakage.md](references/prod-leakage.md)\
+  \ — test code shipped to production\n   The checks are independent; if you can run\
+  \ sub-agents, run them in parallel.\n4. **Report** — follow [references/report-format.md](references/report-format.md):\
+  \ validate each `findings/${check}.json`, render, then show the user where the reports\
+  \ were written, the summary line and the top 5 findings.\n5. **CI mode** (only if\
+  \ asked, or when invoked non-interactively with a threshold) — run the exit-code\
+  \ snippet from report-format.md.\n\n## Tracking\n\nCreate a todo per phase/check\
+  \ and mark each done as its findings file is written.\n\n\x1FFILE:references/bazel.md\x1E\
+  \n# Bazel static target inspection\n\nThis supplementary scan works for Bazel-backed\
+  \ JS workspaces and standalone\nBazel workspaces, including Java. It reads the BUILD\
+  \ files inventoried by\n[detection.md](detection.md) without invoking Bazel, loading\
+  \ `.bzl` files, or\ndownloading anything. It writes `$W/bazel.json` for the boundary\
+  \ and\nproduction-leakage checks.\n\nThe scan deliberately recognizes only literal\
+  \ attributes on `filegroup`,\n`java_library`, `java_binary`, `java_test` loaded\
+  \ from\n`@rules_java//java:defs.bzl`, and `js_library` loaded from\n`@aspect_rules_js//js:defs.bzl`\
+  \ or `@rules_js//js:defs.bzl`. It follows\nliteral local labels in `srcs`, `deps`,\
+  \ `data`, `resources`, `runtime_deps`,\nand `exports`. It does not evaluate macros,\
+  \ `select()`, `glob()`, package\ngroups, external repositories, implicit dependencies,\
+  \ or nonliteral\nattributes; its results are always `partial`. It is not a general\
+  \ Starlark\ninterpreter. `REPO.bazel` `ignore_directories` patterns are not evaluated:\
+  \ if\nthat name occurs in the file or exclusions cannot be read, target findings\
+  \ are\nsuppressed and the reason is reported. Conditional call expressions and\n\
+  rule names referenced as values or reassigned are not interpreted.\n\n- Visibility\
+  \ finding: an exact `internal` tag and an explicit, literal public\n  visibility\
+  \ on the target. For a native `filegroup` only, an explicit\n  `package(default_visibility\
+  \ = ...)` also counts; macro-created targets do\n  not necessarily inherit that\
+  \ default.\n  The tag is a project convention, **not** Bazel's own visibility policy.\n\
+  \  Public untagged targets are valid. Review the intended consumers before\n  restricting\
+  \ visibility.\n- Test-only finding: a target explicitly tagged `production` and\
+  \ explicitly\n  marked `testonly = False` has a literal local dependency path to\
+  \ a target\n  explicitly marked `testonly = True`. Bazel normally rejects such a\
+  \ path at\n  analysis time; the finding is a broken production build, not proof\
+  \ that test\n  code actually shipped. A test target using test-only fixtures is\
+  \ valid.\n\nRun after detection and the JS scan, from the audited workspace root:\n\
+  \n```bash\nW=\"$(node -p 'require(\"os\").tmpdir()')/monorepo-doctor\"\ncat > \"\
+  $W/bazel-audit.mjs\" <<'EOF'\nimport fs from 'node:fs';\nimport os from 'node:os';\n\
+  import path from 'node:path';\n\nconst work = path.join(os.tmpdir(), 'monorepo-doctor');\n\
+  const ws = JSON.parse(fs.readFileSync(path.join(work, 'workspace.json'), 'utf8'));\n\
+  const root = ws.root;\nconst findings = { boundaries: [], 'prod-leakage': [] };\n\
+  const problems = [];\nconst targets = new Map(), duplicates = new Set();\nconst\
+  \ closing = { '(': ')', '[': ']', '{': '}' };\n\nfunction lex(text) {\n  const out\
+  \ = [];\n  let i = 0, line = 1, logicalLine = 1, depth = 0;\n  while (i < text.length)\
+  \ {\n    const ch = text[i];\n    if (ch === '\\\\' && (text[i + 1] === '\\n' ||\
+  \ (text[i + 1] === '\\r' && text[i + 2] === '\\n'))) {\n      i += text[i + 1] ===\
+  \ '\\r' ? 3 : 2;\n      line++;\n      continue;\n    }\n    if (/\\s/.test(ch))\
+  \ {\n      if (ch === '\\n') { line++; if (!depth) logicalLine++; }\n      i++;\n\
+  \      continue;\n    }\n    if (ch === '#') { while (i < text.length && text[i]\
+  \ !== '\\n') i++; continue; }\n    const start = i, startLine = line;\n    if (ch\
+  \ === '\"' || ch === \"'\") {\n      const triple = text.slice(i, i + 3) === ch.repeat(3);\n\
+  \      i += triple ? 3 : 1;\n      let value = '', valid = !triple, closed = false;\n\
+  \      while (i < text.length) {\n        if (triple && text.slice(i, i + 3) ===\
+  \ ch.repeat(3)) { i += 3; closed = true; break; }\n        if (!triple && text[i]\
+  \ === ch) { i++; closed = true; break; }\n        if (text[i] === '\\\\') {\n  \
+  \        i++;\n          if (i >= text.length) break;\n          const escapes =\
+  \ { '\\\\': '\\\\', '\"': '\"', \"'\": \"'\", n: '\\n', r: '\\r', t: '\\t' };\n\
+  \          if (!Object.hasOwn(escapes, text[i])) valid = false;\n          else\
+  \ value += escapes[text[i]];\n          if (text[i] === '\\n') line++;\n       \
+  \   i++;\n        } else {\n          if (text[i] === '\\n') {\n            line++;\n\
+  \            if (!triple) throw new Error(`unterminated string at line ${startLine}`);\n\
+  \          }\n          value += text[i++];\n        }\n      }\n      if (!closed)\
+  \ throw new Error(`unterminated string at line ${startLine}`);\n      out.push({\
+  \ type: valid ? 'string' : 'unknown', value, start, end: i, line: startLine, logicalLine\
+  \ });\n    } else if (/[A-Za-z_]/.test(ch)) {\n      i++;\n      while (i < text.length\
+  \ && /[A-Za-z0-9_]/.test(text[i])) i++;\n      out.push({ type: 'id', value: text.slice(start,\
+  \ i), start, end: i, line: startLine, logicalLine });\n    } else {\n      i++;\n\
+  \      out.push({ type: 'punct', value: ch, start, end: i, line: startLine, logicalLine\
+  \ });\n      if (closing[ch]) depth++;\n      else if ([')', ']', '}'].includes(ch))\
+  \ depth--;\n    }\n  }\n  return out;\n}\n\nfunction groupEnd(tokens, start) {\n\
+  \  const stack = [closing[tokens[start].value]];\n  for (let i = start + 1; i <\
+  \ tokens.length; i++) {\n    const value = tokens[i].value;\n    if (tokens[i].type\
+  \ === 'punct' && closing[value]) stack.push(closing[value]);\n    else if (tokens[i].type\
+  \ === 'punct' && [')', ']', '}'].includes(value)) {\n      if (stack.pop() !== value)\
+  \ throw new Error(`unbalanced delimiter at line ${tokens[i].line}`);\n      if (!stack.length)\
+  \ return i;\n    }\n  }\n  throw new Error(`unclosed delimiter at line ${tokens[start].line}`);\n\
+  }\n\nfunction splitArgs(tokens) {\n  const parts = [];\n  let start = 0;\n  for\
+  \ (let i = 0; i < tokens.length; i++) {\n    if (tokens[i].type === 'punct' && closing[tokens[i].value])\
+  \ i = groupEnd(tokens, i);\n    else if (tokens[i].type === 'punct' && tokens[i].value\
+  \ === ',') { if (i > start) parts.push(tokens.slice(start, i)); start = i + 1; }\n\
+  \  }\n  if (start < tokens.length) parts.push(tokens.slice(start));\n  return parts;\n\
+  }\n\nfunction literal(tokens) {\n  if (tokens.length === 1 && tokens[0].type ===\
+  \ 'string') return tokens[0].value;\n  if (tokens.length === 1 && tokens[0].type\
+  \ === 'id' && ['True', 'False'].includes(tokens[0].value)) return tokens[0].value\
+  \ === 'True';\n  if (tokens[0]?.type === 'punct' && tokens[0].value === '[' && groupEnd(tokens,\
+  \ 0) === tokens.length - 1) {\n    const parts = splitArgs(tokens.slice(1, -1));\n\
+  \    if (parts.every((p) => p.length === 1 && p[0].type === 'string')) return parts.map((p)\
+  \ => p[0].value);\n  }\n  return undefined;\n}\n\nfunction calls(text) {\n  const\
+  \ tokens = lex(text), result = [], loadTokens = new Set();\n  for (let i = 0; i\
+  \ < tokens.length; i++) {\n    const t = tokens[i];\n    const isSemicolon = (tok)\
+  \ => tok?.type === 'punct' && tok.value === ';';\n    const statementStart = i ===\
+  \ 0 || tokens[i - 1].logicalLine !== t.logicalLine || isSemicolon(tokens[i - 1]);\n\
+  \    if (t.type === 'id' && tokens[i + 1]?.type === 'punct' && tokens[i + 1].value\
+  \ === '('\n        && tokens[i + 1].logicalLine === t.logicalLine && statementStart)\
+  \ {\n      const end = groupEnd(tokens, i + 1);\n      if (tokens[end + 1]?.logicalLine\
+  \ !== tokens[end].logicalLine || isSemicolon(tokens[end + 1])) {\n        result.push({\
+  \ name: t.value, line: t.line, parts: splitArgs(tokens.slice(i + 2, end)) });\n\
+  \        if (t.value === 'load') for (let j = i + 1; j < end; j++) loadTokens.add(j);\n\
+  \      }\n      i = end;\n    } else if (t.type === 'punct' && closing[t.value])\
+  \ {\n      i = groupEnd(tokens, i);\n    }\n  }\n  const referenced = new Set(tokens.flatMap((t,\
+  \ i) =>\n    t.type === 'id' && tokens[i + 1]?.value !== '(' && !loadTokens.has(i)\
+  \ ? [t.value] : []));\n  return { calls: result, referenced };\n}\n\nfunction attributes(parts,\
+  \ text) {\n  const attrs = {};\n  for (const p of parts) {\n    if (p[0]?.type !==\
+  \ 'id' || p[1]?.value !== '=' || p.length < 3) continue;\n    if (Object.hasOwn(attrs,\
+  \ p[0].value)) throw new Error(`duplicate ${p[0].value} attribute at line ${p[0].line}`);\n\
+  \    const expr = p.slice(2);\n    attrs[p[0].value] = {\n      value: literal(expr),\n\
+  \      text: text.slice(expr[0].start, expr[expr.length - 1].end),\n      line:\
+  \ p[0].line,\n    };\n  }\n  return attrs;\n}\n\nfunction loadBindings(parsed) {\n\
+  \  const bindings = new Map();\n  for (const call of parsed.filter((c) => c.name\
+  \ === 'load')) {\n    const source = literal(call.parts[0] ?? []);\n    if (typeof\
+  \ source !== 'string') continue;\n    for (const part of call.parts.slice(1)) {\n\
+  \      const local = part.length === 1 && part[0].type === 'string' ? part[0].value\n\
+  \        : part[0]?.type === 'id' && part[1]?.value === '=' ? part[0].value : null;\n\
+  \      const symbol = part.length === 1 ? literal(part) : literal(part.slice(2));\n\
+  \      if (local && typeof symbol === 'string') bindings.set(local, { source, symbol\
+  \ });\n    }\n  }\n  return bindings;\n}\n\nfunction ruleKind(name, bindings) {\n\
+  \  const binding = bindings.get(name);\n  if (name === 'filegroup' && !binding)\
+  \ return name;\n  if (binding?.source === '@rules_java//java:defs.bzl'\n      &&\
+  \ ['java_library', 'java_binary', 'java_test'].includes(binding.symbol)) return\
+  \ binding.symbol;\n  if (['@aspect_rules_js//js:defs.bzl', '@rules_js//js:defs.bzl'].includes(binding?.source)\n\
+  \      && binding.symbol === 'js_library') return binding.symbol;\n  return null;\n\
+  }\n\nfunction label(value, pkg) {\n  if (typeof value !== 'string') return null;\n\
+  \  if (value.startsWith('@@//')) value = value.slice(2);\n  else if (value.startsWith('@'))\
+  \ return null;\n  let dir = pkg, name = value;\n  if (value.startsWith('//')) {\n\
+  \    const body = value.slice(2), colon = body.indexOf(':');\n    dir = colon <\
+  \ 0 ? body : body.slice(0, colon);\n    name = colon < 0 ? path.posix.basename(dir)\
+  \ : body.slice(colon + 1);\n  } else if (value.startsWith(':')) name = value.slice(1);\n\
+  \  if (!name || name.includes(':') || dir.split('/').includes('..') || name.split('/').includes('..')\n\
+  \      || !/^[A-Za-z0-9_./+~=-]*$/.test(dir) || !/^[A-Za-z0-9_./+~=-]+$/.test(name))\
+  \ return null;\n  return `//${dir}:${name}`;\n}\n\nfunction owner(dir) {\n  return\
+  \ [...ws.packages]\n    .filter((p) => p.dir === '.' || dir === p.dir || dir.startsWith(`${p.dir}/`))\n\
+  \    .sort((a, b) => b.dir.length - a.dir.length)[0]?.name;\n}\n\nfor (const file\
+  \ of ws.bazel?.unresolvedExclusions ? [] : ws.bazel?.buildFiles ?? []) {\n  try\
+  \ {\n    const text = fs.readFileSync(path.join(root, file), 'utf8');\n    const\
+  \ { calls: parsed, referenced } = calls(text);\n    const bindings = loadBindings(parsed);\n\
+  \    const packageCall = !referenced.has('package') && !bindings.has('package')\n\
+  \      ? parsed.find((c) => c.name === 'package') : undefined;\n    const defaults\
+  \ = packageCall ? attributes(packageCall.parts, text) : {};\n    const pkg = path.posix.dirname(file)\
+  \ === '.' ? '' : path.posix.dirname(file);\n    for (const call of parsed) {\n \
+  \     const kind = referenced.has(call.name) ? null : ruleKind(call.name, bindings);\n\
+  \      if (!kind) continue;\n      const attrs = attributes(call.parts, text);\n\
+  \      const name = attrs.name?.value;\n      const targetLabel = label(typeof name\
+  \ === 'string' ? `:${name}` : null, pkg);\n      if (!targetLabel) continue;\n \
+  \     const visibility = Object.hasOwn(attrs, 'visibility') ? attrs.visibility\n\
+  \        : kind === 'filegroup' ? defaults.default_visibility : undefined;\n   \
+  \   const edges = [];\n      for (const key of ['srcs', 'deps', 'data', 'resources',\
+  \ 'runtime_deps', 'exports']) {\n        if (!Array.isArray(attrs[key]?.value))\
+  \ continue;\n        for (const value of attrs[key].value) {\n          const dest\
+  \ = label(value, pkg);\n          if (dest) edges.push({ label: dest, attribute:\
+  \ key, line: attrs[key].line });\n        }\n      }\n      const target = { label:\
+  \ targetLabel, file, line: call.line, pkg: owner(pkg), attrs, visibility, edges\
+  \ };\n      if (targets.has(targetLabel)) duplicates.add(targetLabel);\n      else\
+  \ targets.set(targetLabel, target);\n    }\n  } catch (error) {\n    problems.push(`${file}:\
+  \ ${error.message}`);\n  }\n}\nfor (const duplicate of duplicates) {\n  targets.delete(duplicate);\n\
+  \  problems.push(`duplicate target ${duplicate}`);\n}\n\nfor (const target of targets.values())\
+  \ {\n  if (Array.isArray(target.attrs.tags?.value)\n      && target.attrs.tags.value.includes('internal')\n\
+  \      && Array.isArray(target.visibility?.value)\n      && target.visibility.value.length\
+  \ === 1\n      && target.visibility.value[0] === '//visibility:public') {\n    findings.boundaries.push({\n\
+  \      id: 'boundaries/bazel-public-internal-target', severity: 'medium',\n    \
+  \  title: `Internal-tagged target ${target.label} is publicly visible`,\n      location:\
+  \ { file: target.file, line: target.line, ...(target.pkg ? { package: target.pkg\
+  \ } : {}) },\n      evidence: `${target.label} (${target.file}:${target.line}):\
+  \ tags = ${target.attrs.tags.text}; ${Object.hasOwn(target.attrs, 'visibility')\
+  \ ? 'visibility' : 'package default_visibility'} = ${target.visibility.text}`,\n\
+  \      fix: 'Confirm the intended consumers and restrict visibility if the target\
+  \ is meant to be internal; retain any required access.',\n    });\n  }\n\n  if (!Array.isArray(target.attrs.tags?.value)\
+  \ || !target.attrs.tags.value.includes('production')\n      || target.attrs.testonly?.value\
+  \ !== false) continue;\n  const seen = new Set([target.label]);\n  const queue =\
+  \ [{ target, edges: [] }];\n  for (let i = 0; i < queue.length; i++) {\n    const\
+  \ current = queue[i];\n    for (const edge of current.target.edges) {\n      if\
+  \ (seen.has(edge.label) || !targets.has(edge.label)) continue;\n      seen.add(edge.label);\n\
+  \      const next = targets.get(edge.label);\n      const chain = [...current.edges,\
+  \ { from: current.target, edge }];\n      if (next.attrs.testonly?.value === true)\
+  \ {\n        findings['prod-leakage'].push({\n          id: 'prod-leakage/bazel-testonly-dependency',\
+  \ severity: 'high',\n          title: `Production target ${target.label} depends\
+  \ on test-only target ${next.label}`,\n          location: { file: target.file,\
+  \ line: target.line, ...(target.pkg ? { package: target.pkg } : {}) },\n       \
+  \   evidence: `${target.label}: tags = ${target.attrs.tags.text}; testonly = ${target.attrs.testonly.text}\\\
+  n${chain.map(({ from, edge: e }) => `${from.label} (${from.file}:${e.line}) ${e.attribute}\
+  \ -> ${e.label}`).join('\\n')}\\n${next.label} (${next.file}:${next.attrs.testonly.line}):\
+  \ testonly = ${next.attrs.testonly.text}`,\n          fix: 'Remove the test-only\
+  \ dependency from the production target or replace it with a production-safe input;\
+  \ keep test fixtures test-only.',\n        });\n      }\n      queue.push({ target:\
+  \ next, edges: chain });\n    }\n  }\n}\n\nconst reason = [\n  'Bazel static inspection\
+  \ covers only literal local targets; macros, selects, package groups and external\
+  \ dependencies are not resolved',\n  ...(!ws.bazel?.buildFiles.length ? ['no Bazel\
+  \ BUILD files found'] : []),\n  ...(ws.bazel?.errors ?? []),\n  ...problems,\n].join(';\
+  \ ');\nconst result = Object.fromEntries(Object.entries(findings).map(([check, entries])\
+  \ => [check, {\n  status: 'partial', reason, findings: entries,\n}]));\nfs.writeFileSync(path.join(work,\
+  \ 'bazel.json'), JSON.stringify(result, null, 2));\nconsole.log(JSON.stringify({\
+  \ boundaries: findings.boundaries.length, testonly: findings['prod-leakage'].length,\
+  \ status: 'partial' }));\nEOF\nnode \"$W/bazel-audit.mjs\"\n```\n\nEach check merges\
+  \ its own findings from this file and keeps the scan's partial\nreason alongside\
+  \ any other incomplete subchecks. If this scan fails or\n`bazel.json` is missing\
+  \ or invalid, mark both Bazel-aware checks `partial` with\nthe failure reason; do\
+  \ not treat the absence of results as a clean audit.\n\x1FFILE:references/boundaries.md\x1E\
+  \n# Check 1 — Package boundaries\n\nQuestion: are packages split along real seams,\
+  \ and is each package's public API respected?\nInputs: `workspace.json`, `scan.json`.\
+  \ Output: `findings/boundaries.json`.\n\n## Rules\n\n| id | severity | detect |\
+  \ evidence |\n|---|---|---|---|\n| `boundaries/oversized-package` | low | `scan.packages[p].sourceFiles\
+  \ > 500` or `loc > 50000` (generated files are already excluded by scan) **and**\
+  \ at least 2 other workspace packages import it (`scan.imports` with `target ===\
+  \ p`). Apps and leaf packages with no workspace consumers are never flagged: splitting\
+  \ them adds export maps and tags with no consumer that benefits. | counts + the\
+  \ consumers and which subpaths/symbols each uses |\n| `boundaries/deep-import` |\
+  \ medium | each `scan.imports` entry with `deep && (declared \\|\\| fromSource ===\
+  \ \"project.json\")` (undeclared package.json importers are reported by ci-coverage\
+  \ instead) | file:line + import specifier + target's `exports` keys |\n| `boundaries/unlisted-dependency`\
+  \ | medium | knip `unlisted` entries | knip output line |\n| `boundaries/unused-dependency`\
+  \ | low | knip `dependencies` / `devDependencies` entries | knip output line |\n\
+  | `boundaries/nx-missing-module-boundaries-rule` | medium | Nx detected and no ESLint\
+  \ config in the root mentions `@nx/enforce-module-boundaries` | list of ESLint config\
+  \ files checked |\n| `boundaries/nx-permissive-module-boundaries` | low | the rule\
+  \ exists but `depConstraints` contains `{ sourceTag: '*', onlyDependOnLibsWithTags:\
+  \ ['*'] }` | the config snippet |\n| `boundaries/nx-untagged-project` | low | Nx\
+  \ detected, rule absent or permissive, and a project has empty `tags` | project.json\
+  \ path |\n| `boundaries/turbo-package-boundaries-tags` | medium | verified Turbo\
+  \ 2.5+ (2.x) and a package-level Turbo config defines `boundaries.tags`, which is\
+  \ root-only | package config path + `boundaries.tags` snippet |\n| `boundaries/turbo-tag-package-name-collision`\
+  \ | medium | verified Turbo 2.5+ (2.x) and a root `boundaries.tags` rule key exactly\
+  \ equals a workspace package name | root rule snippet + package.json name and path\
+  \ |\n| `boundaries/turbo-boundaries-violation` | medium | each violation printed\
+  \ by `turbo boundaries` | output line |\n| `boundaries/bazel-public-internal-target`\
+  \ | medium | an explicitly internal Bazel target (`tags` contains `internal`) has\
+  \ effective `//visibility:public` | target label + `tags` and effective visibility\
+  \ declarations |\n\nGroup `deep-import` findings: one finding per (from, target)\
+  \ pair, listing up to 5 locations in `evidence`; `location` is the first occurrence.\n\
+  For a Bazel-only workspace, skip the JS, knip, Nx and Turbo subchecks and keep\n\
+  this check `partial`; do not present its Bazel-only result as a full package\nboundary\
+  \ audit.\n\n## Steps\n\n1. Load `workspace.json` and `scan.json`. Apply the size\
+  \ and deep-import rules directly.\n2. **knip** — only if `hasNodeModules` and `tools.knip`:\n\
+  \   ```bash\n   W=\"$(node -p 'require(\"os\").tmpdir()')/monorepo-doctor\"\n  \
+  \ ./node_modules/.bin/knip --reporter json --include dependencies,devDependencies,unlisted\
+  \ --no-progress --no-exit-code\n   ```\n   If `tools.knip` is false, skip and mark\
+  \ `partial` with reason `knip not installed locally`. Only if the user explicitly\
+  \ allowed downloads, run `npm_config_ignore_scripts=true npx --yes knip@6.41.0`\
+  \ with the same flags instead (exact version, never `@latest`).\n   Parse stdout\
+  \ as JSON. Its shape varies by version; look for per-file `dependencies`, `devDependencies`\
+  \ and `unlisted` arrays of `{ name }`. Map the file to its package via `workspace.json`.\
+  \ If knip fails or the output can't be parsed, mark the check `partial` with reason\
+  \ `knip unavailable: ${first_line_of_error}`. Do **not** report `unused-dependency`\
+  \ for `@types/*` packages or for tools only referenced in scripts.\n3. **Nx** —\
+  \ only if Nx is an orchestrator: read ESLint configs in the root (`eslint.config.{js,mjs,cjs,ts}`,\
+  \ `.eslintrc{,.json,.js,.cjs}`) and every package dir. Apply the three `nx-*` rules.\
+  \ A config that contains `@nx/enforce-module-boundaries` or legacy `@nrwl/nx/enforce-module-boundaries`\
+  \ anywhere counts as present. Group `nx-untagged-project` consistently as one finding\
+  \ per untagged project found from the root and package-dir project configs.\n4.\
+  \ **Turborepo static configuration** — if turbo is an orchestrator, even when not\
+  \ installed, follow the static checks below.\n5. **Turborepo command** — only if\
+  \ turbo is an orchestrator **and installed**:\n   ```bash\n   W=\"$(node -p 'require(\"\
+  os\").tmpdir()')/monorepo-doctor\"\n   TURBO_TELEMETRY_DISABLED=1 ./node_modules/.bin/turbo\
+  \ boundaries\n   ```\n   One finding per reported violation, except configuration\
+  \ errors already emitted by the static checks: retain the specific static finding\
+  \ and append command evidence instead of duplicating it as `turbo-boundaries-violation`.\
+  \ A nonzero exit caused only by reported violations is a completed inspection. If\
+  \ the command errors with an unknown-command message (turbo < 2.4), skip this sub-step\
+  \ and note it in `reason`. Unexpected execution/config-loading failures are `partial`\
+  \ with the first error line, not a clean result. If not installed, mark this sub-step\
+  \ `partial` with reason `turbo not installed locally`; retain static findings.\n\
+  6. **Bazel visibility** — only if Bazel is an orchestrator. Merge `boundaries.findings`\
+  \ from `$W/bazel.json`, generated by [bazel.md](bazel.md), and retain its partial\
+  \ reason alongside other skipped subchecks. The `internal` tag is a project convention,\
+  \ not a Bazel policy; do not flag untagged public targets. Do not infer visibility\
+  \ from macros, package groups or conditional expressions. If the file is missing\
+  \ or invalid, mark this check `partial` with the failure reason.\n7. Write `findings/boundaries.json`.\n\
+  \n## Turborepo static configuration\n\nThese are configuration errors, not a requirement\
+  \ to adopt tags. [Turbo's boundaries documentation](https://turborepo.com/docs/reference/boundaries)\
+  \ describes optional package `tags` and root `boundaries.tags` rules. The [v2.5.0\
+  \ schema types](https://github.com/vercel/turborepo/blob/v2.5.0/packages/turbo-types/src/types/config-v2.ts)\
+  \ and [boundary implementation](https://github.com/vercel/turborepo/blob/v2.5.0/crates/turborepo-lib/src/boundaries/tags.rs)\
+  \ establish the two diagnostics (`PackageBoundariesHasTags`, `TagSharesPackageName`),\
+  \ which also exist in the [current implementation](https://github.com/vercel/turborepo/blob/main/crates/turborepo-boundaries/src/tags.rs).\n\
+  \n1. Establish the Turbo version from installed `node_modules/turbo/package.json`,\
+  \ otherwise a resolved lockfile version. Without either, an exact stable `2.x.y`\
+  \ dependency or a simple `^2.x.y` / `~2.x.y` declaration with minor >= 5 proves\
+  \ support: pass its lower bound to the helper. Do not treat arbitrary ranges, aliases,\
+  \ prereleases, or another major as verified. This conservative gate is verified\
+  \ for stable 2.x >= 2.5.0; it does not claim tags first appeared in 2.5. For older/unknown/unverified\
+  \ versions, skip these two checks with a `partial` reason, not a finding, and still\
+  \ run the command if installed.\n2. Read root `turbo.json` and each discovered workspace\
+  \ package's own `turbo.json` (or `turbo.jsonc` where supported by that version).\
+  \ Parse using the format's actual semantics, not regex matching or naive comment\
+  \ stripping. Respect file precedence for the installed version; unresolved config\
+  \ selection, invalid config, or unsupported inheritance makes that portion `partial`\
+  \ with the file and error. Do not silently substitute `{}` for unreadable files.\
+  \ Missing package configs are normal. Use only a package's own `boundaries.tags`\
+  \ for the package-level check, never root rules inherited via `extends: [\"//\"\
+  ]`. Top-level package `tags` are valid.\n3. Before calling the helper, exclude `workspace.json`\
+  \ package entries with `source === \"project.json\"`: these are Nx-only projects,\
+  \ not Turbo workspace packages. Use the helper below with parsed root config and\
+  \ the remaining Turbo workspace packages shaped as `{ name, dir, turboConfig?, turboFile?\
+  \ }`. `dir` comes from `workspace.json`; read `name` from that directory's `package.json`\
+  \ manifest, not an Nx project name or directory fallback. An unreadable manifest\
+  \ or missing manifest name makes that package's checks `partial` with the file and\
+  \ reason. `turboConfig` is the package's own parsed config, and `turboFile` is its\
+  \ workspace-relative path (defaults to `${dir}/turbo.json`). Do not use `workspace.json`'s\
+  \ `tags`: those are Nx tags, not Turbo tags. Locate each emitted config key in the\
+  \ original file and add `location.line` when available.\n\n```js\nfunction turboBoundaryConfigFindings({\
+  \ version, config, packages, rootFile = 'turbo.json' }) {\n  const findings = [];\n\
+  \  const stable = /^2\\.(\\d+)\\.\\d+$/.exec(version ?? '');\n  if (!stable || Number(stable[1])\
+  \ < 5) {\n    return { findings, reason: `Turbo static boundary configuration checks\
+  \ require verified stable 2.x >= 2.5.0; got ${version ?? 'unknown'}` };\n  }\n \
+  \ for (const pkg of packages) {\n    if (pkg.turboConfig?.boundaries && Object.hasOwn(pkg.turboConfig.boundaries,\
+  \ 'tags')) {\n      const file = pkg.turboFile ?? `${pkg.dir}/turbo.json`;\n   \
+  \   findings.push({\n        id: 'boundaries/turbo-package-boundaries-tags',\n \
+  \       severity: 'medium',\n        title: `${pkg.name} defines root-only boundaries.tags\
+  \ in a package config`,\n        location: { file, package: pkg.name },\n      \
+  \  evidence: `${file}: boundaries.tags = ${JSON.stringify(pkg.turboConfig.boundaries.tags)}`,\n\
+  \        fix: 'Move tag rules to the root boundaries.tags map, preserving existing\
+  \ rules; keep package labels in top-level tags.',\n      });\n    }\n    if (config.boundaries?.tags\
+  \ && Object.hasOwn(config.boundaries.tags, pkg.name)) {\n      findings.push({\n\
+  \        id: 'boundaries/turbo-tag-package-name-collision',\n        severity: 'medium',\n\
+  \        title: `Boundary tag ${pkg.name} collides with a workspace package name`,\n\
+  \        location: { file: rootFile, package: pkg.name },\n        evidence: `${rootFile}:\
+  \ boundaries.tags[${JSON.stringify(pkg.name)}] = ${JSON.stringify(config.boundaries.tags[pkg.name])};\
+  \ ${pkg.dir}/package.json: name = ${JSON.stringify(pkg.name)}`,\n        fix: 'Rename\
+  \ the rule tag and its package labels/tag references to a distinct label; preserve\
+  \ allow/deny entries that intentionally refer to the package name.',\n      });\n\
+  \    }\n  }\n  return { findings };\n}\n```\n\nMissing `boundaries`, absent/empty\
+  \ rules, untagged packages, and tags with no rule are valid defaults: emit no missing/permissive/untagged\
+  \ Turbo finding. Package names in `allow`/`deny` are explicitly supported; do not\
+  \ confuse them with rule-map keys. Lists contain literal tags/package names, not\
+  \ Nx-style wildcard constraints. An omitted `allow` permits all; `allow: []` restricts\
+  \ all relations, not a permissive policy. Leave dependency/dependent policy evaluation\
+  \ (including transitive relations and deny precedence) to `turbo boundaries`, rather\
+  \ than approximating it from direct source imports.\n\n## Fix guidance\n\n- deep-import:\
+  \ add the subpath to the target's `exports`, or re-export from its entry point,\
+  \ then import from the package root.\n- oversized-package: identify clusters by\
+  \ which consumers import which files (`scan.imports` subpaths); propose 2–3 splits\
+  \ along clusters used by different consumers. If every consumer uses the same parts,\
+  \ don't emit the finding.\n- nx-missing-module-boundaries-rule: add `@nx/enforce-module-boundaries`\
+  \ with `depConstraints` based on `scope:*`/`type:*` tags.\n\n\x1FFILE:references/caching.md\x1E\
+  \n# Check 3 — Task caching\n\nQuestion: will a cache hit ever replay a wrong result,\
+  \ and are tasks re-running when they should hit?\nOutput: `findings/caching.json`.\
+  \ If no orchestrator is detected, only `caching/uncached-root-script` applies; set\
+  \ status `ok` with reason `no task orchestrator`.\n\nThese rules do not inspect\
+  \ Bazel caching. For a Bazel-only workspace (no JS/Nx\npackages), write `{\"status\"\
+  :\"skipped\",\"reason\":\"Bazel caching is not analyzed\",\"findings\":[]}`\nand\
+  \ stop this check. In a mixed workspace, retain applicable JS/Nx/Turbo\nfindings\
+  \ but mark the check `partial` with reason `Bazel caching is not analyzed`.\nFor\
+  \ `uncached-root-script`, only Nx and Turborepo count as task orchestrators;\nthe\
+  \ presence of Bazel alone does not establish how npm scripts are orchestrated.\n\
+  \n## Facts the rules rely on\n\n- **Turborepo**: a task with no `outputs` caches\
+  \ only logs — on a hit, `dist/` is NOT restored, so downstream tasks see stale or\
+  \ missing files. A package's hash covers its own files, its `package.json`, `turbo.json`\
+  \ and the lockfile; changes in workspace dependencies reach a task's hash **only**\
+  \ through `dependsOn` entries with `^` (e.g. `^build`). Env vars affect the hash\
+  \ only when listed in `env`, `globalEnv` (or `passThroughEnv` for runtime-only);\
+  \ framework prefixes such as `NEXT_PUBLIC_`, `VITE_` are auto-included. Turbo 2\
+  \ strict env mode can also restrict which env vars are visible to tasks, so undeclared\
+  \ env is both a cache-key and runtime-visibility risk.\n- **Nx**: when `outputs`\
+  \ is omitted, Nx caches `{workspaceRoot}/dist/{projectRoot}`, `{projectRoot}/dist`,\
+  \ `{projectRoot}/build`, `{projectRoot}/public`. Env vars affect the hash only through\
+  \ an `{ \"env\": \"NAME\" }` entry in `inputs`. Without a `production` named input\
+  \ that excludes tests, editing a spec file invalidates the build cache.\n\n## Rules\n\
+  \n| id | severity | detect |\n|---|---|---|\n| `caching/missing-outputs` | high\
+  \ | **Turbo**: a cacheable task named `build`/`compile`/`bundle`/`*:build` (or whose\
+  \ package script runs `tsc`, `vite build`, `tsup`, `rollup`, `webpack`, `next build`,\
+  \ `esbuild`) has no `outputs`. Package-level `turbo.json` overrides count. **Nx**:\
+  \ cacheable build-like target without `outputs` whose real out dir (`outDir` in\
+  \ the build tsconfig, `outDir`/`--out-dir` flags, `build.outDir` in vite config)\
+  \ is not one of Nx's defaults — one finding per affected project, with `package`.\
+  \ Turbo findings are per task: `location.file: \"turbo.json\"`, no `package`. |\n\
+  | `caching/build-inputs-include-tests` | low | **Turbo**: build-like task has no\
+  \ `inputs`, or `inputs` that don't exclude test globs (`!**/*.test.*`, `!**/*.spec.*`,\
+  \ `!**/__tests__/**`). **Nx**: no `production` named input, or `build` inputs don't\
+  \ reference it, or `production` doesn't negate test globs. Low severity because\
+  \ `$TURBO_DEFAULT$` already covers all git-tracked files; the finding is about avoiding\
+  \ rebuilds when tests change, not correctness. Follow `dependsOn` chains: tests\
+  \ hashed by a dependency task (e.g. a `transit` task, or `^build` of a package whose\
+  \ build inputs include tests) also invalidate the build. Measure impact (step 3)\
+  \ and put it in `evidence`. |\n| `caching/undeclared-env` | medium | for each `scan.env`\
+  \ entry that can affect a cacheable task output. Flag build tasks only when the\
+  \ build inlines env (Next/Vite framework bundlers, webpack/Rspack/Rsbuild `define`,\
+  \ esbuild/tsup `define`, Rollup/plugin-replace, or similar bundlers), not runtime-only\
+  \ reads in a plain `tsc` service. Always flag cacheable test tasks when tests execute\
+  \ code that reads the env var (`scan.env.isTest`, or a test file in the package\
+  \ imports the module with the env read), because a cached pass can be replayed under\
+  \ a different value. **Turbo**: name not matched by the task's `env` or `globalEnv`\
+  \ (`*` wildcards; `!` negation) and not framework-prefixed. `passThroughEnv` / `globalPassThroughEnv`\
+  \ do **not** count: they make the var available without adding it to the hash, so\
+  \ a cached result can still be replayed under a different value. **Nx**: no `{ \"\
+  env\": NAME }` in the target's inputs (resolve named inputs). Ignore `CI`, `PATH`,\
+  \ `HOME`, `TZ`, `PWD`. Ignore `NODE_ENV` only when the scan confirms it cannot affect\
+  \ the output (e.g. the task's script or bundler sets it to a fixed value); otherwise\
+  \ treat it like any other name. One finding per task config (Turbo task, or Nx target/targetDefault)\
+  \ that is missing declarations: list every missing name with its packages and up\
+  \ to 5 locations across all names, and set `location.package` only when a single\
+  \ package is affected. |\n| `caching/turbo-cache-disabled` | low | Turbo task with\
+  \ `cache: false` that is deterministic by name: `build`, `compile`, `bundle`, `lint`,\
+  \ `typecheck`, `check-types`, `format:check`, or a unit `test` (`test`, `test:unit`,\
+  \ `*:build`, `*:lint`). Treat `cache: false` as deliberate — and do **not** flag\
+  \ — when the task is `persistent: true`; its name contains `dev`, `start`, `serve`,\
+  \ `watch`, `deploy`, `release`, `publish`, `clean`, `db`, `migrat`, `seed`, `generate`,\
+  \ `extract`, `sync`, `upload`, `e2e`, `integration`, or ends in `:ci`; or its `env`/`passThroughEnv`\
+  \ lists external-state vars (`*DATABASE*`, `*DB_*`, `*REDIS*`, `*_URL`, `*TOKEN*`,\
+  \ `*SECRET*`). Mention deliberately uncached tasks in `reason`, not as findings.\
+  \ |\n| `caching/nx-cache-disabled` | low | An existing Nx target whose **effective**\
+  \ configuration explicitly sets `cache: false` and whose name is deterministic by\
+  \ the same allowlist as `caching/turbo-cache-disabled`. Resolve configuration as\
+  \ below; never treat an omitted `cache` as explicit false. Apply the same deliberate-task\
+  \ name exclusions, and skip `continuous: true`, watch-mode commands/options, long-running\
+  \ servers, and targets with external-state env inputs (resolve named inputs; match\
+  \ the external-state patterns above). Also skip when the command, executor, or configuration\
+  \ shows side effects or external-state dependence despite a deterministic name (e.g.\
+  \ `test` running integration tests). Mention deliberately uncached targets in `reason`,\
+  \ not as findings. |\n| `caching/unstable-hash` | high | turbo installed: run `TURBO_TELEMETRY_DISABLED=1\
+  \ ./node_modules/.bin/turbo run build --dry=json` twice; any task whose `hash` differs\
+  \ between runs. Report the task and the `inputs`/`environmentVariables` that differ.\
+  \ |\n| `caching/volatile-input` | high | non-negated task `inputs` or `globalDependencies`\
+  \ include build artifacts or machine-local files: `dist`, `build`, `.turbo`, `.nx`,\
+  \ `*.tsbuildinfo`, `**/*.log`, `node_modules`. Ignore negated globs (`!…`). Do not\
+  \ flag `.env*` files: including env files usually makes caches more correct. |\n\
+  | `caching/uncached-root-script` | low | a root `package.json` script that runs\
+  \ tasks across packages bypassing the orchestrator: `-r`/`--recursive`, `--workspaces`/`-ws`,\
+  \ `yarn workspaces foreach`, `lerna run`. In repos **without** an orchestrator,\
+  \ say \"consider adding Nx or Turborepo\" in `fix`. |\n\n## Steps\n\n1. Read `turbo.json`\
+  \ (Turbo v2 `tasks` and Turbo v1 `pipeline`, plus `//#task` root tasks and `${pkg}/turbo.json`\
+  \ overrides with `\"extends\": [\"//\"]`) and/or `nx.json` + every `project.json`\
+  \ / `package.json#nx`. For Nx, also read `targetDefaults` (including defaults keyed\
+  \ by executor), `namedInputs`, and legacy `tasksRunnerOptions.*.options.cacheableOperations`,\
+  \ and remember that Nx plugins (`plugins` in `nx.json`) can infer targets — if a\
+  \ target exists only via plugin inference, report rules that depend on its config\
+  \ as `partial` and say so.\n2. Apply the rules above. Quote the exact JSON in `evidence`\
+  \ (task name + its config object). Config-level findings (Turbo tasks, Nx `targetDefaults`/`namedInputs`)\
+  \ omit `location.package`; only set `package` when the problem is specific to one\
+  \ package (e.g. its own `turbo.json`/`project.json`, or an env read in its source).\n\
+  3. For `build-inputs-include-tests`, measure how often it matters with read-only\
+  \ git: `git log --since=\"6 months ago\" --name-only --format=%x00%H` and count\
+  \ commits whose changed files are all test files (`TEST` pattern from scan.md).\
+  \ Report `N of M commits (P%) changed only tests`. Skip if the repo has no git history.\n\
+  4. `unstable-hash` runs only when turbo is installed; otherwise mark the check `partial`\
+  \ with reason `turbo not installed; dry-run hash comparison skipped`. Never run\
+  \ real tasks — only `--dry=json`.\n5. Write `findings/caching.json`.\n\n### Resolving\
+  \ Nx disabled-cache findings\n\n- Enumerate actual targets from project configuration,\
+  \ `package.json` scripts / `nx.targets`, and available inferred-target data. A `targetDefaults`\
+  \ entry does not itself create a target. Merge package configuration with `project.json`\
+  \ (project configuration takes precedence for the same target).\n- Select the applicable\
+  \ `nx.json#targetDefaults` for each target: a matching executor key takes precedence\
+  \ over a target-name key; **do not merge both defaults**. Account for matching target-name\
+  \ patterns and filtered defaults supported by the workspace's Nx version (see [Nx\
+  \ target defaults](https://nx.dev/docs/reference/nx-json#target-defaults)). Before\
+  \ applying a selected default, check Nx's target compatibility: skip it when both\
+  \ it and the target specify different executors. For `nx:run-commands` / `nx:run-script`,\
+  \ also respect the workspace version's command/script compatibility checks. An incompatible\
+  \ default does not supply an effective `cache: false`. Apply compatible defaults\
+  \ below explicit project/package target properties; an explicit project `cache:\
+  \ true` overrides an inherited `cache: false`. Track which file and config object\
+  \ supplies the effective false, not every false encountered in source files.\n-\
+  \ Plugins can infer targets and properties such as executor, inputs, and cache settings.\
+  \ Use already available resolved Nx project-graph configuration (see circular-deps.md)\
+  \ when present, preserving source attribution. Do not execute tasks or install Nx.\
+  \ If inference or version-specific defaults cannot be resolved from available data,\
+  \ mark caching `partial`, name the unresolved targets/configuration in `reason`,\
+  \ and do not guess a finding. Independently provable explicit-false findings can\
+  \ still be emitted.\n- Legacy `tasksRunnerOptions.*.options.cacheableOperations`\
+  \ lists cacheable target names, not explicit disabled-cache declarations. A missing\
+  \ entry (or missing modern `cache`) is **not** this rule. Check the workspace's\
+  \ Nx version and active runner before interpreting `cache: false` alongside legacy/custom\
+  \ runners; if the runner does not honor the property, do not report it as effective\
+  \ disabled caching. If runner semantics cannot be established, mark that portion\
+  \ `partial`.\n- Emit one finding per source config object supplying effective false:\
+  \ shared `targetDefaults` findings use `location.file: \"nx.json\"` and omit `location.package`;\
+  \ identify the source path (e.g. `targetDefaults.typecheck` or `targetDefaults[\"\
+  nx:run-commands\"]`) and list affected pairs as `${project}:${target}` in evidence,\
+  \ excluding overridden and deliberate tasks. Project/package findings point to their\
+  \ own `project.json` or `package.json` and include the package when known. Quote\
+  \ the exact source JSON, the effective target name and relevant overrides/inputs/command\
+  \ so the exclusion and precedence decisions are reviewable. Do not duplicate a shared\
+  \ default as one finding per project.\n\n## Fix guidance\n\n- missing-outputs (Turbo):\
+  \ `\"outputs\": [\"dist/**\"]` (add `\".next/**\", \"!.next/cache/**\"` for Next.js).\n\
+  - missing-outputs (Nx): `\"outputs\": [\"{projectRoot}/lib\"]` matching the real\
+  \ out dir.\n- build-inputs-include-tests (Nx): `\"namedInputs\": { \"production\"\
+  : [\"default\", \"!{projectRoot}/**/*.spec.ts\", \"!{projectRoot}/**/*.test.ts\"\
+  ] }` and `\"build\": { \"inputs\": [\"production\", \"^production\"] }`.\n- build-inputs-include-tests\
+  \ (Turbo): `\"inputs\": [\"$TURBO_DEFAULT$\", \"!**/*.{test,spec}.*\", \"!**/__tests__/**\"\
+  ]` (`$TURBO_DEFAULT$` means all git-tracked files in the package). Apply it to every\
+  \ task in the build's `dependsOn` chain that hashes sources (e.g. `transit`), or\
+  \ the build still rebuilds on test edits. Safe only if no package imports another\
+  \ package's test files. Optional when the measured share of test-only commits is\
+  \ small.\n- undeclared-env: Turbo `\"env\": [\"API_URL\"]`; Nx `\"inputs\": [\"\
+  production\", { \"env\": \"API_URL\" }]`.\n- nx-cache-disabled: change the effective\
+  \ target or applicable default to `\"cache\": true` only after confirming the task\
+  \ is deterministic, has correct inputs/outputs, and has no external side effects.\
+  \ Preserve intentional uncached targets and their overrides; do not blanket-enable\
+  \ every target.\n\n\x1FFILE:references/ci-coverage.md\x1E\n# Check 4 — CI test coverage\n\
+  \nQuestion: can a change land without the tests that cover it running in CI?\nInputs:\
+  \ `workspace.json` (`ciFiles`), `scan.json`. Output: `findings/ci-coverage.json`.\n\
+  \nThese rules do not analyze Bazel test selection or Java test coverage. For a\n\
+  Bazel-only workspace (no JS/Nx packages), write\n`{\"status\":\"skipped\",\"reason\"\
+  :\"Bazel CI and Java test coverage are not analyzed\",\"findings\":[]}`\nand stop\
+  \ this check. In a mixed workspace, retain applicable JS/Nx/Turbo\nfindings but\
+  \ mark the check `partial` with reason `Bazel CI and Java test coverage are not\
+  \ analyzed`.\nIf the only pre-landing test invocation is `bazel test` or `bazelisk\
+  \ test`,\ndo not report `tests-not-run-in-ci`: its test selection is unverified,\
+  \ not\nproof that no tests run.\n\n## Rules\n\n| id | severity | detect |\n|---|---|---|\n\
+  | `ci-coverage/undeclared-workspace-dependency` | critical (medium when Nx is an\
+  \ orchestrator, since Nx infers edges from imports) | `scan.imports` entry with\
+  \ `declared: false`, `isTest: false` and `fromSource: \"package.json\"`. Affected/filtered\
+  \ runs and `^` caching won't treat the importer as depending on the target, so changing\
+  \ the target skips the importer's tests. One finding per (from, target) pair. |\n\
+  | `ci-coverage/missing-test-script` | high | package has `scan.packages[p].testFiles.length\
+  \ > 0` but no package-level test entry point is covered. Accept `test`, `e2e`, or\
+  \ `test:*` package scripts; an Nx `test` target; inferred Nx test plugins (`@nx/vite/plugin`,\
+  \ `@nx/jest/plugin`, `@nx/vitest`); root `vitest.workspace.*` / root `vitest.config.*`\
+  \ `test.projects` or root Jest `projects`, counted only when one of its project\
+  \ roots or globs matches the package's dir; or a root test script whose globs explicitly\
+  \ include the package path. Do **not** treat `pnpm -r test`, `npm --workspaces test`,\
+  \ or similar recursive root scripts as coverage for packages without their own test\
+  \ script (generic-pnpm deliberately still flags `@acme/app`). |\n| `ci-coverage/tests-not-run-in-ci`\
+  \ | high | at least one CI file exists, but no job that runs before a change can\
+  \ land (triggered by `pull_request`/`merge_group` or the CI system's equivalent,\
+  \ or by `push` only when its branch filter shows it runs before landing, e.g. unfiltered\
+  \ or matching feature/topic branches — `push` limited to the protected default branch,\
+  \ scheduled-only, or manual-only workflows don't count) has a step matching `/\\\
+  b(npm\\|pnpm\\|yarn\\|bun\\|npx\\|nx\\|turbo)\\b[^\\n]*\\btest\\b\\|\\b(vitest\\\
+  |jest\\|mocha)\\b\\|\\b(make\\|task\\|just)\\s+test\\b/` (each `\\|` is a Markdown\
+  \ table escape for a regex alternation bar). If `ciFiles` is empty, set this check\
+  \ status to `partial` with reason `no CI configuration found` and emit no `tests-not-run-in-ci`\
+  \ finding. |\n| `ci-coverage/shallow-checkout-affected` | high | an affected/filtered\
+  \ CI job lacks full base history. GitHub Actions: job runs `nx affected`, `turbo\
+  \ … --affected`, or `--filter=…[${ref}]`, uses `actions/checkout`, and does **not**\
+  \ set `fetch-depth: 0`. GitLab: affected logic is used while `GIT_DEPTH` is unset/nonzero\
+  \ (default 20) or the MR target branch is not fetched. Azure: `checkout: self` lacks\
+  \ `fetchDepth: 0`. Bitbucket: `clone: depth` is set while affected logic is used.\
+  \ |\n| `ci-coverage/nx-affected-base-missing` | high | `nx affected` in CI with\
+  \ no `--base`, no `nrwl/nx-set-shas` step, no `NX_BASE` env, and no `nx.json#defaultBase`.\
+  \ |\n| `ci-coverage/turbo-invalid-comparison-base` | high | a pre-landing Turbo\
+  \ test run uses `--affected` or a Git-qualified `--filter` / `-F` with a **proven\
+  \ invalid comparison**: base and head resolve to the same commit, an explicit range\
+  \ is malformed after expansion, or available CI evidence proves the range omits\
+  \ changes that this job must test. Follow the comparison procedure below. Missing\
+  \ explicit env vars, unavailable runtime values, and shallow history alone do not\
+  \ satisfy this rule. |\n| `ci-coverage/nx-test-inputs-ignore-deps` | high | Nx `test`\
+  \ target (targetDefaults or project) is cacheable and explicitly sets `inputs` with\
+  \ no `^` dependency entry after resolving named inputs. Omitted `inputs` are ok\
+  \ because Nx defaults to `default` + `^default`. |\n| `ci-coverage/turbo-test-missing-dependson`\
+  \ | high | Turbo `test` (or `*:test`) task is cacheable and its `dependsOn` graph\
+  \ has no transitive `^` entry. Follow local task indirections such as `\"transit\"\
+  : { \"dependsOn\": [\"^transit\"] }`, `\"test\": { \"dependsOn\": [\"transit\"]\
+  \ }`; that pattern satisfies the rule. |\n\n## Steps\n\n1. Read every file in `ciFiles`.\
+  \ Also follow GitLab `include:` entries that point to local files and local reusable\
+  \ GitHub workflows referenced with `uses: ./.github/workflows/x.yml`. For GitHub\
+  \ Actions, reason per job: a checkout step's `with.fetch-depth` applies to the steps\
+  \ after it in the same job. If there are no CI files, write `status: \"partial\"\
+  `, `reason: \"no CI configuration found\"`, and do not emit `ci-coverage/tests-not-run-in-ci`.\n\
+  \   Only Turbo options before its `--` task-argument delimiter count as affected/filtered\
+  \ selection, including for `shallow-checkout-affected`.\n2. Resolve Nx targets as\
+  \ in caching (targetDefaults merged with project config). Resolve Turbo tasks from\
+  \ `turbo.json`/`pipeline` and package overrides.\n3. Apply the rules; quote the\
+  \ CI step / config object as `evidence`.\n4. Write `findings/ci-coverage.json`.\n\
+  \n## Turbo comparison-base validation\n\nThis is the Turbo counterpart to Nx base\
+  \ validation, **not** a requirement to set a base explicitly.\n\n1. Follow CI commands\
+  \ through local package scripts and wrappers without executing them. Scope this\
+  \ rule to jobs that test changes before landing, as for `tests-not-run-in-ci`. Resolve\
+  \ workflow, job, step and inline shell environment in execution order, including\
+  \ `$GITHUB_ENV` writes and reusable-workflow inputs when their values are available.\
+  \ An env value in another job or a later step does not configure this invocation.\
+  \ Do not confuse flags after Turbo's `--` task-argument delimiter with Turbo options.\n\
+  2. For `--affected`, `TURBO_SCM_BASE` and `TURBO_SCM_HEAD` override its comparison\
+  \ endpoints; an omitted head defaults to `HEAD`. With neither override, accept Turbo's\
+  \ documented defaults: the run reference describes `main...HEAD`; GitHub Actions\
+  \ resolves PR bases using `GITHUB_BASE_REF` and push bases using `GITHUB_EVENT_PATH`\
+  \ (`before`, with special first/force-push handling). Current implementations also\
+  \ try `main` / `master` outside GitHub Actions. Check the repository's Turbo version\
+  \ before relying on version-specific behavior. A non-`main` default branch, a push\
+  \ event without `GITHUB_BASE_REF`, or no explicit base is **not by itself a finding**.\n\
+  3. Explicit Git filters own their endpoints: `--filter='...[origin/main]'` compares\
+  \ that ref to the working tree, including uncommitted changes; `--filter='...[base...head]'`\
+  \ compares the merge-base to head. Prefix `...` includes dependents; it is not the\
+  \ Git range separator inside `[]`. Accept both `--filter=value` and `--filter value`,\
+  \ and `-F`. `TURBO_SCM_BASE` / `TURBO_SCM_HEAD` configure `--affected`, **not**\
+  \ an explicit bracketed range. Package/directory-only filters and unfiltered full\
+  \ test runs need no Git base. Account for all selectors: positive filters form a\
+  \ union, exclusions subtract, and on versions supporting `--affected` with `--filter`,\
+  \ they intersect; an empty selector alone does not prove tests are omitted when\
+  \ another selector covers them.\n4. Emit one finding per independently broken invocation\
+  \ only with evidence of a bad comparison and its effect on the required test selection.\
+  \ Examples: a clean checkout followed by `TURBO_SCM_BASE=HEAD turbo run test --affected`\
+  \ with default head; identical explicit endpoints `[HEAD...HEAD]`; or `...[${BASE}...HEAD]`\
+  \ when CI demonstrably expands `BASE` to an empty string. A previous-commit base\
+  \ such as `HEAD^` is not inherently wrong (e.g. intentional per-commit push testing);\
+  \ flag it only when available evidence proves it misses required changes, such as\
+  \ earlier commits in a multi-commit PR. Do not assume two different refs resolve\
+  \ to the same commit, or that a historical range is wrong merely because it does\
+  \ not end at `HEAD`.\n5. Unknown secret/output/input values, external wrappers,\
+  \ missing CI event data, or insufficient history are **unavailable evidence**, not\
+  \ proven invalid refs. Emit no speculative finding; set `ci-coverage` to `partial`\
+  \ and explain the unresolved comparison in `reason`, retaining other evidenced findings.\
+  \ Do not claim `--affected` silently skips tests when it cannot resolve history:\
+  \ its documented fallback selects all packages (remaining filters can still narrow\
+  \ them). Explicit Git filters can instead fail on unresolved refs; they do not inherit\
+  \ that fallback. Use `shallow-checkout-affected` alone when fetching history is\
+  \ the fix; add this finding only for a separate bad-range root cause that full history\
+  \ would not fix.\n\nFor each finding, locate the Turbo invocation (`location.file`\
+  \ and line), quote its effective selector/env and relevant checkout/event configuration\
+  \ in `evidence`, explain why the comparison fails or omits required tests, and give\
+  \ a concrete correction. Do not raise a separate missing-base finding for each unset\
+  \ environment variable.\n\nFor an unknown runtime comparison value, include the\
+  \ CI filename, the wording `unavailable runtime comparison`, and the unresolved\
+  \ variable or input in the partial check's `reason`.\n\nAuthoritative semantics:\
+  \ [run: affected and filters](https://turborepo.com/docs/reference/run#--affected),\
+  \ [system environment variables](https://turborepo.com/docs/reference/system-environment-variables),\
+  \ and [constructing CI: GitHub Actions defaults and fallback](https://turborepo.com/docs/crafting-your-repository/constructing-ci#using---affected-in-github-actions).\
+  \ Implementation details can be checked in [`git.rs`](https://github.com/vercel/turborepo/blob/4485b660b2773d0700290521df228d73017205dc/crates/turborepo-scm/src/git.rs)\
+  \ and [`target_selector.rs`](https://github.com/vercel/turborepo/blob/4485b660b2773d0700290521df228d73017205dc/crates/turborepo-scope/src/target_selector.rs);\
+  \ do not assume the latest implementation matches an older installed version.\n\n\
+  ## Fix guidance\n\n- undeclared-workspace-dependency: add `\"${target}\": \"workspace:*\"\
+  ` (pnpm/yarn/bun) or `\"*\"` (npm) to the importer's dependencies, and import via\
+  \ the package name.\n- shallow-checkout-affected: `with: { fetch-depth: 0 }` on\
+  \ `actions/checkout`.\n- nx-affected-base-missing: add `- uses: nrwl/nx-set-shas@v4`\
+  \ before `nx affected`.\n- turbo-invalid-comparison-base: remove a self-comparing\
+  \ `TURBO_SCM_BASE` / `TURBO_SCM_HEAD` override when the documented CI defaults cover\
+  \ the job. Otherwise supply the intended CI base/head, or correct the refs inside\
+  \ the explicit Git filter itself (setting `TURBO_SCM_BASE` does not repair that\
+  \ filter). On a PR job, for example, use the PR base/head SHAs with `--affected`\
+  \ and full history; preserve valid event-specific push handling rather than applying\
+  \ a PR-only variable to every event.\n- nx-test-inputs-ignore-deps: `\"test\": {\
+  \ \"inputs\": [\"default\", \"^production\"] }`.\n- turbo-test-missing-dependson:\
+  \ `\"test\": { \"dependsOn\": [\"^build\"] }` (or `[\"^test\"]` when tests run on\
+  \ sources).\n\n\x1FFILE:references/circular-deps.md\x1E\n# Check 2 — Circular dependencies\n\
+  \nOutput: `findings/circular-deps.json`.\n\nFor a Bazel-only workspace (`workspace.json`\
+  \ has no JS/Nx packages), write\n`{\"status\":\"skipped\",\"reason\":\"Bazel dependency\
+  \ and Java source cycles are not analyzed\",\"findings\":[]}`\nand stop this check.\
+  \ For a mixed workspace, report `partial` because Bazel and\nnon-JS source cycles\
+  \ are not covered, while retaining JS/Nx findings.\n\n| id | severity | detect |\n\
+  |---|---|---|\n| `circular-deps/package-cycle` | high | a strongly connected component\
+  \ (SCC) in the package graph (`workspaceDeps`, or the Nx project graph when Nx is\
+  \ installed). One finding per SCC. |\n| `circular-deps/file-cycle` | medium when\
+  \ eager, low when deferred, skipped when idiomatic (see step 3) | an SCC of 2+ files\
+  \ among a package's own files (`scan.fileEdges`). One finding per SCC, not per simple\
+  \ cycle: cycles that share files share a fix. |\n\nPackage cycles break topological\
+  \ builds (`^build` order is undefined), cause stale caches and make packages unpublishable\
+  \ independently.\nFile cycles cause `undefined`/TDZ errors only when a module reads\
+  \ an imported binding **while it is being evaluated** (eager). When every cross-edge\
+  \ use is deferred (inside a function, component render or callback), ESM live bindings\
+  \ make it work at runtime and the cost is coupling: larger bundles/chunks, Fast\
+  \ Refresh full reloads, and tests that need mocks to break the cycle.\n\n## Steps\n\
+  \n1. If Nx is installed, refresh the graph and use it as the package graph:\n  \
+  \ ```bash\n   W=\"$(node -p 'require(\"os\").tmpdir()')/monorepo-doctor\"\n   rm\
+  \ -f \"$W/nx-graph.json\" \"$W/nx-graph.failed\"\n   NX_DAEMON=false NX_NO_CLOUD=true\
+  \ NX_WORKSPACE_DATA_DIRECTORY=\"$W/nx-data\" ./node_modules/.bin/nx graph --file=\"\
+  $W/nx-graph.json\" \\\n     || touch \"$W/nx-graph.failed\"\n   ```\n   The file\
+  \ has `graph.dependencies[project] = [{ target }]`. Otherwise use `workspace.json`\
+  \ `workspaceDeps`.\n   If Turborepo is installed, `TURBO_TELEMETRY_DISABLED=1 ./node_modules/.bin/turbo\
+  \ run build --dry=json` failing with a message containing `cyclic` is also evidence.\
+  \ Turbo dry-run JSON writes no project files beyond Turborepo's own cache directory.\n\
+  \   Status: the `workspaceDeps` graph is complete for package.json-based workspaces,\
+  \ so missing turbo does **not** make this check partial. Under Nx without a local\
+  \ install, mark `partial` with reason `nx not installed; project graph inferred\
+  \ from package.json only`; if Nx is installed but `nx graph` fails, mark `partial`\
+  \ with reason `nx graph failed; project graph inferred from package.json only` (Nx\
+  \ also infers edges from imports and `implicitDependencies`).\n2. Run the cycle\
+  \ snippet:\n\n```bash\nW=\"$(node -p 'require(\"os\").tmpdir()')/monorepo-doctor\"\
+  \ncat > \"$W/cycles.mjs\" <<'EOF'\nimport fs from 'node:fs';\nimport os from 'node:os';\n\
+  import path from 'node:path';\nconst work = path.join(os.tmpdir(), 'monorepo-doctor');\n\
+  const ws = JSON.parse(fs.readFileSync(path.join(work, 'workspace.json'), 'utf8'));\n\
+  const scan = JSON.parse(fs.readFileSync(path.join(work, 'scan.json'), 'utf8'));\n\
+  const nxGraphPath = path.join(work, 'nx-graph.json');\nconst hasBazel = ws.orchestrators.some((o)\
+  \ => o.name === 'bazel');\nif (hasBazel && !ws.packages.length) {\n  fs.writeFileSync(path.join(work,\
+  \ 'findings', 'circular-deps.json'), JSON.stringify({\n    status: 'skipped', reason:\
+  \ 'Bazel dependency and Java source cycles are not analyzed', findings: [],\n  },\
+  \ null, 2));\n  process.exit(0);\n}\n\n// Tarjan: strongly connected components\
+  \ with 2+ nodes (or a self-loop), nodes sorted.\nfunction sccs(graph) {\n  const\
+  \ index = new Map(), low = new Map(), onStack = new Set(), stack = [], out = [];\n\
+  \  let i = 0;\n  const visit = (n) => {\n    index.set(n, i); low.set(n, i++); stack.push(n);\
+  \ onStack.add(n);\n    for (const m of graph.get(n) ?? []) {\n      if (!index.has(m))\
+  \ { visit(m); low.set(n, Math.min(low.get(n), low.get(m))); }\n      else if (onStack.has(m))\
+  \ low.set(n, Math.min(low.get(n), index.get(m)));\n    }\n    if (low.get(n) ===\
+  \ index.get(n)) {\n      const comp = [];\n      let m;\n      do { m = stack.pop();\
+  \ onStack.delete(m); comp.push(m); } while (m !== n);\n      if (comp.length > 1\
+  \ || (graph.get(n) ?? []).includes(n)) out.push(comp.sort());\n    }\n  };\n  for\
+  \ (const n of graph.keys()) if (!index.has(n)) visit(n);\n  return out;\n}\nconst\
+  \ innerEdges = (graph, comp) => comp.flatMap((a) => (graph.get(a) ?? []).filter((b)\
+  \ => comp.includes(b)).map((b) => [a, b]));\n\nconst nx = ws.orchestrators.find((o)\
+  \ => o.name === 'nx');\nconst graphFailed = Boolean(nx?.installed) && (fs.existsSync(path.join(work,\
+  \ 'nx-graph.failed')) || !fs.existsSync(nxGraphPath));\nconst useNxGraph = Boolean(nx?.installed)\
+  \ && !graphFailed;\nlet pkgGraph;\nif (useNxGraph) {\n  const g = JSON.parse(fs.readFileSync(nxGraphPath,\
+  \ 'utf8')).graph;\n  pkgGraph = new Map(Object.entries(g.dependencies).map(([k,\
+  \ v]) => [k, v.map((d) => d.target).filter((t) => g.nodes[t])]));\n} else {\n  pkgGraph\
+  \ = new Map(ws.packages.map((p) => [p.name, p.workspaceDeps]));\n}\nconst byName\
+  \ = new Map(ws.packages.map((p) => [p.name, p]));\nconst findings = [];\nfor (const\
+  \ c of sccs(pkgGraph)) {\n  const first = byName.get(c[0]);\n  findings.push({\n\
+  \    id: 'circular-deps/package-cycle', severity: 'high',\n    title: `Package cycle:\
+  \ ${c.join(' ↔ ')}`,\n    location: { file: first ? `${first.dir}/package.json`\
+  \ : 'package.json', package: c[0] },\n    evidence: innerEdges(pkgGraph, c).map(([a,\
+  \ b]) => `${a} depends on ${b}`).join('\\n'),\n    fix: 'Extract the shared code\
+  \ into a new package both can depend on, or invert one edge (dependency injection\
+  \ / events). Remove the back-edge from package.json.',\n  });\n}\nfor (const [pkg,\
+  \ edges] of Object.entries(scan.fileEdges)) {\n  const g = new Map();\n  for (const\
+  \ [a, b] of edges) { if (!g.has(a)) g.set(a, []); g.get(a).push(b); }\n  for (const\
+  \ c of sccs(g)) {\n    const e = innerEdges(g, c);\n    findings.push({\n      id:\
+  \ 'circular-deps/file-cycle', severity: 'low',\n      title: `File cycle in ${pkg}\
+  \ (${c.length} files)`,\n      location: { file: c[0], package: pkg },\n      evidence:\
+  \ e.slice(0, 15).map(([a, b]) => `${a} → ${b}`).join('\\n') + (e.length > 15 ? `\\\
+  n… ${e.length - 15} more edges` : ''),\n      fix: 'Move the shared symbols into\
+  \ a third module that both import, or merge the files.',\n    });\n  }\n}\nconst\
+  \ status = (nx && !useNxGraph) || hasBazel ? 'partial' : 'ok';\nconst result = {\
+  \ status, findings };\nif (status === 'partial') result.reason = [\n  ...(nx &&\
+  \ !useNxGraph ? [graphFailed\n    ? 'nx graph failed; project graph inferred from\
+  \ package.json only'\n    : 'nx not installed; project graph inferred from package.json\
+  \ only'] : []),\n  ...(hasBazel ? ['Bazel dependency and non-JS source cycles are\
+  \ not analyzed'] : []),\n].join('; ');\nfs.writeFileSync(path.join(work, 'findings',\
+  \ 'circular-deps.json'), JSON.stringify(result, null, 2));\nconsole.log(JSON.stringify({\
+  \ packageCycles: findings.filter((f) => f.id.endsWith('package-cycle')).length,\
+  \ fileCycles: findings.filter((f) => f.id.endsWith('file-cycle')).length }));\n\
+  EOF\nnode \"$W/cycles.mjs\"\n```\n\n3. Review every `file-cycle` finding (the snippet\
+  \ writes them as `low`; you must classify each before rendering). For each edge\
+  \ in `evidence`, open the import line and find where each imported name is used\
+  \ in the importing file.\n   - **Drop** an edge that is not a real value import\
+  \ (inside a comment, type-only). Drop the finding if the component no longer has\
+  \ a cycle.\n   - **Eager** — an imported binding is read during module evaluation:\
+  \ a top-level call or property read, `class X extends Imported`, a top-level object/array/spread\
+  \ built from it, decorator arguments, or a top-level `const` initialized from it.\
+  \ Any eager edge → `severity: \"medium\"`; quote the eager line in `evidence`.\n\
+  \   - **Deferred** — every use is inside a function body, component render, hook,\
+  \ or callback → keep `low`.\n   - **Idiomatic, skip** — all edges deferred and the\
+  \ files are ORM schema/entity modules using lazy references (Drizzle `.references(()\
+  \ => t.id)` / `relations(...)`, TypeORM/MikroORM `() => Entity` decorators, Sequelize/Objection\
+  \ associations set up in functions). Remove the finding and add `\"N idiomatic ORM\
+  \ schema cycles skipped (lazy references)\"` to `reason`.\n   - **Cost evidence**\
+  \ (add to `evidence` when present): a `.tsx`/`.jsx` file in the cycle that exports\
+  \ a non-component value next to components (React Fast Refresh falls back to a full\
+  \ reload when it is edited); test files that `vi.mock`/`jest.mock` a module in the\
+  \ cycle.\n   - **Fix:** name the back-edge — the smallest set of exported symbols\
+  \ that, moved into a new module, breaks the cycle (e.g. \"Move `tabLabel` from `shell.tsx`\
+  \ to `workspace/tab-label.ts`; import it from shell, coach-sheet and saved\").\n\
+  \   - Rewrite `title` to name the files and the shared symbol, e.g. `shell.tsx ↔\
+  \ coach-sheet.tsx, saved.tsx via tabLabel`.\n4. If more than 20 file-cycle components\
+  \ exist in one package, keep the 20 smallest and add `\"reason\": \"N file-cycle\
+  \ components; showing 20 smallest\"` with status `partial`.\n\x1FFILE:references/detection.md\x1E\
+  \n# Phase 1 — Detection\n\nGoal: build an inventory at `$W/workspace.json`. Every\
+  \ later phase reads it.\n\nRequires Node ≥ 22.5 because this phase uses `fs.globSync`\
+  \ and `path.matchesGlob`. The snippet below exits 2 with `monorepo-doctor requires\
+  \ Node >= 22.5` when either API is missing.\nThis phase resets the work directory.\
+  \ In every shell, start with `W=\"$(node -p 'require(\"os\").tmpdir()')/monorepo-doctor\"\
+  `; all later phases reuse `$W`, and you should recompute it in each new shell. `os.tmpdir()`\
+  \ honors `TMPDIR`: if the default temp dir is not writable in your environment,\
+  \ `export TMPDIR=<writable dir outside the audited repo>` in every shell before\
+  \ computing `$W`, so the shell and the Node snippets agree.\n\nRun from the workspace\
+  \ root (the directory the user pointed at; default: current directory):\n\n```bash\n\
+  W=\"$(node -p 'require(\"os\").tmpdir()')/monorepo-doctor\"\nmkdir -p \"$W\"\ncat\
+  \ > \"$W/detect.mjs\" <<'EOF'\nimport fs from 'node:fs';\nimport os from 'node:os';\n\
+  import path from 'node:path';\nif (typeof fs.globSync !== 'function' || typeof path.matchesGlob\
+  \ !== 'function') {\n  console.error('monorepo-doctor requires Node >= 22.5');\n\
+  \  process.exit(2);\n}\nconst root = path.resolve(process.argv[2] ?? '.');\nconst\
+  \ work = path.join(os.tmpdir(), 'monorepo-doctor');\nfs.rmSync(work, { recursive:\
+  \ true, force: true });\nfs.mkdirSync(path.join(work, 'findings'), { recursive:\
+  \ true });\nconst toPosix = (p) => p.split(path.sep).join('/');\nconst readJson\
+  \ = (p) => { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return\
+  \ null; } };\nconst exists = (p) => fs.existsSync(path.join(root, p));\n\nconst\
+  \ pm = exists('pnpm-lock.yaml') || exists('pnpm-workspace.yaml') ? 'pnpm'\n  : exists('bun.lockb')\
+  \ || exists('bun.lock') ? 'bun'\n  : exists('yarn.lock') ? 'yarn'\n  : exists('package-lock.json')\
+  \ ? 'npm' : 'unknown';\n\nconst rootPkg = readJson(path.join(root, 'package.json'))\
+  \ ?? {};\nconst stripYamlComment = (s) => {\n  let out = '', quote = null;\n  for\
+  \ (let i = 0; i < s.length; i++) {\n    const ch = s[i];\n    if (quote) { if (ch\
+  \ === quote && s[i - 1] !== '\\\\') quote = null; out += ch; }\n    else if (ch\
+  \ === '\"' || ch === \"'\") { quote = ch; out += ch; }\n    else if (ch === '#')\
+  \ break;\n    else out += ch;\n  }\n  return out.trim();\n};\nconst unquote = (s)\
+  \ => stripYamlComment(s).trim().replace(/^['\"]|['\"]$/g, '').trim();\nconst splitFlow\
+  \ = (s) => {\n  const out = [];\n  let cur = '', quote = null;\n  for (let i = 0;\
+  \ i < s.length; i++) {\n    const ch = s[i];\n    if (quote) { if (ch === quote\
+  \ && s[i - 1] !== '\\\\') quote = null; cur += ch; }\n    else if (ch === '\"' ||\
+  \ ch === \"'\") { quote = ch; cur += ch; }\n    else if (ch === ',') { const v =\
+  \ unquote(cur); if (v) out.push(v); cur = ''; }\n    else cur += ch;\n  }\n  const\
+  \ v = unquote(cur); if (v) out.push(v);\n  return out;\n};\nfunction pnpmWorkspaceGlobs(file)\
+  \ {\n  const lines = fs.readFileSync(file, 'utf8').split(/\\r?\\n/);\n  const globs\
+  \ = [];\n  for (let i = 0; i < lines.length; i++) {\n    const m = lines[i].match(/^packages:\\\
+  s*(.*)$/);\n    if (!m) continue;\n    const rest = stripYamlComment(m[1]);\n  \
+  \  if (rest.startsWith('[') && rest.endsWith(']')) globs.push(...splitFlow(rest.slice(1,\
+  \ -1)));\n    for (let j = i + 1; j < lines.length; j++) {\n      const line = lines[j];\n\
+  \      if (!line.trim() || line.trimStart().startsWith('#')) continue;\n      const\
+  \ item = line.match(/^\\s*-\\s*(.+)$/);\n      if (item) { const v = unquote(item[1]);\
+  \ if (v) globs.push(v); continue; }\n      if (/^\\S/.test(line)) break;\n    }\n\
+  \    break;\n  }\n  return globs;\n}\nlet globs = [];\nif (exists('pnpm-workspace.yaml'))\
+  \ {\n  globs = pnpmWorkspaceGlobs(path.join(root, 'pnpm-workspace.yaml'));\n  if\
+  \ (!globs.length) console.error('WARN: pnpm-workspace.yaml contains no package globs');\n\
+  }\nif (!globs.length) globs = Array.isArray(rootPkg.workspaces) ? rootPkg.workspaces\
+  \ : rootPkg.workspaces?.packages ?? [];\nconst include = globs.filter((g) => !g.startsWith('!'));\n\
+  const exclude = globs.filter((g) => g.startsWith('!')).map((g) => g.slice(1).replace(/\\\
+  /$/, ''));\nconst isExcluded = (dir) => exclude.some((g) => path.matchesGlob(dir,\
+  \ g) || path.matchesGlob(`${dir}/package.json`, `${g}/package.json`));\n\nconst\
+  \ SKIP_NAMES = new Set(['node_modules', 'dist', 'build', '.git', '.nx', '.turbo',\
+  \ 'coverage']);\nconst hasSkippedPart = (p) => p.split('/').some((part) => SKIP_NAMES.has(part));\n\
+  const prune = (p) => SKIP_NAMES.has(path.basename(String(p)));\n\nconst orchestrators\
+  \ = [];\nif (exists('nx.json')) orchestrators.push({ name: 'nx', installed: exists('node_modules/.bin/nx')\
+  \ });\nif (exists('turbo.json')) orchestrators.push({ name: 'turbo', installed:\
+  \ exists('node_modules/.bin/turbo') });\nif (['MODULE.bazel', 'WORKSPACE', 'WORKSPACE.bazel',\
+  \ 'REPO.bazel'].some(exists)) orchestrators.push({ name: 'bazel' });\n\nconst bazelProblems\
+  \ = [];\nconst bazelSkipped = new Set(['node_modules', '.git', '.nx', '.turbo',\
+  \ '.cache']);\nlet bazelIgnored = [];\nlet bazelUnresolvedExclusions = false;\n\
+  if (orchestrators.some((o) => o.name === 'bazel') && exists('.bazelignore')) {\n\
+  \  try {\n    bazelIgnored = fs.readFileSync(path.join(root, '.bazelignore'), 'utf8').split(/\\\
+  r?\\n/)\n      .filter((line) => line && !line.startsWith('#'))\n      .map((line)\
+  \ => {\n        const dir = path.posix.normalize(line);\n        return dir.length\
+  \ > 1 ? dir.replace(/\\/+$/, '') : dir;\n      });\n    for (const dir of bazelIgnored)\
+  \ {\n      if (path.posix.isAbsolute(dir) || dir.split('/').includes('..')) {\n\
+  \        bazelProblems.push(`.bazelignore: invalid path ${dir}`);\n        bazelUnresolvedExclusions\
+  \ = true;\n      }\n    }\n  } catch (error) {\n    bazelProblems.push(`.bazelignore:\
+  \ ${error.message}`);\n    bazelUnresolvedExclusions = true;\n  }\n}\nif (orchestrators.some((o)\
+  \ => o.name === 'bazel') && exists('REPO.bazel')) {\n  try {\n    if (/\\bignore_directories\\\
+  b/.test(fs.readFileSync(path.join(root, 'REPO.bazel'), 'utf8'))) {\n      bazelProblems.push('REPO.bazel\
+  \ ignore_directories is not resolved; Bazel target findings suppressed');\n    \
+  \  bazelUnresolvedExclusions = true;\n    }\n  } catch (error) {\n    bazelProblems.push(`REPO.bazel:\
+  \ ${error.message}`);\n    bazelUnresolvedExclusions = true;\n  }\n}\nfunction findBazelBuildFiles(dir\
+  \ = '') {\n  if (!dir && bazelIgnored.includes('.')) return [];\n  let entries;\n\
+  \  try { entries = fs.readdirSync(path.join(root, dir), { withFileTypes: true });\
+  \ }\n  catch (error) { bazelProblems.push(`${toPosix(dir) || '.'}: ${error.message}`);\
+  \ return []; }\n  if (dir && entries.some((e) => e.isFile() && ['MODULE.bazel',\
+  \ 'WORKSPACE', 'WORKSPACE.bazel'].includes(e.name))) return [];\n  const names =\
+  \ new Set(entries.filter((e) => e.isFile()).map((e) => e.name));\n  const build\
+  \ = names.has('BUILD.bazel') ? 'BUILD.bazel' : names.has('BUILD') ? 'BUILD' : null;\n\
+  \  const files = build ? [toPosix(path.join(dir, build))] : [];\n  for (const entry\
+  \ of entries) {\n    const child = toPosix(path.join(dir, entry.name));\n    if\
+  \ (entry.isDirectory() && !bazelSkipped.has(entry.name)\n        && !bazelIgnored.some((ignored)\
+  \ => child === ignored || child.startsWith(`${ignored}/`))) {\n      files.push(...findBazelBuildFiles(child));\n\
+  \    }\n  }\n  return files;\n}\nconst bazel = orchestrators.some((o) => o.name\
+  \ === 'bazel')\n  ? { buildFiles: findBazelBuildFiles().sort(), errors: bazelProblems,\
+  \ unresolvedExclusions: bazelUnresolvedExclusions }\n  : null;\n\nconst dirs = new\
+  \ Map();\nfor (const g of include) {\n  for (const raw of fs.globSync(`${g.replace(/\\\
+  /$/, '')}/package.json`, { cwd: root, exclude: prune })) {\n    const m = toPosix(raw);\n\
+  \    const d = path.posix.dirname(m);\n    if (!hasSkippedPart(m) && !isExcluded(d))\
+  \ dirs.set(d, 'package.json');\n  }\n}\nif (orchestrators.some((o) => o.name ===\
+  \ 'nx')) {\n  for (const raw of fs.globSync('**/project.json', { cwd: root, exclude:\
+  \ prune })) {\n    const m = toPosix(raw);\n    if (hasSkippedPart(m)) continue;\n\
+  \    const d = path.posix.dirname(m);\n    if (d !== '.' && !dirs.has(d)) dirs.set(d,\
+  \ 'project.json');\n  }\n}\n\nconst packages = [];\nfor (const [dir, source] of\
+  \ dirs) {\n  const abs = path.join(root, dir);\n  const pkg = readJson(path.join(abs,\
+  \ 'package.json')) ?? {};\n  const proj = readJson(path.join(abs, 'project.json'));\n\
+  \  const name = pkg.name ?? proj?.name ?? dir;\n  const exportKeys = typeof pkg.exports\
+  \ === 'string' ? ['.']\n    : pkg.exports && typeof pkg.exports === 'object' ? Object.entries(pkg.exports).filter(([k,\
+  \ v]) => k.startsWith('.') && v !== null).map(([k]) => k) : [];\n  const allDeps\
+  \ = { ...pkg.peerDependencies, ...pkg.optionalDependencies, ...pkg.devDependencies,\
+  \ ...pkg.dependencies };\n  packages.push({\n    name, dir: toPosix(dir), source,\n\
+  \    private: pkg.private === true, version: pkg.version ?? null,\n    scripts:\
+  \ pkg.scripts ?? {}, files: pkg.files ?? null, main: pkg.main ?? null,\n    exports:\
+  \ pkg.exports ?? null, exportKeys,\n    dependencies: pkg.dependencies ?? {}, devDependencies:\
+  \ pkg.devDependencies ?? {}, allDeps,\n    tags: proj?.tags ?? pkg.nx?.tags ?? [],\
+  \ nxTargets: { ...pkg.nx?.targets, ...proj?.targets }, nxName: proj?.name ?? null,\n\
+  \  });\n}\nconst names = new Set(packages.map((p) => p.name));\nfor (const p of\
+  \ packages) {\n  p.workspaceDeps = Object.keys(p.allDeps).filter((d) => names.has(d));\n\
+  \  p.hasTestScript = typeof p.scripts.test === 'string' && !/no test specified/.test(p.scripts.test);\n\
+  }\n\nconst ci = [\n  ...fs.globSync('.github/workflows/*.{yml,yaml}', { cwd: root,\
+  \ exclude: prune }).map(toPosix),\n  ...fs.globSync('.buildkite/*.{yml,yaml}', {\
+  \ cwd: root, exclude: prune }).map(toPosix),\n  ...['.gitlab-ci.yml', 'azure-pipelines.yml',\
+  \ '.circleci/config.yml', 'bitbucket-pipelines.yml', 'Jenkinsfile', '.travis.yml'].filter(exists),\n\
+  ];\n\nconst ws = {\n  root, packageManager: pm, orchestrators, workspaceGlobs: globs,\n\
+  \  rootScripts: rootPkg.scripts ?? {},\n  hasNodeModules: exists('node_modules'),\n\
+  \  tools: { knip: exists('node_modules/.bin/knip'), publint: exists('node_modules/.bin/publint')\
+  \ },\n  ciFiles: ci.map(toPosix),\n  packages, bazel,\n};\nfs.writeFileSync(path.join(work,\
+  \ 'workspace.json'), JSON.stringify(ws, null, 2));\nif (!packages.length && !bazel?.buildFiles.length)\
+  \ {\n  if (bazel?.errors.length) { console.error(`BAZEL_INVENTORY_ERROR: ${bazel.errors.join(';\
+  \ ')}`); process.exit(1); }\n  console.error('NO_WORKSPACE: no workspace packages\
+  \ or Bazel BUILD files found under ' + root); process.exit(2);\n}\nconsole.log(JSON.stringify({\
+  \ root, packageManager: pm, orchestrators, tools: ws.tools, packages: packages.length,\
+  \ ciFiles: ws.ciFiles.length }));\nEOF\nnode \"$W/detect.mjs\" \"<workspace-root>\"\
+  \n```\n\n## Interpreting the result\n\n- Exit code 2 / `NO_WORKSPACE`: no supported\
+  \ workspace packages or Bazel BUILD files were found. Stop and tell the user; do\
+  \ not produce a report.\n- `bazel.buildFiles` lists workspace-relative `BUILD.bazel`\
+  \ / `BUILD` files, preferring `BUILD.bazel` if both exist. Nested `MODULE.bazel`\
+  \ / `WORKSPACE` workspaces, symlinked directories, dependency directories, and `.bazelignore`\
+  \ paths are not traversed. A nested `REPO.bazel` alone does not exclude its directory\
+  \ from the parent workspace's packages. Inventory errors are included in `bazel.errors`\
+  \ and make the Bazel checks partial. `REPO.bazel` `ignore_directories` patterns\
+  \ are not evaluated; when that name occurs in the root file, or exclusions cannot\
+  \ be read, Bazel target findings are suppressed rather than guessed. A Bazel root\
+  \ with BUILD files is accepted without npm workspace packages; `packages` then stays\
+  \ empty, rather than inventing JavaScript packages.\n- A Bazel-only workspace has\
+  \ limited support: run the static Bazel boundary and test-only checks in [bazel.md](bazel.md);\
+  \ mark circular-deps, caching and CI coverage `skipped` with a reason because Java\
+  \ source, Bazel caches, and Bazel CI coverage are not analyzed. The two Bazel-aware\
+  \ checks remain `partial` because JS-specific subchecks and unresolved Bazel constructs\
+  \ are not covered.\n- `orchestrators[].installed: false`: never run nx / turbo (`npx`\
+  \ would download a different version). Use static config analysis only, and mark\
+  \ dependent sub-steps `partial`.\n- `tools.knip` / `tools.publint: false`: skip\
+  \ that tool and mark the check `partial` with reason `${tool} not installed locally`,\
+  \ unless the user explicitly allowed downloads (see SKILL.md).\n- `hasNodeModules:\
+  \ false`: skip `knip`, `publint` and any step that needs resolved dependencies,\
+  \ even if downloads are allowed; mark `partial`.\n- `packages[].source === \"project.json\"\
+  `: an Nx project without its own package.json — package.json-based rules (missing\
+  \ test script, undeclared dependency, npm pack) do not apply to it.\n- Print a one-line\
+  \ summary of the inventory to the user before continuing.\n- `ciFiles` contains\
+  \ the top-level CI files for GitHub Actions, GitLab CI, Azure Pipelines, CircleCI,\
+  \ Bitbucket Pipelines, Jenkins, Buildkite, and Travis. The CI coverage check follows\
+  \ local GitLab `include:` entries and local GitHub reusable workflows referenced\
+  \ from these files.\n\n\x1FFILE:references/prod-leakage.md\x1E\n# Check 5 — Test\
+  \ code in production\n\nQuestion: do test files, fixtures or test libraries end\
+  \ up in a published package or a deployable build?\nOutput: `findings/prod-leakage.json`.\n\
+  \nTest files are `scan.packages[p].testFiles` (the scan classifies `*.spec.*`, `*.test.*`,\
+  \ and files under `__tests__/`, `__mocks__/`, `test/`, `tests/`, `e2e/`, or `cypress/`)\
+  \ plus fixture directories (`fixtures?/`) when checking package tarballs and build\
+  \ outputs.\nTest libraries: `vitest`, `jest`, `@jest/*`, `mocha`, `chai`, `sinon`,\
+  \ `@testing-library/*`, `cypress`, `playwright`, `@playwright/test`, `msw`, `nock`,\
+  \ `supertest`, `ts-jest`, `@vitest/*`.\n\n## Rules\n\n| id | severity | detect |\n\
+  |---|---|---|\n| `prod-leakage/test-files-in-package` | critical | publishable package\
+  \ (`private !== true`) whose tarball contains test files. |\n| `prod-leakage/test-files-in-build-output`\
+  \ | critical | a package's existing output dir contains compiled test files (`*.spec.js`,\
+  \ `*.test.js`, `*.spec.d.ts`, …). Only treat a dir as build output when it is the\
+  \ tsconfig `outDir`, referenced by `main`/`exports`/`files`, or gitignored, **and**\
+  \ the package has a build script or Nx build target. Only check dirs that exist\
+  \ — never build. Evidence should note the output may be stale. |\n| `prod-leakage/build-tsconfig-includes-tests`\
+  \ | high | the build tsconfig `include`s the test files' location and its `exclude`\
+  \ doesn't match them. Build tsconfig = file passed via `-p`/`--project` in the `build`\
+  \ script, else Nx build target `options.tsConfig`, else `tsconfig.build.json`, else\
+  \ `tsconfig.lib.json`, else `tsconfig.json` when the build script is plain `tsc`.\
+  \ Skip packages with neither a build script nor an Nx build target. |\n| `prod-leakage/test-lib-in-dependencies`\
+  \ | high (medium if `private`) | a test library appears in `dependencies` (not `devDependencies`).\
+  \ Consumers install it in production. |\n| `prod-leakage/bazel-testonly-dependency`\
+  \ | high | a Bazel target explicitly tagged `production` and marked `testonly =\
+  \ False` has a literal local dependency path to a target explicitly marked `testonly\
+  \ = True`. Bazel normally rejects this at analysis; it is not evidence that test\
+  \ code shipped. |\n| `prod-leakage/publint-issue` | error→high, warning→medium,\
+  \ suggestion→low | `publint` messages for publishable packages. |\n\nFor a Bazel-only\
+  \ workspace, skip the JS package/build-output subchecks and keep\nthis check `partial`;\
+  \ Java build outputs and shipped artifacts are not analyzed.\n\n## Steps\n\n1. For\
+  \ each publishable package (non-private, `source: package.json`):\n   ```bash\n\
+  \   W=\"$(node -p 'require(\"os\").tmpdir()')/monorepo-doctor\"\n   (cd \"<pkg-dir>\"\
+  \ && npm pack --dry-run --json --ignore-scripts 2>&1)\n   ```\n   Parse `[0].files[].path`;\
+  \ any match of the test pattern → `test-files-in-package` (list up to 10 in `evidence`).\n\
+  \   Parse stdout as JSON. If `npm pack` fails (e.g. `workspace:` protocol under\
+  \ npm), capture the first stderr/stdout line, then fall back to reasoning: if the\
+  \ package has no `files` field and no `.npmignore`, every file not in `.gitignore`\
+  \ ships — compare against `scan.packages[p].testFiles`. If `.npmignore` exists without\
+  \ `files`, honor its simple ignore/negation patterns where possible and state that\
+  \ this is a fallback. If `files` is present, test files ship only if a `files` entry\
+  \ matches them. If `publishConfig.directory` is set, evaluate that directory as\
+  \ the publish root. State in `evidence` that the fallback was used and include the\
+  \ first failure line.\n2. Check existing build output dirs for compiled test files.\n\
+  3. Resolve each package's build tsconfig and check `include`/`exclude` against `scan.packages[p].testFiles`.\
+  \ Treat `include: [\"src\"]` as `src/**/*`. Follow the full `extends` chain for\
+  \ `include`/`exclude` (the nearest config that sets each wins; paths are relative\
+  \ to the config that declares them) and compare `testFiles` against the effective\
+  \ values. If a link in the chain can't be resolved, mark the check `partial` and\
+  \ name the unresolved config in `reason`.\n4. Check `dependencies` against the test-library\
+  \ list.\n5. If `hasNodeModules` and `tools.publint`, for each publishable package\
+  \ that has its build output present:\n   ```bash\n   W=\"$(node -p 'require(\"os\"\
+  ).tmpdir()')/monorepo-doctor\"\n   npm_config_ignore_scripts=true ./node_modules/.bin/publint\
+  \ \"<pkg-dir>\" 2>&1\n   ```\n   If `tools.publint` is false, skip and mark `partial`\
+  \ with reason `publint not installed locally`. Only if the user explicitly allowed\
+  \ downloads, run `npm_config_ignore_scripts=true npx --yes publint@0.3.25 \"<pkg-dir>\"\
+  ` instead (exact version, never `@latest`).\n   publint prints sections `Errors:`,\
+  \ `Warnings:`, `Suggestions:` followed by numbered messages. One finding per message.\
+  \ Skip when `node_modules` is missing. Skip unbuilt packages and set status `partial`\
+  \ with reason `publint skipped for unbuilt packages: …`.\n6. **Bazel test-only targets**\
+  \ — only if Bazel is an orchestrator. Merge `prod-leakage.findings` from `$W/bazel.json`,\
+  \ generated by [bazel.md](bazel.md), and retain its partial reason alongside other\
+  \ skipped subchecks. A test-only target being public, or being used by a test, is\
+  \ not a production leak. If the file is missing or invalid, mark this check `partial`\
+  \ with the failure reason.\n7. Write `findings/prod-leakage.json`.\n\n## Fix guidance\n\
+  \n- test-files-in-package: add `\"files\": [\"dist\"]` to package.json (preferred\
+  \ over `.npmignore`).\n- build-tsconfig-includes-tests: `\"exclude\": [\"**/*.spec.ts\"\
+  , \"**/*.test.ts\", \"**/__tests__/**\"]`.\n- test-lib-in-dependencies: move it\
+  \ to `devDependencies`.\n\x1FFILE:references/report-format.md\x1E\n# Report format\n\
+  \nEvery check writes one file: `$W/findings/${check}.json`\nwhere `${check}` is\
+  \ one of `boundaries`, `circular-deps`, `caching`, `ci-coverage`, `prod-leakage`.\n\
+  \n```json\n{\n  \"status\": \"ok | partial | skipped | not-run\",\n  \"reason\"\
+  : \"required unless status is ok\",\n  \"findings\": [\n    {\n      \"id\": \"\
+  caching/missing-outputs\",\n      \"severity\": \"critical | high | medium | low\"\
+  ,\n      \"title\": \"One line, specific: name the package/task\",\n      \"location\"\
+  : { \"file\": \"turbo.json\", \"line\": 4, \"package\": \"@acme/ui\" },\n      \"\
+  evidence\": \"The exact config/code/command output that proves it\",\n      \"fix\"\
+  : \"Concrete change, ideally a snippet\"\n    }\n  ]\n}\n```\n\n- `ok`: check ran\
+  \ fully. `partial`: some sub-steps skipped (say which in `reason`).\n  `skipped`:\
+  \ check could not run at all. `not-run`: user scoped it out. A missing findings\
+  \ file is rendered as `skipped` with reason `no findings file`; for user-scoped-out\
+  \ checks, write an explicit `not-run` file at `$W/findings/${check}.json`.\n- `location.file`\
+  \ is relative to the workspace root. Include `package` whenever the finding belongs\
+  \ to one package.\n- Never emit a finding without `evidence`. If you are unsure,\
+  \ lower severity and say so in `evidence`; do not guess.\n- Use only the ids defined\
+  \ in the check reference files.\n\n## Severity rubric\n\n| Severity | Meaning |\n\
+  |---|---|\n| critical | Wrong code can ship or tests are silently skipped for real\
+  \ changes |\n| high | Likely incorrect builds/caching or broken CI signal |\n| medium\
+  \ | Correctness risk under specific conditions, or a boundary erosion |\n| low |\
+  \ Hygiene, performance, or maintainability |\n\nSeverity may be lowered one level\
+  \ with a stated reason (e.g., package is private). Never raise it.\n\n## Render\n\
+  \nAfter all checks, run this snippet. It validates every findings file and fails\
+  \ loudly (`stderr`, exit 1) if a status is outside the enum, `reason` is missing\
+  \ for a non-`ok` status, a finding id does not start with `${check}/`, or evidence\
+  \ is missing/empty. Arguments: output directory (default: `$(node -p 'require(\"\
+  os\").tmpdir()')/monorepo-doctor-reports`). The default is outside `$W` because\
+  \ detection wipes `$W`. Write into the audited repo only when the user gives that\
+  \ path explicitly.\n\n```bash\nW=\"$(node -p 'require(\"os\").tmpdir()')/monorepo-doctor\"\
+  \ncat > \"$W/render.mjs\" <<'EOF'\nimport fs from 'node:fs';\nimport os from 'node:os';\n\
+  import path from 'node:path';\nconst work = path.join(os.tmpdir(), 'monorepo-doctor');\n\
+  const ws = JSON.parse(fs.readFileSync(path.join(work, 'workspace.json'), 'utf8'));\n\
+  const outDir = path.resolve(process.argv[2] ?? path.join(os.tmpdir(), 'monorepo-doctor-reports'));\n\
+  fs.mkdirSync(outDir, { recursive: true });\nconst CHECKS = ['boundaries', 'circular-deps',\
+  \ 'caching', 'ci-coverage', 'prod-leakage'];\nconst STATUS = ['ok', 'partial', 'skipped',\
+  \ 'not-run'];\nconst SEV = ['critical', 'high', 'medium', 'low'];\nconst checks\
+  \ = [], findings = [], problems = [];\nfor (const check of CHECKS) {\n  const p\
+  \ = path.join(work, 'findings', `${check}.json`);\n  let r;\n  if (fs.existsSync(p))\
+  \ {\n    try { r = JSON.parse(fs.readFileSync(p, 'utf8')); }\n    catch (e) { problems.push(`${check}:\
+  \ invalid JSON: ${e.message}`); r = { status: 'skipped', reason: 'invalid findings\
+  \ file', findings: [] }; }\n  } else {\n    r = { status: 'skipped', reason: 'no\
+  \ findings file', findings: [] };\n  }\n  if (!STATUS.includes(r.status)) problems.push(`${check}:\
+  \ invalid status ${JSON.stringify(r.status)}`);\n  if (r.status !== 'ok' && !String(r.reason\
+  \ ?? '').trim()) problems.push(`${check}: reason is required when status is ${r.status}`);\n\
+  \  const list = Array.isArray(r.findings) ? r.findings : (problems.push(`${check}:\
+  \ findings must be an array`), []);\n  checks.push({ check, status: r.status, reason:\
+  \ r.reason, findingCount: list.length });\n  for (const f of list) {\n    if (!SEV.includes(f.severity))\
+  \ problems.push(`${check}: unknown severity ${JSON.stringify(f.severity)}${f.id\
+  \ ? ` (${f.id})` : ''}`);\n    if (typeof f.id !== 'string' || !f.id.startsWith(`${check}/`))\
+  \ problems.push(`${check}: finding id must start with ${check}/ (${f.id ?? 'missing'})`);\n\
+  \    if (!String(f.evidence ?? '').trim()) problems.push(`${check}: finding ${f.id\
+  \ ?? '?'} missing evidence`);\n    findings.push({ ...f, check });\n  }\n}\nif (problems.length)\
+  \ {\n  for (const problem of problems) console.error(`ERROR: ${problem}`);\n  process.exit(1);\n\
+  }\nconst safe = (s) => String(s ?? '');\nfindings.sort((a, b) => SEV.indexOf(a.severity)\
+  \ - SEV.indexOf(b.severity)\n  || safe(a.id).localeCompare(safe(b.id))\n  || safe(a.location?.file).localeCompare(safe(b.location?.file))\n\
+  \  || ((a.location?.line ?? 0) - (b.location?.line ?? 0)));\nconst summary = Object.fromEntries(SEV.map((s)\
+  \ => [s, findings.filter((f) => f.severity === s).length]));\nconst report = {\n\
+  \  version: 1,\n  generatedAt: new Date().toISOString(),\n  workspace: { root: ws.root,\
+  \ packageManager: ws.packageManager, orchestrators: ws.orchestrators, packageCount:\
+  \ ws.packages.length },\n  summary, checks, findings,\n};\nfs.writeFileSync(path.join(outDir,\
+  \ 'monorepo-doctor-report.json'), JSON.stringify(report, null, 2) + '\\n');\nconst\
+  \ cell = (v) => safe(v).replace(/\\|/g, '\\\\|').replace(/\\r?\\n/g, '<br>');\n\
+  const heading = (v) => safe(v).replace(/\\s*\\r?\\n\\s*/g, ' ');\n// Escape emphasis\
+  \ chars outside code spans so globs like **/*.spec.ts render verbatim.\nconst inline\
+  \ = (v) => safe(v).split(/(`+[^`]*`+)/).map((p, i) => i % 2 ? p : p.replace(/[\\\
+  \\*_]/g, '\\\\$&')).join('');\nconst loc = (l) => l?.file ? `\\`${l.file}${l.line\
+  \ ? `:${l.line}` : ''}\\`${l.package ? ` (${l.package})` : ''}` : '—';\nconst fenceFor\
+  \ = (s) => '`'.repeat(Math.max(3, ...[...safe(s).matchAll(/`+/g)].map((m) => m[0].length\
+  \ + 1)));\nconst md = [\n  '# Monorepo Doctor Report', '',\n  `**Workspace:** ${ws.packageManager}\
+  \ · ${ws.orchestrators.map((o) => o.name).join(', ') || 'no orchestrator'} · ${ws.packages.length}\
+  \ packages`, '',\n  `**Summary:** ${SEV.map((s) => `${summary[s]} ${s}`).join('\
+  \ · ')}`, '',\n  '| Check | Status | Findings | Note |', '|---|---|---|---|',\n\
+  \  ...checks.map((c) => `| ${cell(c.check)} | ${cell(c.status)} | ${c.findingCount}\
+  \ | ${cell(c.reason ?? '')} |`), '',\n];\nfor (const s of SEV) {\n  const fs_ =\
+  \ findings.filter((f) => f.severity === s);\n  if (!fs_.length) continue;\n  md.push(`##\
+  \ ${s[0].toUpperCase() + s.slice(1)}`, '');\n  for (const f of fs_) {\n    const\
+  \ fence = fenceFor(f.evidence);\n    const fix = safe(f.fix);\n    const fixLines\
+  \ = /\\r?\\n/.test(fix) ? ['**Fix**', '', fenceFor(fix), fix, fenceFor(fix)] : [`**Fix:**\
+  \ ${inline(fix) || '—'}`];\n    md.push(`### ${heading(f.title)}`, '', `- **id:**\
+  \ ${f.id ? `\\`${f.id}\\`` : '—'}`, `- **where:** ${loc(f.location)}`, '', '**Evidence**',\
+  \ '', fence, safe(f.evidence), fence, '', ...fixLines, '');\n  }\n}\nif (!findings.length)\
+  \ md.push('No findings. \U0001F389', '');\nfs.writeFileSync(path.join(outDir, 'monorepo-doctor-report.md'),\
+  \ md.join('\\n'));\nconsole.log(JSON.stringify({ outDir, summary }));\nEOF\nnode\
+  \ \"$W/render.mjs\" \"<output-dir>\"   # replace <output-dir> with a literal path;\
+  \ use the user-given path, or omit it to write to <tmpdir>/monorepo-doctor-reports\n\
+  ```\n\nTell the user the absolute report paths (the render step prints `outDir`).\n\
+  \n## CI mode\n\nWhen the user asks for CI mode (or a fail threshold), write the\
+  \ reports first. In hosted CI, the agent step itself may not be able to fail the\
+  \ job reliably, so document/run this threshold check as a separate workflow step\
+  \ against the report file:\n\n```bash\nnode -e '\nconst fs = require(\"node:fs\"\
+  );\nconst path = require(\"node:path\");\nconst order = [\"low\", \"medium\", \"\
+  high\", \"critical\"];\nconst reportPath = process.argv[1];\nconst threshold = process.argv[2]\
+  \ || \"high\";\nconst min = order.indexOf(threshold);\nif (!reportPath || min ===\
+  \ -1) {\n  console.error(\"usage: node -e <script> <report.json> <low|medium|high|critical>\"\
+  );\n  process.exit(2);\n}\nconst r = JSON.parse(fs.readFileSync(path.resolve(reportPath),\
+  \ \"utf8\"));\nconst bad = (r.findings ?? []).filter((f) => order.indexOf(f.severity)\
+  \ >= min);\nfor (const f of bad) console.error(`${f.severity.toUpperCase()} ${f.id\
+  \ ?? \"—\"} ${f.location?.file ?? \"—\"}`);\nprocess.exit(bad.length ? 1 : 0);\n\
+  ' \"<output-dir>/monorepo-doctor-report.json\" high\n```\n\n\x1FFILE:references/scan.md\x1E\
+  \n# Phase 2 — Source scan\n\nReads `workspace.json`, walks every package's source\
+  \ files, and writes `$W/scan.json`:\n\n| key | content |\n|---|---|\n| `packages[name]`\
+  \ | `{ sourceFiles, testFiles: [file], loc }` (`sourceFiles`/`loc` exclude tests\
+  \ and generated files: `*.gen.*`, `*.generated.*`, `__generated__/`) |\n| `imports`\
+  \ | every import that crosses a package boundary: `{ from, fromSource, target, kind,\
+  \ spec, subpath, file, line, isTest, declared, deep }` |\n| `fileEdges[name]` |\
+  \ intra-package `[fromFile, toFile]` edges from value imports (type-only imports\
+  \ excluded) |\n| `env` | `{ package, file, line, name, isTest }` for `process.env.X`,\
+  \ `process.env['X']`, `import.meta.env.X` |\n\n`kind`: `relative` (`../../other-pkg/src/x`),\
+  \ `package` (`@scope/pkg/sub`), `alias` (tsconfig `paths`).\n`fromSource`: the importing\
+  \ package's `source` from `workspace.json` (`package.json` or `project.json`).\n\
+  `declared`: the importing package lists the target in any dependency field.\n`deep`:\
+  \ the import bypasses the target's public API — any `relative` cross-package import,\
+  \ a package subpath starting with `src/`, `lib/` or `internal/`, or a `src`/`lib`/`internal`\
+  \ package subpath when the target has no `exports`, or any subpath not covered by\
+  \ the target's `exports` keys. Alias imports are resolved to the target package\
+  \ first; aliases to the target entry point stay non-deep, while aliases to any non-entry\
+  \ file are deep.\n\n```bash\nW=\"$(node -p 'require(\"os\").tmpdir()')/monorepo-doctor\"\
+  \ncat > \"$W/scan.mjs\" <<'EOF'\nimport fs from 'node:fs';\nimport os from 'node:os';\n\
+  import path from 'node:path';\nconst work = path.join(os.tmpdir(), 'monorepo-doctor');\n\
+  const ws = JSON.parse(fs.readFileSync(path.join(work, 'workspace.json'), 'utf8'));\n\
+  const root = ws.root;\nconst SKIP_DIRS = new Set(['node_modules', 'dist', 'build',\
+  \ 'out', 'coverage', '.turbo', '.next', '.nx', '.git', 'lib-cov', '.svelte-kit',\
+  \ '.docusaurus', '.output', 'storybook-static', '.vercel', '.cache']);\nconst SRC\
+  \ = /\\.(?:[cm]?[jt]sx?)$/;\nconst GENERATED = /(\\.gen|\\.generated)\\.[cm]?[jt]sx?$|(^|\\\
+  /)__generated__\\//;\nconst TEST = /\\.(spec|test)\\.[cm]?[jt]sx?$|(^|\\/)(__tests__|__mocks__|test|tests|e2e|cypress)(\\\
+  /|$)/;\nconst EXTS = ['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs'];\n\
+  const toPosix = (p) => p.split(path.sep).join('/');\nconst byDir = [...ws.packages].sort((a,\
+  \ b) => b.dir.length - a.dir.length);\nconst owner = (relFile) => byDir.find((p)\
+  \ => relFile === p.dir || relFile.startsWith(p.dir + '/'));\nconst byName = new\
+  \ Map(ws.packages.map((p) => [p.name, p]));\n\nconst stripJsonc = (s) => s\n  .replace(/\"\
+  (?:[^\"\\\\]|\\\\.)*\"|\\/\\/[^\\n]*|\\/\\*[\\s\\S]*?\\*\\//g, (m) => m[0] === '\"\
+  ' ? m : '')\n  .replace(/\"(?:[^\"\\\\]|\\\\.)*\"|,(\\s*[}\\]])/g, (m, g) => g !==\
+  \ undefined ? g : m);\nconst readJsonc = (p) => {\n  if (!fs.existsSync(p)) return\
+  \ null;\n  try { return JSON.parse(stripJsonc(fs.readFileSync(p, 'utf8'))); }\n\
+  \  catch (e) { console.error(`WARN: failed to parse ${toPosix(path.relative(root,\
+  \ p))}: ${e.message}`); return null; }\n};\nconst tsBasePath = path.join(root, 'tsconfig.base.json');\n\
+  const tsConfigPath = path.join(root, 'tsconfig.json');\nconst tsBaseJson = readJsonc(tsBasePath);\n\
+  const tsConfigJson = readJsonc(tsConfigPath);\nconst tsBase = tsBaseJson?.compilerOptions?.paths\
+  \ ? tsBaseJson : (tsConfigJson?.compilerOptions?.paths ? tsConfigJson : (tsBaseJson\
+  \ ?? tsConfigJson ?? {}));\nconst baseUrl = path.join(root, tsBase.compilerOptions?.baseUrl\
+  \ ?? '.');\nconst aliases = Object.entries(tsBase.compilerOptions?.paths ?? {})\n\
+  \  .map(([k, v]) => ({ key: k, target: Array.isArray(v) ? v[0] : v }))\n  .filter((a)\
+  \ => typeof a.target === 'string')\n  .sort((a, b) => (a.key.includes('*') - b.key.includes('*'))\
+  \ || b.key.replace('*', '').length - a.key.replace('*', '').length);\nfunction matchAlias(spec)\
+  \ {\n  return aliases.find((a) => a.key === spec || (a.key.endsWith('*') && spec.startsWith(a.key.slice(0,\
+  \ -1))));\n}\n\nfunction walk(dir, out) {\n  let entries = [];\n  try { entries\
+  \ = fs.readdirSync(dir, { withFileTypes: true }); } catch { return out; }\n  for\
+  \ (const e of entries) {\n    if (e.isDirectory()) { if (!SKIP_DIRS.has(e.name))\
+  \ walk(path.join(dir, e.name), out); }\n    else if (SRC.test(e.name) && !e.name.endsWith('.d.ts'))\
+  \ out.push(path.join(dir, e.name));\n  }\n  return out;\n}\nfunction resolveFile(abs)\
+  \ {\n  const cands = [abs, ...EXTS.map((e) => abs + e), ...EXTS.map((e) => path.join(abs,\
+  \ 'index' + e))];\n  if (/\\.[cm]?js$/.test(abs)) cands.push(...['.ts', '.tsx',\
+  \ '.mts', '.cts'].map((e) => abs.replace(/\\.[cm]?js$/, e)));\n  if (/\\.jsx$/.test(abs))\
+  \ cands.push(abs.replace(/\\.jsx$/, '.tsx'));\n  return cands.find((c) => { try\
+  \ { return fs.statSync(c).isFile(); } catch { return false; } }) ?? null;\n}\nfunction\
+  \ exportEntries(pkg) {\n  if (typeof pkg.exports === 'string') return [['.', pkg.exports]];\n\
+  \  if (pkg.exports && typeof pkg.exports === 'object') return Object.entries(pkg.exports).filter(([k,\
+  \ v]) => k.startsWith('.') && v !== null);\n  return (pkg.exportKeys ?? []).map((k)\
+  \ => [k, true]);\n}\nfunction covered(pkg, subpath) {\n  const entries = exportEntries(pkg);\n\
+  \  if (!entries.length) return true;\n  const want = './' + subpath;\n  return entries.some(([k])\
+  \ => k === want || (k.endsWith('/') && want.startsWith(k)) || (k.includes('*') &&\
+  \ new RegExp('^' + k.split('*').map((s) => s.replace(/[.+?^${}()|[\\]\\\\]/g, '\\\
+  \\$&')).join('.*') + '$').test(want)));\n}\nconst entryValues = (value) => {\n \
+  \ if (typeof value === 'string') return [value];\n  if (value && typeof value ===\
+  \ 'object') return Object.values(value).flatMap(entryValues);\n  return [];\n};\n\
+  function isEntrySubpath(pkg, subpath) {\n  const norm = (s) => s.replace(/^\\.\\\
+  //, '').replace(/\\.[cm]?[jt]sx?$/, '').replace(/\\/(?:index)$/, '/index');\n  const\
+  \ bare = norm(subpath);\n  const entries = new Set(['index', 'src/index']);\n  if\
+  \ (pkg.main) entries.add(norm(pkg.main));\n  if (typeof pkg.exports === 'string')\
+  \ entries.add(norm(pkg.exports));\n  else if (pkg.exports && typeof pkg.exports\
+  \ === 'object' && pkg.exports['.'] !== undefined && pkg.exports['.'] !== null) {\n\
+  \    for (const v of entryValues(pkg.exports['.'])) entries.add(norm(v));\n  }\n\
+  \  return entries.has(bare);\n}\nfunction lineStarts(text) {\n  const starts = [0];\n\
+  \  for (let i = 0; i < text.length; i++) if (text.charCodeAt(i) === 10) starts.push(i\
+  \ + 1);\n  return starts;\n}\nfunction lineAt(starts, idx) {\n  let lo = 0, hi =\
+  \ starts.length - 1;\n  while (lo <= hi) {\n    const mid = (lo + hi) >> 1;\n  \
+  \  if (starts[mid] <= idx) lo = mid + 1; else hi = mid - 1;\n  }\n  return hi +\
+  \ 1;\n}\nconst stripComments = (s) => s.replace(/\\/\\*[\\s\\S]*?\\*\\//g, '').replace(/\\\
+  /\\/[^\\n]*/g, '');\nfunction allNamedSpecifiersAreTypeOnly(clause = '') {\n  const\
+  \ m = clause.match(/\\{([\\s\\S]*?)\\}/);\n  if (!m) return false;\n  const beforeBrace\
+  \ = stripComments(clause.slice(0, m.index)).replace(/[\\s,]/g, '');\n  if (beforeBrace.length\
+  \ > 0) return false;\n  const specs = stripComments(m[1]).split(',').map((s) =>\
+  \ s.trim()).filter(Boolean);\n  return specs.length > 0 && specs.every((s) => /^type\\\
+  s+[$\\w]+(?:\\s+as\\s+[$\\w]+)?$/.test(s));\n}\n\nconst scan = { packages: {}, imports:\
+  \ [], fileEdges: {}, env: [] };\nfor (const pkg of ws.packages) {\n  const files\
+  \ = walk(path.join(root, pkg.dir), []).filter((f) => owner(toPosix(path.relative(root,\
+  \ f)))?.name === pkg.name);\n  const info = { sourceFiles: 0, testFiles: [], loc:\
+  \ 0 };\n  const edges = [];\n  for (const abs of files) {\n    const file = toPosix(path.relative(root,\
+  \ abs));\n    const packageRel = pkg.dir === '.' ? file : file.slice(pkg.dir.length\
+  \ + 1);\n    const isTest = TEST.test(packageRel);\n    const text = fs.readFileSync(abs,\
+  \ 'utf8');\n    const starts = lineStarts(text);\n    if (isTest) info.testFiles.push(file);\
+  \ else if (!GENERATED.test(packageRel)) { info.sourceFiles++; info.loc += text.split('\\\
+  n').length; }\n    const specs = [];\n    const importRe = /^[ \\t]*(import|export)\\\
+  s+(type\\s+)?((?:(?!\\n[ \\t]*(?:import|export)\\b)[\\w$*{},\\s]|\\/\\/[^\\n]*\\\
+  n|\\/\\*[\\s\\S]*?\\*\\/)*?\\bfrom\\s*)?['\"]([^'\"\\n]+)['\"]/gm;\n    for (const\
+  \ m of text.matchAll(importRe)) {\n      if (m[2]) continue;\n      if (m[1] ===\
+  \ 'export' && !m[3]) continue;\n      if (allNamedSpecifiersAreTypeOnly(m[3])) continue;\n\
+  \      specs.push({ spec: m[4], line: lineAt(starts, m.index + m[0].search(/\\S/))\
+  \ });\n    }\n    for (const m of text.matchAll(/\\b(?:import|require)\\s*\\(\\\
+  s*['\"]([^'\"\\n]+)['\"]\\s*\\)/g)) {\n      const line = lineAt(starts, m.index);\n\
+  \      if (/\\bimport\\s+type\\s+[\\w$]+\\s*=\\s*$/.test(text.slice(Math.max(0,\
+  \ m.index - 200), m.index))) continue;\n      specs.push({ spec: m[1], line });\n\
+  \    }\n    for (const m of text.matchAll(/\\bprocess\\.env\\.([A-Za-z_][\\w]*)|\\\
+  bprocess\\.env\\[\\s*['\"]([^'\"]+)['\"]\\s*\\]|\\bimport\\.meta\\.env\\.([A-Za-z_][\\\
+  w]*)/g)) {\n      scan.env.push({ package: pkg.name, file, line: lineAt(starts,\
+  \ m.index), name: m[1] ?? m[2] ?? m[3], isTest });\n    }\n    for (const { spec,\
+  \ line } of specs) {\n      let kind, target, subpath = '', resolved = null;\n \
+  \     if (spec.startsWith('.')) {\n        resolved = resolveFile(path.resolve(path.dirname(abs),\
+  \ spec));\n        const relTarget = toPosix(path.relative(root, resolved ?? path.resolve(path.dirname(abs),\
+  \ spec)));\n        const t = owner(relTarget);\n        if (!t) continue;\n   \
+  \     if (t.name === pkg.name) { if (resolved) edges.push([file, toPosix(path.relative(root,\
+  \ resolved))]); continue; }\n        kind = 'relative'; target = t.name; subpath\
+  \ = relTarget.slice(t.dir.length + 1);\n      } else {\n        const parts = spec.split('/');\n\
+  \        const name = spec.startsWith('@') ? parts.slice(0, 2).join('/') : parts[0];\n\
+  \        if (byName.has(name)) { kind = 'package'; target = name; subpath = parts.slice(spec.startsWith('@')\
+  \ ? 2 : 1).join('/'); }\n        else {\n          const a = matchAlias(spec);\n\
+  \          if (!a) continue;\n          const mapped = a.key.endsWith('*') ? a.target.replace('*',\
+  \ spec.slice(a.key.length - 1)) : a.target;\n          resolved = resolveFile(path.resolve(baseUrl,\
+  \ mapped)) ?? path.resolve(baseUrl, mapped);\n          const relResolved = toPosix(path.relative(root,\
+  \ resolved));\n          const t = owner(relResolved);\n          if (!t || t.name\
+  \ === pkg.name) continue;\n          kind = 'alias'; target = t.name; subpath =\
+  \ relResolved.slice(t.dir.length + 1);\n        }\n      }\n      const tp = byName.get(target);\n\
+  \      const entry = isEntrySubpath(tp, subpath);\n      const hasExports = exportEntries(tp).length\
+  \ > 0;\n      const deep = kind === 'relative'\n        || (kind === 'alias' ? !entry\n\
+  \          : (subpath !== '' && (hasExports ? !covered(tp, subpath) : /^(src|lib|internal)(\\\
+  /|$)/.test(subpath))));\n      scan.imports.push({ from: pkg.name, fromSource: pkg.source,\
+  \ target, kind, spec, subpath, file, line, isTest, declared: pkg.workspaceDeps.includes(target),\
+  \ deep });\n    }\n  }\n  scan.packages[pkg.name] = info;\n  scan.fileEdges[pkg.name]\
+  \ = edges;\n}\nfs.writeFileSync(path.join(work, 'scan.json'), JSON.stringify(scan,\
+  \ null, 2));\nconsole.log(JSON.stringify({\n  packages: Object.keys(scan.packages).length,\n\
+  \  crossPackageImports: scan.imports.length,\n  undeclared: scan.imports.filter((i)\
+  \ => !i.declared).length,\n  deep: scan.imports.filter((i) => i.deep).length,\n\
+  \  envReads: scan.env.length,\n}));\nEOF\nnode \"$W/scan.mjs\"\n```\n\nNotes for\
+  \ the agent:\n- The scan is regex-based. Commented-out imports can produce false\
+  \ positives — open the file at `line` to confirm before reporting.\n- Type-only\
+  \ imports (`import type …`, `export type … from`, imports whose named specifiers\
+  \ are all `type X`, and `import type X = require(…)`) are excluded because they\
+  \ are erased at compile time.\n- `.vue`, `.svelte`, and `.astro` files are not scanned.\n\
+  - Same-package aliases such as `@/x` produce no file edges; package-boundary checks\
+  \ are unaffected.\n- Environment reads using destructuring, such as `const { API_URL\
+  \ } = process.env`, are not detected.\n- Huge repos: the scan is linear in file\
+  \ count and import/env match count, with line numbers resolved by precomputed offsets;\
+  \ if it takes > 2 minutes, tell the user and proceed."
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
