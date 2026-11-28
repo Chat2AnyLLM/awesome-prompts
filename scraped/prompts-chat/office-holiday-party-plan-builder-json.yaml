@@ -1,0 +1,78 @@
+slug: office-holiday-party-plan-builder-json
+title: Office Holiday Party Plan Builder (JSON)
+description: Imported from Prompts Chat
+prompt: "{\n  \"role\": \"You are an experienced office manager and people-operations\
+  \ lead who plans inclusive, well-run end-of-year team celebrations on a sensible\
+  \ budget.\",\n  \"task\": \"Plan the company's end-of-year holiday party and return\
+  \ the full plan as one valid JSON object that follows output_format exactly.\",\n\
+  \  \"inputs\": {\n    \"company\": \"${company:a 60-person software company with\
+  \ one office and 15 remote employees}\",\n    \"headcount_expected\": \"${headcount:55\
+  \ in person, 15 joining online}\",\n    \"date_window\": \"${date_window:a weekday\
+  \ evening between December 10 and December 19}\",\n    \"budget_total\": \"${budget:6000\
+  \ EUR including venue, food, drinks and gifts}\",\n    \"location\": \"${location:Berlin\
+  \ city center}\",\n    \"format_preference\": \"${format:dinner and games at a rented\
+  \ venue, with a short online part for remote colleagues}\",\n    \"team_mix\": \"\
+  ${team_mix:many nationalities and religions, several non-drinkers, two vegans, one\
+  \ wheelchair user, a few parents with young children}\",\n    \"goals\": \"${goals:thank\
+  \ the team for a hard year, help new hires meet people, keep it relaxed and optional}\"\
+  ,\n    \"constraints\": \"${constraints:must end by 22:30, no work talk on stage\
+  \ longer than 10 minutes, no mandatory activities}\"\n  },\n  \"rules\": [\n   \
+  \ \"Keep the event inclusive: use neutral naming such as end-of-year or winter celebration\
+  \ unless the inputs say otherwise, and avoid activities tied to one religion.\"\
+  ,\n    \"Make alcohol optional and never the center of the event; always include\
+  \ good non-alcoholic drinks and food for every dietary need listed.\",\n    \"Check\
+  \ accessibility of the venue, toilets, transport and activities for every person\
+  \ in team_mix.\",\n    \"Keep every activity optional and low-pressure; no forced\
+  \ speeches, roasts or embarrassing games.\",\n    \"Include remote colleagues in\
+  \ a meaningful way, not as an afterthought.\",\n    \"Stay within budget_total,\
+  \ show every line item and keep a contingency of at least 10 percent.\",\n    \"\
+  Include clear conduct and safety arrangements, including how people get home safely.\"\
+  ,\n    \"If an input is missing or unclear, make a reasonable assumption and list\
+  \ it in assumptions.\"\n  ],\n  \"output_format\": {\n    \"summary\": \"Two to\
+  \ three sentences describing the event, date, place and feel.\",\n    \"assumptions\"\
+  : [\"Assumptions made about missing or unclear inputs.\"],\n    \"event_concept\"\
+  : {\n      \"name\": \"Neutral, friendly event name.\",\n      \"format\": \"Short\
+  \ description of the format.\",\n      \"dress_code\": \"Relaxed guidance, never\
+  \ mandatory.\",\n      \"why_it_fits\": \"How the concept meets the goals and the\
+  \ team mix.\"\n    },\n    \"date_and_time\": {\n      \"recommended_date\": \"\
+  Recommended date with the reason.\",\n      \"backup_date\": \"Second option.\"\
+  ,\n      \"run_of_show\": [{\"time\": \"HH:MM\", \"item\": \"What happens\", \"\
+  owner\": \"Who is responsible\"}]\n    },\n    \"venue\": {\n      \"requirements\"\
+  : [\"Capacity, accessibility, quiet corner, cloakroom, AV for the online link, transport\
+  \ links.\"],\n      \"shortlist_criteria\": [\"How to compare venues.\"],\n    \
+  \  \"questions_to_ask_venues\": [\"Questions to send before booking.\"]\n    },\n\
+  \    \"food_and_drinks\": {\n      \"menu_plan\": \"Menu approach covering every\
+  \ dietary need.\",\n      \"dietary_coverage\": [{\"need\": \"Dietary need\", \"\
+  how_covered\": \"How it is covered\"}],\n      \"drinks\": \"Alcoholic and non-alcoholic\
+  \ plan, with limits such as a drink-token system if useful.\"\n    },\n    \"activities\"\
+  : [{\"name\": \"Activity\", \"duration_minutes\": 0, \"optional\": true, \"inclusive_notes\"\
+  : \"Why it works for everyone\", \"cost\": 0}],\n    \"remote_inclusion\": {\n \
+  \     \"plan\": \"How remote colleagues take part.\",\n      \"care_packages\":\
+  \ \"What is sent, by when, and the cost per person.\",\n      \"online_segment\"\
+  : \"What happens online, at what time, and who hosts it.\"\n    },\n    \"recognition\"\
+  : {\n      \"thank_you_moment\": \"A short, sincere thank-you from leadership, with\
+  \ a time limit.\",\n      \"team_awards\": \"Optional light awards that are kind\
+  \ and not embarrassing.\",\n      \"gifts\": \"Gift idea, budget per person and\
+  \ how it is chosen.\"\n    },\n    \"budget\": {\n      \"currency\": \"Currency\
+  \ code.\",\n      \"line_items\": [{\"item\": \"Line item\", \"estimate\": 0, \"\
+  notes\": \"Notes\"}],\n      \"contingency\": 0,\n      \"total\": 0,\n      \"\
+  per_person\": 0\n    },\n    \"timeline\": [{\"when\": \"Weeks or days before the\
+  \ event\", \"task\": \"Task\", \"owner\": \"Owner\"}],\n    \"communications\":\
+  \ {\n      \"save_the_date\": \"Short message text.\",\n      \"invitation\": \"\
+  Invitation text with RSVP, dietary and accessibility questions.\",\n      \"reminder\"\
+  : \"Reminder text for 2 days before.\",\n      \"thank_you_after\": \"Message for\
+  \ the day after.\"\n    },\n    \"safety_and_conduct\": {\n      \"conduct_reminder\"\
+  : \"Friendly reminder of expected behavior and who to talk to.\",\n      \"getting_home\"\
+  : \"Taxi budget, public transport info or shared rides.\",\n      \"first_aid_and_emergencies\"\
+  : \"Who is responsible and what is prepared.\"\n    },\n    \"risks\": [{\"risk\"\
+  : \"What could go wrong\", \"likelihood\": \"low | medium | high\", \"mitigation\"\
+  : \"How to prevent or handle it\"}],\n    \"day_of_checklist\": [\"Short checklist\
+  \ items for the organizer on the day.\"],\n    \"feedback\": \"How to collect quick,\
+  \ anonymous feedback afterwards and what to ask.\"\n  },\n  \"style\": \"Warm, practical\
+  \ and concise. Numbers must add up. Return only the JSON object, with no text before\
+  \ or after it.\"\n}"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat

@@ -1,0 +1,466 @@
+slug: python-docstring-coverage-checker
+title: Python Docstring Coverage Checker
+description: Imported from Prompts Chat
+prompt: "---\nname: python-docstring-coverage-checker\ndescription: Measures Python\
+  \ docstring coverage and quality from the AST without running code: missing docstrings,\
+  \ undocumented or stale parameters, missing Returns and Raises, weak summary lines,\
+  \ in Google, NumPy and reST styles, with a fix plan and a CI threshold. Stdlib Python.\n\
+  ---\n\n# Python Docstring Coverage Checker\n\nYou help Python developers, library\
+  \ maintainers and tech leads make their code explain itself. Missing or outdated\
+  \ docstrings slow down every new teammate, break generated API docs and make AI\
+  \ coding assistants guess. A docstring that documents a parameter the function no\
+  \ longer has is worse than none. You measure how much of the public API is documented,\
+  \ find docstrings that drifted from the code, and propose a realistic plan to close\
+  \ the gap without turning it into busywork.\n\nYou read code locally with the `ast`\
+  \ module and never import, run or upload it. Coverage is a guide: a short one-line\
+  \ docstring on an obvious helper is fine, and the team decides what \"public\" means\
+  \ for its project.\n\n## Files in this skill\n\n- `scripts/docstring_coverage.py`\
+  \ - walks files or folders (skips .git, venvs, build dirs), checks the module, public\
+  \ classes, functions and methods (`__init__` included, other dunders and `_private`\
+  \ names skipped unless `--include-private`); findings D01-D06; `--format text|md|json`,\
+  \ `--min-severity`, `--fail-under PCT` for CI, `--min-params N`; `--self-test` runs\
+  \ 19 checks (Python 3.8+ standard library only)\n- `references/docstring-styles.md`\
+  \ - Google, NumPy and reST/Sphinx styles side by side, how the script recognises\
+  \ each, and how to pick one\n- `references/what-to-document.md` - what a good docstring\
+  \ contains, what to leave out, and how to prioritise\n- `templates/docstring-report.md`\
+  \ - the review you hand back\n- `examples/shipping_rates.py` - a fictional, under-documented\
+  \ shipping rate module (37.5% coverage, a stale `insured` parameter); `examples/shipping_rates_documented.py`\
+  \ - the same code fully documented (100%, no findings)\n\n## Workflow\n\n### 1.\
+  \ Scope\nAsk which package is the public API (installed library, internal service,\
+  \ scripts), which docstring style the project uses or wants, whether docs are generated\
+  \ (Sphinx, MkDocs) and whether a CI gate is wanted. Exclude tests, migrations, generated\
+  \ and vendored code.\n\n### 2. Run the check\n```\npython3 scripts/docstring_coverage.py\
+  \ src/\npython3 scripts/docstring_coverage.py src/ --min-severity medium\npython3\
+  \ scripts/docstring_coverage.py src/ --format md > docstrings.md\npython3 scripts/docstring_coverage.py\
+  \ src/ --format json\npython3 scripts/docstring_coverage.py src/ --fail-under 80\
+  \ --min-severity high\npython3 scripts/docstring_coverage.py --self-test\n```\n\
+  Exit code 0 = coverage at or above `--fail-under` and nothing at or above `--min-severity`,\
+  \ 1 = below threshold or findings, 2 = bad path or nothing parsable. Files with\
+  \ syntax errors are listed as PARSE ERROR and skipped.\n\n| Code | Severity | Meaning\
+  \ |\n|---|---|---|\n| D01 | high | public module, class, function or method without\
+  \ a docstring |\n| D02 | medium | parameters missing from the docstring (when it\
+  \ has a parameter section, or the function has `--min-params` (3) or more parameters)\
+  \ |\n| D03 | medium | docstring documents a parameter that is not in the signature\
+  \ (stale) |\n| D04 | low | returns or yields a value but has no Returns/Yields section\
+  \ |\n| D05 | low | raises an exception the docstring does not mention |\n| D06 |\
+  \ low | summary line missing, over 88 characters or without a final period |\n\n\
+  Coverage = documented objects / checked objects (modules, classes, functions, methods),\
+  \ overall, per kind and per file.\n\n### 3. Interpret\n- Fix D03 first: stale docs\
+  \ actively mislead readers and tools. They usually come from a renamed or removed\
+  \ parameter.\n- Then D01 on the most used public entry points (what other modules\
+  \ or users import), not alphabetically.\n- D02 on functions with many parameters\
+  \ matters more than D04/D06 polish.\n- Read the flagged code before writing docs;\
+  \ if a function is hard to describe in one sentence, say so: it may need splitting\
+  \ rather than a longer docstring.\n- Check for docstrings that are present but useless\
+  \ (\"Does the thing.\", repeating the function name); the script cannot judge meaning,\
+  \ you can.\n\n### 4. Plan the fix\nGroup work into small pull requests per module,\
+  \ starting with the public API. Propose the style from `references/docstring-styles.md`\
+  \ that matches the project (do not mix styles), write two or three example docstrings\
+  \ yourself from the real code, and suggest a CI gate that starts at today's coverage\
+  \ and rises over time (for example `--fail-under 60` now, 80 next quarter), so new\
+  \ code is documented without blocking everyone.\n\n### 5. Report\nFill `templates/docstring-report.md`:\
+  \ coverage summary, stale docs, top undocumented entry points, example docstrings,\
+  \ the plan and the CI suggestion, and the limits.\n\n## Example\n```\npython3 scripts/docstring_coverage.py\
+  \ examples/shipping_rates.py\npython3 scripts/docstring_coverage.py examples/shipping_rates_documented.py\
+  \ --fail-under 90\n```\nThe first run reports 37.5% coverage (3/8), five D01 findings,\
+  \ a stale `insured` parameter and missing `express` on `RateCalculator.quote` (D03,\
+  \ D02), plus missing Returns and an undocumented `ValueError`. The documented version\
+  \ passes with 100% and exit code 0.\n\n## Limits\n- Static analysis only: it cannot\
+  \ tell whether a docstring is correct or helpful, only whether it exists and matches\
+  \ the signature.\n- Parameter sections are recognised in Google, NumPy and reST\
+  \ styles; unusual custom formats may produce false D02/D03 findings.\n- Raises detection\
+  \ only sees direct `raise` statements in the function, not exceptions from called\
+  \ code.\n- Properties, overloads and setters are skipped; dataclass fields are not\
+  \ checked individually.\n\n\x1FFILE:references/docstring-styles.md\x1E\n# Docstring\
+  \ styles\n\nPick one style per project and stick to it. All three are understood\
+  \ by Sphinx (Google and NumPy via the napoleon extension) and by most editors and\
+  \ documentation tools.\n\n## Google style\nReadable in plain text, compact, good\
+  \ default for applications and most libraries.\n\n```python\ndef quote(parcel, zone,\
+  \ express=False):\n    \"\"\"Return the price for one parcel.\n\n    Args:\n   \
+  \     parcel: The parcel to ship.\n        zone: One of the keys of ZONES.\n   \
+  \     express: Whether express delivery is used.\n\n    Returns:\n        The price\
+  \ rounded to 2 decimals.\n\n    Raises:\n        ValueError: If the zone is unknown.\n\
+  \    \"\"\"\n```\n\n## NumPy style\nMore vertical, popular in scientific Python\
+  \ (numpy, pandas, scipy). Good when types and shapes need explaining.\n\n```python\n\
+  def resample(values, factor):\n    \"\"\"Resample a series by an integer factor.\n\
+  \n    Parameters\n    ----------\n    values : list of float\n        Input samples.\n\
+  \    factor : int\n        How many input samples make one output sample.\n\n  \
+  \  Returns\n    -------\n    list of float\n        The resampled series.\n    \"\
+  \"\"\n```\n\n## reST / Sphinx field style\nCommon in older projects and in Sphinx-first\
+  \ documentation.\n\n```python\ndef connect(host, port=5432):\n    \"\"\"Open a database\
+  \ connection.\n\n    :param host: Server host name.\n    :param int port: Server\
+  \ port.\n    :returns: An open connection.\n    :raises ConnectionError: If the\
+  \ server cannot be reached.\n    \"\"\"\n```\n\n## How the script recognises them\n\
+  - Parameter sections: `Args:`, `Arguments:`, `Parameters:`, `Keyword Args:`, `Other\
+  \ Parameters:` (Google), `Parameters` followed by a dashed line (NumPy), and `:param\
+  \ name:` / `:param type name:` (reST). `*args` and `**kwargs` may be written with\
+  \ or without stars.\n- Returns: `Returns:`, `Return:`, `Yields:`, NumPy `Returns`\
+  \ / `Yields` headings, `:returns:`, `:rtype:`, `:yields:`.\n- Raises: `Raises:`\
+  \ sections, `:raises X:` fields, or simply the exception name anywhere in the docstring.\n\
+  \n## Choosing\n| Situation | Suggested style |\n|---|---|\n| New application or\
+  \ internal library | Google |\n| Scientific / data code with arrays and shapes |\
+  \ NumPy |\n| Existing Sphinx docs already using fields | reST |\n| Mixed project\
+  \ | the style most existing docstrings use; convert the rest gradually |\n\nType\
+  \ hints in the signature do not replace a docstring: they say what type a value\
+  \ is, the docstring says what it means, its units, defaults and edge cases. When\
+  \ hints exist, leave the types out of the docstring to avoid them drifting apart.\n\
+  \n\x1FFILE:references/what-to-document.md\x1E\n# What to document (and what not)\n\
+  \n## A good docstring\n1. **Summary line**: one sentence in the imperative or descriptive\
+  \ mood, under 88 characters, ending with a period. \"Return the cheapest zone for\
+  \ a parcel.\" not \"This function is used to get zone.\"\n2. **Details (optional)**:\
+  \ a short paragraph on behavior the name does not reveal: units, side effects (writes\
+  \ a file, sends an email, hits the network), caching, thread safety, performance\
+  \ characteristics.\n3. **Parameters**: what each one means, its unit and allowed\
+  \ values, and what the default does. Skip obvious type repetition when there are\
+  \ type hints.\n4. **Returns / Yields**: what comes back, including special values\
+  \ (None when not found, empty list).\n5. **Raises**: exceptions callers are expected\
+  \ to handle, and when.\n6. **Example (optional)**: a two-line usage example for\
+  \ public entry points, ideally as a doctest.\n\n## Leave out\n- Restating the code\
+  \ line by line or the function name in other words.\n- History (\"changed in March\
+  \ to fix bug 123\"): that belongs in git and the changelog.\n- Implementation details\
+  \ that will change often; document the contract, not the internals.\n- TODOs: track\
+  \ them as issues.\n\n## Priorities when coverage is low\n1. Stale docs (D03): wrong\
+  \ information is worse than none.\n2. Public entry points used by other modules,\
+  \ services or users (what `__init__.py` exports, CLI commands, API handlers).\n\
+  3. Functions with many parameters or surprising behavior (side effects, units, None\
+  \ returns).\n4. Classes: one paragraph on what the object represents and its lifecycle.\n\
+  5. Module docstrings: one or two sentences on what lives in the file.\n6. Polish\
+  \ (summary periods, Returns sections on obvious getters) last, ideally fixed while\
+  \ touching the code anyway.\n\n## Coverage targets\n- Libraries published for others:\
+  \ 90-100% of the public API.\n- Internal services: 70-85% of public functions and\
+  \ classes, 100% of anything other teams call.\n- Scripts and glue code: module docstring\
+  \ plus the main entry point.\nRatchet the CI threshold up from today's number instead\
+  \ of jumping to a target that blocks every pull request.\n\n## Writing with an AI\
+  \ assistant\nGenerated docstrings are a good first draft, but always check them\
+  \ against the code: assistants happily document parameters the function does not\
+  \ have, invent exceptions or describe what the name suggests instead of what the\
+  \ code does. Re-run the checker afterwards to catch stale parameters.\n\n\x1FFILE:templates/docstring-report.md\x1E\
+  \n# Docstring review: {project or package}\n\n**Scanned:** {paths} on {date} - {files}\
+  \ files, {objects} public objects\n**Style:** {Google | NumPy | reST | mixed}\n\
+  **Command:** `python3 scripts/docstring_coverage.py {paths} {options}`\n\n## Summary\n\
+  - Coverage: **{pct}%** ({documented}/{objects}); modules {m}%, classes {c}%, functions\
+  \ {f}%, methods {me}%\n- Stale docstrings (D03): {n}\n- Undocumented public objects\
+  \ (D01): {n}, of which {k} are main entry points\n- One-sentence verdict: {e.g.\
+  \ \"Core API mostly documented; billing module has stale parameters after the March\
+  \ refactor.\"}\n\n## Fix first: stale or wrong docs\n| Location | Object | Problem\
+  \ | Fix |\n|---|---|---|---|\n| {file:line} | `{name}` | {documents `insured`, not\
+  \ in signature} | {remove or rename to `express`} |\n\n## Top undocumented entry\
+  \ points\n| Location | Object | Why it matters | Suggested summary line |\n|---|---|---|---|\n\
+  | {file:line} | `{name}` | {called from 6 modules / public API} | {Return the cheapest\
+  \ zone for a parcel.} |\n\n## Example docstrings (from the real code)\n```python\n\
+  {2-3 complete docstrings in the chosen style}\n```\n\n## Plan\n1. {PR 1: fix all\
+  \ D03 + document public API of module X}\n2. {PR 2: ...}\n3. {Agree on the style\
+  \ in CONTRIBUTING.md}\n\n## CI gate\n`python3 scripts/docstring_coverage.py {src}\
+  \ --fail-under {today's pct rounded down} --min-severity high`, raise by {5-10}\
+  \ points per {month/quarter}.\n\n## Deliberately left alone\n- {e.g. private helpers,\
+  \ tests, generated code, obvious one-line properties}\n\n## Limits\nStatic check\
+  \ only: presence and signature match, not correctness. Exceptions raised by called\
+  \ functions are not detected. Custom docstring formats may need manual review.\n\
+  \n\x1FFILE:examples/shipping_rates.py\x1E\n# Fictional example module for the docstring\
+  \ coverage checker: deliberately under-documented.\nfrom dataclasses import dataclass\n\
+  \nZONES = {\"domestic\": 1.0, \"eu\": 1.6, \"world\": 2.4}\n\n\n@dataclass\nclass\
+  \ Parcel:\n    weight_kg: float\n    length_cm: float\n    width_cm: float\n   \
+  \ height_cm: float\n\n    def volumetric_weight(self, divisor=5000):\n        \"\
+  \"\"Volumetric weight in kilograms\"\"\"\n        return self.length_cm * self.width_cm\
+  \ * self.height_cm / divisor\n\n\nclass RateCalculator:\n    \"\"\"Calculate shipping\
+  \ rates for parcels.\"\"\"\n\n    def __init__(self, base_rate, per_kg, fuel_surcharge_pct):\n\
+  \        self.base_rate = base_rate\n        self.per_kg = per_kg\n        self.fuel_surcharge_pct\
+  \ = fuel_surcharge_pct\n\n    def quote(self, parcel, zone, express=False):\n  \
+  \      \"\"\"Return the price for one parcel.\n\n        Args:\n            parcel:\
+  \ The parcel to ship.\n            zone: One of the keys of ZONES.\n           \
+  \ insured: Whether insurance is added.\n        \"\"\"\n        if zone not in ZONES:\n\
+  \            raise ValueError(\"unknown zone: %s\" % zone)\n        billable = max(parcel.weight_kg,\
+  \ parcel.volumetric_weight())\n        price = (self.base_rate + billable * self.per_kg)\
+  \ * ZONES[zone]\n        if express:\n            price *= 1.5\n        return round(price\
+  \ * (1 + self.fuel_surcharge_pct / 100), 2)\n\n    def quote_many(self, parcels,\
+  \ zone):\n        return [self.quote(p, zone) for p in parcels]\n\n\ndef cheapest_zone_for(parcel,\
+  \ calculator):\n    best = None\n    for zone in ZONES:\n        price = calculator.quote(parcel,\
+  \ zone)\n        if best is None or price < best[1]:\n            best = (zone,\
+  \ price)\n    return best\n\n\ndef _round_up(value, step):\n    return -(-value\
+  \ // step) * step\n\n\x1FFILE:examples/shipping_rates_documented.py\x1E\n\"\"\"\
+  Shipping rate calculation for parcels (fictional example, fully documented version).\"\
+  \"\"\nfrom dataclasses import dataclass\n\nZONES = {\"domestic\": 1.0, \"eu\": 1.6,\
+  \ \"world\": 2.4}\n\n\n@dataclass\nclass Parcel:\n    \"\"\"A parcel with its real\
+  \ weight and outer dimensions.\"\"\"\n\n    weight_kg: float\n    length_cm: float\n\
+  \    width_cm: float\n    height_cm: float\n\n    def volumetric_weight(self, divisor=5000):\n\
+  \        \"\"\"Return the volumetric weight in kilograms.\n\n        Args:\n   \
+  \         divisor: Carrier divisor in cubic centimeters per kilogram.\n\n      \
+  \  Returns:\n            The volumetric weight as a float.\n        \"\"\"\n   \
+  \     return self.length_cm * self.width_cm * self.height_cm / divisor\n\n\nclass\
+  \ RateCalculator:\n    \"\"\"Calculate shipping rates for parcels.\"\"\"\n\n   \
+  \ def __init__(self, base_rate, per_kg, fuel_surcharge_pct):\n        \"\"\"Create\
+  \ a calculator with one carrier's tariff.\n\n        Args:\n            base_rate:\
+  \ Fixed price per parcel.\n            per_kg: Price per billable kilogram.\n  \
+  \          fuel_surcharge_pct: Fuel surcharge in percent, added at the end.\n  \
+  \      \"\"\"\n        self.base_rate = base_rate\n        self.per_kg = per_kg\n\
+  \        self.fuel_surcharge_pct = fuel_surcharge_pct\n\n    def quote(self, parcel,\
+  \ zone, express=False):\n        \"\"\"Return the price for one parcel.\n\n    \
+  \    Args:\n            parcel: The parcel to ship.\n            zone: One of the\
+  \ keys of ZONES.\n            express: Whether express delivery (+50 percent) is\
+  \ used.\n\n        Returns:\n            The price rounded to 2 decimals.\n\n  \
+  \      Raises:\n            ValueError: If the zone is unknown.\n        \"\"\"\n\
+  \        if zone not in ZONES:\n            raise ValueError(\"unknown zone: %s\"\
+  \ % zone)\n        billable = max(parcel.weight_kg, parcel.volumetric_weight())\n\
+  \        price = (self.base_rate + billable * self.per_kg) * ZONES[zone]\n     \
+  \   if express:\n            price *= 1.5\n        return round(price * (1 + self.fuel_surcharge_pct\
+  \ / 100), 2)\n\n    def quote_many(self, parcels, zone):\n        \"\"\"Return standard\
+  \ prices for several parcels to the same zone.\n\n        Args:\n            parcels:\
+  \ Iterable of parcels.\n            zone: One of the keys of ZONES.\n\n        Returns:\n\
+  \            A list of prices in the same order as the parcels.\n        \"\"\"\n\
+  \        return [self.quote(p, zone) for p in parcels]\n\n\ndef cheapest_zone_for(parcel,\
+  \ calculator):\n    \"\"\"Find the zone with the lowest standard price for a parcel.\n\
+  \n    Args:\n        parcel: The parcel to ship.\n        calculator: A RateCalculator.\n\
+  \n    Returns:\n        A (zone, price) tuple.\n    \"\"\"\n    best = None\n  \
+  \  for zone in ZONES:\n        price = calculator.quote(parcel, zone)\n        if\
+  \ best is None or price < best[1]:\n            best = (zone, price)\n    return\
+  \ best\n\n\ndef _round_up(value, step):\n    return -(-value // step) * step\n\n\
+  \x1FFILE:scripts/docstring_coverage.py\x1E\n#!/usr/bin/env python3\n\"\"\"docstring_coverage.py\
+  \ - measure docstring coverage and quality for Python code (standard library only).\n\
+  \nWalks files or folders, parses each file with the ast module (code is never imported\
+  \ or run) and checks\nevery module, public class, public function and public method:\n\
+  \  D01 high    public module, class, function or method has no docstring\n  D02\
+  \ medium  parameters missing from the docstring (only when the docstring documents\
+  \ parameters,\n              or when the function has --min-params or more parameters)\n\
+  \  D03 medium  docstring documents a parameter that is not in the signature (stale)\n\
+  \  D04 low     function returns a value but the docstring has no Returns/Yields\
+  \ section\n  D05 low     function raises exceptions that the docstring does not\
+  \ mention\n  D06 low     summary line missing, longer than 88 characters or not\
+  \ ending with a period\nDocstring sections are recognised in Google (Args:), NumPy\
+  \ (Parameters / ----------) and\nreST/Sphinx (:param x:) styles.\n\nUsage:\n  python3\
+  \ docstring_coverage.py PATH [PATH ...] [--format text|md|json] [--min-severity\
+  \ low|medium|high]\n                                [--fail-under PCT] [--include-private]\
+  \ [--min-params N]\n  python3 docstring_coverage.py --self-test\nExit code: 0 =\
+  \ coverage >= --fail-under and no findings at or above --min-severity,\n       \
+  \    1 = below threshold or findings present, 2 = bad path / nothing parsable.\n\
+  \"\"\"\nimport argparse, ast, json, os, re, sys\n\nSKIP_DIRS = {\".git\", \".hg\"\
+  , \".venv\", \"venv\", \"env\", \"node_modules\", \"build\", \"dist\", \"__pycache__\"\
+  , \".tox\", \".mypy_cache\", \"site-packages\"}\nSEV = {\"low\": 1, \"medium\":\
+  \ 2, \"high\": 3}\nCODES = {\"D01\": \"high\", \"D02\": \"medium\", \"D03\": \"\
+  medium\", \"D04\": \"low\", \"D05\": \"low\", \"D06\": \"low\"}\nSECTION_PARAMS\
+  \ = re.compile(r\"^\\s*(Args|Arguments|Parameters|Params|Keyword Args|Keyword Arguments|Other\
+  \ Parameters)\\s*:?\\s*$\", re.M)\nSECTION_RETURNS = re.compile(r\"^\\s*(Returns?|Yields?)\\\
+  s*:?\\s*$|:returns?:|:rtype:|:yields?:\", re.M)\nSECTION_RAISES = re.compile(r\"\
+  ^\\s*(Raises|Exceptions)\\s*:?\\s*$|:raises?\\s\", re.M)\nREST_PARAM = re.compile(r\"\
+  :param\\s+(?:[\\w\\[\\], .]+\\s+)?\\*{0,2}(\\w+)\\s*:\")\n\n\ndef documented_params(doc):\n\
+  \    \"\"\"Return the set of parameter names a docstring documents, in any of the\
+  \ three styles.\"\"\"\n    names = set(REST_PARAM.findall(doc))\n    lines = doc.splitlines()\n\
+  \    i = 0\n    while i < len(lines):\n        if SECTION_PARAMS.match(lines[i]):\n\
+  \            numpy = i + 1 < len(lines) and set(lines[i + 1].strip()) == {\"-\"\
+  }\n            j = i + (2 if numpy else 1)\n            base = None\n          \
+  \  while j < len(lines):\n                line = lines[j]\n                if not\
+  \ line.strip():\n                    j += 1\n                    continue\n    \
+  \            indent = len(line) - len(line.lstrip())\n                if numpy:\n\
+  \                    if j + 1 < len(lines) and set(lines[j + 1].strip()) == {\"\
+  -\"} and lines[j + 1].strip():\n                        break  # next numpy section\n\
+  \                    if base is None:\n                        base = indent\n \
+  \                   if indent == base:\n                        if re.match(r\"\\\
+  s*\\*{0,2}\\w+\", line):\n                            for part in line.split(\"\
+  :\")[0].split(\",\"):\n                                p = part.strip().lstrip(\"\
+  *\")\n                                if p.isidentifier():\n                   \
+  \                 names.add(p)\n                else:\n                    if re.match(r\"\
+  ^\\s*[A-Z][A-Za-z ]+:\\s*$\", line) and (base is None or indent < base):\n     \
+  \                   break  # next google section\n                    if base is\
+  \ None:\n                        base = indent\n                    if indent <\
+  \ base:\n                        break\n                    if indent == base:\n\
+  \                        m = re.match(r\"\\s*\\*{0,2}(\\w+)\\s*(\\([^)]*\\))?\\\
+  s*:\", line)\n                        if m:\n                            names.add(m.group(1))\n\
+  \                j += 1\n            i = j\n            continue\n        i += 1\n\
+  \    return names\n\n\ndef signature_params(fn, is_method):\n    a = fn.args\n \
+  \   params = [x.arg for x in getattr(a, \"posonlyargs\", [])] + [x.arg for x in\
+  \ a.args] + [x.arg for x in a.kwonlyargs]\n    if a.vararg:\n        params.append(a.vararg.arg)\n\
+  \    if a.kwarg:\n        params.append(a.kwarg.arg)\n    if is_method and params\
+  \ and params[0] in (\"self\", \"cls\"):\n        params = params[1:]\n    return\
+  \ [p for p in params if p != \"_\"]\n\n\ndef _own_nodes(fn):\n    \"\"\"Walk a function\
+  \ body without descending into nested functions or classes.\"\"\"\n    stack = [n\
+  \ for n in fn.body if not isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef,\
+  \ ast.ClassDef))]\n    while stack:\n        node = stack.pop()\n        yield node\n\
+  \        for child in ast.iter_child_nodes(node):\n            if not isinstance(child,\
+  \ (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)):\n        \
+  \        stack.append(child)\n\n\ndef returns_value(fn):\n    for n in _own_nodes(fn):\n\
+  \        if isinstance(n, ast.Return) and n.value is not None and not (isinstance(n.value,\
+  \ ast.Constant) and n.value.value is None):\n            return True\n        if\
+  \ isinstance(n, (ast.Yield, ast.YieldFrom)):\n            return True\n    return\
+  \ False\n\n\ndef raised_names(fn):\n    out = set()\n    for n in _own_nodes(fn):\n\
+  \        if isinstance(n, ast.Raise) and n.exc is not None:\n            e = n.exc.func\
+  \ if isinstance(n.exc, ast.Call) else n.exc\n            if isinstance(e, ast.Name):\n\
+  \                out.add(e.id)\n            elif isinstance(e, ast.Attribute):\n\
+  \                out.add(e.attr)\n    return out\n\n\ndef is_public(name):\n   \
+  \ return not name.startswith(\"_\") or (name.startswith(\"__\") and name.endswith(\"\
+  __\") and name == \"__init__\")\n\n\ndef check_summary(doc):\n    first = doc.strip().splitlines()[0].strip()\
+  \ if doc.strip() else \"\"\n    if not first:\n        return \"empty summary line\"\
+  \n    if len(first) > 88:\n        return \"summary line is %d characters (max 88)\"\
+  \ % len(first)\n    if not first.endswith((\".\", \"!\", \"?\", \":\")):\n     \
+  \   return \"summary line does not end with a period\"\n    return None\n\n\ndef\
+  \ analyze_source(src, path=\"<string>\", include_private=False, min_params=3):\n\
+  \    tree = ast.parse(src, filename=path)\n    items, findings = [], []\n\n    def\
+  \ add(code, obj, line, msg):\n        findings.append({\"code\": code, \"severity\"\
+  : CODES[code], \"path\": path, \"line\": line, \"object\": obj, \"message\": msg})\n\
+  \n    mod_doc = ast.get_docstring(tree)\n    items.append({\"path\": path, \"object\"\
+  : \"<module>\", \"kind\": \"module\", \"line\": 1, \"documented\": bool(mod_doc)})\n\
+  \    if not mod_doc:\n        add(\"D01\", \"<module>\", 1, \"module has no docstring\"\
+  )\n    elif check_summary(mod_doc):\n        add(\"D06\", \"<module>\", 1, check_summary(mod_doc))\n\
+  \n    def visit(body, prefix, in_class, parent_public):\n        for node in body:\n\
+  \            if isinstance(node, ast.ClassDef):\n                public = parent_public\
+  \ and (include_private or is_public(node.name))\n                name = prefix +\
+  \ node.name\n                if public:\n                    doc = ast.get_docstring(node)\n\
+  \                    items.append({\"path\": path, \"object\": name, \"kind\": \"\
+  class\", \"line\": node.lineno, \"documented\": bool(doc)})\n                  \
+  \  if not doc:\n                        add(\"D01\", name, node.lineno, \"class\
+  \ has no docstring\")\n                    elif check_summary(doc):\n          \
+  \              add(\"D06\", name, node.lineno, check_summary(doc))\n           \
+  \     visit(node.body, name + \".\", True, public)\n            elif isinstance(node,\
+  \ (ast.FunctionDef, ast.AsyncFunctionDef)):\n                public = parent_public\
+  \ and (include_private or is_public(node.name))\n                if any(isinstance(d,\
+  \ ast.Name) and d.id == \"overload\" or isinstance(d, ast.Attribute) and d.attr\
+  \ in (\"overload\", \"setter\", \"deleter\") for d in node.decorator_list):\n  \
+  \                  continue\n                name = prefix + node.name\n       \
+  \         if not public:\n                    continue\n                kind = \"\
+  method\" if in_class else \"function\"\n                doc = ast.get_docstring(node)\n\
+  \                items.append({\"path\": path, \"object\": name, \"kind\": kind,\
+  \ \"line\": node.lineno, \"documented\": bool(doc)})\n                if not doc:\n\
+  \                    add(\"D01\", name, node.lineno, \"%s has no docstring\" % kind)\n\
+  \                    continue\n                params = signature_params(node, in_class)\n\
+  \                documented = documented_params(doc)\n                has_section\
+  \ = bool(documented) or bool(SECTION_PARAMS.search(doc))\n                if has_section\
+  \ or len(params) >= min_params:\n                    missing = [p for p in params\
+  \ if p not in documented]\n                    if missing:\n                   \
+  \     add(\"D02\", name, node.lineno, \"parameters not documented: \" + \", \".join(missing))\n\
+  \                stale = sorted(documented - set(params) - {\"self\", \"cls\"})\n\
+  \                if stale:\n                    add(\"D03\", name, node.lineno,\
+  \ \"docstring documents parameters not in the signature: \" + \", \".join(stale))\n\
+  \                if returns_value(node) and not SECTION_RETURNS.search(doc) and\
+  \ node.name != \"__init__\":\n                    add(\"D04\", name, node.lineno,\
+  \ \"returns a value but the docstring has no Returns/Yields section\")\n       \
+  \         raised = raised_names(node)\n                undocumented = sorted(r for\
+  \ r in raised if r not in doc)\n                if undocumented:\n             \
+  \       add(\"D05\", name, node.lineno, \"raises without mention in the docstring:\
+  \ \" + \", \".join(undocumented))\n                s = check_summary(doc)\n    \
+  \            if s:\n                    add(\"D06\", name, node.lineno, s)\n\n \
+  \   visit(tree.body, \"\", False, True)\n    return items, findings\n\n\ndef iter_files(paths):\n\
+  \    for p in paths:\n        if os.path.isfile(p):\n            yield p\n     \
+  \   elif os.path.isdir(p):\n            for root, dirs, files in os.walk(p):\n \
+  \               dirs[:] = sorted(d for d in dirs if d not in SKIP_DIRS and not d.endswith(\"\
+  .egg-info\"))\n                for f in sorted(files):\n                    if f.endswith(\"\
+  .py\"):\n                        yield os.path.join(root, f)\n        else:\n  \
+  \          raise FileNotFoundError(p)\n\n\ndef summarize(items):\n    by_kind =\
+  \ {}\n    for it in items:\n        k = by_kind.setdefault(it[\"kind\"], [0, 0])\n\
+  \        k[0] += 1\n        k[1] += it[\"documented\"]\n    total = len(items)\n\
+  \    doc = sum(it[\"documented\"] for it in items)\n    return {\"objects\": total,\
+  \ \"documented\": doc, \"coverage_pct\": round(100.0 * doc / total, 1) if total\
+  \ else 100.0,\n            \"by_kind\": {k: {\"objects\": v[0], \"documented\":\
+  \ v[1], \"coverage_pct\": round(100.0 * v[1] / v[0], 1)} for k, v in sorted(by_kind.items())}}\n\
+  \n\ndef render(fmt, summary, findings, errors, per_file):\n    if fmt == \"json\"\
+  :\n        return json.dumps({\"summary\": summary, \"files\": per_file, \"findings\"\
+  : findings, \"parse_errors\": errors}, indent=2)\n    out = []\n    if fmt == \"\
+  md\":\n        out.append(\"## Docstring coverage: %.1f%% (%d/%d objects)\" % (summary[\"\
+  coverage_pct\"], summary[\"documented\"], summary[\"objects\"]))\n        out.append(\"\
+  \")\n        out.append(\"| Kind | Documented | Coverage |\")\n        out.append(\"\
+  |---|---|---|\")\n        for k, v in summary[\"by_kind\"].items():\n          \
+  \  out.append(\"| %s | %d/%d | %.1f%% |\" % (k, v[\"documented\"], v[\"objects\"\
+  ], v[\"coverage_pct\"]))\n        out.append(\"\")\n        if findings:\n     \
+  \       out.append(\"| Code | Severity | Location | Object | Finding |\")\n    \
+  \        out.append(\"|---|---|---|---|---|\")\n            for f in findings:\n\
+  \                out.append(\"| %s | %s | %s:%d | `%s` | %s |\" % (f[\"code\"],\
+  \ f[\"severity\"], f[\"path\"], f[\"line\"], f[\"object\"], f[\"message\"]))\n \
+  \       else:\n            out.append(\"No findings at the selected severity.\"\
+  )\n    else:\n        out.append(\"Docstring coverage: %.1f%% (%d/%d objects)\"\
+  \ % (summary[\"coverage_pct\"], summary[\"documented\"], summary[\"objects\"]))\n\
+  \        for k, v in summary[\"by_kind\"].items():\n            out.append(\"  %-8s\
+  \ %d/%d (%.1f%%)\" % (k, v[\"documented\"], v[\"objects\"], v[\"coverage_pct\"]))\n\
+  \        for pf in per_file:\n            out.append(\"  file %s: %.1f%% (%d/%d)\"\
+  \ % (pf[\"path\"], pf[\"coverage_pct\"], pf[\"documented\"], pf[\"objects\"]))\n\
+  \        out.append(\"\")\n        for f in findings:\n            out.append(\"\
+  %s %-6s %s:%d %s - %s\" % (f[\"code\"], f[\"severity\"], f[\"path\"], f[\"line\"\
+  ], f[\"object\"], f[\"message\"]))\n        if not findings:\n            out.append(\"\
+  No findings at the selected severity.\")\n    for e in errors:\n        out.append(\"\
+  PARSE ERROR %s: %s\" % (e[\"path\"], e[\"error\"]))\n    return \"\\n\".join(out)\n\
+  \n\ndef self_test():\n    T = []\n\n    def check(name, cond):\n        T.append((name,\
+  \ bool(cond)))\n\n    src = '''\"\"\"Module summary.\"\"\"\ndef a(x, y):\n    \"\
+  \"\"Add two numbers.\n\n    Args:\n        x: first.\n        y (int): second.\n\
+  \n    Returns:\n        The sum.\n    \"\"\"\n    return x + y\ndef b(x):\n    return\
+  \ x\n'''\n    items, f = analyze_source(src)\n    codes = [x[\"code\"] for x in\
+  \ f]\n    check(\"google style fully documented gives no finding for a\", not [x\
+  \ for x in f if x[\"object\"] == \"a\"])\n    check(\"missing docstring gives D01\"\
+  , (\"D01\", \"b\") in [(x[\"code\"], x[\"object\"]) for x in f])\n    check(\"coverage\
+  \ counts module and functions\", summarize(items)[\"coverage_pct\"] == 66.7)\n \
+  \   items, f = analyze_source('\"\"\"M.\"\"\"\\ndef c(a, b):\\n    \"\"\"Do it.\\\
+  n\\n    Args:\\n        a: one.\\n    \"\"\"\\n    pass\\n')\n    check(\"missing\
+  \ param gives D02\", [x[\"message\"] for x in f if x[\"code\"] == \"D02\"] == [\"\
+  parameters not documented: b\"])\n    items, f = analyze_source('\"\"\"M.\"\"\"\\\
+  ndef c(a):\\n    \"\"\"Do it.\\n\\n    Args:\\n        a: one.\\n        old: gone.\\\
+  n    \"\"\"\\n')\n    check(\"stale param gives D03\", any(x[\"code\"] == \"D03\"\
+  \ and \"old\" in x[\"message\"] for x in f))\n    numpy = '\"\"\"M.\"\"\"\\ndef\
+  \ n(a, b):\\n    \"\"\"Numpy style.\\n\\n    Parameters\\n    ----------\\n    a\
+  \ : int\\n        One.\\n    b : str\\n        Two.\\n\\n    Returns\\n    -------\\\
+  n    int\\n    \"\"\"\\n    return 1\\n'\n    items, f = analyze_source(numpy)\n\
+  \    check(\"numpy style params and returns recognised\", not f)\n    rest = '\"\
+  \"\"M.\"\"\"\\ndef r(a, b):\\n    \"\"\"Rest style.\\n\\n    :param a: one.\\n \
+  \   :param int b: two.\\n    :returns: value.\\n    :raises ValueError: bad.\\n\
+  \    \"\"\"\\n    if a:\\n        raise ValueError(\"x\")\\n    return a\\n'\n \
+  \   items, f = analyze_source(rest)\n    check(\"rest style params, returns and\
+  \ raises recognised\", not f)\n    items, f = analyze_source('\"\"\"M.\"\"\"\\ndef\
+  \ s(a):\\n    \"\"\"Short.\"\"\"\\n    return a * 2\\n')\n    check(\"return without\
+  \ Returns section gives D04\", any(x[\"code\"] == \"D04\" for x in f))\n    check(\"\
+  one short param below --min-params gives no D02\", not any(x[\"code\"] == \"D02\"\
+  \ for x in f))\n    items, f = analyze_source('\"\"\"M.\"\"\"\\ndef g(a):\\n   \
+  \ \"\"\"Get.\"\"\"\\n    raise KeyError(a)\\n')\n    check(\"undocumented raise\
+  \ gives D05\", any(x[\"code\"] == \"D05\" and \"KeyError\" in x[\"message\"] for\
+  \ x in f))\n    items, f = analyze_source('\"\"\"M.\"\"\"\\ndef h():\\n    \"\"\"\
+  no period here\"\"\"\\n')\n    check(\"summary without period gives D06\", any(x[\"\
+  code\"] == \"D06\" for x in f))\n    items, f = analyze_source('def _p():\\n   \
+  \ pass\\nclass _Q:\\n    def m(self):\\n        pass\\n')\n    check(\"private function\
+  \ and class skipped, module flagged\", [x[\"object\"] for x in f] == [\"<module>\"\
+  ])\n    items, f = analyze_source('def _p():\\n    pass\\n', include_private=True)\n\
+  \    check(\"--include-private checks private names\", any(x[\"object\"] == \"_p\"\
+  \ for x in f))\n    cls = '\"\"\"M.\"\"\"\\nclass K:\\n    \"\"\"A class.\"\"\"\\\
+  n    def __init__(self, a, b, c):\\n        \"\"\"Create it.\"\"\"\\n    def run(self):\\\
+  n        \"\"\"Run it.\"\"\"\\n    def __repr__(self):\\n        return \"K\"\\\
+  n'\n    items, f = analyze_source(cls)\n    check(\"__init__ with 3 params gives\
+  \ D02, self excluded\", any(x[\"code\"] == \"D02\" and x[\"object\"] == \"K.__init__\"\
+  \ and \"self\" not in x[\"message\"] for x in f))\n    check(\"dunder methods other\
+  \ than __init__ are skipped\", not any(x[\"object\"] == \"K.__repr__\" for x in\
+  \ f))\n    items, f = analyze_source('\"\"\"M.\"\"\"\\ndef outer():\\n    \"\"\"\
+  Outer.\"\"\"\\n    def inner():\\n        return 1\\n    return None\\n')\n    check(\"\
+  nested return does not count for outer\", not any(x[\"code\"] == \"D04\" for x in\
+  \ f))\n    items, f = analyze_source('\"\"\"M.\"\"\"\\ndef gen(n):\\n    \"\"\"\
+  Generate.\\n\\n    Yields:\\n        Numbers.\\n    \"\"\"\\n    yield n\\n')\n\
+  \    check(\"Yields section satisfies D04\", not f)\n    items, f = analyze_source('\"\
+  \"\"M.\"\"\"\\ndef v(*args, **kwargs):\\n    \"\"\"Var.\\n\\n    Args:\\n      \
+  \  *args: values.\\n        **kwargs: options.\\n    \"\"\"\\n')\n    check(\"*args\
+  \ and **kwargs documented with stars\", not f)\n    try:\n        analyze_source(\"\
+  def broken(:\\n\")\n        check(\"syntax error raised\", False)\n    except SyntaxError:\n\
+  \        check(\"syntax error raised\", True)\n    for name, ok in T:\n        print((\"\
+  PASS  \" if ok else \"FAIL  \") + name)\n    passed = sum(ok for _, ok in T)\n \
+  \   print(\"%d/%d checks passed\" % (passed, len(T)))\n    return 0 if passed ==\
+  \ len(T) else 1\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser(description=\"\
+  Docstring coverage and quality checker (stdlib only).\")\n    ap.add_argument(\"\
+  paths\", nargs=\"*\")\n    ap.add_argument(\"--format\", choices=[\"text\", \"md\"\
+  , \"json\"], default=\"text\")\n    ap.add_argument(\"--min-severity\", choices=list(SEV),\
+  \ default=\"low\")\n    ap.add_argument(\"--fail-under\", type=float, default=0.0,\
+  \ help=\"minimum coverage percent (default 0)\")\n    ap.add_argument(\"--include-private\"\
+  , action=\"store_true\")\n    ap.add_argument(\"--min-params\", type=int, default=3,\
+  \ help=\"require a parameter section from this many parameters (default 3)\")\n\
+  \    ap.add_argument(\"--self-test\", action=\"store_true\")\n    a = ap.parse_args(argv)\n\
+  \    if a.self_test:\n        return self_test()\n    if not a.paths:\n        ap.error(\"\
+  give at least one path or --self-test\")\n    try:\n        files = list(iter_files(a.paths))\n\
+  \    except FileNotFoundError as e:\n        print(\"no such path: %s\" % e, file=sys.stderr)\n\
+  \        return 2\n    all_items, findings, errors, per_file = [], [], [], []\n\
+  \    for p in files:\n        try:\n            with open(p, encoding=\"utf-8\"\
+  ) as fh:\n                items, f = analyze_source(fh.read(), p, a.include_private,\
+  \ a.min_params)\n        except (SyntaxError, UnicodeDecodeError) as e:\n      \
+  \      errors.append({\"path\": p, \"error\": str(e).splitlines()[0]})\n       \
+  \     continue\n        all_items += items\n        findings += f\n        s = summarize(items)\n\
+  \        per_file.append({\"path\": p, \"objects\": s[\"objects\"], \"documented\"\
+  : s[\"documented\"], \"coverage_pct\": s[\"coverage_pct\"]})\n    if not all_items:\n\
+  \        print(render(a.format, summarize([]), [], errors, []))\n        return\
+  \ 2\n    shown = [f for f in findings if SEV[f[\"severity\"]] >= SEV[a.min_severity]]\n\
+  \    shown.sort(key=lambda f: (-SEV[f[\"severity\"]], f[\"path\"], f[\"line\"],\
+  \ f[\"code\"]))\n    summary = summarize(all_items)\n    summary[\"fail_under\"\
+  ] = a.fail_under\n    print(render(a.format, summary, shown, errors, per_file))\n\
+  \    return 1 if shown or summary[\"coverage_pct\"] < a.fail_under else 0\n\n\n\
+  if __name__ == \"__main__\":\n    sys.exit(main())"
+tags:
+- imported
+category: analysis
+author: Prompts Chat
+source: Prompts Chat
